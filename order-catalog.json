@@ -1,0 +1,2968 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "lab-complete-blood-count",
+      "label": "Complete Blood Count",
+      "category": "lab",
+      "canonical": "complete blood count",
+      "aliases": [
+        "cbc",
+        "cbc w/ diff",
+        "cbc with diff",
+        "cbc with differential",
+        "hemogram",
+        "blood count",
+        "check her counts",
+        "check his counts",
+        "cbc stat",
+        "order a cbc",
+        "run a cbc",
+        "get a cbc",
+        "complete blood cell count",
+        "cbc please",
+        "check counts",
+        "blood cell count",
+        "cbc/diff"
+      ]
+    },
+    {
+      "id": "lab-basic-metabolic-panel",
+      "label": "Basic Metabolic Panel",
+      "category": "lab",
+      "canonical": "basic metabolic panel",
+      "aliases": [
+        "bmp",
+        "chem 7",
+        "chem-7",
+        "chem7",
+        "basic chem",
+        "lytes",
+        "check lytes",
+        "electrolyte panel",
+        "seven panel",
+        "order a bmp",
+        "run a bmp",
+        "get lytes",
+        "basic metabolic",
+        "chem panel",
+        "get a bmp",
+        "check electrolytes",
+        "check his lytes"
+      ]
+    },
+    {
+      "id": "lab-coagulation-panel",
+      "label": "Coagulation Panel",
+      "category": "lab",
+      "canonical": "coagulation panel",
+      "aliases": [
+        "coags",
+        "pt/ptt",
+        "pt/inr",
+        "inr",
+        "coag panel",
+        "coagulation studies",
+        "clotting panel",
+        "pt ptt inr",
+        "check coags",
+        "clotting studies",
+        "coag studies",
+        "order coags",
+        "run coags",
+        "check pt inr",
+        "coags stat"
+      ]
+    },
+    {
+      "id": "lab-venous-blood-gas",
+      "label": "Venous Blood Gas",
+      "category": "lab",
+      "canonical": "venous blood gas",
+      "aliases": [
+        "vbg",
+        "venous gas",
+        "v-gas",
+        "venous blood gas check",
+        "check vbg",
+        "get a vbg",
+        "run vbg",
+        "venous gas panel",
+        "order a vbg",
+        "vbg stat",
+        "venous blood gas level"
+      ]
+    },
+    {
+      "id": "lab-arterial-blood-gas",
+      "label": "Arterial Blood Gas",
+      "category": "lab",
+      "canonical": "arterial blood gas",
+      "aliases": [
+        "abg",
+        "arterial gas",
+        "art gas",
+        "order an abg",
+        "get an abg",
+        "run an abg",
+        "arterial stick",
+        "blood gas arterial",
+        "abg stat",
+        "check abg",
+        "stick for abg",
+        "draw an abg"
+      ]
+    },
+    {
+      "id": "lab-urinalysis",
+      "label": "Urinalysis",
+      "category": "lab",
+      "canonical": "urinalysis",
+      "aliases": [
+        "ua",
+        "urine dip",
+        "dipstick urine",
+        "u/a",
+        "check ua",
+        "dip the urine",
+        "urine analysis",
+        "ua with micro",
+        "ua/micro",
+        "order a ua",
+        "get a ua",
+        "urine studies",
+        "dipstick",
+        "dip a ua",
+        "dipstick her urine"
+      ]
+    },
+    {
+      "id": "lab-liver-function-tests",
+      "label": "Liver Function Tests",
+      "category": "lab",
+      "canonical": "liver function tests",
+      "aliases": [
+        "lfts",
+        "liver panel",
+        "liver enzymes",
+        "hepatic panel",
+        "liver labs",
+        "check lfts",
+        "liver function panel",
+        "ast/alt",
+        "check liver enzymes",
+        "hepatic function panel",
+        "order lfts",
+        "get lfts",
+        "liver studies"
+      ]
+    },
+    {
+      "id": "lab-comprehensive-metabolic-panel",
+      "label": "Comprehensive Metabolic Panel",
+      "category": "lab",
+      "canonical": "comprehensive metabolic panel",
+      "aliases": [
+        "cmp",
+        "chem 14",
+        "chem-14",
+        "chem14",
+        "comprehensive panel",
+        "comp metabolic",
+        "full metabolic panel",
+        "full chem panel",
+        "order a cmp",
+        "run a cmp",
+        "get a cmp",
+        "comprehensive chem panel",
+        "chem 20",
+        "full metabolic panel please"
+      ]
+    },
+    {
+      "id": "lab-troponin",
+      "label": "Troponin I",
+      "category": "lab",
+      "canonical": "troponin",
+      "aliases": [
+        "trop",
+        "troponin level",
+        "check trop",
+        "trop level",
+        "trop i",
+        "serial trops",
+        "trend trops",
+        "order a trop",
+        "get a trop",
+        "check troponin level",
+        "trop stat",
+        "repeat trop",
+        "cardiac enzyme"
+      ]
+    },
+    {
+      "id": "lab-lactate",
+      "label": "Lactate",
+      "category": "lab",
+      "canonical": "lactate",
+      "aliases": [
+        "lactic acid",
+        "lactate level",
+        "check lactate",
+        "lactic acid level",
+        "venous lactate",
+        "serum lactate",
+        "order a lactate",
+        "get a lactate",
+        "check lactic",
+        "lactate stat",
+        "trend lactate"
+      ]
+    },
+    {
+      "id": "lab-bnp",
+      "label": "BNP",
+      "category": "lab",
+      "canonical": "bnp",
+      "aliases": [
+        "brain natriuretic peptide",
+        "bnp level",
+        "check bnp",
+        "pro-bnp",
+        "nt-probnp",
+        "order a bnp",
+        "get a bnp",
+        "bnp stat",
+        "check bnp level"
+      ]
+    },
+    {
+      "id": "lab-d-dimer",
+      "label": "D-dimer",
+      "category": "lab",
+      "canonical": "d dimer",
+      "aliases": [
+        "d-dimer",
+        "ddimer",
+        "check d dimer",
+        "d dimer level",
+        "order a d dimer",
+        "get a d dimer",
+        "dimer test",
+        "dimer level",
+        "rule out pe with d dimer",
+        "d-dimer stat"
+      ]
+    },
+    {
+      "id": "lab-lipase",
+      "label": "Lipase",
+      "category": "lab",
+      "canonical": "lipase",
+      "aliases": [
+        "lipase level",
+        "check lipase",
+        "pancreatic enzyme",
+        "order lipase",
+        "get a lipase",
+        "lipase stat",
+        "amylase and lipase",
+        "pancreas enzymes",
+        "check pancreatic enzymes"
+      ]
+    },
+    {
+      "id": "lab-pregnancy-test",
+      "label": "Urine hCG",
+      "category": "lab",
+      "canonical": "pregnancy test",
+      "aliases": [
+        "preg test",
+        "urine preg",
+        "beta hcg",
+        "quant hcg",
+        "is she pregnant",
+        "pregnancy check",
+        "hcg test",
+        "check for pregnancy",
+        "rule out pregnancy",
+        "urine hcg test",
+        "get a preg test",
+        "order a pregnancy test",
+        "dip for pregnancy",
+        "beta level"
+      ]
+    },
+    {
+      "id": "lab-blood-cultures",
+      "label": "Blood cultures ×2",
+      "category": "lab",
+      "canonical": "blood cultures",
+      "aliases": [
+        "blood cx",
+        "cultures x2",
+        "blood cx2",
+        "cx blood",
+        "draw blood cultures",
+        "get blood cultures",
+        "order blood cx",
+        "culture the blood",
+        "cultures times two",
+        "blood culture x2",
+        "bcx",
+        "draw cultures",
+        "draw bottles"
+      ]
+    },
+    {
+      "id": "lab-urine-culture",
+      "label": "Urine culture",
+      "category": "lab",
+      "canonical": "urine culture",
+      "aliases": [
+        "urine cx",
+        "u cx",
+        "culture the urine",
+        "order urine culture",
+        "get urine cx",
+        "ucx",
+        "urine c&s",
+        "culture and sensitivity urine",
+        "order a ucx",
+        "culture her urine"
+      ]
+    },
+    {
+      "id": "lab-tsh",
+      "label": "TSH",
+      "category": "lab",
+      "canonical": "tsh",
+      "aliases": [
+        "thyroid panel",
+        "thyroid stimulating hormone",
+        "check thyroid",
+        "thyroid level",
+        "order a tsh",
+        "get a tsh",
+        "check tsh level",
+        "thyroid function test",
+        "tsh level"
+      ]
+    },
+    {
+      "id": "lab-magnesium",
+      "label": "Magnesium",
+      "category": "lab",
+      "canonical": "magnesium",
+      "aliases": [
+        "mag level",
+        "check mag",
+        "mg level",
+        "order magnesium",
+        "get a mag level",
+        "check magnesium level",
+        "serum magnesium",
+        "mag",
+        "order a mag",
+        "check her mag level"
+      ]
+    },
+    {
+      "id": "lab-phosphorus",
+      "label": "Phosphorus",
+      "category": "lab",
+      "canonical": "phosphorus",
+      "aliases": [
+        "phos level",
+        "check phos",
+        "order phosphorus",
+        "get a phos",
+        "phosphate level",
+        "serum phosphorus",
+        "check phosphate",
+        "order a phos",
+        "check his phos"
+      ]
+    },
+    {
+      "id": "lab-ammonia",
+      "label": "Ammonia",
+      "category": "lab",
+      "canonical": "ammonia",
+      "aliases": [
+        "nh3",
+        "ammonia level",
+        "check ammonia",
+        "order ammonia",
+        "get an ammonia level",
+        "serum ammonia",
+        "order an ammonia",
+        "check nh3"
+      ]
+    },
+    {
+      "id": "lab-crp",
+      "label": "CRP",
+      "category": "lab",
+      "canonical": "crp",
+      "aliases": [
+        "crp test",
+        "c-reactive protein",
+        "c reactive protein",
+        "check crp",
+        "draw crp",
+        "order crp",
+        "send crp",
+        "crp level",
+        "crp stat",
+        "inflammatory marker crp",
+        "crp panel",
+        "recheck crp",
+        "trend crp"
+      ]
+    },
+    {
+      "id": "lab-esr",
+      "label": "ESR",
+      "category": "lab",
+      "canonical": "esr",
+      "aliases": [
+        "sed rate",
+        "sedimentation rate",
+        "check sed rate",
+        "draw sed rate",
+        "order sed rate",
+        "send esr",
+        "esr level",
+        "westergren rate",
+        "sed rate stat",
+        "inflammatory marker esr",
+        "recheck sed rate"
+      ]
+    },
+    {
+      "id": "lab-acetaminophen",
+      "label": "Acetaminophen level",
+      "category": "lab",
+      "canonical": "acetaminophen",
+      "aliases": [
+        "tylenol level",
+        "apap level",
+        "check tylenol level",
+        "draw apap level",
+        "tylenol level stat",
+        "apap overdose level",
+        "tox tylenol level",
+        "send apap",
+        "acetaminophen level stat",
+        "check apap",
+        "tylenol overdose panel"
+      ]
+    },
+    {
+      "id": "lab-salicylate",
+      "label": "Salicylate level",
+      "category": "lab",
+      "canonical": "salicylate",
+      "aliases": [
+        "aspirin level",
+        "asa level",
+        "salicylate level stat",
+        "check asa level",
+        "draw asa level",
+        "aspirin overdose level",
+        "sali level",
+        "tox asa level",
+        "send asa level",
+        "check salicylate",
+        "aspirin level check"
+      ]
+    },
+    {
+      "id": "lab-ethanol",
+      "label": "Ethanol",
+      "category": "lab",
+      "canonical": "ethanol",
+      "aliases": [
+        "etoh level",
+        "blood alcohol level",
+        "bal level",
+        "alcohol level",
+        "check etoh",
+        "draw etoh",
+        "etoh screen",
+        "blood alcohol content",
+        "alcohol tox screen",
+        "send etoh",
+        "etoh stat"
+      ]
+    },
+    {
+      "id": "lab-type-and-screen",
+      "label": "Type & screen",
+      "category": "lab",
+      "canonical": "type and screen",
+      "aliases": [
+        "type and cross",
+        "t&s",
+        "tns",
+        "blood type and screen",
+        "crossmatch",
+        "type and hold",
+        "order t and s",
+        "send type and screen",
+        "blood bank sample",
+        "type screen",
+        "hold clot",
+        "t and s"
+      ]
+    },
+    {
+      "id": "lab-urine-drug-screen",
+      "label": "Urine drug screen",
+      "category": "lab",
+      "canonical": "urine drug screen",
+      "aliases": [
+        "utox",
+        "urine tox",
+        "uds",
+        "drug screen",
+        "urine drug panel",
+        "tox screen urine",
+        "pee test",
+        "send utox",
+        "order uds",
+        "urine tox screen",
+        "utox panel",
+        "tox screen the urine"
+      ]
+    },
+    {
+      "id": "lab-procalcitonin",
+      "label": "Procalcitonin",
+      "category": "lab",
+      "canonical": "procalcitonin",
+      "aliases": [
+        "pct",
+        "procal",
+        "procalcitonin level",
+        "sepsis marker",
+        "check procal",
+        "draw pct",
+        "send procal",
+        "pct level",
+        "procal stat",
+        "procal level"
+      ]
+    },
+    {
+      "id": "lab-fibrinogen",
+      "label": "Fibrinogen",
+      "category": "lab",
+      "canonical": "fibrinogen",
+      "aliases": [
+        "fib level",
+        "fibrinogen level",
+        "check fibrinogen",
+        "draw fibrinogen",
+        "send fib level",
+        "coag fibrinogen",
+        "fib panel",
+        "fibrinogen stat",
+        "fibrinogen level check"
+      ]
+    },
+    {
+      "id": "imaging-electrocardiogram",
+      "label": "12-Lead ECG",
+      "category": "imaging",
+      "canonical": "electrocardiogram",
+      "aliases": [
+        "12 lead",
+        "ekg",
+        "ecg",
+        "get an ekg",
+        "run an ekg",
+        "hook up ekg",
+        "ekg stat",
+        "rhythm strip",
+        "12-lead ekg",
+        "stat ekg",
+        "order an ekg",
+        "let's get an ecg",
+        "put her on the monitor and get a strip"
+      ]
+    },
+    {
+      "id": "imaging-chest-x-ray",
+      "label": "Portable Chest X-ray",
+      "category": "imaging",
+      "canonical": "chest x ray",
+      "aliases": [
+        "portable chest",
+        "cxr",
+        "chest film",
+        "chest xray",
+        "chest plate",
+        "get a cxr",
+        "stat cxr",
+        "portable cxr",
+        "chest pic",
+        "order a cxr",
+        "film the chest",
+        "portable chest film"
+      ]
+    },
+    {
+      "id": "imaging-abdominal-x-ray",
+      "label": "Abdominal X-ray (KUB)",
+      "category": "imaging",
+      "canonical": "abdominal x ray",
+      "aliases": [
+        "kub",
+        "abd film",
+        "belly film",
+        "flat plate",
+        "abdominal series",
+        "kub xray",
+        "get a kub",
+        "order a kub",
+        "flat and upright",
+        "abdominal plain film",
+        "kub film"
+      ]
+    },
+    {
+      "id": "imaging-pelvis-x-ray",
+      "label": "Pelvis X-ray",
+      "category": "imaging",
+      "canonical": "pelvis x ray",
+      "aliases": [
+        "pelvic x ray",
+        "pelvis film",
+        "pelvic xray",
+        "pelvis plate",
+        "get a pelvis film",
+        "order pelvis xray",
+        "pelvic film",
+        "pelvis plain film",
+        "stat pelvis xray"
+      ]
+    },
+    {
+      "id": "imaging-computed-tomography-head",
+      "label": "CT Head",
+      "category": "imaging",
+      "canonical": "computed tomography head",
+      "aliases": [
+        "head computed tomography",
+        "ct head",
+        "head ct",
+        "non-con head ct",
+        "noncontrast head ct",
+        "head scan",
+        "ct brain",
+        "get a head ct",
+        "order ct head",
+        "stat head ct",
+        "ct the head",
+        "head cat scan"
+      ]
+    },
+    {
+      "id": "imaging-ct-angiography-chest",
+      "label": "CTA Chest (PE protocol)",
+      "category": "imaging",
+      "canonical": "ct angiography chest",
+      "aliases": [
+        "ct angiography pulmonary",
+        "cta chest",
+        "pe protocol",
+        "pe study",
+        "ct pe",
+        "chest cta",
+        "pe protocol ct",
+        "rule out pe scan",
+        "cta pe",
+        "order a pe study",
+        "chest angiogram",
+        "ct chest pe protocol",
+        "pe protocol scan"
+      ]
+    },
+    {
+      "id": "imaging-computed-tomography-abdomen-pelvis",
+      "label": "CT Abdomen/Pelvis",
+      "category": "imaging",
+      "canonical": "computed tomography abdomen pelvis",
+      "aliases": [
+        "computed tomography abdomen",
+        "ct abd/pelvis",
+        "ct a/p",
+        "abdominal ct",
+        "ct abdomen",
+        "ct scan abdomen pelvis",
+        "cat scan belly",
+        "order ct a/p",
+        "get a ct abd pelvis",
+        "ct abd pelvis with contrast",
+        "abd pelvis ct",
+        "belly cat scan with contrast"
+      ]
+    },
+    {
+      "id": "imaging-computed-tomography-chest",
+      "label": "CT Chest",
+      "category": "imaging",
+      "canonical": "computed tomography chest",
+      "aliases": [
+        "ct chest",
+        "chest ct",
+        "ct scan chest",
+        "chest cat scan",
+        "get a ct chest",
+        "order ct chest",
+        "ct thorax",
+        "chest ct noncontrast"
+      ]
+    },
+    {
+      "id": "imaging-computed-tomography-cervical-spine",
+      "label": "CT Cervical Spine",
+      "category": "imaging",
+      "canonical": "computed tomography cervical spine",
+      "aliases": [
+        "computed tomography c spine",
+        "ct c-spine",
+        "c spine ct",
+        "cervical spine ct",
+        "neck ct",
+        "order a c-spine ct",
+        "get a ct c spine",
+        "ct cspine",
+        "c-spine imaging",
+        "c spine cat scan"
+      ]
+    },
+    {
+      "id": "imaging-right-upper-quadrant-ultrasound",
+      "label": "RUQ Ultrasound",
+      "category": "imaging",
+      "canonical": "right upper quadrant ultrasound",
+      "aliases": [
+        "ruq us",
+        "gallbladder ultrasound",
+        "liver ultrasound",
+        "ruq sono",
+        "gallbladder us",
+        "get a ruq ultrasound",
+        "order gallbladder us",
+        "us abdomen ruq",
+        "hida-like scan",
+        "ruq scan"
+      ]
+    },
+    {
+      "id": "imaging-fast-exam",
+      "label": "FAST Exam",
+      "category": "imaging",
+      "canonical": "fast exam",
+      "aliases": [
+        "fast scan",
+        "trauma ultrasound",
+        "bedside fast",
+        "fast us",
+        "trauma us",
+        "fast ultrasound",
+        "get a fast",
+        "do a fast exam",
+        "bedside trauma scan",
+        "fast exam at bedside"
+      ]
+    },
+    {
+      "id": "imaging-echocardiogram",
+      "label": "Bedside Echo",
+      "category": "imaging",
+      "canonical": "echocardiogram",
+      "aliases": [
+        "bedside echocardiogram",
+        "echo",
+        "tte",
+        "transthoracic echo",
+        "cardiac echo",
+        "bedside cardiac ultrasound",
+        "pocus echo",
+        "get an echo",
+        "order an echo",
+        "cardiac ultrasound",
+        "ef check",
+        "echo the heart",
+        "do an echo",
+        "stat echo",
+        "formal echo",
+        "transthoracic echocardiogram",
+        "heart ultrasound",
+        "echocardiogram stat",
+        "check the ef"
+      ]
+    },
+    {
+      "id": "imaging-transvaginal-ultrasound",
+      "label": "Pelvic Ultrasound",
+      "category": "imaging",
+      "canonical": "transvaginal ultrasound",
+      "aliases": [
+        "pelvic ultrasound",
+        "tvus",
+        "pelvic us",
+        "transvag",
+        "transvaginal us",
+        "vaginal ultrasound",
+        "pelvic sono",
+        "order a pelvic",
+        "tv ultrasound",
+        "rule out ectopic scan",
+        "ob pelvic ultrasound",
+        "endovaginal ultrasound",
+        "pelvic sonogram",
+        "get a pelvic",
+        "us pelvis",
+        "tvs",
+        "transvaginal sono"
+      ]
+    },
+    {
+      "id": "imaging-renal-ultrasound",
+      "label": "Renal Ultrasound",
+      "category": "imaging",
+      "canonical": "renal ultrasound",
+      "aliases": [
+        "renal us",
+        "kidney ultrasound",
+        "renal sono",
+        "rus",
+        "kidney sono",
+        "r/o hydro scan",
+        "renal bladder ultrasound",
+        "kidney us",
+        "get a renal",
+        "order kidneys",
+        "renal ultrasound stat",
+        "us kidneys",
+        "bladder-kidney ultrasound",
+        "kidneys ultrasound",
+        "check for hydro"
+      ]
+    },
+    {
+      "id": "imaging-magnetic-resonance-imaging-brain",
+      "label": "MRI Brain",
+      "category": "imaging",
+      "canonical": "magnetic resonance imaging brain",
+      "aliases": [
+        "magnetic resonance imaging head",
+        "mri brain",
+        "brain mri",
+        "head mri",
+        "mri head",
+        "get an mri of the head",
+        "order brain mri",
+        "mri brain w/o contrast",
+        "mri brain w/ contrast",
+        "stat head mri",
+        "cranial mri",
+        "brain imaging mri",
+        "mri of the brain",
+        "order head mri",
+        "mri the head"
+      ]
+    },
+    {
+      "id": "med-aspirin",
+      "label": "Aspirin",
+      "category": "med",
+      "canonical": "aspirin",
+      "aliases": [
+        "asa",
+        "baby aspirin",
+        "chewable aspirin",
+        "81mg aspirin",
+        "325 aspirin",
+        "give aspirin",
+        "aspirin po",
+        "chew and swallow asa",
+        "full dose aspirin",
+        "aspirin tabs",
+        "four baby aspirin",
+        "asa 325mg",
+        "chewable asa",
+        "aspirin chew",
+        "baby asa chewed"
+      ]
+    },
+    {
+      "id": "med-nitroglycerin",
+      "label": "Nitroglycerin",
+      "category": "med",
+      "canonical": "nitroglycerin",
+      "aliases": [
+        "nitro",
+        "ntg",
+        "sublingual nitro",
+        "nitro spray",
+        "nitro tab",
+        "nitro sl",
+        "nitro drip",
+        "tridil",
+        "nitrostat",
+        "nitro paste",
+        "nitropaste",
+        "give nitro",
+        "sub-lingual nitroglycerin",
+        "nitro gtt",
+        "nitro tab under the tongue"
+      ]
+    },
+    {
+      "id": "med-heparin",
+      "label": "Heparin",
+      "category": "med",
+      "canonical": "heparin",
+      "aliases": [
+        "hep drip",
+        "heparin drip",
+        "ufh",
+        "heparin gtt",
+        "start heparin",
+        "heparin bolus",
+        "anticoag with heparin",
+        "weight-based heparin",
+        "heparin infusion",
+        "unfractionated heparin",
+        "heparin protocol",
+        "hep gtt"
+      ]
+    },
+    {
+      "id": "med-morphine",
+      "label": "Morphine",
+      "category": "med",
+      "canonical": "morphine",
+      "aliases": [
+        "ms",
+        "morphine sulfate",
+        "mso4",
+        "give morphine",
+        "morphine iv",
+        "morphine push",
+        "4 of morphine",
+        "morphine ivp",
+        "duramorph",
+        "morphine sc",
+        "morphine sq"
+      ]
+    },
+    {
+      "id": "med-fentanyl",
+      "label": "Fentanyl",
+      "category": "med",
+      "canonical": "fentanyl",
+      "aliases": [
+        "fent",
+        "sublimaze",
+        "fentanyl iv",
+        "fentanyl push",
+        "give fent",
+        "fentanyl citrate",
+        "fent 50mcg",
+        "fentanyl drip",
+        "iv fent",
+        "fent bolus",
+        "fent ivp"
+      ]
+    },
+    {
+      "id": "med-ondansetron",
+      "label": "Ondansetron",
+      "category": "med",
+      "canonical": "ondansetron",
+      "aliases": [
+        "zofran",
+        "ondansetron odt",
+        "zofran odt",
+        "give zofran",
+        "zofran iv",
+        "zofran push",
+        "ondansetron iv",
+        "zofran 4mg",
+        "antiemetic zofran",
+        "dissolvable zofran",
+        "zofran melt"
+      ]
+    },
+    {
+      "id": "med-ketorolac",
+      "label": "Ketorolac",
+      "category": "med",
+      "canonical": "ketorolac",
+      "aliases": [
+        "toradol",
+        "ketorolac im",
+        "ketorolac iv",
+        "give toradol",
+        "toradol shot",
+        "toradol im",
+        "nsaid toradol",
+        "toradol push",
+        "toradol 30mg"
+      ]
+    },
+    {
+      "id": "med-acetaminophen",
+      "label": "Acetaminophen",
+      "category": "med",
+      "canonical": "acetaminophen",
+      "aliases": [
+        "tylenol",
+        "apap",
+        "give tylenol",
+        "tylenol po",
+        "iv tylenol",
+        "ofirmev",
+        "paracetamol",
+        "tylenol 650",
+        "acetaminophen po",
+        "tylenol tabs",
+        "tylenol 1000"
+      ]
+    },
+    {
+      "id": "med-ibuprofen",
+      "label": "Ibuprofen",
+      "category": "med",
+      "canonical": "ibuprofen",
+      "aliases": [
+        "motrin",
+        "advil",
+        "ibuprofen po",
+        "give motrin",
+        "motrin 800",
+        "nsaid ibuprofen",
+        "advil tabs",
+        "ibu 600",
+        "motrin tabs",
+        "ibu 800"
+      ]
+    },
+    {
+      "id": "med-ceftriaxone",
+      "label": "Ceftriaxone",
+      "category": "med",
+      "canonical": "ceftriaxone",
+      "aliases": [
+        "rocephin",
+        "ceftriaxone iv",
+        "give rocephin",
+        "rocephin im",
+        "rocephin shot",
+        "1g rocephin",
+        "ceftriaxone im",
+        "rocephin gram",
+        "rocephin 1g"
+      ]
+    },
+    {
+      "id": "med-vancomycin",
+      "label": "Vancomycin",
+      "category": "med",
+      "canonical": "vancomycin",
+      "aliases": [
+        "vanco",
+        "vancomycin iv",
+        "vanco drip",
+        "give vanco",
+        "vanco trough",
+        "vanco load",
+        "vancomycin infusion",
+        "vanco level",
+        "weight-based vanco",
+        "vanco dosing"
+      ]
+    },
+    {
+      "id": "med-piperacillin",
+      "label": "Piperacillin",
+      "category": "med",
+      "canonical": "piperacillin",
+      "aliases": [
+        "zosyn",
+        "pip-tazo",
+        "piperacillin-tazobactam",
+        "zosyn iv",
+        "give zosyn",
+        "pip/tazo",
+        "zosyn drip",
+        "tazocin",
+        "3.375 zosyn",
+        "4.5 zosyn",
+        "pip tazo"
+      ]
+    },
+    {
+      "id": "med-azithromycin",
+      "label": "Azithromycin",
+      "category": "med",
+      "canonical": "azithromycin",
+      "aliases": [
+        "zithromax",
+        "z-pack",
+        "azithro",
+        "give azithro",
+        "zpak",
+        "azithromycin po",
+        "z-pack dose",
+        "zithromax iv",
+        "azithro iv",
+        "z pack"
+      ]
+    },
+    {
+      "id": "med-cefepime",
+      "label": "Cefepime",
+      "category": "med",
+      "canonical": "cefepime",
+      "aliases": [
+        "maxipime",
+        "cefepime iv",
+        "give cefepime",
+        "cefepime gram",
+        "cefepime 2g",
+        "maxipime iv",
+        "cefepime 1g"
+      ]
+    },
+    {
+      "id": "med-meropenem",
+      "label": "Meropenem",
+      "category": "med",
+      "canonical": "meropenem",
+      "aliases": [
+        "merrem",
+        "meropenem iv",
+        "give meropenem",
+        "merrem iv",
+        "meropenem 1g",
+        "carbapenem meropenem",
+        "mero"
+      ]
+    },
+    {
+      "id": "med-doxycycline",
+      "label": "Doxycycline",
+      "category": "med",
+      "canonical": "doxycycline",
+      "aliases": [
+        "doxy",
+        "vibramycin",
+        "doxycycline po",
+        "give doxy",
+        "doxy 100mg",
+        "doxy iv",
+        "doxycycline hyclate",
+        "doxy 100"
+      ]
+    },
+    {
+      "id": "med-metronidazole",
+      "label": "Metronidazole",
+      "category": "med",
+      "canonical": "metronidazole",
+      "aliases": [
+        "flagyl",
+        "flagyl iv",
+        "flagyl po",
+        "start flagyl",
+        "give flagyl",
+        "flagyl 500",
+        "flagyl 500mg iv",
+        "metro",
+        "iv flagyl",
+        "flagyl drip",
+        "metronidazol",
+        "metronidazole 500mg",
+        "flagyl for c diff",
+        "c diff flagyl",
+        "start metro",
+        "flagyl for anaerobes"
+      ]
+    },
+    {
+      "id": "med-albuterol",
+      "label": "Albuterol",
+      "category": "med",
+      "canonical": "albuterol",
+      "aliases": [
+        "proventil",
+        "ventolin",
+        "proair",
+        "albuterol neb",
+        "alb neb",
+        "nebulizer albuterol",
+        "give a neb treatment",
+        "salbutamol",
+        "albuterol inhaler",
+        "rescue inhaler",
+        "albuterol mdi",
+        "duoneb",
+        "combivent",
+        "start neb",
+        "ventolin neb",
+        "proventil hfa",
+        "quick relief inhaler",
+        "alb sulfate"
+      ]
+    },
+    {
+      "id": "med-ipratropium",
+      "label": "Ipratropium",
+      "category": "med",
+      "canonical": "ipratropium",
+      "aliases": [
+        "atrovent",
+        "ipratropium bromide",
+        "atrovent neb",
+        "ipratropium neb",
+        "give atrovent",
+        "atrovent inhaler",
+        "atrovent nebulizer",
+        "start atrovent",
+        "ipratropium inhaler",
+        "atrovent hfa",
+        "ipratropium bromide neb",
+        "atrovent mdi"
+      ]
+    },
+    {
+      "id": "med-epinephrine",
+      "label": "Epinephrine",
+      "category": "med",
+      "canonical": "epinephrine",
+      "aliases": [
+        "epi",
+        "epipen",
+        "epi pen",
+        "epinephrine im",
+        "epi 1:1000",
+        "epi 1:10000",
+        "adrenaline",
+        "adrenalin",
+        "give epi",
+        "epi drip",
+        "epi push",
+        "code dose epi",
+        "epi im",
+        "push epi",
+        "epi 0.3mg im",
+        "code epi",
+        "epi for anaphylaxis"
+      ]
+    },
+    {
+      "id": "med-norepinephrine",
+      "label": "Norepinephrine",
+      "category": "med",
+      "canonical": "norepinephrine",
+      "aliases": [
+        "levophed",
+        "norepi",
+        "levo",
+        "start levophed",
+        "norepi drip",
+        "pressor levophed",
+        "norepinephrine drip",
+        "levophed gtt",
+        "start norepi",
+        "levophed titrate",
+        "norepi gtt",
+        "first line pressor"
+      ]
+    },
+    {
+      "id": "med-insulin",
+      "label": "Insulin",
+      "category": "med",
+      "canonical": "insulin",
+      "aliases": [
+        "humalog",
+        "novolog",
+        "lantus",
+        "regular insulin",
+        "insulin drip",
+        "sliding scale insulin",
+        "humulin",
+        "iv insulin",
+        "insulin gtt",
+        "novolin",
+        "give insulin",
+        "insulin sq",
+        "short acting insulin",
+        "rapid acting insulin",
+        "insulin for hyperkalemia"
+      ]
+    },
+    {
+      "id": "med-dextrose",
+      "label": "Dextrose",
+      "category": "med",
+      "canonical": "dextrose",
+      "aliases": [
+        "d50",
+        "d10",
+        "d5w",
+        "dextrose 50",
+        "amp of d50",
+        "d50w",
+        "dextrose water",
+        "d5 ns",
+        "d5",
+        "glucose iv",
+        "iv dextrose",
+        "push d50",
+        "d50 amp",
+        "dextrose gtt",
+        "d10w"
+      ]
+    },
+    {
+      "id": "med-naloxone",
+      "label": "Naloxone",
+      "category": "med",
+      "canonical": "naloxone",
+      "aliases": [
+        "narcan",
+        "give narcan",
+        "narcan iv",
+        "narcan im",
+        "narcan nasal",
+        "intranasal narcan",
+        "narcan spray",
+        "narcan 2mg",
+        "narcan for od",
+        "narcan drip",
+        "push narcan",
+        "narcan intranasal",
+        "narcan 4mg nasal",
+        "opioid reversal",
+        "narcan the patient"
+      ]
+    },
+    {
+      "id": "med-normal-saline",
+      "label": "Normal Saline",
+      "category": "med",
+      "canonical": "normal saline",
+      "aliases": [
+        "ns",
+        "0.9% saline",
+        "normal saline bag",
+        "ns bag",
+        "saline solution",
+        "0.9 ns",
+        "ns iv",
+        "hang ns",
+        "give ns",
+        "0.9% sodium chloride",
+        "saline drip",
+        "ns wide open",
+        "iso saline",
+        "wide open ns"
+      ]
+    },
+    {
+      "id": "med-lactated-ringers",
+      "label": "Lactated Ringers",
+      "category": "med",
+      "canonical": "lactated ringers",
+      "aliases": [
+        "lr",
+        "ringers lactate",
+        "ringers solution",
+        "hang lr",
+        "lr bag",
+        "ringer's lactate",
+        "lr iv",
+        "ringers",
+        "lr wide open",
+        "give ringers"
+      ]
+    },
+    {
+      "id": "med-iv-fluids",
+      "label": "Iv Fluids",
+      "category": "med",
+      "canonical": "iv fluids",
+      "aliases": [
+        "ivf",
+        "fluids",
+        "hang fluids",
+        "start fluids",
+        "iv drip",
+        "fluid resuscitation",
+        "maintenance fluids",
+        "run fluids",
+        "fluids wide open",
+        "crystalloids",
+        "give fluids",
+        "start ivf",
+        "hydrate",
+        "fluid replacement"
+      ]
+    },
+    {
+      "id": "med-bolus",
+      "label": "Bolus",
+      "category": "med",
+      "canonical": "bolus",
+      "aliases": [
+        "fluid bolus",
+        "bolus of fluids",
+        "push fluids",
+        "rapid bolus",
+        "give a bolus",
+        "500cc bolus",
+        "1l bolus",
+        "bolus in",
+        "wide open bolus",
+        "stat bolus",
+        "rapid infusion",
+        "bolus challenge"
+      ]
+    },
+    {
+      "id": "med-oxygen",
+      "label": "Oxygen",
+      "category": "med",
+      "canonical": "oxygen",
+      "aliases": [
+        "o2",
+        "supplemental o2",
+        "nasal cannula",
+        "give o2",
+        "o2 via nc",
+        "put on o2",
+        "o2 sat support",
+        "start o2",
+        "o2 2l nc",
+        "high flow o2",
+        "o2 therapy",
+        "oxygen via cannula"
+      ]
+    },
+    {
+      "id": "med-non-rebreather",
+      "label": "Non Rebreather",
+      "category": "med",
+      "canonical": "non rebreather",
+      "aliases": [
+        "nrb",
+        "non-rebreather mask",
+        "100% o2 mask",
+        "put on nrb",
+        "nrb mask",
+        "high flow mask",
+        "o2 mask 15l",
+        "nrb at 15l",
+        "face mask o2",
+        "reservoir mask"
+      ]
+    },
+    {
+      "id": "med-magnesium",
+      "label": "Magnesium",
+      "category": "med",
+      "canonical": "magnesium",
+      "aliases": [
+        "mag",
+        "mag sulfate",
+        "magnesium sulfate",
+        "mgso4",
+        "mag drip",
+        "give mag",
+        "mag sulfate iv",
+        "2g mag",
+        "mag replacement",
+        "mag gtt",
+        "iv mag"
+      ]
+    },
+    {
+      "id": "med-potassium",
+      "label": "Potassium",
+      "category": "med",
+      "canonical": "potassium",
+      "aliases": [
+        "k",
+        "kcl",
+        "potassium chloride",
+        "k rider",
+        "potassium replacement",
+        "iv potassium",
+        "k repletion",
+        "potassium riders",
+        "kcl iv",
+        "k+ replacement",
+        "give kcl",
+        "potassium supplement"
+      ]
+    },
+    {
+      "id": "med-amiodarone",
+      "label": "Amiodarone",
+      "category": "med",
+      "canonical": "amiodarone",
+      "aliases": [
+        "cordarone",
+        "amio",
+        "amio drip",
+        "amio gtt",
+        "give amio",
+        "amiodarone iv",
+        "amio 150mg",
+        "cordarone drip",
+        "amio for vtach",
+        "start amio",
+        "amio push"
+      ]
+    },
+    {
+      "id": "med-adenosine",
+      "label": "Adenosine",
+      "category": "med",
+      "canonical": "adenosine",
+      "aliases": [
+        "adenocard",
+        "adenosine push",
+        "rapid push adenosine",
+        "give adenosine",
+        "adenosine 6mg",
+        "adenosine 12mg",
+        "fast push",
+        "adenocard iv",
+        "push adenosine fast",
+        "adenosine for svt"
+      ]
+    },
+    {
+      "id": "med-diltiazem",
+      "label": "Diltiazem",
+      "category": "med",
+      "canonical": "diltiazem",
+      "aliases": [
+        "cardizem",
+        "diltiazem drip",
+        "cardizem drip",
+        "dilt",
+        "give cardizem",
+        "dilt gtt",
+        "cardizem iv",
+        "diltiazem gtt",
+        "cardizem push",
+        "diltiazem push",
+        "start cardizem"
+      ]
+    },
+    {
+      "id": "med-metoprolol",
+      "label": "Metoprolol",
+      "category": "med",
+      "canonical": "metoprolol",
+      "aliases": [
+        "lopressor",
+        "toprol",
+        "metoprolol tartrate",
+        "metoprolol succinate",
+        "give lopressor",
+        "iv metoprolol",
+        "lopressor push",
+        "toprol xl",
+        "metoprolol iv push",
+        "lopressor iv",
+        "metop"
+      ]
+    },
+    {
+      "id": "med-labetalol",
+      "label": "Labetalol",
+      "category": "med",
+      "canonical": "labetalol",
+      "aliases": [
+        "trandate",
+        "labetalol drip",
+        "labetalol gtt",
+        "labetalol push",
+        "labetalol bolus",
+        "labetalol iv push",
+        "start labetalol",
+        "give labetalol",
+        "trandate drip",
+        "labetalol infusion",
+        "labetolol",
+        "lebetalol",
+        "iv labetalol",
+        "labetalol for bp",
+        "push some labetalol"
+      ]
+    },
+    {
+      "id": "med-esmolol",
+      "label": "Esmolol",
+      "category": "med",
+      "canonical": "esmolol",
+      "aliases": [
+        "brevibloc",
+        "esmolol drip",
+        "esmolol gtt",
+        "esmolol bolus",
+        "esmolol infusion",
+        "start esmolol",
+        "brevibloc drip",
+        "esmalol",
+        "esmolol push",
+        "esmolol for rate control",
+        "esmolol iv",
+        "give esmolol"
+      ]
+    },
+    {
+      "id": "med-nicardipine",
+      "label": "Nicardipine",
+      "category": "med",
+      "canonical": "nicardipine",
+      "aliases": [
+        "cardene",
+        "nicardipine drip",
+        "nicardipine gtt",
+        "cardene drip",
+        "start nicardipine",
+        "nicardipine infusion",
+        "nicardapine",
+        "nicardipine iv",
+        "cardene gtt",
+        "titrate nicardipine",
+        "give nicardipine"
+      ]
+    },
+    {
+      "id": "med-hydralazine",
+      "label": "Hydralazine",
+      "category": "med",
+      "canonical": "hydralazine",
+      "aliases": [
+        "apresoline",
+        "hydralazine push",
+        "hydralazine iv push",
+        "give hydralazine",
+        "hydralazine bolus",
+        "hydralazine 10 iv",
+        "hydralizine",
+        "hydralazine for bp",
+        "apresoline push",
+        "start hydralazine"
+      ]
+    },
+    {
+      "id": "med-furosemide",
+      "label": "Furosemide",
+      "category": "med",
+      "canonical": "furosemide",
+      "aliases": [
+        "furosemide push",
+        "furosemide iv",
+        "give furosemide",
+        "furosemide gtt",
+        "furosemide drip",
+        "furosemide 40 iv",
+        "furosemide bolus",
+        "start furosemide",
+        "furosemide iv push",
+        "furosimide",
+        "furosemide stat"
+      ]
+    },
+    {
+      "id": "med-lasix",
+      "label": "Lasix",
+      "category": "med",
+      "canonical": "lasix",
+      "aliases": [
+        "lasix push",
+        "lasix iv",
+        "lasix drip",
+        "give lasix",
+        "lasix 40 iv",
+        "lasix bolus",
+        "lasix gtt",
+        "start lasix",
+        "lasix stat",
+        "lasix 20 mg iv",
+        "lasix drip please",
+        "lasix now"
+      ]
+    },
+    {
+      "id": "med-steroids",
+      "label": "Steroids",
+      "category": "med",
+      "canonical": "steroids",
+      "aliases": [
+        "give steroids",
+        "start steroids",
+        "steroid push",
+        "steroids iv",
+        "steroid burst",
+        "steroid taper",
+        "steroids for inflammation",
+        "pulse steroids",
+        "steroid dose",
+        "give some steroids",
+        "steroid course"
+      ]
+    },
+    {
+      "id": "med-methylprednisolone",
+      "label": "Methylprednisolone",
+      "category": "med",
+      "canonical": "methylprednisolone",
+      "aliases": [
+        "solu-medrol",
+        "solumedrol",
+        "methylpred",
+        "methylprednisolone iv",
+        "solu medrol push",
+        "medrol push",
+        "give solumedrol",
+        "methylprednisolone drip",
+        "solumedrol iv",
+        "medrol dose pack",
+        "solu-medrol 125 iv"
+      ]
+    },
+    {
+      "id": "med-dexamethasone",
+      "label": "Dexamethasone",
+      "category": "med",
+      "canonical": "dexamethasone",
+      "aliases": [
+        "decadron",
+        "dexamethasone iv",
+        "decadron push",
+        "give dexamethasone",
+        "dex push",
+        "dexamethasone iv push",
+        "decadron iv",
+        "dexamethasone 10 iv",
+        "give decadron",
+        "dexamethasone injection"
+      ]
+    },
+    {
+      "id": "med-prednisone",
+      "label": "Prednisone",
+      "category": "med",
+      "canonical": "prednisone",
+      "aliases": [
+        "prednisone taper",
+        "prednisone burst",
+        "prednisone po",
+        "give prednisone",
+        "prednisone tabs",
+        "start prednisone",
+        "prednisone 40 mg",
+        "oral steroid taper",
+        "prednisone pack",
+        "prednisone script"
+      ]
+    },
+    {
+      "id": "med-tranexamic",
+      "label": "Tranexamic",
+      "category": "med",
+      "canonical": "tranexamic",
+      "aliases": [
+        "txa",
+        "tranexamic acid",
+        "give txa",
+        "txa bolus",
+        "txa drip",
+        "txa infusion",
+        "cyklokapron",
+        "start txa",
+        "txa iv",
+        "txa push"
+      ]
+    },
+    {
+      "id": "med-alteplase",
+      "label": "Alteplase",
+      "category": "med",
+      "canonical": "alteplase",
+      "aliases": [
+        "tpa",
+        "activase",
+        "alteplase drip",
+        "give tpa",
+        "tpa bolus",
+        "alteplase infusion",
+        "clot buster",
+        "activase drip",
+        "start tpa",
+        "alteplase iv",
+        "tpa for stroke"
+      ]
+    },
+    {
+      "id": "med-tenecteplase",
+      "label": "Tenecteplase",
+      "category": "med",
+      "canonical": "tenecteplase",
+      "aliases": [
+        "tnk",
+        "tnkase",
+        "give tnk",
+        "tenecteplase bolus",
+        "tnk push",
+        "start tnk",
+        "tenecteplase iv",
+        "tnkase bolus",
+        "push tnk"
+      ]
+    },
+    {
+      "id": "med-ketamine",
+      "label": "Ketamine",
+      "category": "med",
+      "canonical": "ketamine",
+      "aliases": [
+        "ketalar",
+        "ketamine dissociative",
+        "ketamine for sedation",
+        "give ketamine",
+        "ketamine push",
+        "ketamine drip",
+        "special k",
+        "ketamine bolus",
+        "ketamine iv",
+        "procedural sedation with ketamine",
+        "ketamine gtt"
+      ]
+    },
+    {
+      "id": "med-midazolam",
+      "label": "Midazolam",
+      "category": "med",
+      "canonical": "midazolam",
+      "aliases": [
+        "versed",
+        "versed push",
+        "give versed",
+        "midazolam iv",
+        "versed iv",
+        "midazolam push",
+        "versed for sedation",
+        "midaz",
+        "versed drip",
+        "versed for seizure"
+      ]
+    },
+    {
+      "id": "med-lorazepam",
+      "label": "Lorazepam",
+      "category": "med",
+      "canonical": "lorazepam",
+      "aliases": [
+        "ativan",
+        "ativan push",
+        "give ativan",
+        "lorazepam iv",
+        "ativan iv",
+        "lorazepam push",
+        "ativan drip",
+        "ativan for seizure",
+        "ativan bolus"
+      ]
+    },
+    {
+      "id": "med-propofol",
+      "label": "Propofol",
+      "category": "med",
+      "canonical": "propofol",
+      "aliases": [
+        "diprivan",
+        "propofol drip",
+        "diprivan drip",
+        "start propofol",
+        "propofol gtt",
+        "propofol infusion",
+        "give propofol",
+        "propofol bolus",
+        "milk of amnesia",
+        "propofol for sedation"
+      ]
+    },
+    {
+      "id": "med-etomidate",
+      "label": "Etomidate",
+      "category": "med",
+      "canonical": "etomidate",
+      "aliases": [
+        "amidate",
+        "etomidate push",
+        "give etomidate",
+        "etomidate bolus",
+        "etomidate for induction",
+        "etomidate iv",
+        "amidate push",
+        "etomidate for rsi"
+      ]
+    },
+    {
+      "id": "med-rocuronium",
+      "label": "Rocuronium",
+      "category": "med",
+      "canonical": "rocuronium",
+      "aliases": [
+        "zemuron",
+        "roc",
+        "give roc",
+        "rocuronium push",
+        "zemuron push",
+        "roc for intubation",
+        "rocuronium iv",
+        "push roc",
+        "roc for rsi"
+      ]
+    },
+    {
+      "id": "med-succinylcholine",
+      "label": "Succinylcholine",
+      "category": "med",
+      "canonical": "succinylcholine",
+      "aliases": [
+        "anectine",
+        "sux",
+        "give sux",
+        "succs",
+        "succinylcholine push",
+        "sux for intubation",
+        "anectine push",
+        "succinylcholine iv",
+        "sux for rsi"
+      ]
+    },
+    {
+      "id": "med-antibiotics",
+      "label": "Antibiotics",
+      "category": "med",
+      "canonical": "antibiotics",
+      "aliases": [
+        "abx",
+        "start abx",
+        "give antibiotics",
+        "iv abx",
+        "broad spectrum abx",
+        "empiric antibiotics",
+        "cover with antibiotics",
+        "antibiotic coverage",
+        "start empiric abx",
+        "antibiotics stat",
+        "cover for infection",
+        "abx order",
+        "broad spectrum coverage",
+        "start iv abx",
+        "get abx going",
+        "abx now"
+      ]
+    },
+    {
+      "id": "med-tetanus",
+      "label": "Tetanus",
+      "category": "med",
+      "canonical": "tetanus",
+      "aliases": [
+        "td shot",
+        "tdap",
+        "tetanus shot",
+        "tetanus booster",
+        "tetanus toxoid",
+        "td vaccine",
+        "tetanus immunization",
+        "td booster",
+        "tetanus prophylaxis",
+        "give tetanus",
+        "tet shot",
+        "tetnus shot",
+        "tdap booster",
+        "td im",
+        "tetanus im"
+      ]
+    },
+    {
+      "id": "med-glucagon",
+      "label": "Glucagon",
+      "category": "med",
+      "canonical": "glucagon",
+      "aliases": [
+        "glucagon injection",
+        "glucagen",
+        "glucagon im",
+        "glucagon shot",
+        "give glucagon",
+        "glucagon kit",
+        "1mg glucagon",
+        "glucagon for hypoglycemia",
+        "glucagon pen",
+        "push glucagon"
+      ]
+    },
+    {
+      "id": "med-calcium",
+      "label": "Calcium",
+      "category": "med",
+      "canonical": "calcium",
+      "aliases": [
+        "calcium gluconate",
+        "calcium chloride",
+        "cacl",
+        "cagluc",
+        "amp of calcium",
+        "calcium gluc",
+        "give calcium",
+        "calcium drip",
+        "iv calcium",
+        "calcium for hyperkalemia",
+        "cacl2",
+        "calcium amp",
+        "push calcium"
+      ]
+    },
+    {
+      "id": "med-bicarbonate",
+      "label": "Bicarbonate",
+      "category": "med",
+      "canonical": "bicarbonate",
+      "aliases": [
+        "sodium bicarb",
+        "bicarb",
+        "nahco3",
+        "amp of bicarb",
+        "bicarb drip",
+        "bicarb push",
+        "sodium bicarbonate amp",
+        "give bicarb",
+        "bicarb for acidosis",
+        "push bicarb",
+        "bicarb amp"
+      ]
+    },
+    {
+      "id": "med-octreotide",
+      "label": "Octreotide",
+      "category": "med",
+      "canonical": "octreotide",
+      "aliases": [
+        "sandostatin",
+        "octreotide drip",
+        "start octreotide",
+        "give octreotide",
+        "octreotide for bleed",
+        "sub q octreotide",
+        "octreotide infusion",
+        "octreotide sq"
+      ]
+    },
+    {
+      "id": "med-pantoprazole",
+      "label": "Pantoprazole",
+      "category": "med",
+      "canonical": "pantoprazole",
+      "aliases": [
+        "protonix",
+        "ppi",
+        "pantoprazole drip",
+        "give protonix",
+        "iv ppi",
+        "pantoprazole iv",
+        "protonix drip",
+        "start ppi",
+        "protonix iv",
+        "pantoprazole infusion"
+      ]
+    },
+    {
+      "id": "med-famotidine",
+      "label": "Famotidine",
+      "category": "med",
+      "canonical": "famotidine",
+      "aliases": [
+        "pepcid",
+        "famotidine iv",
+        "give pepcid",
+        "h2 blocker",
+        "pepcid iv",
+        "pepcid push",
+        "famotidine push"
+      ]
+    },
+    {
+      "id": "med-droperidol",
+      "label": "Droperidol",
+      "category": "med",
+      "canonical": "droperidol",
+      "aliases": [
+        "inapsine",
+        "droperidol im",
+        "give droperidol",
+        "droperidol shot",
+        "droperidol iv",
+        "inapsine im"
+      ]
+    },
+    {
+      "id": "med-haloperidol",
+      "label": "Haloperidol",
+      "category": "med",
+      "canonical": "haloperidol",
+      "aliases": [
+        "haldol",
+        "haloperidol im",
+        "give haldol",
+        "haldol shot",
+        "haldol im",
+        "5 of haldol",
+        "haldol iv",
+        "haloperidol shot"
+      ]
+    },
+    {
+      "id": "med-olanzapine",
+      "label": "Olanzapine",
+      "category": "med",
+      "canonical": "olanzapine",
+      "aliases": [
+        "zyprexa",
+        "olanzapine im",
+        "zydis",
+        "give zyprexa",
+        "olanzapine odt",
+        "zyprexa im",
+        "zyprexa zydis",
+        "olanzapine shot"
+      ]
+    },
+    {
+      "id": "procedure-intubate",
+      "label": "Intubate",
+      "category": "procedure",
+      "canonical": "intubate",
+      "aliases": [
+        "intubation",
+        "tube him",
+        "tube her",
+        "put a tube in",
+        "secure the airway",
+        "rsi",
+        "ett placement",
+        "bag and tube",
+        "airway management",
+        "tube the patient",
+        "get the tube",
+        "rapid sequence intubation",
+        "intubate now",
+        "drop a tube",
+        "place the ett"
+      ]
+    },
+    {
+      "id": "procedure-central-line",
+      "label": "Central Line",
+      "category": "procedure",
+      "canonical": "central line",
+      "aliases": [
+        "central venous catheter",
+        "cvc",
+        "triple lumen",
+        "central access",
+        "cordis",
+        "put in a central line",
+        "ij line",
+        "subclavian line",
+        "femoral line",
+        "central venous access",
+        "triple lumen catheter",
+        "place a cvc"
+      ]
+    },
+    {
+      "id": "procedure-arterial-line",
+      "label": "Arterial Line",
+      "category": "procedure",
+      "canonical": "arterial line",
+      "aliases": [
+        "a-line",
+        "art line",
+        "arterial access",
+        "radial line",
+        "put in an a-line",
+        "arterial catheter",
+        "femoral a-line",
+        "place an a-line",
+        "art line placement"
+      ]
+    },
+    {
+      "id": "procedure-chest-tube",
+      "label": "Chest Tube",
+      "category": "procedure",
+      "canonical": "chest tube",
+      "aliases": [
+        "thoracostomy",
+        "tube thoracostomy",
+        "thoracostomy tube",
+        "pigtail catheter",
+        "chest tube placement",
+        "put in a chest tube",
+        "tube the chest",
+        "pigtail",
+        "cxt",
+        "place a chest tube"
+      ]
+    },
+    {
+      "id": "procedure-lumbar-puncture",
+      "label": "Lumbar Puncture",
+      "category": "procedure",
+      "canonical": "lumbar puncture",
+      "aliases": [
+        "spinal tap",
+        "lp",
+        "tap the back",
+        "tap the spine",
+        "do an lp",
+        "csf tap",
+        "perform an lp",
+        "spinal needle"
+      ]
+    },
+    {
+      "id": "procedure-paracentesis",
+      "label": "Paracentesis",
+      "category": "procedure",
+      "canonical": "paracentesis",
+      "aliases": [
+        "para",
+        "tap the belly",
+        "abdominal tap",
+        "ascites tap",
+        "tap the abdomen",
+        "drain the ascites",
+        "belly tap",
+        "do a para"
+      ]
+    },
+    {
+      "id": "procedure-thoracentesis",
+      "label": "Thoracentesis",
+      "category": "procedure",
+      "canonical": "thoracentesis",
+      "aliases": [
+        "thora",
+        "tap the lung",
+        "pleural tap",
+        "needle the chest",
+        "tap the chest",
+        "drain the pleural effusion",
+        "pleural drain",
+        "do a thora"
+      ]
+    },
+    {
+      "id": "procedure-cardiovert",
+      "label": "Cardiovert",
+      "category": "procedure",
+      "canonical": "cardiovert",
+      "aliases": [
+        "cardioversion",
+        "synchronized cardioversion",
+        "sync shock",
+        "cardiovert them",
+        "sync cardioversion",
+        "electrical cardioversion",
+        "shock them synchronized",
+        "sync and shock"
+      ]
+    },
+    {
+      "id": "procedure-defibrillate",
+      "label": "Defibrillate",
+      "category": "procedure",
+      "canonical": "defibrillate",
+      "aliases": [
+        "shock",
+        "shock them",
+        "defib",
+        "unsynchronized shock",
+        "clear and shock",
+        "defibrillation",
+        "shock the patient",
+        "defib them",
+        "clear!",
+        "hit the shock button"
+      ]
+    },
+    {
+      "id": "procedure-pace",
+      "label": "Pace",
+      "category": "procedure",
+      "canonical": "pace",
+      "aliases": [
+        "pacing",
+        "transcutaneous pacing",
+        "tcp",
+        "external pacer",
+        "pace the heart",
+        "pacer pads on",
+        "start pacing",
+        "zoll pacer",
+        "transvenous pacer",
+        "pacing mode",
+        "capture pacing",
+        "demand pacing",
+        "put the pacer on"
+      ]
+    },
+    {
+      "id": "procedure-cpr",
+      "label": "Cpr",
+      "category": "procedure",
+      "canonical": "cpr",
+      "aliases": [
+        "chest compressions",
+        "start compressions",
+        "code blue",
+        "call a code",
+        "begin resuscitation",
+        "push epi and compress",
+        "acls",
+        "resuscitate",
+        "compressions now",
+        "coding the patient",
+        "start cpr now",
+        "bag and compress",
+        "code the patient",
+        "initiate acls"
+      ]
+    },
+    {
+      "id": "procedure-reduce",
+      "label": "Reduce",
+      "category": "procedure",
+      "canonical": "reduce",
+      "aliases": [
+        "reduction",
+        "reduce the fracture",
+        "reduce the dislocation",
+        "pop it back in",
+        "relocate the shoulder",
+        "closed reduction",
+        "manual reduction",
+        "reduce the joint",
+        "put it back in place",
+        "traction and reduce",
+        "realign the bone",
+        "reduce shoulder",
+        "reduce hip",
+        "reduce ankle"
+      ]
+    },
+    {
+      "id": "procedure-splint",
+      "label": "Splint",
+      "category": "procedure",
+      "canonical": "splint",
+      "aliases": [
+        "splint it",
+        "apply splint",
+        "immobilize the limb",
+        "sugar-tong splint",
+        "posterior splint",
+        "volar splint",
+        "splint the arm",
+        "splint the leg",
+        "temporary cast",
+        "ortho splint",
+        "splint application",
+        "thumb spica splint"
+      ]
+    },
+    {
+      "id": "procedure-suture",
+      "label": "Suture",
+      "category": "procedure",
+      "canonical": "suture",
+      "aliases": [
+        "stitch it up",
+        "sew it up",
+        "suture the laceration",
+        "close the wound",
+        "stitches",
+        "suture kit",
+        "staple the wound",
+        "put in stitches",
+        "repair the laceration",
+        "close with sutures",
+        "suture repair",
+        "wound closure"
+      ]
+    },
+    {
+      "id": "procedure-foley",
+      "label": "Foley",
+      "category": "procedure",
+      "canonical": "foley",
+      "aliases": [
+        "foley catheter",
+        "urinary catheter",
+        "insert foley",
+        "cath the bladder",
+        "bladder catheter",
+        "indwelling catheter",
+        "place a foley",
+        "put in a foley",
+        "straight cath",
+        "foley bag",
+        "catheterize the patient",
+        "foley insertion"
+      ]
+    },
+    {
+      "id": "procedure-ng-tube",
+      "label": "Ng Tube",
+      "category": "procedure",
+      "canonical": "ng tube",
+      "aliases": [
+        "nasogastric",
+        "nasogastric tube",
+        "place ng tube",
+        "insert ng tube",
+        "gastric tube",
+        "salem sump",
+        "tube down the nose",
+        "ng suction",
+        "stomach tube",
+        "nasal gastric tube",
+        "ng lavage",
+        "place a gastric tube",
+        "insert nasogastric"
+      ]
+    },
+    {
+      "id": "procedure-io-access",
+      "label": "Io Access",
+      "category": "procedure",
+      "canonical": "io access",
+      "aliases": [
+        "intraosseous",
+        "io line",
+        "intraosseous line",
+        "ez-io",
+        "bone marrow access",
+        "io needle",
+        "drill an io",
+        "tibial io",
+        "humeral io",
+        "io drill",
+        "place io",
+        "bone access line",
+        "io gun"
+      ]
+    },
+    {
+      "id": "procedure-cricothyrotomy",
+      "label": "Cricothyrotomy",
+      "category": "procedure",
+      "canonical": "cricothyrotomy",
+      "aliases": [
+        "crich",
+        "cric",
+        "surgical airway",
+        "cric the neck",
+        "emergency airway cut",
+        "needle cric",
+        "cut the neck for airway",
+        "crash airway",
+        "cricothyroidotomy",
+        "cric kit",
+        "surgical cric",
+        "emergency cric"
+      ]
+    },
+    {
+      "id": "procedure-pericardiocentesis",
+      "label": "Pericardiocentesis",
+      "category": "procedure",
+      "canonical": "pericardiocentesis",
+      "aliases": [
+        "pericardial tap",
+        "needle the pericardium",
+        "drain the pericardium",
+        "tamponade drain",
+        "pericardial drain",
+        "tap the heart sac",
+        "needle decompression pericardium",
+        "aspirate pericardial fluid",
+        "subxiphoid tap",
+        "drain the sac around the heart"
+      ]
+    },
+    {
+      "id": "procedure-iv-access",
+      "label": "Iv Access",
+      "category": "procedure",
+      "canonical": "iv access",
+      "aliases": [
+        "start an iv",
+        "get iv access",
+        "place an iv",
+        "peripheral line",
+        "iv line",
+        "stick a vein",
+        "piv",
+        "get a line in",
+        "iv catheter",
+        "start a line",
+        "venous access",
+        "get access"
+      ]
+    },
+    {
+      "id": "procedure-second-iv",
+      "label": "Second Iv",
+      "category": "procedure",
+      "canonical": "second iv",
+      "aliases": [
+        "second line",
+        "another iv",
+        "backup iv",
+        "second peripheral line",
+        "additional iv access",
+        "second stick",
+        "extra iv",
+        "backup line",
+        "another line in",
+        "second iv site"
+      ]
+    },
+    {
+      "id": "procedure-two-large-bore",
+      "label": "Two Large Bore",
+      "category": "procedure",
+      "canonical": "two large bore",
+      "aliases": [
+        "two large bore ivs",
+        "large bore access",
+        "16 gauge times two",
+        "two big lines",
+        "dual large bore",
+        "large bore ivs bilateral",
+        "two 14 gauge lines",
+        "big ivs both arms",
+        "trauma lines",
+        "large bore times two"
+      ]
+    },
+    {
+      "id": "consult-cardiology",
+      "label": "Cardiology",
+      "category": "consult",
+      "canonical": "cardiology",
+      "aliases": [
+        "call cardio",
+        "get cards on the phone",
+        "cardiology consult needed",
+        "call the heart doctor",
+        "get cardiology down here",
+        "cards consult",
+        "call cards",
+        "heart specialist consult",
+        "cardiologist consult",
+        "page cardiology",
+        "get a cardiology eval"
+      ]
+    },
+    {
+      "id": "consult-surgery",
+      "label": "Surgery",
+      "category": "consult",
+      "canonical": "surgery",
+      "aliases": [
+        "call surgery",
+        "general surgery consult",
+        "surgical consult",
+        "call the surgeons",
+        "get surgery down here",
+        "page surgery",
+        "gen surg consult",
+        "call gen surg",
+        "surgical eval",
+        "call the surgical team"
+      ]
+    },
+    {
+      "id": "consult-gastroenterology",
+      "label": "Gastroenterology",
+      "category": "consult",
+      "canonical": "gastroenterology",
+      "aliases": [
+        "call gi",
+        "gi consult",
+        "call gastro",
+        "page gi",
+        "get gi down here",
+        "gastroenterologist consult",
+        "gi eval",
+        "call the gut doctor",
+        "endoscopy consult",
+        "gi workup"
+      ]
+    },
+    {
+      "id": "consult-neurology",
+      "label": "Neurology",
+      "category": "consult",
+      "canonical": "neurology",
+      "aliases": [
+        "call neurology",
+        "page neurology",
+        "neurology consult needed",
+        "get neurology down here",
+        "stroke team consult",
+        "neurologist consult",
+        "call the neurologist",
+        "stroke alert consult",
+        "seizure specialist consult",
+        "get a neurology eval",
+        "neurology workup",
+        "call stroke neurology"
+      ]
+    },
+    {
+      "id": "consult-neurosurgery",
+      "label": "Neurosurgery",
+      "category": "consult",
+      "canonical": "neurosurgery",
+      "aliases": [
+        "call neurosurgery",
+        "page neurosurgery",
+        "neurosurgery consult needed",
+        "call the neurosurgeon",
+        "get neurosurg down here",
+        "spine surgery consult",
+        "brain surgery consult",
+        "call nsgy",
+        "neurosurgical eval",
+        "get neurosurgeon on the phone",
+        "call for craniotomy eval",
+        "neurosurg consult"
+      ]
+    },
+    {
+      "id": "consult-orthopedics",
+      "label": "Orthopedics",
+      "category": "consult",
+      "canonical": "orthopedics",
+      "aliases": [
+        "call ortho",
+        "ortho consult",
+        "page ortho",
+        "call the orthopedic surgeon",
+        "get ortho down here",
+        "bone doctor consult",
+        "orthopedic eval",
+        "call orthopedics",
+        "ortho on call",
+        "get orthopedic surgery consult",
+        "fracture consult"
+      ]
+    },
+    {
+      "id": "consult-urology",
+      "label": "Urology",
+      "category": "consult",
+      "canonical": "urology",
+      "aliases": [
+        "call urology",
+        "page urology",
+        "urology consult needed",
+        "call the urologist",
+        "get urology down here",
+        "urologic eval",
+        "call uro",
+        "urologist consult",
+        "bladder specialist consult",
+        "gu consult"
+      ]
+    },
+    {
+      "id": "consult-obstetrics",
+      "label": "Obstetrics",
+      "category": "consult",
+      "canonical": "obstetrics",
+      "aliases": [
+        "ob",
+        "ob consult",
+        "call ob",
+        "page ob",
+        "get ob down here",
+        "ob team",
+        "l&d consult",
+        "labor and delivery consult",
+        "maternal fetal medicine",
+        "mfm consult",
+        "call the ob resident",
+        "ob attending",
+        "ob eval",
+        "obstetrician",
+        "pregnancy consult",
+        "prenatal consult",
+        "stork squad",
+        "baby doc"
+      ]
+    },
+    {
+      "id": "consult-gynecology",
+      "label": "Gynecology",
+      "category": "consult",
+      "canonical": "gynecology",
+      "aliases": [
+        "gyn",
+        "gyn consult",
+        "call gyn",
+        "page gyn",
+        "gyn eval",
+        "women's health consult",
+        "pelvic consult",
+        "gyn attending",
+        "gynecologist",
+        "get gyn down here",
+        "gyn team",
+        "gyn on call",
+        "consult gyn for pelvic pain",
+        "gyn workup"
+      ]
+    },
+    {
+      "id": "consult-psychiatry",
+      "label": "Psychiatry",
+      "category": "consult",
+      "canonical": "psychiatry",
+      "aliases": [
+        "psych",
+        "psych consult",
+        "call psych",
+        "page psych",
+        "psych eval",
+        "psych hold",
+        "behavioral health consult",
+        "psych attending",
+        "get psych down here",
+        "psychiatrist",
+        "mental health consult",
+        "psych liaison",
+        "crisis team",
+        "psych c/l",
+        "psych clearance"
+      ]
+    },
+    {
+      "id": "consult-nephrology",
+      "label": "Nephrology",
+      "category": "consult",
+      "canonical": "nephrology",
+      "aliases": [
+        "nephro",
+        "nephro consult",
+        "call nephro",
+        "page nephrology",
+        "renal consult",
+        "kidney doctor",
+        "kidney consult",
+        "dialysis consult",
+        "page the kidney doc",
+        "nephrologist",
+        "get nephro down here",
+        "renal team",
+        "dialysis team consult",
+        "crrt consult"
+      ]
+    },
+    {
+      "id": "consult-pulmonology",
+      "label": "Pulmonology",
+      "category": "consult",
+      "canonical": "pulmonology",
+      "aliases": [
+        "pulm",
+        "pulm consult",
+        "call pulm",
+        "page pulmonology",
+        "lung doctor",
+        "respiratory consult",
+        "pulmonologist",
+        "get pulm down here",
+        "pulm team",
+        "chest medicine consult",
+        "breathing doc",
+        "pulm attending"
+      ]
+    },
+    {
+      "id": "consult-infectious-disease",
+      "label": "Infectious Disease",
+      "category": "consult",
+      "canonical": "infectious disease",
+      "aliases": [
+        "id",
+        "id consult",
+        "call id",
+        "page id",
+        "infectious disease consult",
+        "id doc",
+        "get id down here",
+        "id team",
+        "bug doctor",
+        "id attending",
+        "infection specialist",
+        "id service"
+      ]
+    },
+    {
+      "id": "consult-toxicology",
+      "label": "Toxicology",
+      "category": "consult",
+      "canonical": "toxicology",
+      "aliases": [
+        "tox",
+        "tox consult",
+        "call tox",
+        "page toxicology",
+        "medical toxicology",
+        "tox team",
+        "toxicologist",
+        "get tox down here",
+        "overdose consult",
+        "toxidrome consult",
+        "clinical tox",
+        "tox attending"
+      ]
+    },
+    {
+      "id": "consult-poison-control",
+      "label": "Poison Control",
+      "category": "consult",
+      "canonical": "poison control",
+      "aliases": [
+        "poison control center",
+        "call poison control",
+        "pcc",
+        "page poison control",
+        "1-800 poison",
+        "poison hotline",
+        "national poison hotline",
+        "poison center",
+        "call the poison hotline",
+        "poison control line",
+        "pcc consult"
+      ]
+    },
+    {
+      "id": "consult-anesthesia",
+      "label": "Anesthesia",
+      "category": "consult",
+      "canonical": "anesthesia",
+      "aliases": [
+        "anesthesia consult",
+        "call anesthesia",
+        "page anesthesia",
+        "anesthesiologist",
+        "get anesthesia down here",
+        "gas doc",
+        "gas passer",
+        "call gas",
+        "anesthesia team",
+        "or anesthesia",
+        "airway consult",
+        "difficult airway consult",
+        "crna consult"
+      ]
+    },
+    {
+      "id": "consult-trauma",
+      "label": "Trauma",
+      "category": "consult",
+      "canonical": "trauma",
+      "aliases": [
+        "trauma consult",
+        "call trauma",
+        "page trauma",
+        "trauma team",
+        "trauma surgery consult",
+        "activate trauma",
+        "trauma surgeon",
+        "get trauma down here",
+        "trauma bay consult",
+        "level 1 trauma consult",
+        "trauma attending"
+      ]
+    },
+    {
+      "id": "consult-interventional-radiology",
+      "label": "Interventional Radiology",
+      "category": "consult",
+      "canonical": "interventional radiology",
+      "aliases": [
+        "ir",
+        "ir consult",
+        "call ir",
+        "page ir",
+        "interventional rads",
+        "ir team",
+        "get ir down here",
+        "ir attending",
+        "vascular ir consult",
+        "embolization consult",
+        "ir for drain placement",
+        "angio suite consult"
+      ]
+    },
+    {
+      "id": "consult-ent",
+      "label": "Ent",
+      "category": "consult",
+      "canonical": "ent",
+      "aliases": [
+        "ent consult",
+        "call ent",
+        "page ent",
+        "ear nose throat consult",
+        "otolaryngology consult",
+        "ent doc",
+        "get ent down here",
+        "ent team",
+        "ent attending",
+        "otolaryngologist",
+        "head and neck consult"
+      ]
+    }
+  ]
+}
