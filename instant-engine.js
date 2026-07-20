@@ -56,7 +56,9 @@ const ABBREV = {
   // "ct"/"mr" would re-expand on a second normalize() pass — the same
   // idempotency trap "cta" hit; see the ct&angiography protect below)
   'ctv':'computed tomography venography', 'mrv':'magnetic resonance venography',
-  'tee':'transesophageal echocardiogram'
+  'tee':'transesophageal echocardiogram',
+  'pocus':'point of care ultrasound', 'cardiogram':'electrocardiogram',
+  'ncct':'non contrast computed tomography'
 };
 // Phrase-level rewrites applied BEFORE tokenization: protect compounds from clause
 // splitting ("abdomen and pelvis" must not split at "and") and normalize spellings.
@@ -69,7 +71,17 @@ const PHRASES = [
   [/\bt\s*&\s*s\b/g, 'type and screen'],
   [/\bx\s*-?\s*ray\b/g, 'x ray'],
   [/\bu\s*\/\s*a\b/g, 'urinalysis'],
-  [/\bblood\s+gas\b/g, 'blood gas']
+  [/\bblood\s+gas\b/g, 'blood gas'],
+  // playtest audit: common spoken forms of studies that never reached their
+  // pack responder because no rule mapped them to the canonical wording
+  [/\bcat\s+scan\b/g, 'computed tomography'],
+  [/\btwelve\s+lead\b/g, '12 lead'],
+  [/\bfilms?\b/g, 'x ray'],            // "chest film", "plain film" → x ray
+  [/\bradiographs?\b/g, 'x ray'],
+  [/\bu\s*\/\s*s\b/g, 'ultrasound'],
+  // must run before token expansion: bare "ct" would expand to "computed
+  // tomography" and turn a cardiothoracic-surgery consult into a CT order
+  [/\bct\s+surgery\b/g, 'cardiothoracic surgery']
 ];
 // Compounds containing " and " that are ONE order/concept and must survive clause
 // splitting (rewrite ' and '→' & ' pre-split so "type and cross" isn't torn apart).
@@ -112,6 +124,9 @@ function splitClauses(normText){
   for(const re of AND_PROTECT) s = s.replace(re, m => m.replace(/ and /g,' & '));
   return s.split(/\s*,\s*|[;\n]| and | then | plus | also /)
           .map(c => c.replace(/ & /g,' and ').trim())
+          // restore the placeholders runTurn's dynamic protection writes for
+          // pack aliases containing then/plus/also/commas (see rawNorm there)
+          .map(c => c.replace(/&(and|then|plus|also)\b/g,'$1').replace(/\s*&comma\s*/g,' , ').trim())
           .map(c => c.replace(/^(and|then|plus|also)\s+/,''))   // ", and X" → "X"
           .filter(c => c.length > 1);
 }
@@ -276,6 +291,7 @@ const CONSULT_WORDS = ['consult','page','call'];
 const CONSULT_SERVICES = ['cardiology','surgery','gastroenterology','neurology','neurosurgery','orthopedics',
   'urology','obstetrics','gynecology','psychiatry','nephrology','pulmonology','infectious disease',
   'toxicology','poison control','anesthesia','trauma','interventional radiology','ent',
+  'cardiothoracic surgery',
   'social work','adult protective services','child protective services','case management','palliative care'];
 // Services that are the same on-call team in practice — "consult OB" must
 // reach a responder whose aliases only say "gyn" and vice versa.
@@ -317,7 +333,7 @@ function classifyIntent(clause){
   if(DISPO_RE.test(clause)) return 'disposition';
   if(CONSULT_WORDS.some(w=>toks.includes(w)) && CONSULT_SERVICES.some(s=>fuzzyHas(toks,s))) return 'consult';
   if(ASSESS_WORDS.some(w=>clause.includes(w))) return 'assessment';
-  if(findImaging(clause) || clauseModality(clause)) return 'imaging';   // bare "ct scan" is still an imaging order
+  if(findImaging(clause) || clauseModality(clause) || /\bimag(e|ing)\b/.test(clause)) return 'imaging';   // bare "ct scan"/"image the abdomen" is still an imaging order
   if(findPanel(clause) || findSolo(clause) || /\blabs\b|\bbloodwork\b|\blab work\b/.test(clause)) return 'lab';
   if(PROCEDURE_WORDS.some(w=>clause.includes(w))) return 'procedure';
   // Bare service name with no consult verb ("trauma", "neurology") — checked
@@ -352,7 +368,7 @@ function clauseModality(clause){
   // scintigraphy isn't literally a CT.
   if(/ct angiography|computed tomography|venogra|meckel|technetium|pertechnetate|radionuclide|nuclear medicine|tc99m|scintigraph|hida/.test(clause)) return 'ct';
   if(/electrocardiogram|12 lead/.test(clause)) return 'ekg';
-  if(/x ray|skeletal survey|bone survey|fracture survey|babygram|shunt series|skull series|catheter series/.test(clause)) return 'xr';
+  if(/x ray|skeletal survey|bone survey|fracture survey|babygram|shunt series|skull series|catheter series|obstruction series/.test(clause)) return 'xr';
   if(/ultrasound|echocardiogram|fast exam|duplex|sonogram|sonography/.test(clause)) return 'us';
   return null;
 }
@@ -372,6 +388,29 @@ function matchScore(r, toks){
     if(fuzzyHas(toks, na)) best = Math.max(best, parts.length + na.length/100);
   }
   return best;
+}
+// Filler tokens that don't change WHAT is being ordered — stripped before
+// deciding that a typed clause IS one of a responder's authored aliases.
+const FILLER_TOKENS = new Set(['order','obtain','get','send','check','draw','repeat','perform','do','run',
+  'please','now','a','an','the','of','for','to','on','in','at','with','and','her','his','their','my',
+  'patient','bedside','portable']);
+// The clause is essentially one of this responder's own aliases: every alias
+// token appears in the clause (the normal match direction) AND every
+// non-filler clause token appears in the alias — the player typed what the
+// pack authored, give or take order verbs and typos. Such a hit outranks the
+// intent/modality heuristics: the classifier guesses, the pack KNOWS.
+// (Playtest audit: 506 authored-alias phrasings across 77 cases earned no
+// credit because a heuristic gate excluded the very responder whose alias
+// matched — "pocus", "cat scan", "chest film", "kub" on a CT-typed responder…)
+function strongAliasHit(r, toks){
+  const core = toks.filter(t => !FILLER_TOKENS.has(t));
+  if(!core.length) return false;
+  const corePhrase = core.join(' ');
+  for(const a of ((r.match&&r.match.any)||[])){
+    const na = normalize(a); if(!na) continue;
+    if(fuzzyHas(toks, na) && fuzzyHas(na.split(' '), corePhrase)) return true;
+  }
+  return false;
 }
 // Pack responders are authoritative, but selection is intent-scoped, modality-
 // gated for imaging, and best-match-wins for the intents where multiple answers
@@ -393,19 +432,37 @@ function matchResponders(pack, clause){
   const mod = clauseModality(norm);
   const isImaging = classifyIntent(norm)==='imaging' || !!mod;
   const scored = pack.responders.map(r => ({r, s: matchScore(r, toks)})).filter(h => h.s > 0);
+  const strong = scored.filter(h => strongAliasHit(h.r, toks));
   if(isImaging){
     // imaging order → ONLY imaging content, of a compatible modality, best match only
     let hits = scored.filter(h => responderHasImaging(h.r))
       .filter(h => { if(!mod) return true; const rm = responderModality(h.r);
                      return !rm || (MODALITY_COMPAT[mod]||[mod]).includes(rm); });
+    // An exact-alias imaging hit outranks modality inference: a pack often
+    // authors one responder for several studies ("kub" on a responder whose
+    // stored report is typed ct) — the alias says what the player asked for
+    // even when the report's stored type disagrees.
+    const strongImg = strong.filter(h => responderHasImaging(h.r));
+    if(strongImg.length) hits = strongImg;
     hits.sort((a,b)=>b.s-a.s);
     if(hits.length > 1) hits = [hits[0]];
-    // a stated recognition can ride along with an imaging order
-    return hits.concat(scored.filter(h => h.r.intent==='assessment')).map(h=>h.r);
+    // exact-alias NON-imaging matches ride along (a lab/procedure/consult
+    // alias that merely LOOKS like imaging: "bladder ultrasound" the PVR lab,
+    // "ct surgery" the consult, "push hard and fast" the CPR coaching) —
+    // as do stated recognitions, as before.
+    const seen = new Set(hits.map(h=>h.r));
+    for(const h of strong.concat(scored.filter(x => x.r.intent==='assessment'))){
+      if(!responderHasImaging(h.r) && !seen.has(h.r)){ seen.add(h.r); hits.push(h); }
+    }
+    return hits.map(h=>h.r);
   }
   // non-imaging order → everything that matches EXCEPT imaging-study responders
   // (so "give X" / "examine Y" / "ask Z" never surfaces a stray CT).
   const hits = scored.filter(h => !responderHasImaging(h.r)).map(h=>h.r);
+  // …unless the clause IS an authored imaging alias the classifier couldn't
+  // recognize as imaging ("pocus", "chest film", "twelve lead", "old tracing"):
+  // exact-alias hits reach their imaging responder regardless of intent.
+  for(const h of strong) if(responderHasImaging(h.r) && !hits.includes(h.r)) hits.push(h.r);
 
   // CONSULT bridging: "consult ob emergently" must reach a responder whose
   // aliases say "gyn consult"/"call ob" — the verb and spelling differ but the
@@ -758,9 +815,12 @@ function runTurn(pack, state, action, opts){
   // false-positive: it only protects text the pack explicitly knows whole.
   if(pack && Array.isArray(pack.responders)){
     for(const r of pack.responders) for(const a of ((r.match&&r.match.any)||[])){
-      if(!/ and /.test(a)) continue;
+      if(!/ (and|then|plus|also) |,/.test(a)) continue;
       const na = normalize(a);
-      if(na && rawNorm.includes(na)) rawNorm = rawNorm.split(na).join(na.replace(/ and /g,' & '));
+      // placeholders (&and/&plus/…/&comma) survive splitClauses' separators;
+      // splitClauses restores them so the whole-alias clause matches as typed
+      if(na && rawNorm.includes(na)) rawNorm = rawNorm.split(na).join(
+        na.replace(/ (and|then|plus|also) /g,' &$1 ').replace(/ , /g,' &comma '));
     }
   }
   const rawClauses = splitClauses(rawNorm);
