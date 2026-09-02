@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nop8ru3ene9aWulh3U16erl53FQCiO3p8uo9SxpkWNY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-OLJ1Ax2A6c4BrT2iWS54+huS/bAaNSFT5HM2R4fEboU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3006,7 +3006,62 @@ function applyCodeVitals(){
   if(!c.pulse){ S.vitals.hr = c.hr; S.vitals.bpSystolic = c.bpSys; S.vitals.bpDiastolic = c.bpDia;
                 S.vitals.rr = c.rr; S.vitals.o2 = c.spo2; }
   S.shown = {...S.vitals}; S.vBase = {...S.vitals};
+  syncCodeFlags();
   paintVitals();
+}
+// ---- the two engines' books, reconciled -------------------------------------
+// CodeEngine keeps what the team has DONE in its own state. The turn engine gates the
+// post-arrest half of every case on FLAGS in S.instantState. NOTHING carried the first
+// into the second, so a textbook resuscitation could reach ROSC — sinus tachycardia and
+// a pressure on the monitor, the code strip showing a pulse — and the very next order
+// was answered "There's no organised rhythm to read yet, doctor — he's still
+// fibrillating. Let's get a pulse back first."
+//
+// Kim reported both halves of this, a week apart: "after I shock the patient I get a
+// blood pressure and a fast heart rate but the case says there's no pulse", and then
+// "the telemetry shows sinus, but it says that he's still fibrillating". One cause.
+// It locked the whole post-arrest phase — twelve-lead, cath lab, cooling, pressors,
+// transfer — out of every live-code case, in the one state the player had earned.
+//
+// Called from applyCodeVitals because that is the single choke point every path already
+// runs through: entering the code, each tick, each code order, and endCode.
+//
+// Every name below is one a live-code pack actually gates on. What the code engine does
+// NOT model — sedation, blood products, a pelvic binder, a twelve-lead — is deliberately
+// left alone: the player orders those through the turn engine, which sets them itself.
+// Setting them here would be the mirror-image lie, telling the case something was done
+// that never was.
+function syncCodeFlags(){
+  const c = S.code;
+  if(!c || !S.instantState) return;
+  const f = S.instantState.flags || (S.instantState.flags = {});
+  const on = (...names) => { for(const n of names) if(n) f[n] = true; };
+  const gave = n => (c.drugs || []).some(d => d.name === n);
+  // The engine's own flags are already keyed by drug name and by the cause keys a script
+  // declares (tensionPtx, exsanguination, hypoxia, longQT …), so mirror them verbatim
+  // first — that is the half that needs no translation.
+  for(const k of Object.keys(c.flags || {})) if(c.flags[k]) on(k);
+  // Then the names the packs use, which are not the engine's names.
+  if(c.ended === 'rosc' || c.phase === 'rosc') on('rosc');
+  if(c.ended === 'rosc' || c.ended === 'stable' || /^sinus/.test(c.rhythm || '')) on('converted');
+  if((c.shocks || []).some(s => !s.sync)) on('shocked', 'defibrillated');
+  if((c.shocks || []).some(s => s.sync)) on('cardioverted');
+  if(gave('epinephrine')) on('epiGiven', 'epinephrineGiven');
+  if(gave('amiodarone')) on('amioGiven', 'amiodaroneGiven');
+  if(gave('adenosine')) on('adenosineGiven');
+  if(gave('naloxone')) on('naloxoneGiven');
+  if(gave('magnesium')) on('magnesiumGiven');
+  if(gave('calcium')) on('calciumGiven');
+  if(gave('tranexamic')) on('txaGiven', 'tranexamicGiven');
+  if(gave('dextrose')) on('dextroseGiven', 'glucoseGiven');
+  if(c.flags && c.flags.ppv) on('ventilated');          // bag-mask, supraglottic or tube
+  if(c.airway === 'ett') on('intubated');
+  if(c.ivAccess || c.io) on('access', 'ivAccess');
+  if(c.io) on('ioAccess');
+  if(c.capnography) on('capnography', 'etco2');
+  if(c.flags && c.flags.tensionPtx) on('decompressed', 'chestDecompressed');
+  if(c.flags && c.flags.pacing) on('paced', 'pacingStarted');
+  if((c.cprSecs || 0) > 0) on('cprStarted');
 }
 // CodeEngine's compact rhythm ids -> the monitor's label strings, which ecgType parses.
 function codeRhythmLabel(r){
