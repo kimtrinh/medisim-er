@@ -511,6 +511,18 @@ function epiOrderFor(script){
   return 'epinephrine ' + mg + ' mg IV';
 }
 
+// A withheld order is not an order. Same vocabulary the narrative engine uses
+// (instant-engine.js WITHHOLD_RE), anchored to the START of the order so "hold
+// compressions" — a real instruction — is untouched while "hold the decompression" is
+// not performed. Found by audit: "do not decompress the chest", "hold the needle
+// decompression" and "no chest tube" each marked the tension pneumothorax treated,
+// credited the critical action, and unlocked the ROSC path. The learner is told they
+// did the one thing they explicitly refused to do.
+const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+on\b)|holding|hold off|holding off|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
+// "hold cpr" / "hold compressions" / "hold the pacer" are instructions to the team, not
+// refusals — the engine has explicit branches for them and they must reach those.
+const CODE_HOLD_ACTION_RE = /^\s*(?:hold|holding|stop|stopping|pause|pausing)\s+(?:the\s+)?(cpr|compressions|chest compressions|pacing|pacer|bagging|ventilation|ventilations)\b/i;
+
 function actInner(state, script, text){
   if(state.ended) return { handled: false };
   const s = norm(text);
@@ -518,6 +530,17 @@ function actInner(state, script, text){
   // with a word. "yes" used to fall through to the turn engine and do nothing — a
   // playtested run typed it twice and lost both turns. A bare yes/no is only ever an
   // answer to the last open question; with none open it stays unhandled.
+  // A withheld order is not an order, and this must sit ABOVE every branch that
+  // performs something — placed lower, "hold the shock" still shocked, because
+  // defibrillation is matched first. The one exemption is holding an action already
+  // running (compressions, pacing): that is an instruction to the team, not a refusal.
+  // A bare "no"/"not yet" is the ANSWER to the nurse's open question and belongs to the
+  // decline branch below, which consumes the question. Guarding it here left the
+  // question open, so a later "yes" gave an epi nobody had just been offered.
+  if(CODE_WITHHOLD_RE.test(text) && !CODE_HOLD_ACTION_RE.test(text)
+     && !/^(no|nope|not yet|hold|hold it|hold off|wait|not now)[.! ]*$/.test(s)){
+    return { handled: true, events: [ev(state, 'withheld', 'Holding off on that, doctor.')] };
+  }
   if(/^(yes|yeah|yep|yup|ok|okay|sure|please|go ahead|do it|go|give it|another one|another round)[.! ]*$/.test(s)){
     if(state.pendingQuestion === 'epi'){
       state.pendingQuestion = null;
@@ -549,7 +572,7 @@ function actInner(state, script, text){
     return { handled: true, events: out };
   }
   // CPR
-  if(/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/.test(s) && !/\b(stop|hold|pause)\b/.test(s)){
+  if(/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bcompressions\b|\bhands on the chest\b/.test(s) && !/\b(stop|hold|pause)\b/.test(s)){
     state.cpr = true;
     return { handled: true, events: [ev(state, 'cpr', 'Compressions running — hard and fast, full recoil.', { on: true })] };
   }
@@ -558,7 +581,7 @@ function actInner(state, script, text){
     return { handled: true, events: [ev(state, 'cpr', 'Compressions held.', { on: false })] };
   }
   // rhythm / pulse check
-  if(/\b(pulse check|rhythm check|check (for )?a? ?pulse|check the rhythm)\b/.test(s)){
+  if(/\b(pulse check|rhythm check|check (for )?a? ?pulse|check the rhythm|feel for a pulse|is there a pulse|any pulse|do we have a pulse|palpate a pulse)\b/.test(s)){
     state.checksDone += 1; state.cpr = false;
     const out = [ev(state, 'check', state.pulse ? 'I have a pulse.' : 'No pulse — rhythm is ' + rhythmName(state.rhythm) + '.')];
     out.push(...resolveChecks(state, script));
@@ -593,23 +616,25 @@ function actInner(state, script, text){
     state.airway = 'sga'; state.flags.ppv = true;
     return { handled: true, events: [ev(state, 'airway', 'Supraglottic airway is in.')] };
   }
-  if(/\b(intubate|intubation|ett|endotracheal tube|rsi)\b/.test(s)){
+  if(/\b(intubate|intubation|ett|endotracheal tube|rsi)\b/.test(s)
+     || (/\b(et tube|tube (him|her|the patient|them))\b/.test(s) && !/\bchest tube\b/.test(s))){
     state.airway = 'ett'; state.flags.ppv = true;   // a tube is a route for ventilation
     return { handled: true, events: [ev(state, 'airway', 'Tube is in, equal breath sounds.')] };
   }
-  if(/\b(capnograph\w*|etco2|end tidal)\b/.test(s)){
+  if(/\b(capnograph\w*|capno|etco2|end tidal)\b/.test(s)){
     state.capnography = true;
     return { handled: true, events: [ev(state, 'airway', 'Waveform capnography on — EtCO2 ' + state.etco2 + '.')] };
   }
   // access
   if(/\b(io|intraosseous)\b/.test(s)){ state.io = true; state.ivAccess = true;
     return { handled: true, events: [ev(state, 'access', 'IO is in the tibia, flushed.')] }; }
-  if(/\b(iv access|large bore|two large bore|peripheral iv|start an iv)\b/.test(s)){ state.ivAccess = true;
+  if(/\b(iv access|large bore|two large bore|peripheral iv|start an iv|iv line|get a line|place a line|get access|vascular access)\b/.test(s)
+     || /^\s*iv\s*$/.test(s)){ state.ivAccess = true;
     return { handled: true, events: [ev(state, 'access', 'Two large-bore IVs are in.')] }; }
   // synchronized cardioversion / pacing / vagal — peri-arrest conversions.
   // "cardiovert" is not a substring of "cardioversion" (…vers…, not …vert…), and
   // "cardioversion" is how the order is actually written.
-  if(/\b(synchroni[sz]ed|sync)\b.*\b(shock|cardiover)|\bcardiover(?:t|s)/.test(s)){
+  if(/\b(synchroni[sz]ed|sync)\b.*\b(shock|cardiover)|\bcardiover(?:t|s)|\b(synchroni[sz]ed|sync)\b\s*(at\s*)?\d{2,3}\b/.test(s)){
     // A synchronized shock is a real intervention with a real energy: it belongs in the
     // shock log so the debrief can count it, and its energy must be checked against the
     // script's own sync band (50-100 J narrow regular, 120-200 J for AF, 0.5-1 J/kg in
@@ -638,7 +663,7 @@ function actInner(state, script, text){
     rec.rhythmAfter = state.rhythm;
     return { handled: true, events: out };
   }
-  if(/\b(pace|pacing|transcutaneous)\b/.test(s)){
+  if(/\b(pace|pacing|transcutaneous|tcp|pacer)\b/.test(s)){
     state.flags.pacing = true;
     const out = [ev(state, 'pacing', 'Pacer on — capture at 70.')];
     out.push(...checkConversion(state, script, 'pacing'));
@@ -766,12 +791,26 @@ function statusLine(state){
 // tests/instant-engine.test.cjs). `codeScript.credits` maps a code action key to the
 // critical-action index it credits, and act() reports them so the page can merge them
 // into the turn engine's satisfied list.
+// An order the engine itself flagged is not a performed critical action. Found by
+// audit: "shock 50 joules" (out of band), a shock into asystole, "epinephrine 5 mg"
+// and a 150 mg FIRST amiodarone each earned full credit while the same debrief
+// printed the correction — the sim marking the box and scolding the dose on one page.
+// The flagged record still reaches the debrief; only the credit is withheld.
 function creditKeysFor(state, script, text, before){
   const keys = [];
   const s = norm(text);
-  if(state.shocks.length > before.shocks) keys.push('shock');
-  if(state.cpr && !before.cpr) keys.push('cpr');
-  if(state.drugs.length > before.drugs) keys.push(state.drugs[state.drugs.length - 1].name);
+  const lastShockOk = state.shocks.length > before.shocks && state.shocks[state.shocks.length - 1].ok;
+  const lastDrugOk  = state.drugs.length  > before.drugs  && state.drugs[state.drugs.length - 1].ok;
+  if(lastShockOk) keys.push('shock');
+  // deliverShock sets cpr=true (compressions resume immediately after a shock), so a
+  // FLAGGED shock used to earn the compressions credit through that side effect —
+  // "shock 50 joules" was refused as out of band and ticked "high-quality CPR". Credit
+  // compressions only when the player asked for them.
+  // Credit compressions when the player ASKED for them — matching the order, not the
+  // resulting state, so a shock cannot earn it by side effect and asking for them right
+  // after a shock (the correct ACLS move) still earns it even though cpr was already on.
+  if(state.cpr && /\b(cpr|compressions)\b/.test(s) && !/\b(stop|hold|pause)\b/.test(s)) keys.push('cpr');
+  if(lastDrugOk) keys.push(state.drugs[state.drugs.length - 1].name);
   if(state.airway !== before.airway) keys.push('airway', state.airway);
   if(state.capnography && !before.capnography) keys.push('capnography');
   if((state.ivAccess && !before.ivAccess) || (state.io && !before.io)) keys.push('access');
@@ -781,7 +820,7 @@ function creditKeysFor(state, script, text, before){
   }
   if(state.flags.pacing && !before.pacing) keys.push('pacing');
   if(state.flags.vagal && !before.vagal) keys.push('vagal');
-  if(/\bcardiover/.test(s)) keys.push('cardioversion');
+  if(/\bcardiover/.test(s) && lastShockOk) keys.push('cardioversion');
   return keys;
 }
 
