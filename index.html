@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hS/ijBhj+mopazRUW16A+ONXaTeBlUje8+YobFJbx+w=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nop8ru3ene9aWulh3U16erl53FQCiO3p8uo9SxpkWNY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -135,6 +135,26 @@
   body.cinema.hudL #orderBar{left:var(--gap)}
   body.cinema.hudR #sideBar{display:none}
   body.cinema.hudR #orderBar{right:var(--gap)}
+  /* CLEAR THE ROOM. hudL and hudR each fold one column; this folds everything at once,
+     because the thing being asked for is not "less transcript" but "let me look at the
+     patient". Kim: "I wish there was a way to see the sim room a lot better because
+     everything is hiding it with the text and everything."
+     The telemetry strip is the one panel that stays — a resuscitation you cannot see
+     the rhythm during is not a resuscitation. It slims by dropping the meta row and its
+     padding, but NOT by shortening the trace: #ecgBox at 44px squeezed the ECG canvas
+     itself to 25 pixels and the pleth to 17, which put the lead labels on top of the
+     waveform and made coarse VF unreadable. Saving 44px by making the one display that
+     must stay legible illegible is a bad trade. Everything else goes, and the room is
+     the whole screen.
+     Purely additive to hudL/hudR: clearing and un-clearing restores whichever columns
+     were folded before, because those classes are never touched. */
+  body.cinema.hudClear #chat,
+  body.cinema.hudClear #sideBar,
+  body.cinema.hudClear #orderBar,
+  body.cinema.hudClear #cinemaCard,
+  body.cinema.hudClear .cinTab{display:none}
+  body.cinema.hudClear #monMeta{display:none}
+  body.cinema.hudClear #monBar{padding:.3rem .6rem}
   #cinemaHud{position:fixed;inset:0;z-index:25;pointer-events:none;display:none}
   body.cinema #cinemaHud{display:block}
   #cinemaHud > *{pointer-events:auto}
@@ -143,6 +163,7 @@
     background:linear-gradient(180deg,rgba(2,6,23,.88),rgba(3,7,18,.72));
     -webkit-backdrop-filter:blur(12px) saturate(1.15);backdrop-filter:blur(12px) saturate(1.15);
     box-shadow:0 24px 60px -24px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.06)}
+  #codeTallyBox{max-height:min(38vh,340px);overflow-y:auto;scrollbar-width:thin}
   .cinTab{position:absolute;width:24px;padding:.85rem 0;border:1px solid rgba(148,163,184,.16);
     background:rgba(2,6,23,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
     writing-mode:vertical-rl;font-weight:900;letter-spacing:.22em;
@@ -189,6 +210,11 @@
     body.cinema #cinemaCard #gearTray > button{flex:none;white-space:nowrap}
     body.cinema .cinTab{display:none}                    /* FEED / LABS rail tabs: nothing to slide */
     body.cinema.hudL #chat{display:block}
+    /* Nothing floats on a phone, so there is nothing to clear — and the control that
+       would do it is meaningless. Undone exactly as hudL is, on the line above. */
+    body.cinema.hudClear #chat,body.cinema.hudClear #sideBar,
+    body.cinema.hudClear #orderBar,body.cinema.hudClear #cinemaCard{display:block}
+    body.cinema #cinClear{display:none}
     body.cinema #main{order:3;position:static;flex:1 1 0;min-height:0;display:flex;flex-direction:column;
       overflow:hidden;pointer-events:auto}
     body.cinema #playBody{display:flex;flex:1 1 0;min-height:0}
@@ -552,6 +578,9 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
          block in the stylesheet. -->
     <div id="cinemaCtl" class="hidden items-center gap-2 mr-1">
       <span class="text-[9px] font-black uppercase tracking-[.25em] text-slate-500 hidden lg:inline">Cinema · Esc to exit</span>
+      <button id="cinClear" title="Hide the panels and see the whole room (H)" class="px-3 py-2.5 rounded-2xl border-2 bg-slate-900/70 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-500 hover:text-slate-100 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
+        <span id="cinClearIcon" class="text-sm leading-none">👁</span> <span id="cinClearLab" class="hidden sm:inline">Clear</span>
+      </button>
       <button id="cinExit" title="Leave the sim room (Esc)" class="px-5 py-2.5 rounded-2xl border-2 bg-emerald-600/15 border-emerald-500/60 text-emerald-300 hover:bg-emerald-600/25 hover:border-emerald-400 hover:text-emerald-200 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
         <span class="text-sm leading-none">✕</span> <span class="hidden sm:inline">Leave the Room</span><span class="sm:hidden">Leave</span>
       </button>
@@ -1187,12 +1216,21 @@ function normVitals(v){
   const cl = (x,lo,hi)=>Math.min(hi,Math.max(lo,x));
   let t = n(v.temp,DEFAULT_VITALS.temp);
   if(t>45) t=(t-32)*5/9;   // model sent Fahrenheit — convert
+  // Zero is a REAL reading — it is what cardiac arrest looks like — so it passes
+  // through untouched. The floors below exist to sanitise implausible model output,
+  // but applied to a zero they invented a pulse: an arrest case declaring hr 0 and
+  // bp 0/0 was clamped UP to hr 20 and 40/20 and then drifted, so a patient the
+  // narrative called pulseless displayed a blood pressure in the 40s and a rising
+  // heart rate. Reported from play on the witnessed-arrest case. Live-code cases hid
+  // it because the code engine writes their vitals directly and stops the drift; the
+  // prose arrest cases had no such cover.
+  const cz = (x,lo,hi)=> x === 0 ? 0 : cl(x,lo,hi);
   return {
-    hr:cl(n(v.hr,DEFAULT_VITALS.hr),20,250),
-    bpSystolic:cl(n(v.bpSystolic,DEFAULT_VITALS.bpSystolic),40,300),
-    bpDiastolic:cl(n(v.bpDiastolic,DEFAULT_VITALS.bpDiastolic),20,200),
-    rr:cl(n(v.rr,DEFAULT_VITALS.rr),4,70),
-    o2:cl(n(v.o2,DEFAULT_VITALS.o2),40,100),
+    hr:cz(n(v.hr,DEFAULT_VITALS.hr),20,250),
+    bpSystolic:cz(n(v.bpSystolic,DEFAULT_VITALS.bpSystolic),40,300),
+    bpDiastolic:cz(n(v.bpDiastolic,DEFAULT_VITALS.bpDiastolic),20,200),
+    rr:cz(n(v.rr,DEFAULT_VITALS.rr),4,70),
+    o2:cz(n(v.o2,DEFAULT_VITALS.o2),40,100),
     temp:cl(parseFloat(t.toFixed(1)),30,43),
     rhythm: v.rhythm || DEFAULT_VITALS.rhythm
   };
@@ -2462,7 +2500,14 @@ function stepVitals(k, dt){
   // floats is also required: the old per-tick rounding erased sub-integer drift.) Only
   // deterioration auto-drifts; improvement is driven by the model's per-turn targets. The
   // next turn overwrites S.vitals wholesale, so this drift never fights the model.
-  if(dt>0 && (S.trend==='worsening'||S.trend==='critical')){
+  // A pulseless patient is not "deteriorating" — they are already at the bottom, and
+  // what happens next belongs to the code script or the case, not to a drift curve.
+  // Run on an arrest, this block climbed the heart rate up from zero (Math.min(185,
+  // 0 + dt)) and pinned the pressure at its own floor (Math.max(40, 0 - dt)), so a
+  // patient the narrative called pulseless displayed 40/25 with a rising rate.
+  // Reported from play on the witnessed-arrest case.
+  const arrested = t.hr === 0 || t.bpSystolic === 0;
+  if(dt>0 && !arrested && (S.trend==='worsening'||S.trend==='critical')){
     const crit=S.trend==='critical';
     if(crit){ t.hr=Math.min(185,t.hr+1.0*dt); t.bpSystolic=Math.max(40,t.bpSystolic-1.0*dt); t.bpDiastolic=Math.max(25,t.bpDiastolic-0.6*dt); t.o2=Math.max(55,t.o2-0.5*dt); t.rr=Math.min(52,t.rr+0.4*dt); }
     else { t.hr=Math.min(165,t.hr+0.5*dt); t.bpSystolic=Math.max(62,t.bpSystolic-0.4*dt); t.bpDiastolic=Math.max(38,t.bpDiastolic-0.25*dt); t.o2=Math.max(78,t.o2-0.3*dt); t.rr=Math.min(46,t.rr+0.2*dt); }
@@ -2500,7 +2545,10 @@ let _prevClock=-1;
 // non-zero numbers in S.shown for a frame: pulseless means 0/0, and ROSC gets an
 // explicit positive pulse indicator instead of making the learner infer it from BP.
 function monitorHemodynamics(v, code){
-  const pulse=code ? !!code.pulse : null;
+  // Outside a code there is no engine to ask, so the vitals speak for themselves:
+  // a heart rate of zero IS pulselessness, and a pressure alongside it is a
+  // contradiction the learner should never have to reconcile.
+  const pulse = code ? !!code.pulse : (v && v.hr === 0 ? false : null);
   const pulseless=pulse===false;
   return {pulse, pulseless,
     sys:pulseless?0:Math.round(v.bpSystolic),
@@ -3037,7 +3085,122 @@ function fireCodeOrder(text, label){
 
 // The code strip: the numbers a resuscitation lead keeps in their head, on the screen.
 // Cycle bar, shocks, when the next epi is due, whether hands are on the chest, EtCO2.
+// THE CODE RECORD. Kim: "It would be nice to keep a tally of all the meds and actions
+// on the side when you run the code." A real resuscitation has a scribe for exactly
+// this reason — nobody running one can also hold in their head how many shocks have
+// gone in, whether the calcium was ever given, or what time the tube went down.
+//
+// Built from S.code.events, which is ALREADY the ordered stream buildDebrief reads.
+// One source, so the sheet on the rail during the code and the timeline in the debrief
+// after it cannot disagree — and a flagged order (`ok:false`) is marked flagged here
+// too, rather than being quietly listed as though it had counted.
+//
+// It lives at the head of the side rail, which is the same element in the ordinary
+// layout and in cinema, so it needs no chrome of its own and the LABS tab already
+// governs it.
+const TALLY_KIND = {
+  shock:      ['Shock',  'border-amber-500/50 bg-amber-500/10 text-amber-300'],
+  cardiovert: ['Sync',   'border-amber-500/50 bg-amber-500/10 text-amber-300'],
+  drug:       ['Drug',   'border-sky-500/50 bg-sky-500/10 text-sky-300'],
+  cpr:        ['CPR',    'border-rose-500/50 bg-rose-500/10 text-rose-300'],
+  airway:     ['Airway', 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'],
+  access:     ['Access', 'border-slate-600 bg-slate-800/70 text-slate-300'],
+  cause:      ['H / T',  'border-violet-500/50 bg-violet-500/10 text-violet-300'],
+  vagal:      ['H / T',  'border-violet-500/50 bg-violet-500/10 text-violet-300'],
+  pacing:     ['Pacing', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
+  check:      ['Check',  'border-slate-600 bg-slate-800/70 text-slate-300'],
+  convert:    ['Rhythm', 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'],
+  degrade:    ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
+  crash:      ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
+  arrest:     ['Arrest', 'border-rose-500/60 bg-rose-500/15 text-rose-200'],
+  rosc:       ['ROSC',   'border-emerald-500/60 bg-emerald-500/15 text-emerald-200'],
+  death:      ['Died',   'border-slate-600 bg-slate-800/70 text-slate-400'],
+  withheld:   ['Held',   'border-slate-600 bg-slate-800/70 text-slate-400'],
+};
+// Everything the engine emits that is NOT one of these is coaching, not record:
+// 'hint' and 'note' are the sim talking to the learner, and a scribe writes down what
+// was done to the patient.
+function paintCodeTally(){
+  const box = $('codeTally'); if(!box) return;
+  const c = S.code;
+  if(!c){ box.classList.add('hidden'); box.innerHTML=''; _tallyN = -1; return; }
+  box.classList.remove('hidden');
+  const rows = codeTallyRows(c);
+  // Three things move at three different rates, so each is repainted on its own clock.
+  // The list is the expensive one: rebuilt wholesale every tick it would fight the
+  // scroll position and drop the player back at the top of the record once a second,
+  // so it is rebuilt ONLY when an entry is actually added. The clock and the summary
+  // move continuously — CPR fraction in particular changes every tick with no event to
+  // announce it, which is why keying the whole panel off the row count left it blank.
+  const clock = $('tallyClock'), stats = $('tallyStats');
+  if(clock) clock.textContent = CodeEngine.fmt(c.t);
+  if(stats) stats.innerHTML = codeTallyStats(c);
+  if(clock && stats && _tallyN === rows.length) return;
+  _tallyN = rows.length;
+  box.innerHTML = `
+    <div class="rounded-2xl border border-slate-800 bg-slate-950/70 overflow-hidden">
+      <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900/60">
+        <span class="text-[10px] font-black uppercase tracking-[.3em] text-rose-300">Code Record</span>
+        <span id="tallyClock" class="text-xs font-black tabular-nums text-slate-200">${CodeEngine.fmt(c.t)}</span>
+      </div>
+      <div id="tallyStats" class="flex flex-wrap gap-x-3 gap-y-1 px-3 py-2 border-b border-slate-800/70">${codeTallyStats(c)}</div>
+      <div id="codeTallyBox" class="divide-y divide-slate-900">
+        ${rows.length ? rows.join('') :
+          '<div class="px-3 py-3 text-[11px] text-slate-500">Nothing given yet.</div>'}
+      </div>
+    </div>`;
+  const list = $('codeTallyBox'); if(list) list.scrollTop = list.scrollHeight;   // newest entry in view
+}
+let _tallyN = -1;
+// The four numbers the lead is asked for out loud: how many shocks, how much epi, how
+// good the compression fraction is, and what the monitor says right now. CPR fraction
+// is measured against time spent PULSELESS, not against the whole code — a perfusing
+// bradycardia has no compression fraction to report, and dividing by total time would
+// score a textbook peri-arrest case at nought.
+function codeTallyStats(c){
+  const epi = c.drugs.filter(d => d.name === 'epinephrine').length;
+  const cprPct = c.pulselessSecs > 0
+    ? Math.round(100 * Math.min(c.cprSecs, c.pulselessSecs) / c.pulselessSecs) : null;
+  const name = CodeEngine.rhythmName ? CodeEngine.rhythmName(c.rhythm) : c.rhythm;
+  const stat = (label, value, tone) => `<span class="text-[9px] font-black uppercase tracking-widest text-slate-500">${label} <span class="normal-case ${tone||'text-slate-200'}">${esc(String(value))}</span></span>`;
+  return stat('Shocks', c.shocks.length)
+    + stat('Epi', epi)
+    + (cprPct == null ? '' : stat('CPR', cprPct + '%', cprPct >= 80 ? 'text-emerald-300' : 'text-amber-300'))
+    + stat('Rhythm', name.charAt(0).toUpperCase() + name.slice(1), c.pulse ? 'text-emerald-300' : 'text-rose-300');
+}
+// The events and the records are pushed in lockstep — one 'shock'/'cardiovert' event per
+// entry in state.shocks, one 'drug' event per entry in state.drugs — so walking both as
+// queues recovers the energy and the dose the bare event text does not carry.
+function codeTallyRows(c){
+  const shocks = c.shocks.slice(), drugs = c.drugs.slice(), out = [];
+  for(const e of c.events || []){
+    const kind = TALLY_KIND[e.kind]; if(!kind) continue;
+    let detail, rec = null;
+    if(e.kind === 'shock' || e.kind === 'cardiovert'){
+      rec = shocks.shift();
+      detail = rec ? rec.joules + ' J' + (rec.sync ? ' synchronised' : '') : 'Shock delivered';
+    } else if(e.kind === 'drug'){
+      rec = drugs.shift();
+      detail = !rec ? 'Given' : (rec.name.charAt(0).toUpperCase() + rec.name.slice(1))
+        + (rec.doseMg == null ? '' : ' ' + codeDoseLabel(rec.doseMg, codeDoseUnit(S.codeScript || {}, rec.name)))
+        + (rec.route ? ' ' + rec.route.toUpperCase() : '');
+    } else {
+      // The engine's own words, cut at the first clause: "Tube is in, equal breath
+      // sounds." is the nurse speaking; "Tube is in" is the record.
+      detail = String(e.text || '').split(/[—,.](?:\s|$)/)[0].trim() || kind[0];
+    }
+    const flagged = e.ok === false || (rec && rec.ok === false);
+    out.push(`<div class="flex items-start gap-2 px-3 py-1.5">
+      <span class="text-[10px] font-black tabular-nums text-slate-500 w-9 shrink-0 pt-px">${CodeEngine.fmt(e.t)}</span>
+      <span class="px-1.5 py-px rounded border text-[9px] font-black uppercase tracking-widest shrink-0 ${kind[1]}">${kind[0]}</span>
+      <span class="text-[11px] leading-snug ${flagged ? 'text-amber-300' : 'text-slate-200'}">${esc(detail)}${
+        flagged ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">flagged</span>' : ''}</span>
+    </div>`);
+  }
+  return out;
+}
 function paintCodeStrip(){
+  paintCodeTally();   // the record outlives the code itself — it stays up through ROSC
   const el = $('codeStrip'); if(!el) return;
   if(!codeActive()){ el.classList.add('hidden'); el.innerHTML=''; return; }
   const c = S.code, sc = S.codeScript;
@@ -4228,6 +4391,8 @@ function renderPlay(){
     <aside id="sideBar" class="hidden md:block w-[340px] xl:w-[480px] overflow-y-auto p-5 space-y-6 bg-slate-950/60 shrink-0">
       <button id="chartClose" class="md:hidden sticky top-0 z-10 w-full items-center justify-center gap-2 py-2 mb-1 rounded-lg bg-slate-800/90 border border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-200 backdrop-blur">✕ Close chart</button>
       <div id="patientPanel"></div>
+      <!-- The code record. Empty and hidden outside a code; paintCodeStrip fills it. -->
+      <div id="codeTally" class="hidden"></div>
       <h3 class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 border-b border-slate-800 pb-3">Clinical Workspace</h3>
       <div id="ws"></div>
     </aside>
@@ -5518,10 +5683,26 @@ function enterCinema(){
   ensureCinemaStage();
   renderPatient();                      // mounts the scene into the stage, empties the card
 }
+// Fold every panel away and give the room the whole screen; press again to bring them
+// back exactly as they were. hudL and hudR are deliberately untouched, so a player who
+// had already folded the transcript still has it folded when the panels return.
+function toggleClearRoom(){
+  if(!S.cinema) return;
+  const on = document.body.classList.toggle('hudClear');
+  const lab = $('cinClearLab'), icon = $('cinClearIcon'), btn = $('cinClear');
+  if(lab) lab.textContent = on ? 'Panels' : 'Clear';
+  if(icon) icon.textContent = on ? '▦' : '👁';
+  if(btn){ btn.title = on ? 'Bring the panels back (H)' : 'Hide the panels and see the whole room (H)';
+           btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  // display:none zeroes scrollTop, so the transcript comes back at the newest message
+  // rather than at the top of the case — the same courtesy the FEED tab already does.
+  if(!on){ const c=$('chat'); if(c) c.scrollTop=c.scrollHeight; }
+  cinemaMetrics();
+}
 function exitCinema(){
   if(!S.cinema) return;
   S.cinema=false;
-  document.body.classList.remove('cinema','hudL','hudR');   // collapsed columns don't outlive the room
+  document.body.classList.remove('cinema','hudL','hudR','hudClear');   // collapsed columns don't outlive the room
   document.body.style.removeProperty('--hdr');
   document.body.style.removeProperty('--mb');
   document.body.style.removeProperty('--ra');
@@ -5616,6 +5797,17 @@ document.addEventListener('keydown', e=>{
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinExit')) leaveCinema(true); });   // the labelled button IS deliberate
+document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinClear')) toggleClearRoom(); });
+// H for the room. Guarded against every field a player types into — the order box is
+// the obvious one, but "h" is also a letter in the case-search box and in the free-text
+// diagnosis, and a shortcut that eats a keystroke there would be worse than no shortcut.
+document.addEventListener('keydown', e=>{
+  if(e.key!=='h' && e.key!=='H') return;
+  if(!S.cinema || e.metaKey || e.ctrlKey || e.altKey) return;
+  const el=e.target;
+  if(el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA' || el.tagName==='SELECT' || el.isContentEditable)) return;
+  e.preventDefault(); toggleClearRoom();
+});
 // ---- Equipment live state --------------------------------------------------
 // The props follow the orders, exactly like gearAutoHook does for the patient's
 // kit. Kept in S.room so the state survives walking to another position and
