@@ -2412,22 +2412,39 @@ function runTurn(pack, state, action, opts){
           if(!need.every(f=>state.flags[f])){
             if(r0.gate.elseSpeech) out.speech.push(...r0.gate.elseSpeech);
             pendingGates.push(need); gateBlocked = true;
-            // HARD gate for information disclosures (history): the info truly
-            // cannot be obtained until the prerequisite is met (a private sexual
-            // history needs the parent to step out) — don't reveal or credit.
-            // SOFT gate for treatments/tests that physically happen regardless
-            // and satisfy a critical action: the player DID perform the action,
-            // so credit and apply it — the elseSpeech stands as the sequencing
-            // caution, and the prerequisite itself is graded as its own critical
-            // action. (Fixes: giving vancomycin+clindamycin before cultures still
-            // counts as the antibiotics critical action.)
-            // A gated PROCEDURE encodes a clinical prerequisite (you cannot bridge with an
-            // SGA before an attempt has failed), so prep language must not soft-gate it
-            // through and perform it.
-            const softGate = Number.isInteger(r0.satisfies) && r0.intent !== 'history'
+            // A REFUSED ORDER DOES NOT HAPPEN.
+            //
+            // This block used to let a gated treatment fall all the way through and
+            // apply itself — vitals, trend, state, results and its own success speech —
+            // on the reasoning that the player HAD performed the action and deserved the
+            // critical-action credit. Credit was right; bundling the whole world state in
+            // with it was not. The nurse ended up refusing and confirming in the same
+            // breath, and the monitor took the refused treatment's side:
+            //
+            //   cv-unstable-vt, "synchronized cardioversion" before sedation
+            //     "He's still wide awake, Doctor — we need sedation on board before we
+            //      shock him."
+            //     "Synchronized, 100 joules — shock delivered. He converts."
+            //     monitor: VT 190, 82/54  ->  Sinus 78, 118/74
+            //
+            // 62 of the 76 gated treatments carrying vitals read that way. Kim's call:
+            // refuse it and keep the credit. So the DECISION still scores — the player
+            // named the right treatment and must not be punished twice, and the
+            // prerequisite is graded as its own critical action — but nothing else
+            // applies. The player does the prerequisite and orders again.
+            //
+            // The predicate below is the old softGate unchanged, so exactly the orders
+            // that used to earn credit here still earn it. Only the world stops moving.
+            // History stays hard-gated and uncredited: information that cannot be
+            // obtained has not been obtained (a private sexual history needs the parent
+            // to step out). A gated PROCEDURE reached through prep language is likewise
+            // uncredited — prep is not performance.
+            const creditIt = Number.isInteger(r0.satisfies) && r0.intent !== 'history'
                              && !(r0.intent === 'procedure' && PREP_RE.test(clause))
                              && !need.some(f => SEQUENCE_FLAG_RE.test(f));
-            if(!softGate) continue;
+            if(creditIt && !state.satisfied.includes(r0.satisfies)) state.satisfied.push(r0.satisfies);
+            if(creditIt && tc) tc.satisfies.push(r0.satisfies);
+            continue;
           }
         }
         // A dosed medication line is not an exam — "titrate to PERFUSION" fired

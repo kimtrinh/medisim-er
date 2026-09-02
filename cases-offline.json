@@ -9752,7 +9752,7 @@
       "elseSpeech": [
        {
         "speaker": "nurse",
-        "text": "He's wide awake and crying out every time it fires \u2014 he's thrashing against the current, I can barely hold him still."
+        "text": "He's wide awake, doctor \u2014 pacing at capture current is painful and he will not tolerate it. Let's get sedation on board first."
        }
       ]
      },
@@ -12714,7 +12714,7 @@
       "elseSpeech": [
        {
         "speaker": "nurse",
-        "text": "She's wincing and pulling away every time it fires \u2014 I don't think we should do this without sedating her first."
+        "text": "She's wide awake, doctor \u2014 pacing hurts, and I don't think we should do it without sedating her first."
        }
       ]
      },
