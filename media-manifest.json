@@ -1,0 +1,1817 @@
+{
+ "ct_aortic_dissection": {
+  "credit": "J. Heuser (JHeuser)",
+  "file": "media/ct_aortic_dissection.jpg",
+  "kw": [
+   "aortic dissection",
+   "aortic intimal flap",
+   "intimal flap ascending aorta",
+   "true and false aortic lumen",
+   "aortic double lumen",
+   "aortic arch dissection"
+  ],
+  "label": "CT angiography — aortic dissection with intimal flap",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:AoDiss_CT_A-Diss.jpg",
+  "source_title": "File:AoDiss CT A-Diss.jpg"
+ },
+ "ct_aaa": {
+  "credit": "James Heilman, MD",
+  "file": "media/ct_aaa.jpg",
+  "kw": [
+   "aortic aneurysm",
+   "aaa",
+   "retroperitoneal hematoma",
+   "ruptured aneurysm"
+  ],
+  "label": "CT \u2014 abdominal aortic aneurysm",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:AneursymCT.png",
+  "source_title": "File:AneursymCT.png"
+ },
+ "ct_appendicitis": {
+  "credit": "Stefan Tigges",
+  "file": "media/ct_appendicitis.jpg",
+  "kw": [
+   "appendicitis",
+   "appendix",
+   "periappendiceal",
+   "appendicolith"
+  ],
+  "label": "CT abdomen \u2014 acute appendicitis",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Appendicitis_(CT_angiogram)_(Radiopaedia_154713-127660_Axial_113).jpg",
+  "source_title": "File:Appendicitis (CT angiogram) (Radiopaedia 154713-127660 Axial 113).jpg"
+ },
+ "ct_cspine": {
+  "credit": "Frank Gaillard",
+  "file": "media/ct_cspine.jpg",
+  "kw": [
+   "cervical spine",
+   "c-spine",
+   "cspine",
+   "odontoid",
+   "cervical fracture"
+  ],
+  "label": "CT cervical spine \u2014 fracture",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cervical_fracture_dislocation_C6-C7.jpeg",
+  "source_title": "File:Cervical fracture dislocation C6-C7.jpeg"
+ },
+ "ct_facial": {
+  "credit": "James Heilman, MD",
+  "file": "media/ct_facial.jpg",
+  "kw": [
+   "facial fracture",
+   "maxillofacial",
+   "orbital",
+   "blowout",
+   "midface",
+   "zygomatic",
+   "mandible"
+  ],
+  "label": "CT face \u2014 facial fracture",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:FractLeftOrbitFloor.png",
+  "source_title": "File:FractLeftOrbitFloor.png"
+ },
+ "ct_free_air": {
+  "credit": "Hellerhoff",
+  "file": "media/ct_free_air.jpg",
+  "kw": [
+   "free air",
+   "pneumoperitoneum",
+   "free intraperitoneal gas",
+   "perforated viscus"
+  ],
+  "label": "CT abdomen \u2014 pneumoperitoneum",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:20-02-Anastomoseninsuffizienz_freie_Luft_-_CT.png",
+  "source_title": "File:20-02-Anastomoseninsuffizienz freie Luft - CT.png"
+ },
+ "ct_generic2": {
+  "credit": "Hellerhoff",
+  "file": "media/ct_generic2.jpg",
+  "generic": true,
+  "kw": [
+   "ct",
+   "computed tomography",
+   "axial",
+   "tomography"
+  ],
+  "label": "CT",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:20-03-Anastomoseninsuffizienz_freie_Luft_-_CT2.png",
+  "source_title": "File:20-03-Anastomoseninsuffizienz freie Luft - CT2.png"
+ },
+ "ct_pancreatitis": {
+  "credit": "James Heilman, MD",
+  "file": "media/ct_pancreatitis.jpg",
+  "kw": [
+   "pancreatitis",
+   "peripancreatic",
+   "pancreatic"
+  ],
+  "label": "CT abdomen \u2014 acute pancreatitis",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:CalcifiedPanDucStoneandSomefluid.png",
+  "source_title": "File:CalcifiedPanDucStoneandSomefluid.png"
+ },
+ "ct_sah": {
+  "credit": "Lipothymia",
+  "file": "media/ct_sah.jpg",
+  "kw": [
+   "subarachnoid hemorrhage",
+   "subarachnoid haemorrhage",
+   "sah",
+   "basal cistern",
+   "sylvian fissure",
+   "cisternal blood",
+   "diffuse hyperdensity"
+  ],
+  "label": "Head CT — subarachnoid hemorrhage",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Subarachnoid_haemorrhage.jpg",
+  "source_title": "File:Subarachnoid haemorrhage.jpg"
+ },
+ "ct_skull_fracture": {
+  "credit": "James Heilman, MD",
+  "file": "media/ct_skull_fracture.jpg",
+  "kw": [
+   "skull fracture",
+   "calvarial",
+   "depressed fracture",
+   "basilar skull"
+  ],
+  "label": "CT head \u2014 skull fracture",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Temporal_Bone_Skull_Fracture.jpg",
+  "source_title": "File:Temporal Bone Skull Fracture.jpg"
+ },
+ "ct_soft_tissue_gas": {
+  "credit": "James Heilman, MD",
+  "file": "media/ct_soft_tissue_gas.jpg",
+  "kw": [
+   "soft tissue gas",
+   "necrotizing",
+   "gas forming",
+   "fournier",
+   "emphysematous"
+  ],
+  "label": "CT \u2014 soft tissue gas",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Necrotising_fascitis_producing_gas_in_soft_tissues.jpg",
+  "source_title": "File:Necrotising fascitis producing gas in soft tissues.jpg"
+ },
+ "ct_subdural": {
+  "credit": "Glitzy queen00 at English Wikipedia",
+  "file": "media/ct_subdural.jpg",
+  "kw": [
+   "subdural",
+   "crescent",
+   "sdh"
+  ],
+  "label": "Head CT \u2014 subdural hematoma",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Trauma_subdural.jpg",
+  "source_title": "File:Trauma subdural.jpg"
+ },
+ "cxr_ards": {
+  "credit": "James Heilman, MD",
+  "file": "media/cxr_ards.jpg",
+  "kw": [
+   "ards",
+   "bilateral infiltrate",
+   "diffuse infiltrate",
+   "white out",
+   "whiteout"
+  ],
+  "label": "CXR \u2014 diffuse bilateral infiltrates",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:ARDSSevere.png",
+  "source_title": "File:ARDSSevere.png"
+ },
+ "cxr_clear": {
+  "credit": "Mikael H\u00e4ggstr\u00f6m",
+  "file": "media/cxr_clear.jpg",
+  "kw": [
+   "clear lung field",
+   "no infiltrate",
+   "no focal consolidation",
+   "normal cardiac silhouette",
+   "normal cardiomediastinal silhouette",
+   "normal heart size no pulmonary edema",
+   "unremarkable chest",
+   "no acute cardiopulmonary",
+   "normal chest x-ray",
+   "portable supine chest x-ray no acute infiltrate",
+   "clear lungs",
+   "no pneumothorax no effusion"
+  ],
+  "label": "CXR \u2014 clear lung fields",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Normal_posteroanterior_(PA)_chest_radiograph_(X-ray).jpg",
+  "source_title": "File:Normal posteroanterior (PA) chest radiograph (X-ray).jpg"
+ },
+ "cxr_free_air": {
+  "credit": "Bill Rhodes from Asheville",
+  "file": "media/cxr_free_air.jpg",
+  "kw": [
+   "free air",
+   "pneumoperitoneum",
+   "under the diaphragm",
+   "subdiaphragmatic"
+  ],
+  "label": "CXR \u2014 free air under the diaphragm",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Pneumoperitoneum_chest_X-ray.jpg",
+  "source_title": "File:Pneumoperitoneum chest X-ray.jpg"
+ },
+ "cxr_hemothorax": {
+  "credit": "Kaul and Paniagua",
+  "file": "media/cxr_hemothorax.jpg",
+  "kw": [
+   "hemothorax",
+   "haemothorax",
+   "blunting",
+   "costophrenic"
+  ],
+  "label": "CXR \u2014 hemothorax",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Massive_right_hemothorax.jpg",
+  "source_title": "File:Massive right hemothorax.jpg"
+ },
+ "cxr_widened_mediastinum": {
+  "credit": "J. Heuser (JHeuser)",
+  "file": "media/cxr_widened_mediastinum.jpg",
+  "kw": [
+   "widened mediastinum",
+   "mediastinal widening",
+   "widened aortic contour",
+   "abnormal aortic contour",
+   "aortic dissection"
+  ],
+  "label": "CXR — widened mediastinal and aortic contour",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:AoDiss_ChestXRay.jpg",
+  "source_title": "File:AoDiss ChestXRay.jpg"
+ },
+ "cxr_tb": {
+  "credit": "Benjam\u00edn Herreros, Isabel Plaza, Rebeca Garc\u00eda, Marta Chich\u00f3n, Carmen Guerrero and Emilio Pintor",
+  "file": "media/cxr_tb.jpg",
+  "kw": [
+   "tuberculosis",
+   "tb",
+   "cavitary",
+   "apical",
+   "miliary"
+  ],
+  "label": "CXR \u2014 cavitary / apical disease",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Chest_radiograph_of_miliary_tuberculosis_1.jpg",
+  "source_title": "File:Chest radiograph of miliary tuberculosis 1.jpg"
+ },
+ "derm_angioedema": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_angioedema.jpg",
+  "kw": [
+   "angioedema",
+   "lip swelling",
+   "tongue swelling",
+   "facial swelling"
+  ],
+  "label": "Skin \u2014 angioedema",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:AngioedemaFra.JPG",
+  "source_title": "File:AngioedemaFra.JPG"
+ },
+ "derm_abscess": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/derm_abscess-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "abscess",
+   "cutaneous abscess",
+   "fluctuant",
+   "pustule",
+   "skin bump"
+  ],
+  "label": "Skin — superficial abscess (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated dermatology image"
+ },
+ "derm_burn": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/derm_partial_thickness_burn-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "burn",
+   "thermal burn",
+   "partial thickness",
+   "blistering burn",
+   "blister"
+  ],
+  "label": "Skin — partial-thickness thermal burn (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated dermatology image"
+ },
+ "derm_cellulitis": {
+  "credit": "RafaelLopez",
+  "file": "media/derm_cellulitis.jpg",
+  "kw": [
+   "cellulitis",
+   "erythema",
+   "warm erythematous",
+   "spreading redness",
+   "erysipelas"
+  ],
+  "label": "Skin \u2014 cellulitis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Cellulitis3.jpg",
+  "source_title": "File:Cellulitis3.jpg"
+ },
+ "derm_cyanosis": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_cyanosis.jpg",
+  "kw": [
+   "cyanosis",
+   "cyanotic",
+   "blue lips",
+   "mottled",
+   "mottling"
+  ],
+  "label": "Skin \u2014 peripheral cyanosis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Arterial_thrombosis_causing_cyanosis.jpg",
+  "source_title": "File:Arterial thrombosis causing cyanosis.jpg"
+ },
+ "derm_erythema_migrans": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/derm_erythema_migrans-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "erythema migrans",
+   "lyme",
+   "bullseye rash",
+   "annular rash",
+   "expanding rash"
+  ],
+  "label": "Skin — erythema migrans (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated dermatology image"
+ },
+ "derm_erythema_multiforme": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_erythema_multiforme.jpg",
+  "kw": [
+   "erythema multiforme",
+   "target lesion",
+   "iris lesion"
+  ],
+  "label": "Skin \u2014 erythema multiforme",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Erythema_multiforme_minor_of_the_hand.jpg",
+  "source_title": "File:Erythema multiforme minor of the hand.jpg"
+ },
+ "derm_gangrene": {
+  "credit": "\u0622\u0631\u0645\u06cc\u0646",
+  "file": "media/derm_gangrene.jpg",
+  "kw": [
+   "gangrene",
+   "necrosis",
+   "necrotic",
+   "black eschar",
+   "mummified"
+  ],
+  "label": "Skin \u2014 gangrene / tissue necrosis",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Gangrene_Foot_01.jpg",
+  "source_title": "File:Gangrene Foot 01.jpg"
+ },
+ "derm_hfm": {
+  "credit": "Gzzz",
+  "file": "media/derm_hfm.jpg",
+  "kw": [
+   "hand foot",
+   "coxsackie",
+   "enterovirus",
+   "vesicles hands"
+  ],
+  "label": "Skin \u2014 hand, foot and mouth disease",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Hand_foot_and_mouth_disease.JPG",
+  "source_title": "File:Hand foot and mouth disease.JPG"
+ },
+ "derm_jaundice": {
+  "credit": "Jaundice_eye.jpg : * Photo Credit: Content Providers(s): CDC/Dr. Thomas F. Sellers/Emory University derivative work: \u0ba4.\u0b89",
+  "file": "media/derm_jaundice.jpg",
+  "kw": [
+   "jaundice",
+   "icterus",
+   "icteric",
+   "yellow skin"
+  ],
+  "label": "Skin/eye \u2014 jaundice",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Jaundice_eye_new.jpg",
+  "source_title": "File:Jaundice eye new.jpg"
+ },
+ "derm_measles": {
+  "credit": "CDC",
+  "file": "media/derm_measles.jpg",
+  "kw": [
+   "measles",
+   "morbilliform",
+   "maculopapular",
+   "exanthem",
+   "viral rash"
+  ],
+  "label": "Skin \u2014 morbilliform viral exanthem",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Young_boy_with_measles.jpg",
+  "source_title": "File:Young boy with measles.jpg"
+ },
+ "derm_nec_fasc": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/derm_soft_tissue_infection-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "necrotizing",
+   "necrotising",
+   "soft tissue infection",
+   "violaceous",
+   "bullae",
+   "dusky blister"
+  ],
+  "label": "Skin — severe soft-tissue infection warning signs (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated dermatology image"
+ },
+ "derm_petechiae": {
+  "credit": "User:Hektor",
+  "file": "media/derm_petechiae.jpg",
+  "kw": [
+   "petechia",
+   "petechial",
+   "non-blanching",
+   "nonblanching",
+   "meningococc",
+   "pinpoint"
+  ],
+  "label": "Skin \u2014 petechial rash",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Purpura.jpg",
+  "source_title": "File:Purpura.jpg"
+ },
+ "derm_pressure_ulcer": {
+  "credit": "Bobjgalindo",
+  "file": "media/derm_pressure_ulcer.jpg",
+  "kw": [
+   "pressure ulcer",
+   "decubitus",
+   "bedsore",
+   "sacral wound"
+  ],
+  "label": "Skin \u2014 pressure ulcer",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Imagen_Bob_108.jpg",
+  "source_title": "File:Imagen Bob 108.jpg"
+ },
+ "derm_purpura": {
+  "credit": "Profrofrof",
+  "file": "media/derm_purpura.jpg",
+  "kw": [
+   "purpura",
+   "petechia",
+   "petechial",
+   "meningococc",
+   "non-blanching",
+   "nonblanching"
+  ],
+  "label": "Skin \u2014 purpura / petechiae",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:HSP_Vasculitis.jpg",
+  "source_title": "File:HSP Vasculitis.jpg"
+ },
+ "derm_scarlet": {
+  "credit": "SyntGrisha",
+  "file": "media/derm_scarlet.jpg",
+  "kw": [
+   "scarlet",
+   "scarlatin",
+   "sandpaper",
+   "strawberry tongue",
+   "kawasaki"
+  ],
+  "label": "Skin \u2014 scarlatiniform rash",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Scarlatina_tongue.JPG",
+  "source_title": "File:Scarlatina tongue.JPG"
+ },
+ "derm_sjs_ten": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_sjs_ten.jpg",
+  "kw": [
+   "stevens",
+   "johnson",
+   "toxic epidermal",
+   "ten",
+   "nikolsky",
+   "mucosal sloughing",
+   "desquamation"
+  ],
+  "label": "Skin \u2014 Stevens-Johnson / TEN",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Mucosal_desquamation_in_a_person_with_Stevens%E2%80%93Johnson_syndrome.jpg",
+  "source_title": "File:Mucosal desquamation in a person with Stevens\u2013Johnson syndrome.jpg"
+ },
+ "derm_urticaria": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_urticaria.jpg",
+  "kw": [
+   "urticaria",
+   "hives",
+   "wheal",
+   "anaphylaxis",
+   "allergic rash"
+  ],
+  "label": "Skin \u2014 urticaria",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Hives2010.JPG",
+  "source_title": "File:Hives2010.JPG"
+ },
+ "derm_zoster": {
+  "credit": "Fisle",
+  "file": "media/derm_zoster.jpg",
+  "kw": [
+   "zoster",
+   "shingles",
+   "dermatomal",
+   "vesicular rash",
+   "herpes"
+  ],
+  "label": "Skin \u2014 herpes zoster",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Herpes_zoster_chest.png",
+  "source_title": "File:Herpes zoster chest.png"
+ },
+ "equipment_airway_cart": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_airway_cart-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "airway",
+   "bag valve mask",
+   "laryngoscope",
+   "endotracheal tube",
+   "bougie"
+  ],
+  "label": "Equipment — emergency airway setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_active_cooling": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_active_cooling-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "active cooling",
+   "heat stroke cooling",
+   "ice water immersion",
+   "cooling blanket",
+   "evaporative cooling"
+  ],
+  "label": "Equipment — emergency active-cooling setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_central_line": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_central_line-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "central line",
+   "central venous catheter",
+   "sterile procedure",
+   "line kit"
+  ],
+  "label": "Equipment — central-line procedure kit (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_chest_tube_tray": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_chest_tube_tray-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "chest tube",
+   "thoracostomy",
+   "procedure tray",
+   "drainage connector"
+  ],
+  "label": "Equipment — chest-tube procedure tray (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_defibrillator": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_defibrillator-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "defibrillator",
+   "monitor defibrillator",
+   "defibrillation pads",
+   "resuscitation cart"
+  ],
+  "label": "Equipment — emergency defibrillator cart (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_epistaxis": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_epistaxis-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "epistaxis",
+   "nasal packing",
+   "posterior balloon packing",
+   "nasal cautery",
+   "nosebleed control"
+  ],
+  "label": "Equipment — emergency epistaxis-control tray (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_eye_emergency": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_eye_emergency-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "eye emergency",
+   "rigid eye shield",
+   "lateral canthotomy",
+   "ocular trauma",
+   "ophthalmic equipment"
+  ],
+  "label": "Equipment — ophthalmic emergency tray (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_hemodialysis": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_hemodialysis-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "hemodialysis",
+   "emergent dialysis",
+   "dialysis machine",
+   "dialyzer",
+   "extracorporeal circuit"
+  ],
+  "label": "Equipment — emergency hemodialysis setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_infusion_pumps": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_infusion_pumps-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "infusion pump",
+   "syringe pump",
+   "medication infusion",
+   "iv pump",
+   "vasopressor infusion"
+  ],
+  "label": "Equipment — infusion and syringe pumps (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_large_bore_iv": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_large_bore_iv-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "large bore iv",
+   "peripheral intravenous access",
+   "vascular access",
+   "two large bore lines",
+   "pressure bag"
+  ],
+  "label": "Equipment — large-bore IV access setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_lumbar_puncture": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_lumbar_puncture-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "lumbar puncture",
+   "spinal tap",
+   "spinal needle",
+   "manometer",
+   "csf tubes"
+  ],
+  "label": "Equipment — lumbar-puncture kit (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_oxygen_nebulizer": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_oxygen_nebulizer-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "oxygen",
+   "nebulizer",
+   "nonrebreather",
+   "nasal cannula",
+   "oxygen mask",
+   "bag valve mask"
+  ],
+  "label": "Equipment — oxygen and nebulizer setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_obstetric_hemorrhage": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_obstetric_hemorrhage-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "postpartum hemorrhage",
+   "uterine balloon tamponade",
+   "uterotonic",
+   "obstetric hemorrhage cart",
+   "fundal massage"
+  ],
+  "label": "Equipment — obstetric hemorrhage setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_pediatric_resus": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_pediatric_resus-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "pediatric",
+   "paediatric",
+   "pediatric airway",
+   "pediatric resuscitation",
+   "io driver"
+  ],
+  "label": "Equipment — pediatric resuscitation setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_ppe_isolation": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_ppe_isolation-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "ppe",
+   "isolation",
+   "gown",
+   "gloves",
+   "respirator"
+  ],
+  "label": "Equipment — PPE and isolation cart (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_rapid_infuser": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_rapid_infuser-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "rapid infuser",
+   "fluid warmer",
+   "massive transfusion",
+   "pressure bag",
+   "large bore tubing"
+  ],
+  "label": "Equipment — rapid infuser and fluid warmer (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_splinting": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_splinting-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "splint",
+   "splinting",
+   "fracture immobilization",
+   "cast padding",
+   "vacuum splint",
+   "ankle brace"
+  ],
+  "label": "Equipment — splinting and immobilization setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_temporary_pacing": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_temporary_pacing-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "temporary pacing",
+   "transcutaneous pacing",
+   "transvenous pacing",
+   "pacer pads",
+   "temporary pacing catheter"
+  ],
+  "label": "Equipment — temporary cardiac pacing setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_toxicology": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_toxicology-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "toxicology cart",
+   "activated charcoal",
+   "lipid emulsion",
+   "fomepizole",
+   "emergency antidotes"
+  ],
+  "label": "Equipment — toxicology antidote and decontamination cart (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_trauma_kit": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_trauma_kit-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "trauma",
+   "cervical collar",
+   "pelvic binder",
+   "tourniquet",
+   "trauma kit"
+  ],
+  "label": "Equipment — trauma stabilization kit (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_ultrasound": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/equipment_ultrasound-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "ultrasound",
+   "pocus",
+   "portable ultrasound",
+   "ultrasound probe",
+   "gel"
+  ],
+  "label": "Equipment — portable ultrasound setup (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "equipment_wound_care_tray": {
+  "credit": "OpenAI image generation (user-requested asset)",
+  "file": "media/equipment_wound_care_tray-ai-v1.jpg",
+  "generated": true,
+  "kw": [
+   "wound irrigation",
+   "incision and drainage",
+   "i&d",
+   "abscess procedure",
+   "packing",
+   "wound care"
+  ],
+  "label": "Equipment — wound care and I&D tray (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-patient generated simulator equipment image"
+ },
+ "ekg_aflutter": {
+  "credit": "Michael Rosengarten BEng, MD.McGill",
+  "file": "media/ekg_aflutter.jpg",
+  "kw": [
+   "atrial flutter",
+   "flutter",
+   "sawtooth",
+   "saw-tooth"
+  ],
+  "label": "ECG \u2014 atrial flutter",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:E000705_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:E000705 (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_asystole": {
+  "credit": "No machine-readable author provided. D Dinneen~commonswiki assumed (based on copyright claims).",
+  "file": "media/ekg_asystole.jpg",
+  "kw": [
+   "asystole",
+   "flatline",
+   "flat line"
+  ],
+  "label": "ECG \u2014 asystole",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:EKG_Asystole.jpg",
+  "source_title": "File:EKG Asystole.jpg"
+ },
+ "ekg_brady": {
+  "credit": "Andrewmeyerson",
+  "file": "media/ekg_brady.jpg",
+  "kw": [
+   "bradycardia",
+   "sinus brady",
+   "slow rate"
+  ],
+  "label": "ECG \u2014 sinus bradycardia",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Sinus_Bradycardia.jpg",
+  "source_title": "File:Sinus Bradycardia.jpg"
+ },
+ "ekg_brugada": {
+  "credit": "Wikimedia Commons",
+  "file": "media/ekg_brugada.jpg",
+  "kw": [
+   "brugada",
+   "coved st"
+  ],
+  "label": "ECG \u2014 Brugada pattern",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Brugada_syndrome_type1_example1_(CardioNetworks_ECGpedia).png",
+  "source_title": "File:Brugada syndrome type1 example1 (CardioNetworks ECGpedia).png"
+ },
+ "ekg_first_degree": {
+  "credit": "Andrewmeyerson",
+  "file": "media/ekg_first_degree.jpg",
+  "kw": [
+   "first degree",
+   "first-degree",
+   "prolonged pr"
+  ],
+  "label": "ECG \u2014 first-degree AV block",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:First_Degree_AV_Block_ECG_Unlabeled.jpg",
+  "source_title": "File:First Degree AV Block ECG Unlabeled.jpg"
+ },
+ "ekg_hypok": {
+  "credit": "Michael Rosengarten BEng, MD.McGill",
+  "file": "media/ekg_hypok.jpg",
+  "kw": [
+   "hypokalemia",
+   "hypokalaemia",
+   "u wave",
+   "u-wave"
+  ],
+  "label": "ECG \u2014 hypokalemia",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:E313_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:E313 (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_lbbb": {
+  "credit": "Sameem Arif",
+  "file": "media/ekg_lbbb.jpg",
+  "kw": [
+   "left bundle",
+   "lbbb"
+  ],
+  "label": "ECG \u2014 left bundle branch block",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Left_bundle_branch_block.jpg",
+  "source_title": "File:Left bundle branch block.jpg"
+ },
+ "ekg_long_qt": {
+  "credit": "Michael Rosengarten BEng, MD.McGill",
+  "file": "media/ekg_long_qt.jpg",
+  "kw": [
+   "long qt",
+   "prolonged qt",
+   "qtc"
+  ],
+  "label": "ECG \u2014 prolonged QT",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:E315_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:E315 (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_low_voltage": {
+  "credit": "CardioNetworks: Vdbilt",
+  "file": "media/ekg_low_voltage.jpg",
+  "kw": [
+   "low voltage",
+   "electrical alternans",
+   "alternans"
+  ],
+  "label": "ECG \u2014 low voltage / electrical alternans",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:PulsusAlternans_(CardioNetworks_ECHOpedia).jpg",
+  "source_title": "File:PulsusAlternans (CardioNetworks ECHOpedia).jpg"
+ },
+ "ekg_lvh": {
+  "credit": "Michael Rosengarten BEng, MD.McGill",
+  "file": "media/ekg_lvh.jpg",
+  "kw": [
+   "ventricular hypertrophy",
+   "lvh",
+   "sokolow",
+   "high voltage"
+  ],
+  "label": "ECG \u2014 left ventricular hypertrophy",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:E000574_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:E000574 (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_mobitz": {
+  "credit": "W.G. de Voogt, MD, PhD, SLAZ, The Netherlands",
+  "file": "media/ekg_mobitz.jpg",
+  "kw": [
+   "second degree",
+   "second-degree",
+   "wenckebach",
+   "mobitz",
+   "av block",
+   "dropped beat"
+  ],
+  "label": "ECG \u2014 second-degree AV block",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:DVA2457_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:DVA2457 (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_paced": {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_paced.jpg",
+  "kw": [
+   "paced",
+   "pacemaker",
+   "pacing spike",
+   "capture"
+  ],
+  "label": "ECG \u2014 paced rhythm",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:AtrialPacemakerECG.JPG",
+  "source_title": "File:AtrialPacemakerECG.JPG"
+ },
+ "ekg_rbbb": {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_rbbb.jpg",
+  "kw": [
+   "right bundle",
+   "rbbb",
+   "rsr"
+  ],
+  "label": "ECG \u2014 right bundle branch block",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cardiogram_indicating_right_bundle_branch_block_with_tachycardia.jpg",
+  "source_title": "File:Cardiogram indicating right bundle branch block with tachycardia.jpg"
+ },
+ "ekg_sinus_tach": {
+  "credit": "CardioNetworks: Drj",
+  "file": "media/ekg_sinus_tach.jpg",
+  "kw": [
+   "sinus tachycardia",
+   "sinus tachycardic",
+   "tachycardia no ischemic",
+   "rate 1",
+   "narrow complex tachy"
+  ],
+  "label": "ECG \u2014 sinus tachycardia",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Sinustachycardia_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:Sinustachycardia (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_torsades": {
+  "credit": "CardioNetworks: [ ]",
+  "file": "media/ekg_torsades.jpg",
+  "kw": [
+   "torsade",
+   "polymorphic",
+   "twisting"
+  ],
+  "label": "ECG \u2014 torsades de pointes",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:12leadTorsade_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:12leadTorsade (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_vfib": {
+  "credit": "Chikumaya",
+  "file": "media/ekg_vfib.jpg",
+  "kw": [
+   "ventricular fibrillation",
+   "v-fib",
+   "vfib",
+   "vf arrest",
+   "coarse fibrillat"
+  ],
+  "label": "ECG \u2014 ventricular fibrillation",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:V_f.png",
+  "source_title": "File:V f.png"
+ },
+ "ekg_wpw": {
+  "credit": "User Ksheka on en.wikipedia",
+  "file": "media/ekg_wpw.jpg",
+  "kw": [
+   "wolff",
+   "wpw",
+   "delta wave",
+   "pre-excitation",
+   "preexcitation",
+   "short pr"
+  ],
+  "label": "ECG \u2014 Wolff-Parkinson-White",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Wolff-Parkinson-White_syndrome_12_lead_EKG.png",
+  "source_title": "File:Wolff-Parkinson-White syndrome 12 lead EKG.png"
+ },
+ "mri_cauda_equina": {
+  "credit": "Stillwaterising",
+  "file": "media/mri_cauda_equina.jpg",
+  "kw": [
+   "cauda equina",
+   "disc herniation",
+   "disc",
+   "canal stenosis",
+   "lumbar mri",
+   "stenosis"
+  ],
+  "label": "MRI lumbar \u2014 disc herniation / cauda equina",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Lumbar_MRI_t2-tse-rst-sagittal_05.jpg",
+  "source_title": "File:Lumbar MRI t2-tse-rst-sagittal 05.jpg"
+ },
+ "mri_cord_compression": {
+  "credit": "Jmarchn",
+  "file": "media/mri_cord_compression.jpg",
+  "kw": [
+   "cord compression",
+   "spinal cord",
+   "myelopathy",
+   "cord signal"
+  ],
+  "label": "MRI spine \u2014 cord compression",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Compressive_myeolopathy_C6C7.png",
+  "source_title": "File:Compressive myeolopathy C6C7.png"
+ },
+ "mri_dwi_infarct": {
+  "credit": "Hellerhoff , isolation of DWI image by Mikael H\u00e4ggstr\u00f6m",
+  "file": "media/mri_dwi_infarct.jpg",
+  "kw": [
+   "diffusion",
+   "dwi",
+   "restricted diffusion",
+   "acute infarct",
+   "stroke mri"
+  ],
+  "label": "MRI brain \u2014 acute infarct on diffusion",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:DWI_MRI_of_a_cerebral_infarction.jpg",
+  "source_title": "File:DWI MRI of a cerebral infarction.jpg"
+ },
+ "mri_epidural_abscess": {
+  "credit": "Jing Jing Chan and Jen Jen Oh",
+  "file": "media/mri_epidural_abscess.jpg",
+  "kw": [
+   "epidural abscess",
+   "discitis",
+   "osteomyelitis",
+   "enhancement"
+  ],
+  "label": "MRI spine \u2014 epidural abscess",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:MRI_of_the_lumbar_spine_with_abscess_in_the_posterior_epidural_space,_causing_cauda_equina_syndrome.jpg",
+  "source_title": "File:MRI of the lumbar spine with abscess in the posterior epidural space, causing cauda equina syndrome.jpg"
+ },
+ "mri_generic2": {
+  "credit": "511KeV",
+  "file": "media/mri_generic2.jpg",
+  "generic": true,
+  "kw": [
+   "mri",
+   "magnetic resonance"
+  ],
+  "label": "MRI",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:MRI_Brain_T1_Sag_(12).jpg",
+  "source_title": "File:MRI Brain T1 Sag (12).jpg"
+ },
+ "us_a4c": {
+  "credit": "Wikimedia Commons",
+  "file": "media/us_a4c.jpg",
+  "kw": [
+   "apical",
+   "four chamber",
+   "4 chamber",
+   "a4c"
+  ],
+  "label": "Echo \u2014 apical four chamber",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Echocardiogram_4chambers.jpg",
+  "source_title": "File:Echocardiogram 4chambers.jpg"
+ },
+ "us_aaa": {
+  "credit": "Mikael H\u00e4ggstr\u00f6m , M.D. Author info - Reusing images - Conflicts of interest: None Mikael H\u00e4ggstr\u00f6m , M.D. Consent note ",
+  "file": "media/us_aaa.jpg",
+  "kw": [
+   "aortic aneurysm",
+   "aaa",
+   "abdominal aorta",
+   "aneurysm"
+  ],
+  "label": "Aorta \u2014 abdominal aortic aneurysm",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Ultrasonography_of_abdominal_aortic_aneurysm_in_sagittal_plane.jpg",
+  "source_title": "File:Ultrasonography of abdominal aortic aneurysm in sagittal plane.jpg"
+ },
+ "us_appendicitis": {
+  "credit": "Borbély Márton",
+  "file": "media/us_appendicitis.png",
+  "kw": [
+   "appendicitis",
+   "noncompressible appendix",
+   "non-compressible appendix",
+   "dilated appendix",
+   "dilated tubular structure",
+   "appendix ultrasound",
+   "right lower quadrant ultrasound"
+  ],
+  "label": "Ultrasound — acute appendicitis",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Appendicitis_ultrasound.png",
+  "source_title": "File:Appendicitis ultrasound.png"
+ },
+ "us_dvt": {
+  "credit": "James Heilman, MD",
+  "file": "media/us_dvt.png",
+  "kw": [
+   "deep vein thrombosis",
+   "dvt",
+   "noncompressible vein",
+   "non-compressible vein",
+   "femoral vein",
+   "popliteal vein",
+   "venous duplex",
+   "venous thrombosis"
+  ],
+  "label": "Venous ultrasound — noncompressible vein with DVT",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:DVTInGroinNoCompresible.png",
+  "source_title": "File:DVTInGroinNoCompresible.png"
+ },
+ "us_fast_ruq": {
+  "credit": "Drahreg01",
+  "file": "media/us_fast_ruq.jpg",
+  "kw": [
+   "free fluid",
+   "morison",
+   "hepatorenal",
+   "fast exam",
+   "fast scan",
+   "hemoperitoneum",
+   "intraperitoneal fluid",
+   "positive fast"
+  ],
+  "label": "FAST \u2014 free fluid in Morison's pouch",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:MorisonNoText.png",
+  "source_title": "File:MorisonNoText.png"
+ },
+ "us_gallstones": {
+  "credit": "Nevit Dilmen ( talk )",
+  "file": "media/us_gallstones.jpg",
+  "kw": [
+   "gallstone",
+   "cholelithiasis",
+   "gallbladder",
+   "shadowing stone"
+  ],
+  "label": "RUQ \u2014 gallstones",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Ultrasound_image_of_gallbladder_stone_Gallstone_091937515.jpg",
+  "source_title": "File:Ultrasound image of gallbladder stone Gallstone 091937515.jpg"
+ },
+ "us_intussusception": {
+  "credit": "Frank Gaillard",
+  "file": "media/us_intussusception.jpg",
+  "kw": [
+   "intussusception",
+   "target sign",
+   "doughnut sign",
+   "pseudokidney"
+  ],
+  "label": "Pediatric \u2014 target sign",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Intussusception_on_ultrasound.jpg",
+  "source_title": "File:Intussusception on ultrasound.jpg"
+ },
+ "us_iup": {
+  "credit": "Luis Goncalves",
+  "file": "media/us_iup.jpg",
+  "kw": [
+   "intrauterine pregnancy",
+   "gestational sac",
+   "yolk sac",
+   "iup",
+   "fetal heart",
+   "obstetric ultrasound"
+  ],
+  "label": "Pelvic \u2014 intrauterine pregnancy",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:4_mm_gestational_sac.png",
+  "source_title": "File:4 mm gestational sac.png"
+ },
+ "us_ivc": {
+  "credit": "Nevit Dilmen ( talk )",
+  "file": "media/us_ivc.jpg",
+  "kw": [
+   "inferior vena cava",
+   "ivc",
+   "collapsibility",
+   "plethoric"
+  ],
+  "label": "IVC \u2014 inferior vena cava",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Doppler_ultrasound_image_of_inferior_vena_cava_110314092102_0926500.jpg",
+  "source_title": "File:Doppler ultrasound image of inferior vena cava 110314092102 0926500.jpg"
+ },
+ "us_lung_blines": {
+  "credit": "Tinss",
+  "file": "media/us_lung_blines.jpg",
+  "kw": [
+   "b-line",
+   "b line",
+   "comet tail",
+   "interstitial syndrome",
+   "wet lung"
+  ],
+  "label": "Lung \u2014 B-lines",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:B_lines_on_a_lung_ultrasound_of_a_patient_with_fibrosis.jpg",
+  "source_title": "File:B lines on a lung ultrasound of a patient with fibrosis.jpg"
+ },
+ "us_lung_mmode": {
+  "credit": "Tinss",
+  "file": "media/us_lung_mmode.jpg",
+  "kw": [
+   "m-mode",
+   "m mode",
+   "seashore",
+   "barcode",
+   "stratosphere",
+   "lung sliding",
+   "absent sliding",
+   "lung point"
+  ],
+  "label": "Lung \u2014 M-mode, seashore vs barcode",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Sea_shore_sign_on_a_lung_ultrasound.jpg",
+  "source_title": "File:Sea shore sign on a lung ultrasound.jpg"
+ },
+ "us_normal_generic": {
+  "credit": "Nevit Dilmen ( talk )",
+  "file": "media/us_normal_generic.jpg",
+  "generic": true,
+  "kw": [
+   "ultrasound",
+   "sonograph",
+   "sonogram",
+   "echocardiogra",
+   "doppler",
+   "pocus",
+   "bedside echo"
+  ],
+  "label": "Ultrasound",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Ultrasound_Scan_ND_0110215083502_0852370.jpg",
+  "source_title": "File:Ultrasound Scan ND 0110215083502 0852370.jpg"
+ },
+ "us_pericardial": {
+  "credit": "Kalumet",
+  "file": "media/us_pericardial.jpg",
+  "kw": [
+   "pericardial effusion",
+   "subxiphoid",
+   "subcostal",
+   "tamponade",
+   "pericardial fluid",
+   "diastolic collapse"
+  ],
+  "label": "Subxiphoid \u2014 pericardial effusion",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Pericardial_effusion.jpg",
+  "source_title": "File:Pericardial effusion.jpg"
+ },
+ "us_plax": {
+  "credit": "Kalumet",
+  "file": "media/us_plax.jpg",
+  "kw": [
+   "parasternal",
+   "long axis",
+   "plax"
+  ],
+  "label": "Echo \u2014 parasternal long axis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Dilated_cardiomyopathy_B-Mode.jpg",
+  "source_title": "File:Dilated cardiomyopathy B-Mode.jpg"
+ },
+ "us_poor_ef": {
+  "credit": "Wikimedia Commons",
+  "file": "media/us_poor_ef.jpg",
+  "kw": [
+   "ejection fraction",
+   "systolic function",
+   "hypokinesis",
+   "hypokinetic",
+   "cardiomyopathy",
+   "poor squeeze"
+  ],
+  "label": "Echo \u2014 globally poor systolic function",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Dilated_cardiomyopathy_M-Mode.jpg",
+  "source_title": "File:Dilated cardiomyopathy M-Mode.jpg"
+ },
+ "us_soft_tissue_abscess": {
+  "credit": "Nevit Dilmen ( talk )",
+  "file": "media/us_soft_tissue_abscess.jpg",
+  "kw": [
+   "soft tissue ultrasound",
+   "abscess ultrasound",
+   "cobblestoning",
+   "fluid collection"
+  ],
+  "label": "Soft tissue \u2014 abscess vs cellulitis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Ultrasound_image_of_breast_110321112305_1127550.jpg",
+  "source_title": "File:Ultrasound image of breast 110321112305 1127550.jpg"
+ },
+ "xr_ankle_fracture": {
+  "credit": "Case courtesy of Dr Maulik S Patel, Radiopaedia.org, rID: 10076",
+  "file": "media/xr_ankle_fracture.jpg",
+  "kw": [
+   "ankle fracture",
+   "malleol",
+   "ottawa"
+  ],
+  "label": "Ankle \u2014 malleolar fracture",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Stress-view-of-ankle-with-deltoid-ligament-tear.jpg",
+  "source_title": "File:Stress-view-of-ankle-with-deltoid-ligament-tear.jpg"
+ },
+ "xr_colles": {
+  "credit": "Lucien Monfils",
+  "file": "media/xr_colles.jpg",
+  "kw": [
+   "colles",
+   "wrist fracture",
+   "dorsal angulation"
+  ],
+  "label": "Wrist \u2014 distal radius fracture",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Colles%27_Fracture_of_Radius.jpg",
+  "source_title": "File:Colles' Fracture of Radius.jpg"
+ },
+ "xr_foreign_body": {
+  "credit": "James Heilman, MD",
+  "file": "media/xr_foreign_body.jpg",
+  "kw": [
+   "foreign body",
+   "swallowed",
+   "ingested",
+   "coin",
+   "button battery",
+   "halo sign"
+  ],
+  "label": "Neck/chest \u2014 swallowed foreign body",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:CoinAP.jpg",
+  "source_title": "File:CoinAP.jpg"
+ },
+ "xr_free_air": {
+  "credit": "Hellerhoff",
+  "file": "media/xr_free_air.jpg",
+  "kw": [
+   "free air",
+   "pneumoperitoneum",
+   "under the diaphragm",
+   "subdiaphragmatic air",
+   "perforat"
+  ],
+  "label": "Upright chest/abdomen \u2014 free air under the diaphragm",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:20-01-Bettlunge_freie_Luft_Anastomoseninsuffizienz.png",
+  "source_title": "File:20-01-Bettlunge freie Luft Anastomoseninsuffizienz.png"
+ },
+ "xr_generic": {
+  "credit": "RSatUSZ",
+  "file": "media/xr_generic.jpg",
+  "generic": true,
+  "kw": [
+   "x-ray",
+   "xray",
+   "radiograph",
+   "plain film"
+  ],
+  "label": "Radiograph",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Transaxillary_CR_shoulder.jpg",
+  "source_title": "File:Transaxillary CR shoulder.jpg"
+ },
+ "xr_gsw": {
+  "credit": "DiverDave",
+  "file": "media/xr_gsw.jpg",
+  "kw": [
+   "gunshot",
+   "gsw",
+   "ballistic",
+   "pellet",
+   "bullet",
+   "shotgun",
+   "penetrating trauma",
+   "retained foreign"
+  ],
+  "label": "Radiograph \u2014 ballistic injury, retained pellets",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Shotgun_wound-xray.JPG",
+  "source_title": "File:Shotgun wound-xray.JPG"
+ },
+ "xr_hip_dislocation": {
+  "credit": "Bill Rhodes from Asheville",
+  "file": "media/xr_hip_dislocation.jpg",
+  "kw": [
+   "hip dislocation",
+   "dislocated hip",
+   "prosthesis dislocation"
+  ],
+  "label": "Pelvis \u2014 hip dislocation",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Dislocated_hip_replacement.jpg",
+  "source_title": "File:Dislocated hip replacement.jpg"
+ },
+ "xr_hip_fracture": {
+  "credit": "Rohan R. Memon, Drashtant Patel and Nishant Juva",
+  "file": "media/xr_hip_fracture.jpg",
+  "kw": [
+   "femoral neck",
+   "hip fracture",
+   "intertrochanteric",
+   "shortened externally rotated"
+  ],
+  "label": "Hip \u2014 femoral neck fracture",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:X-ray_of_a_comminuted_hip_fracture.jpg",
+  "source_title": "File:X-ray of a comminuted hip fracture.jpg"
+ },
+ "xr_lumbar": {
+  "credit": "Mikael H\u00e4ggstr\u00f6m",
+  "file": "media/xr_lumbar.jpg",
+  "kw": [
+   "lumbar",
+   "lumbosacral",
+   "vertebral",
+   "spine radiograph",
+   "compression fracture"
+  ],
+  "label": "Lumbar spine",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Lumbarization_of_S1.jpg",
+  "source_title": "File:Lumbarization of S1.jpg"
+ },
+ "xr_open_book_pelvis": {
+  "credit": "Nevit Dilmen",
+  "file": "media/xr_open_book_pelvis.jpg",
+  "kw": [
+   "open-book pelvis",
+   "open book pelvis",
+   "open-book injury",
+   "pubic symphysis diastasis",
+   "pubic symphysis widening",
+   "pelvic ring disruption",
+   "pelvic fracture diastasis"
+  ],
+  "label": "Pelvis radiograph — open-book injury with symphyseal diastasis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Diastasis_symphysis_pubis_1300500.JPG",
+  "source_title": "File:Diastasis symphysis pubis 1300500.JPG"
+ },
+ "xr_sbo": {
+  "credit": "James Heilman, MD",
+  "file": "media/xr_sbo.jpg",
+  "kw": [
+   "bowel obstruction",
+   "air fluid level",
+   "air-fluid level",
+   "dilated loops",
+   "sbo",
+   "ileus"
+  ],
+  "label": "Abdomen \u2014 small bowel obstruction",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Upright_abdominal_X-ray_demonstrating_a_bowel_obstruction.jpg",
+  "source_title": "File:Upright abdominal X-ray demonstrating a bowel obstruction.jpg"
+ },
+ "xr_shoulder_dislocation": {
+  "credit": "Hellerhoff",
+  "file": "media/xr_shoulder_dislocation.jpg",
+  "kw": [
+   "shoulder dislocation",
+   "glenohumeral",
+   "anterior dislocation"
+  ],
+  "label": "Shoulder \u2014 anterior dislocation",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Dislocated_shoulder_X-ray_01.png",
+  "source_title": "File:Dislocated shoulder X-ray 01.png"
+ },
+ "xr_supracondylar": {
+  "credit": "James Heilman, MD",
+  "file": "media/xr_supracondylar.jpg",
+  "kw": [
+   "supracondylar",
+   "elbow fracture",
+   "fat pad",
+   "sail sign"
+  ],
+  "label": "Elbow \u2014 supracondylar fracture",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Supracondylarfrac.png",
+  "source_title": "File:Supracondylarfrac.png"
+ },
+ "xr_thumbprinting": {
+  "credit": "Hellerhoff",
+  "file": "media/xr_thumbprinting.jpg",
+  "kw": [
+   "thumbprinting",
+   "haustration",
+   "toxic megacolon",
+   "transverse colon",
+   "colitis"
+  ],
+  "label": "Abdomen \u2014 thumbprinting / colitis",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Toxic_Megacolon_in_Ulcerative_Colitis.jpg",
+  "source_title": "File:Toxic Megacolon in Ulcerative Colitis.jpg"
+ },
+ "xr_trauma_wholebody": {
+  "credit": "Dimitrios S Evangelopoulos, Simone Deyle, Heinz Zimmermann and Aristomenis K Exadaktylos",
+  "file": "media/xr_trauma_wholebody.jpg",
+  "kw": [
+   "whole body",
+   "trauma series",
+   "polytrauma",
+   "major trauma",
+   "multiple trauma",
+   "lodox"
+  ],
+  "label": "Whole-body radiograph \u2014 major trauma",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Whole_body_radiograph_in_trauma.jpg",
+  "source_title": "File:Whole body radiograph in trauma.jpg"
+ },
+ "xr_volvulus": {
+  "credit": "Mont4nha",
+  "file": "media/xr_volvulus.jpg",
+  "kw": [
+   "volvulus",
+   "coffee bean",
+   "sigmoid"
+  ],
+  "label": "Abdomen \u2014 sigmoid volvulus",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "page": "https://commons.wikimedia.org/wiki/File:Sigmoidvolvulus.jpg",
+  "source_title": "File:Sigmoidvolvulus.jpg"
+ }
+}

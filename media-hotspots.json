@@ -1,0 +1,287 @@
+{
+ "_comment": "Hotspots for the film viewer's 'Show me the finding'. x/y/r are percentages of the image box, so they hold at any zoom. Coordinates were read off a 10% grid overlay of each image (tools_grid_sheet.py), not estimated - a ring beside the pathology teaches the wrong thing. Only findings that are unambiguously locatable in the image are annotated.",
+ "xr_sbo": [
+  {
+   "x": 71,
+   "y": 26,
+   "r": 9,
+   "label": "Dilated bowel loop"
+  },
+  {
+   "x": 28,
+   "y": 58,
+   "r": 9,
+   "label": "Air\u2013fluid levels"
+  }
+ ],
+ "xr_foreign_body": [
+  {
+   "x": 50,
+   "y": 10,
+   "r": 6,
+   "label": "Coin, en face \u2014 oesophagus, not trachea"
+  }
+ ],
+ "xr_volvulus": [
+  {
+   "x": 52,
+   "y": 40,
+   "r": 15,
+   "label": "Massively dilated sigmoid loop"
+  }
+ ],
+ "xr_thumbprinting": [
+  {
+   "x": 38,
+   "y": 28,
+   "r": 13,
+   "label": "Dilated transverse colon, haustra lost"
+  }
+ ],
+ "xr_gsw": [
+  {
+   "x": 45,
+   "y": 58,
+   "r": 16,
+   "label": "Scattered radio-opaque pellets"
+  }
+ ],
+ "xr_free_air": [
+  {
+   "x": 33,
+   "y": 72,
+   "r": 8,
+   "label": "Lucency under the hemidiaphragm"
+  }
+ ],
+ "us_aaa": [
+  {
+   "x": 45,
+   "y": 40,
+   "r": 18,
+   "label": "Dilated aortic lumen \u2014 measure outer wall to outer wall"
+  }
+ ],
+ "us_pericardial": [
+  {
+   "x": 52,
+   "y": 63,
+   "r": 8,
+   "label": "Anechoic rim \u2014 pericardial fluid"
+  }
+ ],
+ "us_gallstones": [
+  {
+   "x": 52,
+   "y": 52,
+   "r": 7,
+   "label": "Echogenic stone with posterior shadow"
+  }
+ ],
+ "us_intussusception": [
+  {
+   "x": 23,
+   "y": 40,
+   "r": 12,
+   "label": "Target / pseudokidney sign"
+  }
+ ],
+ "us_ivc": [
+  {
+   "x": 45,
+   "y": 37,
+   "r": 8,
+   "label": "IVC \u2014 gauge collapse 2 cm from the cava-atrial junction"
+  }
+ ],
+ "ct_subdural": [
+  {
+   "x": 72,
+   "y": 35,
+   "r": 13,
+   "label": "Hyperdense crescent along the convexity"
+  },
+  {
+   "x": 45,
+   "y": 50,
+   "r": 8,
+   "label": "Midline pushed away from the collection"
+  }
+ ],
+ "cxr_hemothorax": [
+  {
+   "x": 30,
+   "y": 48,
+   "r": 16,
+   "label": "Opacified hemithorax"
+  }
+ ],
+ "xr_shoulder_dislocation": [
+  {
+   "x": 20,
+   "y": 48,
+   "r": 11,
+   "label": "Humeral head below and medial to the glenoid"
+  }
+ ],
+ "xr_colles": [
+  {
+   "x": 78,
+   "y": 40,
+   "r": 9,
+   "label": "Distal radius \u2014 dorsal angulation"
+  }
+ ],
+ "mri_cord_compression": [
+  {
+   "x": 68,
+   "y": 48,
+   "r": 8,
+   "label": "Cord indented, CSF effaced"
+  }
+ ],
+ "xr_hip_fracture": [
+  {
+   "x": 60,
+   "y": 52,
+   "r": 12,
+   "label": "Comminuted intertrochanteric fracture"
+  }
+ ],
+ "ct_aaa": [
+  {
+   "x": 51,
+   "y": 63,
+   "r": 11,
+   "label": "Aneurysmal aorta \u2014 measure outer wall to outer wall"
+  }
+ ],
+ "ct_facial": [
+  {
+   "x": 64,
+   "y": 47,
+   "r": 9,
+   "label": "Left orbital floor"
+  }
+ ],
+ "ct_free_air": [
+  {
+   "x": 48,
+   "y": 29,
+   "r": 9,
+   "label": "Free gas collects anteriorly \u2014 look non-dependent"
+  }
+ ],
+ "ct_cspine": [
+  {
+   "x": 58,
+   "y": 62,
+   "r": 9,
+   "label": "Low cervical spine \u2014 follow the posterior vertebral line"
+  }
+ ],
+ "ct_skull_fracture": [
+  {
+   "x": 34,
+   "y": 58,
+   "r": 8,
+   "label": "Temporal bone"
+  }
+ ],
+ "mri_dwi_infarct": [
+  {
+   "x": 33,
+   "y": 53,
+   "r": 8,
+   "label": "Bright on diffusion \u2014 acute infarct"
+  }
+ ],
+ "mri_cauda_equina": [
+  {
+   "x": 66,
+   "y": 74,
+   "r": 9,
+   "label": "Lower lumbar discs \u2014 follow the posterior margin"
+  }
+ ],
+ "mri_epidural_abscess": [
+  {
+   "x": 58,
+   "y": 62,
+   "r": 9,
+   "label": "Epidural space \u2014 look for a collection on the cord"
+  }
+ ],
+ "cxr_free_air": [
+  {
+   "x": 32,
+   "y": 56,
+   "r": 9,
+   "label": "Lucent crescent under the hemidiaphragm"
+  }
+ ],
+ "cxr_tb": [
+  {
+   "x": 35,
+   "y": 25,
+   "r": 10,
+   "label": "Upper zone \u2014 fine miliary nodularity"
+  }
+ ],
+ "xr_hip_dislocation": [
+  {
+   "x": 48,
+   "y": 22,
+   "r": 10,
+   "label": "Prosthetic head, out of the acetabular cup"
+  }
+ ],
+ "xr_supracondylar": [
+  {
+   "x": 52,
+   "y": 48,
+   "r": 9,
+   "label": "Supracondylar humerus \u2014 check the anterior humeral line and fat pads"
+  }
+ ],
+ "xr_ankle_fracture": [
+  {
+   "x": 58,
+   "y": 50,
+   "r": 9,
+   "label": "Distal tibia and malleoli"
+  }
+ ],
+ "ct_soft_tissue_gas": [
+  {
+   "x": 48,
+   "y": 24,
+   "r": 8,
+   "label": "Subcutaneous fat \u2014 gas tracking in the tissue planes"
+  }
+ ],
+ "ct_pancreatitis": [
+  {
+   "x": 45,
+   "y": 40,
+   "r": 10,
+   "label": "Peripancreatic region \u2014 stranding and fluid"
+  }
+ ],
+ "us_poor_ef": [
+  {
+   "x": 60,
+   "y": 68,
+   "r": 9,
+   "label": "M-mode \u2014 how far do the walls actually move?"
+  }
+ ],
+ "derm_zoster": [
+  {
+   "x": 62,
+   "y": 45,
+   "r": 13,
+   "label": "Grouped vesicles in one dermatome \u2014 does it stop at the midline?"
+  }
+ ]
+}

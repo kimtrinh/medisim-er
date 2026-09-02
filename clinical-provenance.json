@@ -1,0 +1,2112 @@
+{
+ "schemaVersion": 1,
+ "inventoryCheckedAt": "2026-08-24",
+ "disclaimer": "Source inventory only. It is not a clinician review and does not establish standard of care.",
+ "reviewPolicy": {
+  "approvalRequires": [
+   "named qualified clinician",
+   "review date",
+   "case-specific reference verification"
+  ],
+  "reReviewOn": [
+   "critical-action change",
+   "dosing change",
+   "source guideline update"
+  ]
+ },
+ "sourceSets": {
+  "acep-clinical-policies": {
+   "organization": "American College of Emergency Physicians",
+   "title": "ACEP Clinical Policies",
+   "url": "https://www.acep.org/patient-care/clinical-policies/",
+   "version": "Current policy collection",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Emergency-department recognition, evaluation, and management policies"
+  },
+  "aha-cardiovascular-guidelines": {
+   "organization": "American Heart Association / American Stroke Association",
+   "title": "Guidelines and Statements",
+   "url": "https://professional.heart.org/en/guidelines-and-statements",
+   "version": "Current guideline and statement collection",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Cardiovascular, cerebrovascular, rhythm, heart-failure, and vascular emergencies"
+  },
+  "aha-2025-cpr-ecc": {
+   "organization": "American Heart Association",
+   "title": "2025 Guidelines for CPR and Emergency Cardiovascular Care",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines",
+   "version": "2025",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Adult, pediatric, neonatal, toxicologic, and special-circumstance resuscitation"
+  },
+  "aha-2026-acute-ischemic-stroke": {
+   "organization": "American Heart Association / American Stroke Association",
+   "title": "2026 Guideline for the Early Management of Acute Ischemic Stroke",
+   "url": "https://professional.heart.org/en/guidelines-statements/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-strokestr0000000000000513",
+   "version": "2026",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Adult and pediatric acute ischemic stroke systems, thrombolysis, and thrombectomy"
+  },
+  "aap-clinical-practice-guidelines": {
+   "organization": "American Academy of Pediatrics",
+   "title": "AAP Clinical Practice Guidelines",
+   "url": "https://www.aap.org/en/quality-improvement/clinical-practice-guidelines/",
+   "version": "Current, expired, and in-development guideline registry",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Pediatric and neonatal clinical practice guidance and policy"
+  },
+  "cdc-clinical-infection-guidance": {
+   "organization": "Centers for Disease Control and Prevention",
+   "title": "Clinical Safety and Infection Control Guidance",
+   "url": "https://www.cdc.gov/infection-control/hcp/safety/",
+   "version": "Current web guidance",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Infectious-disease precautions, exposure management, isolation, and public health"
+  },
+  "acs-trauma-best-practices": {
+   "organization": "American College of Surgeons Trauma Quality Programs",
+   "title": "ACS TQP Best Practices Guidelines",
+   "url": "https://www.facs.org/quality-programs/trauma/quality/best-practices-guidelines/",
+   "version": "Current best-practices collection",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Trauma imaging, brain, spine, chest wall, genitourinary injury, abuse, and transfusion"
+  },
+  "endocrine-society-guidelines": {
+   "organization": "Endocrine Society",
+   "title": "Clinical Practice Guidelines",
+   "url": "https://www.endocrine.org/clinical-practice-guidelines",
+   "version": "Current guideline collection",
+   "inventoryCheckedAt": "2026-08-24",
+   "scope": "Adrenal, thyroid, diabetes, glucose, electrolyte, and other endocrine emergencies"
+  }
+ },
+ "cases": {
+  "colitis-cdiff-fulminant": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "colitis-ehec-hus": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "colitis-newonset-uc-megacolon": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "colitis-sti-proctitis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "core-afebrile-elderly-sepsis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "core-dka-adolescent": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "core-failed-airway": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "core-septic-shock-uro": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-acute-right-heart-failure": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-adhf-cardiogenic-shock": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-aortic-dissection": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-complete-heart-block": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-inferior-stemi-rv": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-massive-pe": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-pacemaker-malfunction": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-post-arrest-ttm": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-ruptured-aaa": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-submassive-pe": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-tamponade": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-unstable-vt": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "cv-wide-complex-tachycardia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-acute-coronary-occlusion": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-acute-liver-failure": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-afib-rvr": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-alcohol-withdrawal-dts": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-anticoag-ich": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-appendicitis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-biliary-atresia": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-bronchiolitis": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-button-battery": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-cannabinoid-hyperemesis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-cardiac-arrest": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-caustic-ingestion": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-cvst": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-dialysis-access-hemorrhage": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-drowning": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-ductal-dependent-chd": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-febrile-infant": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-hemorrhagic-shock": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-hypertensive-emergency": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-hypokalemia": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-infective-endocarditis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-malaria-traveler": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-methamphetamine-tox": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-misc": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-myasthenic-crisis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-myopericarditis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-myxedema-coma": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-open-globe": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-opioid-overdose": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-orbital-cellulitis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-peds-discitis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-posterior-epistaxis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-priapism": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-sentinel-injury-nat": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-severe-tbi": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-snake-envenomation": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-stercoral-colitis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-symptomatic-hyponatremia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "eb-tia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "endo-adrenal-crisis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "endo-thyroid-storm": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "env-heat-stroke": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "env-hypothermia": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "geri-delirium-vs-dementia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "geri-elder-abuse-neglect": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-aortoenteric-fistula": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-diverticulitis-perforation": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-mesenteric-ischemia": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-perforated-ulcer": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-ruptured-ectopic": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gi-variceal-bleed": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gu-obstructing-stone-pyonephrosis": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gu-ovarian-torsion": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "gu-testicular-torsion": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "heme-acute-chest-syndrome": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "heme-sickle-stroke": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "heme-ttp": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-covid-silent-hypoxemia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-fourniers-gangrene": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-hiv-opportunistic-infection": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-lemierre-syndrome": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-malignant-otitis-externa": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-mammalian-bite-infection": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-mosquito-borne-illness": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-nec-fasciitis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-necrotizing-otitis-externa": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-neurosyphilis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-toxic-shock": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "id-viral-hemorrhagic-fever": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "metab-hyperkalemia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "metab-sulfonylurea-hypoglycemia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "endocrine-society-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-bacterial-meningitis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines",
+    "cdc-clinical-infection-guidance"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-cauda-equina": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-cervical-artery-dissection": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-cord-compression": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-epidural-hematoma-lucid": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-lvo-stroke": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-nonconvulsive-status-epilepticus": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-posterior-circulation-stroke": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-sah": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-status-epilepticus": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-thunderclap-headache-secondary": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "neuro-transient-global-amnesia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2026-acute-ischemic-stroke",
+    "aha-cardiovascular-guidelines"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "ob-eclampsia": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "ob-hellp-syndrome": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "ob-postpartum-hemorrhage": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "onc-febrile-neutropenia": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-acute-rheumatic-fever": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-airway-emergency": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-brue": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-complex-febrile-seizure": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-dog-bite-facial": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-electrolyte-emergency": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-epiglottitis": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-hematuria": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-hemophilia-bleed": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-intussusception": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-kawasaki": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-meckel-diverticulum": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-medical-child-abuse": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-myocarditis": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-neonatal-testicular-torsion": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-pseudotumor-cerebri": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-seatbelt-sign-chance-fracture": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-tillaux-fracture": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-venous-thromboembolism": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "peds-vp-shunt-malfunction": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-ace-angioedema": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-anaphylaxis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-ards": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-biphasic-anaphylaxis": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-scape": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-status-asthmaticus": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resp-tension-ptx": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-asystole-opioid": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-brady-chb": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-pea-tension": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-stable-svt": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-torsades": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-unstable-tachy": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-acls-vf": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-atls-blunt-multi": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-atls-penetrating": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-atls-traumatic-arrest": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-nrp-apneic-term": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-nrp-hypovolemic": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-nrp-meconium": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-pals-brady-hypoxia": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-pals-resp-arrest": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-pals-svt-infant": {
+   "sourceSets": [
+    "aap-clinical-practice-guidelines",
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "resus-pals-vf-child": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-acetaminophen": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-bb-ccb": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-co-poisoning": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-methanol-poisoning": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-opioid-withdrawal-buprenorphine": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-peds-opioid-ingestion": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "aha-2025-cpr-ecc"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-salicylate": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-serotonin-syndrome": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-tca": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "tox-toxic-alcohol": {
+   "sourceSets": [
+    "acep-clinical-policies"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-blunt-chest-injury": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-blunt-renal-injury": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-gunshot-occult-injury": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-high-pressure-injection-hand": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-orbital-blowout-entrapment": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-orbital-compartment-syndrome": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-pelvic-fracture-hemorrhage": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-primary-blast-lung": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-scaphoid-fracture": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  },
+  "trauma-unstable-cspine": {
+   "sourceSets": [
+    "acep-clinical-policies",
+    "acs-trauma-best-practices"
+   ],
+   "review": {
+    "status": "pending-clinician-signoff",
+    "clinicianReviewer": null,
+    "clinicianReviewedAt": null,
+    "caseSpecificReferencesVerified": false
+   }
+  }
+ }
+}
