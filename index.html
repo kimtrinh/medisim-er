@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-F67YY+ozEWGbpbQd7VKqSxmL3GP49LRy0ZjseIOJa7I=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hS/ijBhj+mopazRUW16A+ONXaTeBlUje8+YobFJbx+w=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3689,6 +3689,39 @@ const CODE_PALETTE = {
     ['IV access','Get IV access'],['IO access','Place an intraosseous line']]
 };
 
+// "Call it": the rhythm and stability decision, as chips. Naming the rhythm is the
+// branch every ACLS algorithm turns on — shockable or not, stable or not — and it was
+// the one class of critical action with no clickable path: five of them across the
+// eight ACLS cases were credited only by TYPING an assessment out loud.
+//
+// The set shown depends on whether the patient has a pulse, which the learner can see
+// on the monitor. That is the ACLS branch itself, so it gives nothing away: the choice
+// among four arrest rhythms, or among the tachycardias, is exactly the test. Wrong
+// calls are echoed as a working diagnosis without grading — the engine's long-standing
+// rule that an assessment is answered, never marked.
+//
+// The order text carries "I think this is …" deliberately. The bare form ("regular and
+// narrow") falls to the not-understood dead end in seven of the eight cases; the
+// assessment marker reaches the pack's own recognition responders in all eight. Every
+// phrasing below was replayed against all eight packs: zero not-understood, thirteen
+// credit hits. Do not reword one without replaying it the same way.
+const CALL_IT_ARREST = [
+  ['Shockable','I think this is a shockable rhythm'],
+  ['Not shockable','I think this is not shockable'],
+  ['VF','I think this is VF'],
+  ['Pulseless VT','I think this is pulseless VT'],
+  ['PEA','I think this is PEA'],
+  ['Asystole','I think this is asystole'],
+  ['Hs & Ts','I think we need to run the Hs and Ts']];
+const CALL_IT_PERFUSING = [
+  ['Unstable','I think this is unstable'],
+  ['Stable','I think this is stable'],
+  ['VT','I think this is VT'],
+  ['SVT','I think this is SVT'],
+  ['AF','I think this is AF'],
+  ['Torsades','I think this is torsades'],
+  ['No AV blockers','I think we should avoid AV nodal blockers']];
+
 // The palette body, built here rather than inline so the code-versus-normal switch is
 // one readable branch instead of three nested template literals. During a code the
 // order sets are hidden too — a condition bundle is a considered workup, not something
@@ -3740,6 +3773,19 @@ function paletteBodyHTML(){
               ${Object.entries(ORDER_SETS).map(([name,items])=>`<button data-os="${esc(name)}" title="${esc(items.map(i=>i[0]).join(' · '))}" class="oset inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-md text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 hover:border-emerald-400/50 hover:text-emerald-200 transition">${esc(name)}<span class="mono text-[9px] font-black text-emerald-500/70">${items.length}</span></button>`).join('')}
               <span class="text-[9px] font-black uppercase tracking-widest text-slate-700 hidden xl:block">→ fills the basket</span>
             </div>`;
+  // ONE definition of narrow and ONE row builder. The previous version decided
+  // "is this a full row or loose chips?" by testing `startsWith('<div')` on the built
+  // string — but the template literal began with a newline, so that test was always
+  // false and the DESKTOP branch rendered nothing at all. The Hs & Ts row was invisible
+  // above 768px from the day it was added: the needle-decompression chip that the whole
+  // tension-pneumothorax fix was about only ever appeared on a phone. Never infer
+  // structure from the shape of a string you just built — carry the flag.
+  const narrow = window.innerWidth < 768;
+  const row = (label, tone, chips) => `
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[9px] font-black uppercase tracking-widest text-${tone} w-20 shrink-0">${label}</span>
+                ${chips.join('')}
+              </div>`;
   // The case's own reversible causes, as chips. From a played PEA arrest: the order
   // "needle decompression" had no button anywhere, a typo'd attempt to type it went
   // unread, and the case was lost on exactly that action. Generated from the script so
@@ -3752,19 +3798,24 @@ function paletteBodyHTML(){
     const chips = (S.codeScript.causes.required || [])
       .map(c => (acts[c] || [])[0]).filter(Boolean)
       .map(a => `<button data-pal="${esc(a)}" data-lab="${esc(a)}" class="pal px-2 py-1 bg-slate-900/60 border border-amber-500/30 rounded-md text-[10px] text-amber-300/90 hover:text-amber-200 hover:border-amber-400/50 transition">${esc(a.charAt(0).toUpperCase()+a.slice(1))}</button>`);
-    if(chips.length) causes = window.innerWidth < 768
-      ? chips.join('')   // folded into the single Actions row below via placeholder
-      : `
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="text-[9px] font-black uppercase tracking-widest text-amber-500/70 w-20 shrink-0">Hs &amp; Ts</span>
-                ${chips.join('')}
-              </div>`;
+    if(chips.length) causes = narrow
+      ? chips.join('')   // folded into the single Actions row below
+      : row('Hs &amp; Ts', 'amber-500/70', chips);
+  }
+  // The rhythm call. Violet, so it reads as a judgement rather than an order — nothing
+  // here touches the patient.
+  let callIt = '';
+  if(inCode && S.code){
+    const list = S.code.pulse ? CALL_IT_PERFUSING : CALL_IT_ARREST;
+    const chips = list.map(([lab, order]) =>
+      `<button data-pal="${esc(order)}" data-lab="${esc(lab)}" class="pal px-2 py-1 bg-slate-900/60 border border-violet-500/30 rounded-md text-[10px] text-violet-300/90 hover:text-violet-200 hover:border-violet-400/50 transition">${esc(lab)}</button>`);
+    callIt = narrow ? chips.join('') : row('Call it', 'violet-400/70', chips);
   }
   return sets + Object.entries(groups).map(([tab,items])=>`
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[9px] font-black uppercase tracking-widest text-${inCode?'emerald-500/70':'slate-600'} w-20 shrink-0">${tab}</span>
-                ${items.map(it=>`<button ${it[2]?`id="${it[2]}" `:''}data-pal="${esc(it[1])}" data-lab="${esc(it[0])}" class="pal px-2 py-1 bg-slate-900/60 border border-${inCode?'emerald-500/25':'slate-800'} rounded-md text-[10px] text-${inCode?'emerald-300/90':'slate-400'} hover:text-emerald-300 hover:border-emerald-500/30 transition">${esc(it[0])}</button>`).join('')}${tab==='Actions' && causes && !causes.startsWith('<div') ? causes : ''}
-              </div>`).join('') + meds + (causes.startsWith('<div') || !causes ? causes : '');
+                ${items.map(it=>`<button ${it[2]?`id="${it[2]}" `:''}data-pal="${esc(it[1])}" data-lab="${esc(it[0])}" class="pal px-2 py-1 bg-slate-900/60 border border-${inCode?'emerald-500/25':'slate-800'} rounded-md text-[10px] text-${inCode?'emerald-300/90':'slate-400'} hover:text-emerald-300 hover:border-emerald-500/30 transition">${esc(it[0])}</button>`).join('')}${tab === 'Actions' && narrow ? callIt + causes : ''}
+              </div>`).join('') + meds + (narrow ? '' : callIt + causes);
 }
 
 const PALETTE = {
