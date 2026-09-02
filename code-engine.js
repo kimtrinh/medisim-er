@@ -518,9 +518,35 @@ function epiOrderFor(script){
 // decompression" and "no chest tube" each marked the tension pneumothorax treated,
 // credited the critical action, and unlocked the ROSC path. The learner is told they
 // did the one thing they explicitly refused to do.
-const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+on\b)|holding|hold off|holding off|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
+const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+on\b)|holding|hold off|holding off|stop|stopping|discontinue|discontinuing|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
 // "hold cpr" / "hold compressions" / "hold the pacer" are instructions to the team, not
 // refusals — the engine has explicit branches for them and they must reach those.
+// "stop" and "discontinue" were missing from the list above, which made the most
+// natural way to call a drug off mid-arrest do the opposite: "stop the epinephrine"
+// pushed epinephrine, "stop the amiodarone" pushed amiodarone, and the nurse answered
+// "Epinephrine is in." The same order phrased "hold the epinephrine" correctly held,
+// so the gap was invisible unless you happened to say it the other way.
+//
+// Adding them is safe only because CODE_HOLD_ACTION_RE below is checked FIRST and wins:
+// "stop compressions" and "stop the pacing" are instructions to stop something already
+// running, not refusals of something not yet started, and they must keep working.
+// A case may author a TREATMENT in refusal-shaped language. Torsades from a long QT is
+// treated by STOPPING the offending drug, and resus-acls-torsades writes its cause
+// phrases exactly that way: "stop the methadone", "hold the ondansetron", "stop all qt
+// prolonging". Those are orders, and the refusal guard swallowed them — "hold the
+// methadone" has been dead since the guard shipped, and adding "stop" to it would have
+// killed the rest of the list too. The case's own authored phrases are the authority on
+// what counts as treating its cause.
+//
+// Guarded on the LEADING verb so a real refusal of that same treatment still refuses:
+// the player's line has to open with the verb the author used, which "stop the
+// methadone" does and "don't stop the methadone" does not.
+function codeStopIsTreatment(script, s){
+  const hit = matchCause(script, s);
+  if(!hit || !CODE_WITHHOLD_RE.test(hit.phrase)) return false;
+  const verb = norm(hit.phrase).split(' ')[0];
+  return new RegExp('^' + verb + '\\b').test(s);
+}
 const CODE_HOLD_ACTION_RE = /^\s*(?:hold|holding|stop|stopping|pause|pausing)\s+(?:the\s+)?(cpr|compressions|chest compressions|pacing|pacer|bagging|ventilation|ventilations)\b/i;
 
 function actInner(state, script, text){
@@ -538,6 +564,7 @@ function actInner(state, script, text){
   // decline branch below, which consumes the question. Guarding it here left the
   // question open, so a later "yes" gave an epi nobody had just been offered.
   if(CODE_WITHHOLD_RE.test(text) && !CODE_HOLD_ACTION_RE.test(text)
+     && !codeStopIsTreatment(script, s)
      && !/^(no|nope|not yet|hold|hold it|hold off|wait|not now)[.! ]*$/.test(s)){
     return { handled: true, events: [ev(state, 'withheld', 'Holding off on that, doctor.')] };
   }
@@ -579,6 +606,19 @@ function actInner(state, script, text){
   if(/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/.test(s)){
     state.cpr = false;
     return { handled: true, events: [ev(state, 'cpr', 'Compressions held.', { on: false })] };
+  }
+  // Stopping the pacer and holding ventilations are the twins of the line above, and
+  // they have to sit ABOVE their own start branches — those match on the bare word
+  // ("pacing", "ventilations") and would otherwise turn the thing on when asked to turn
+  // it off. Both are reversible: ordering it again starts it again.
+  if(/\b(stop|stopping|hold|holding|pause|pausing|turn off|discontinue)\b.*\b(pacing|pacer|tcp|transcutaneous)\b/.test(s)){
+    state.flags.pacing = false;
+    return { handled: true, events: [ev(state, 'pacing', 'Pacer off.', { on: false })] };
+  }
+  // The airway itself stays where it is — holding ventilations does not pull the tube.
+  if(/\b(stop|stopping|hold|holding|pause|pausing|turn off|discontinue)\b.*\b(bag\w*|bvm|ventilat\w*|ppv|positive pressure)\b/.test(s)){
+    state.flags.ppv = false;
+    return { handled: true, events: [ev(state, 'airway', 'Holding ventilations, doctor.', { on: false })] };
   }
   // rhythm / pulse check
   if(/\b(pulse check|rhythm check|check (for )?a? ?pulse|check the rhythm|feel for a pulse|is there a pulse|any pulse|do we have a pulse|palpate a pulse)\b/.test(s)){
