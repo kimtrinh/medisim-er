@@ -7784,11 +7784,11 @@
     "temp": 36.4,
     "rhythm": "Ventricular Fibrillation"
    },
-   "intro": "The medics wheel in a 58-year-old man who went down on a treadmill twenty minutes ago. One of them is on his chest, counting out loud; the other is squeezing a bag. The monitor above the trolley shows coarse ventricular fibrillation. The pads are on and connected to your defibrillator, and nobody has shocked him yet.",
+   "intro": "The medics wheel in a 58-year-old man who went down on a treadmill twenty minutes ago. One of them is on his chest, counting out loud; the other is squeezing a bag. The monitor above the trolley shows a coarse, chaotic trace with no organised complexes in it. The pads are on and connected to your defibrillator, and nobody has shocked him yet.",
    "speech": [
     {
      "speaker": "medic",
-     "text": "Witnessed arrest at the gym, bystander CPR from the second he went down. Coarse VF the whole way in — our monitor died and the spare pads only went on two minutes ago, so he has had no shocks. He's about eighty kilos."
+     "text": "Witnessed arrest at the gym, bystander CPR from the second he went down. Same trace the whole way in — our monitor died and the spare pads only went on two minutes ago, so he has had no shocks. He's about eighty kilos."
     }
    ]
   },
@@ -8273,7 +8273,7 @@
    "speech": [
     {
      "speaker": "medic",
-     "text": "Crushed across the chest and the left leg, pinned about eighteen minutes. He was awake and talking the whole time. Went off as soon as they lifted it — PEA from the start, never shockable. Eleven minutes of CPR, no adrenaline given."
+     "text": "Crushed across the chest and the left leg, pinned about eighteen minutes. He was awake and talking the whole time. Went off as soon as they lifted it — those same slow wide complexes from the start, and we never shocked him. Eleven minutes of CPR, no adrenaline given."
     },
     {
      "speaker": "nurse",
@@ -8321,11 +8321,11 @@
     "temp": 36.8,
     "rhythm": "Ventricular Fibrillation"
    },
-   "intro": "The medics come through the doors doing compressions on a seven-year-old still in his baseball uniform. He took a batted ball square on the chest, walked two steps and went down; a parent in the stands had hands on him inside a minute. The monitor shows a coarse ventricular fibrillation and nobody has shocked him yet. His mother and father are right behind the stretcher.",
+   "intro": "The medics come through the doors doing compressions on a seven-year-old still in his baseball uniform. He took a batted ball square on the chest, walked two steps and went down; a parent in the stands had hands on him inside a minute. The monitor shows a coarse, chaotic trace with no organised complexes, and nobody has shocked him yet. His mother and father are right behind the stretcher.",
    "speech": [
     {
      "speaker": "medic",
-     "text": "Theo, seven years old, twenty-four kilos. Batted ball to the chest, collapsed straight away, dad had compressions going in under a minute. First rhythm was VF and we have not shocked him."
+     "text": "Theo, seven years old, twenty-four kilos. Batted ball to the chest, collapsed straight away, dad had compressions going in under a minute. Same trace from the moment we had pads on him, and we have not shocked him."
     },
     {
      "speaker": "nurse",

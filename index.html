@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-FxuCbUoWToKWsbmeqfagt6yiGr0bVPw4t1ikd/+aLI4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5LAB74vzRJ88Ev2wVGSUvYBgJYLsTPs9T0xFHJJm588=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3668,12 +3668,20 @@ function codeTallyStats(c){
   const epi = c.drugs.filter(d => d.name === 'epinephrine').length;
   const cprPct = c.pulselessSecs > 0
     ? Math.round(100 * Math.min(c.cprSecs, c.pulselessSecs) / c.pulselessSecs) : null;
-  const name = CodeEngine.rhythmName ? CodeEngine.rhythmName(c.rhythm) : c.rhythm;
+  // THE RECORD KEEPS THE SAME SECRET THE MONITOR DOES. Kim asked to read the strip
+  // herself, so the caption stops naming the rhythm until she calls it — and the Code
+  // Record, two feet to the right in the RESULTS drawer, went on printing "Ventricular
+  // fibrillation" the whole time. A scribe writes down what the team has SAID; nobody has
+  // said it yet. Once called, or once the code is over, it reads normally.
+  const blind = !c.ended && !c.rhythmCalled;
+  const name = blind ? 'call it'
+             : (CodeEngine.rhythmName ? CodeEngine.rhythmName(c.rhythm) : c.rhythm);
   const stat = (label, value, tone) => `<span class="text-[9px] font-black uppercase tracking-widest text-slate-500">${label} <span class="normal-case ${tone||'text-slate-200'}">${esc(String(value))}</span></span>`;
   return stat('Shocks', c.shocks.length)
     + stat('Epi', epi)
     + (cprPct == null ? '' : stat('CPR', cprPct + '%', cprPct >= 80 ? 'text-emerald-300' : 'text-amber-300'))
-    + stat('Rhythm', name.charAt(0).toUpperCase() + name.slice(1), c.pulse ? 'text-emerald-300' : 'text-rose-300');
+    + stat('Rhythm', blind ? '\u2014 call it' : name.charAt(0).toUpperCase() + name.slice(1),
+        blind ? 'text-violet-300' : (c.pulse ? 'text-emerald-300' : 'text-rose-300'));
 }
 // The events and the records are pushed in lockstep — one 'shock'/'cardiovert' event per
 // entry in state.shocks, one 'drug' event per entry in state.drugs — so walking both as
