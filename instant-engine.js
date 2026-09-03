@@ -627,13 +627,26 @@ const SERVICE_FAMILY = { obstetrics:'obgyn', gynecology:'obgyn',
 const PRIVACY_RE = /\b(step (out|outside)|in private|privately|alone with|leave the room|clear the room|without (mom|mother|dad|father|the (parents?|family|caregiver|son|daughter))|separate the (family|caregiver|parents?)|speak .* (outside|alone))\b/;
 // Word-bounded: 'or ' as a substring classified "monitor the patient" as a
 // disposition (and dispositions END the case). Real dispo phrases only.
-const DISPO_RE = /\b(admit|discharge|transfer|observation|stepdown)\b|intensive care|operating room|cath lab|to the or\b/;
+const DISPO_RE = /\b(admit|discharge|transfer|observation|stepdown)\b|intensive care|operating room|cath lab|\bto (?:the )?or\b/;
 // The NOUN form of an admission order, kept separate from DISPO_RE on purpose.
 // DISPO_RE works by enumerating surface forms, which is fine for "discharge",
 // "transfer" and "observation" because each is spelled the same as verb and noun.
 // "admit" is the exception — its noun is "admission", which does not contain the
 // substring "admit" at all — so "call for admission" and "needs admission" fell
 // through to 'other' and the encounter never closed (reported from real play).
+// CALLING A SERVICE IS NOT MOVING THE PATIENT. DISPO_RE carries three bare destination
+// nouns — cath lab, intensive care, operating room — and a noun cannot tell a summons from
+// a departure. So "activate the cath lab" ENDED the case, on the very turn the consultant
+// answered "start cooling and send him up to us": the patient left before the cooling that
+// same sentence asked for, and the debrief then marked targeted temperature management
+// missed. Reported by Kim as a missing critical action; it was a missing distinction.
+//
+// A clause that only summons someone is a consult. A clause that moves the patient is a
+// disposition, and moving wins whenever both are present — "call medicine for admission"
+// and "get him to the cath lab" are departures, not phone calls.
+const SUMMON_RE = /\b(activate|activating|activation|call|calling|page|paging|consult|consulting|alert|notify|notifying|contact|ring|refer|referral|speak|talk|get)\b/;
+const MOVE_RE = /\b(admit|admission|admissions|discharge|transfer|take|takes|taking|send|sending|move|moving|transport|bring|bringing|book|booking|straight)\b|\bto (?:the )?(?:or|cath lab|icu|ccu|ward|floor|unit|theatre|theater|operating room|intensive care)\b/;
+const summonsOnly = clause => SUMMON_RE.test(clause) && !MOVE_RE.test(clause);
 const ADMISSION_RE = /\badmissions?\b/;
 // …but "admission" is also how a PAST hospitalisation is referred to, and closing
 // the case on "what were her vitals on admission" would be a worse bug than leaving
@@ -769,7 +782,7 @@ function classifyIntent(clause){
   const toks = clause.split(' ');
   const discussing = (DISCUSS_RE.test(clause) && !DISCUSS_IS_DISPO_RE.test(clause))
                      || DELIBERATE_RE.test(clause) || INTERROG_RE.test(clause);
-  if(!discussing && DISPO_RE.test(clause)) return 'disposition';
+  if(!discussing && DISPO_RE.test(clause) && !summonsOnly(clause)) return 'disposition';
   if(!discussing && ADMISSION_RE.test(clause) && !PRIOR_ADMISSION_RE.test(clause)) return 'disposition';
   if((CONSULT_WORDS.some(w=>toks.includes(w)) || CONSULT_PHRASE_RE.test(clause))
      && CONSULT_SERVICES.some(s=>fuzzyHas(toks,s))) return 'consult';

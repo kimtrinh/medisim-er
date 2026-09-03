@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5LAB74vzRJ88Ev2wVGSUvYBgJYLsTPs9T0xFHJJm588=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-F7N3lxpvE6yCBKlEAvzjMrBELxY0AkwNx0d0aVcL4kQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3075,12 +3075,18 @@ function renderSetup(){
         ${PUBLIC_BUILD ? '<p class="text-[11px] text-amber-500/80 mt-3">This is an educational simulation, for training only. It is not medical advice, and it is not a substitute for clinical judgment or real patient care.</p>' : ''}
         ${PUBLIC_BUILD && COLLECTOR_URL ? '<p class="text-[10px] text-slate-600 mt-2">Optional de-identified logs of orders and grading help fix simulator mistakes. Sharing is off by default and can be enabled in Settings. Never enter patient identifiers.</p>' : ''}
       </div>
-      <button id="heroStart" class="w-full mb-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg py-5 rounded-2xl transition flex items-center justify-center gap-2">
-        <span>▶</span><span>Start a case</span>
+      <!-- THE SHOWCASE. The page used to open on a random draw from 172 cases, which is a
+           lottery, not an introduction: a first-time visitor met whichever case came up and
+           judged the simulator on it. It now opens on the one that has been played and
+           repaired most — a witnessed cardiac arrest, run in real time, where the whole set
+           of right answers is on the wall in front of you. Random is still one button down. -->
+      <button id="heroStart" class="w-full mb-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg py-5 rounded-2xl transition flex flex-col items-center justify-center gap-0.5">
+        <span class="flex items-center gap-2"><span>▶</span><span>Run a cardiac arrest</span></span>
+        <span class="text-[10px] font-black uppercase tracking-[.25em] text-emerald-200/80">ACLS · real time · start here</span>
       </button>
       <p id="heroHint" class="text-center text-[11px] text-amber-400 mb-2 hidden"></p>
-      <p class="text-[11px] text-slate-400 mb-5 text-center">Drops you into a random ready-to-play case — no API key, no setup.
-        <b class="text-slate-300">1</b> talk to the patient and team&nbsp;· <b class="text-slate-300">2</b> type or click orders&nbsp;· <b class="text-slate-300">3</b> commit a diagnosis with <b>Dx</b>&nbsp;· <b class="text-slate-300">4</b> get your debrief.</p>
+      <p class="text-[11px] text-slate-400 mb-5 text-center">A witnessed collapse, the clock running, every order a click away — no API key, no setup.
+        <b class="text-slate-300">1</b> read the strip and call the rhythm&nbsp;· <b class="text-slate-300">2</b> shock, compress, drug&nbsp;· <b class="text-slate-300">3</b> commit a diagnosis with <b>Dx</b>&nbsp;· <b class="text-slate-300">4</b> send the patient with <b>Dispo</b>.</p>
       <div class="bg-slate-900/50 border border-slate-800 rounded-3xl p-7">
         <div class="mb-1">
           <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Difficulty</label>
@@ -3110,6 +3116,10 @@ function renderSetup(){
             <button id="goldExpand" class="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 transition">Show the whole list</button>
           </div>
           <div id="goldList" class="mt-1.5 max-h-96 overflow-y-auto rounded-xl border border-emerald-900/40 divide-y divide-slate-800/40"></div>
+          <!-- The training log lives with the library because that is where a returning
+               player already is, and because its second list is a to-do for whoever
+               maintains the case packs. Hidden until there is a case in it. -->
+          <div id="logReport" class="mt-5 pt-4 border-t border-slate-800 hidden"></div>
           <p class="text-[10px] text-slate-600 mt-1.5">Written in advance and mechanically validated, but not all independently clinician-reviewed. Verify teaching points against current guidance. ${useInstant()
             ? 'In Instant Mode the whole case — bedside, results and debrief — runs on the deterministic engine, with no API call at any point.'
             : 'They start with no API call; the bedside then runs on whichever engine you have set.'}</p>
@@ -3307,6 +3317,29 @@ function goldTag(c){
   const m = /^resus-(acls|atls|pals|nrp)-/.exec((c && c.id) || '');
   return m ? m[1].toUpperCase() : '';
 }
+// THE SHOWCASE. Kim: "the ACLS case is starting to look very good... it has to be simple,
+// intuitive, but yet teach the user to use the ACLS algorithm. The reason it works, I think,
+// is because there are limited options for treatment — if there are too many open options
+// the algorithm has too many points of failure and misunderstandings."
+//
+// So the library leads with the six cases that ARE the adult algorithm, in the order the
+// algorithm walks: shockable arrest, then the two non-shockable rhythms, then the
+// peri-arrest bradycardia and the two tachycardias. Each is a live-code case with a small,
+// closed set of right answers, which is exactly the property that makes them hold up.
+// FEATURED is the one that has been played and reported on most, and it opens the page.
+const FEATURED_CASE = 'resus-acls-vf';
+const ACLS_ORDER = ['resus-acls-vf', 'resus-acls-pea-tension', 'resus-acls-asystole-opioid',
+                    'resus-acls-brady-chb', 'resus-acls-unstable-tachy', 'resus-acls-stable-svt'];
+// What each one teaches, said in the row so a learner can choose a branch rather than a
+// title. Deliberately the ALGORITHM's language, never the case's diagnosis.
+const ACLS_TEACHES = {
+  'resus-acls-vf':              'Shockable arrest — shock, CPR, adrenaline, amiodarone',
+  'resus-acls-pea-tension':     'Non-shockable arrest — find and fix the cause',
+  'resus-acls-asystole-opioid': 'Asystole — no shock, adrenaline and the reversible causes',
+  'resus-acls-brady-chb':       'Symptomatic bradycardia — atropine, then pacing',
+  'resus-acls-unstable-tachy':  'Unstable tachycardia — synchronised cardioversion',
+  'resus-acls-stable-svt':      'Stable narrow-complex tachycardia — vagal, then adenosine' };
+const isAcls = c => ACLS_ORDER.includes((c && c.id) || '');
 const GOLD_SYS_ALIAS={ colitis:'gi', metab:'endo', onc:'heme' };
 const GOLD_SYS_ID={
   'core-dka-adolescent':'endo','core-septic-shock-uro':'id','core-afebrile-elderly-sepsis':'geri','core-failed-airway':'resp',
@@ -3948,7 +3981,9 @@ function paintDxBox(){
       <div id="dxTypeahead" class="hidden absolute left-0 right-0 top-full mt-1 z-[80] rounded-xl border border-violet-800 bg-slate-950/95 backdrop-blur shadow-2xl max-h-56 overflow-y-auto"></div>
     </div>
     <button id="dxCall" class="px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 text-white text-[10px] font-black uppercase tracking-widest shrink-0 transition"
-      title="Commit this as your working diagnosis">Call it</button>`;
+      title="Commit this as your working diagnosis">Call it</button>
+    <button id="dispoBtn" class="px-3 py-2 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shrink-0 transition"
+      title="Send the patient somewhere \u2014 this ends the case (P)">Dispo \u25be</button>`;
   wireDxBox();
 }
 let _dxMatches = [];
@@ -4206,7 +4241,7 @@ async function initGold(){
   // Every case carries a written pack, so a per-row "instant" badge would say the same
   // thing 155 times. Only the two rows that differ get a chip: your own saved cases, and
   // any case without a pack.
-  const rowHTML=c=>{
+  const rowHTML=(c, teaches)=>{
     const idx=all.indexOf(c);
     const tag = goldTag(c);
     const chip = c._user ? '<span class="text-[9px] text-slate-500 uppercase tracking-wider shrink-0">yours</span>'
@@ -4216,7 +4251,7 @@ async function initGold(){
         : '';
     return `<button data-gold="${idx}" class="goldItem w-full text-left px-3 py-2.5 hover:bg-emerald-900/20 transition">
       <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-emerald-300 truncate">${esc(c.title||c.diagnosis||'Case')}</span>${chip}</div>
-      <div class="text-[10px] text-slate-500 truncate mt-0.5">${esc(c.chiefComplaint||'')}</div></button>`;
+      <div class="text-[10px] truncate mt-0.5 ${teaches ? 'text-rose-300/70' : 'text-slate-500'}">${esc(teaches || c.chiefComplaint || '')}</div></button>`;
   };
   const paint=q=>{
     q=(q||'').toLowerCase();
@@ -4234,11 +4269,24 @@ async function initGold(){
     // system chip narrows it, one flat list reads better.
     let html;
     if(!q && !_goldCat){
-      const groups={}; hits.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
-      html = GOLD_SYS_ORDER.filter(k=>groups[k]).map(k=>
-        `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest text-slate-500">${esc(GOLD_SYS[k])} <span class="text-slate-700">${groups[k].length}</span></div>`
-        + groups[k].map(rowHTML).join('')).join('');
-    } else html = hits.map(rowHTML).join('');
+      // The algorithm first, in its own order — not alphabetical and not by system, because
+      // the point of the group is the sequence of decisions, not the organ.
+      const acls = ACLS_ORDER.map(id => hits.find(c => c.id === id)).filter(Boolean);
+      const rest = hits.filter(c => !isAcls(c));
+      const groups={}; rest.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
+      const head = (text, n, tone) =>
+        `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest ${tone}">${esc(text)} <span class="text-slate-700">${n}</span></div>`;
+      html = (acls.length ? head('ACLS \u2014 the adult algorithm', acls.length, 'text-rose-300')
+              + acls.map(c => rowHTML(c, ACLS_TEACHES[c.id])).join('') : '')
+        // Everything else is honestly labelled. These cases are written and mechanically
+        // validated, but they have not had the play and the repair the six above have had,
+        // and saying so is better than letting a learner find out in the middle of one.
+        + (rest.length ? head('Beta \u2014 the rest of the library', rest.length, 'text-slate-500')
+             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-600 border-b border-slate-800/60">Written and mechanically validated, but far less played than the six above. Expect rougher edges.</p>'
+             + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
+                 head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('')
+           : '');
+    } else html = hits.map(c=>rowHTML(c, isAcls(c) ? ACLS_TEACHES[c.id] : null)).join('');
     $('goldList').innerHTML = html || '<p class="px-3 py-2 text-xs text-slate-600">No matches.</p>';
     if($('goldShowing')) $('goldShowing').textContent = hits.length===all.length
       ? `All ${all.length} cases` : `${hits.length} of ${all.length} cases`;
@@ -4272,6 +4320,11 @@ async function initGold(){
     const hs = $('heroStart');
     if(hs && !hs._wired){ hs._wired = true;
       hs.onclick = () => {
+        // The showcase, when it is there. It is one of the pre-authored cases like any
+        // other, so it can be absent from a stripped build or a half-loaded library — in
+        // which case the button falls back to the random draw it used to do rather than
+        // dying, which is the failure the two branches below already guard against.
+        if(all.some(c => c.id === FEATURED_CASE)) return startGoldCaseById(FEATURED_CASE);
         const pool = (useInstant() && !hasAnyKey() && _offline) ? all.filter(c=>ready(c.id)) : all;
         if(!pool.length){
           const h=$('heroHint');
@@ -4287,6 +4340,12 @@ async function initGold(){
   };
   paint('');
   const gs=$('goldSearch'); if(gs && !gs._wired){ gs._wired=true; gs.addEventListener('input',e=>paint(e.target.value)); }
+  const lr=$('logReport');
+  if(lr){
+    const any = getCaseLog().length > 0;
+    lr.classList.toggle('hidden', !any);
+    if(any) renderLogReport();
+  }
 }
 // opts.blind marks a walk-in-blind run. The Blind case button has passed
 // {blind:true} since the feature shipped, but this function only ever took one
@@ -5365,7 +5424,9 @@ function renderPlay(){
   if($('chartClose')) $('chartClose').onclick=()=>{
     const b=document.body.classList;
     if(b.contains('resultsOpen') || b.contains('feedOpen')){
-      b.remove('resultsOpen','feedOpen'); paintLabsRail(); return;
+      b.remove('feedOpen');
+      if(b.contains('resultsOpen')) setResults(false); else paintLabsRail();
+      return;
     }
     setChart(false);
   };
@@ -5661,6 +5722,87 @@ const ZONE_TITLES={examPick:'Examine which region?', monitor:'Monitor', defib:'D
 // The menu is position:fixed on <body>, NOT inside the scene: the room box and the
 // bedside photo are both overflow-hidden, so an in-box menu gets clipped at every edge.
 // Clamping uses the menu's measured size, so no row-height guesswork.
+// WHERE THE PATIENT GOES. Kim: "I shouldn't have to type admit every time to end a case.
+// There should be a disposition button that is more obvious."
+//
+// A case ends when the doctor dispositions the patient and in no other way — which is
+// right, and which meant the only way to finish was to type the word. These are the seven
+// destinations an ED patient actually leaves by, phrased the way the engine already
+// classifies them (tests/disposition.test.cjs pins every one of these forms), so the menu
+// works on all 172 cases without a pack knowing about it.
+//
+// The list is the SAME on every case. Which disposition is right is part of the exam, so
+// nothing here is highlighted, ordered or filtered by the pack's own answer.
+const DISPO_MENU = [
+  ['Admit to the ICU',    'Admit to the ICU'],
+  ['Admit to the ward',   'Admit to the medical ward'],
+  ['To the cath lab',     'Take the patient to the cath lab'],
+  ['To the OR',           'Take the patient to the operating room'],
+  ['Observation',         'Admit to the observation unit'],
+  ['Transfer out',        'Transfer to a receiving facility'],
+  ['Discharge home',      'Discharge the patient home']];
+// A consultant who has already said they are taking the patient has told the player
+// something they now know — so repeating it in the menu gives nothing away, and saves the
+// typing Kim was objecting to. Only what has actually been SAID this case is used.
+const ACCEPTED_RE = /\b(?:we(?:'|\u2019)?ll take (?:him|her|them)|we are taking (?:him|her|them)|send (?:him|her|them) (?:up|over|round|straight)|bring (?:him|her|them) (?:up|round|to us)|we(?:'|\u2019)?re ready for (?:him|her|them)|we are not coming down|we(?:'|\u2019)?ll accept|is (?:activated|ready and the team|scrubbing|scrubbed))/i;
+const DEST_WORDS = [[/cath lab|pci|catheterisation|catheterization/i, 'To the cath lab'],
+                    [/operating (?:room|theatre|theater)|\bOR\b|theatre/i, 'To the OR'],
+                    [/\bNICU\b/i, 'Admit to the ICU'], [/\bPICU\b/i, 'Admit to the ICU'],
+                    [/\bICU\b|intensive care|critical care unit|\bCCU\b/i, 'Admit to the ICU'],
+                    [/\bward\b|the floor|medicine team|hospitalist/i, 'Admit to the ward']];
+// The consultant line, if any, that has accepted the patient: [menu label or null, what
+// they said]. The label is only filled in when the consultant NAMED a destination — in Kim's
+// case cardiology says "the lab is activated ... send him up to us", which accepts the
+// patient without ever saying "cath lab", and guessing the ward from the service would be
+// the app answering a question it is asking. The quote goes up either way; the choice
+// stays the doctor's.
+function dispositionAccepted(){
+  for(const m of [...(S.messages || [])].reverse()){
+    for(const seg of (m.speech || [])){
+      if(!seg || seg.speaker !== 'consultant') continue;
+      const t = String(seg.text || '');
+      if(!ACCEPTED_RE.test(t)) continue;
+      const hit = DEST_WORDS.find(([re]) => re.test(t));
+      return [hit ? hit[1] : null, t];
+    }
+  }
+  return null;
+}
+function dispositionMenu(ev){
+  closeRoomMenu();
+  if(S.stage !== 'play' || S.loading) return;
+  const accepted = dispositionAccepted();
+  const m = document.createElement('div');
+  m.className = 'roomMenu fixed z-[75] min-w-[230px] max-w-[20rem] rounded-xl border border-amber-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  m.style.left = '0px'; m.style.top = '0px';
+  const items = DISPO_MENU.slice();
+  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-amber-400 border-b border-slate-800">Where is the patient going? \u2014 this ends the case</div>' +
+    (accepted ? '<div class="px-3 py-1.5 text-[10px] text-amber-200/90 border-b border-slate-800 bg-amber-950/30">' +
+       esc(accepted[1]) + '</div>' : '') +
+    items.map((it, i) => '<button data-di="' + i + '" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-amber-900/40 ' +
+      (accepted && accepted[0] === it[0] ? 'text-amber-200 font-bold' : 'text-slate-200') + '">' + esc(it[0]) +
+      (accepted && accepted[0] === it[0] ? ' \u2190 they are expecting the patient' : '') + '</button>').join('');
+  document.body.appendChild(m);
+  const pad = 6, w = m.offsetWidth, h = m.offsetHeight;
+  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+    ? ev.currentTarget.getBoundingClientRect() : null;
+  const cx = box ? Math.min(box.left, innerWidth - w - pad) : innerWidth / 2;
+  const cy = box ? box.bottom + 4 : innerHeight / 3;
+  m.style.left = Math.round(Math.max(pad, cx)) + 'px';
+  m.style.top  = Math.round(Math.max(pad, Math.min(cy, innerHeight - h - pad))) + 'px';
+  m.querySelectorAll('[data-di]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [lbl, ord] = items[+b.dataset.di];
+    closeRoomMenu();
+    if(S.loading) return;
+    queueClinicalAction(lbl, ord);
+  });
+  setTimeout(() => {
+    document.addEventListener('click', _roomMenuAway, true);
+    window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway);
+  }, 0);
+}
 // The rhythm call, as a popover anchored on the monitor. Built like roomMenu — a fixed
 // panel appended to <body>, dismissed by the same closeRoomMenu — but its items are
 // computed at open time, because which set is right depends on whether there is a pulse.
@@ -6523,10 +6665,8 @@ function ensureCinemaStage(){
       if(c && showing) c.scrollTop=c.scrollHeight;
     };
     hud.querySelector('#cinRight').onclick=()=>{
-      document.body.classList.toggle(document.body.classList.contains('console') ? 'resultsOpen' : 'hudR');
-      // Opened or closed, repaint: opening marks what is in the chart as read, and
-      // closing starts the next result waiting again.
-      paintLabsRail(); };
+      if(document.body.classList.contains('console')) setResults(!document.body.classList.contains('resultsOpen'));
+      else { document.body.classList.toggle('hudR'); paintLabsRail(); } };
     if(!window._cinResize){ window._cinResize=true; addEventListener('resize', cinemaMetrics); }
   }
   cinemaMetrics();
@@ -6545,7 +6685,11 @@ function cinemaMetrics(){
   const wantConsole = window.innerWidth >= 1200 && !roomIsStacked();
   if(document.body.classList.contains('console') !== wantConsole){
     document.body.classList.toggle('console', wantConsole);
+    // A chart you left open is open when you come back — into the room, into the next
+    // case, and after a resize dropped you out of console mode and back into it.
+    if(wantConsole && _resultsPref()) document.body.classList.add('resultsOpen');
     paintConsole();
+    paintLabsRail();
   }
   document.body.style.setProperty('--ra', ROOM_ASPECT);   // the HUD is laid out against the photo
   const hdr=document.querySelector('header'), mb=$('monBar');
@@ -6587,6 +6731,17 @@ function enterCinema(){
 // Fold every panel away and give the room the whole screen; press again to bring them
 // back exactly as they were. hudL and hudR are deliberately untouched, so a player who
 // had already folded the transcript still has it folded when the panels return.
+// THE RESULTS DRAWER IS OPENED AND CLOSED IN ONE PLACE. Kim: "keep results tab open."
+// Three separate handlers used to toggle the class by hand, so the drawer's state was
+// wherever the last one left it and nothing remembered it between rooms. Every deliberate
+// open and close goes through here; the preference is what the player last chose, so the
+// chart is waiting where they left it in the next case too.
+function _resultsPref(){ try{ return localStorage.getItem('ms_results') === '1'; }catch(_){ return false; } }
+function setResults(open){
+  document.body.classList.toggle('resultsOpen', !!open);
+  try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
+  paintLabsRail();
+}
 function toggleClearRoom(){
   if(!S.cinema) return;
   const on = document.body.classList.toggle('hudClear');
@@ -6700,7 +6855,9 @@ document.addEventListener('keydown', e=>{
   // wrong answer to that keystroke.
   const b=document.body.classList;
   if(b.contains('resultsOpen') || b.contains('feedOpen')){
-    b.remove('resultsOpen','feedOpen'); paintLabsRail(); return;
+    b.remove('feedOpen');
+    if(b.contains('resultsOpen')) setResults(false); else paintLabsRail();
+    return;
   }
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
@@ -6714,6 +6871,21 @@ document.addEventListener('click', e=>{
   e.stopPropagation();
   rhythmMenu({ currentTarget: $('rhythmBtn') || hit });
 });
+document.addEventListener('click', e=>{
+  const hit = e.target && e.target.closest && e.target.closest('#dispoBtn');
+  if(!hit) return;
+  e.stopPropagation();
+  dispositionMenu({ currentTarget: hit });
+});
+// P for the plan, guarded like H, D and R.
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'p' && e.key !== 'P') return;
+  if(S.stage !== 'play' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const el = e.target;
+  if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+  e.preventDefault();
+  dispositionMenu({ currentTarget: $('dispoBtn') });
+});
 // R for rhythm, guarded like H and D.
 document.addEventListener('keydown', e=>{
   if(e.key !== 'r' && e.key !== 'R') return;
@@ -6723,16 +6895,23 @@ document.addEventListener('keydown', e=>{
   e.preventDefault();
   rhythmMenu({ currentTarget: $('rhythmBtn') });
 });
-// Clicking the room itself puts a drawer away — the same instinct as tapping outside a
-// sheet. Anything inside a drawer, a rail or a menu is left alone.
+// Clicking the room itself puts the FEED away — the same instinct as tapping outside a
+// sheet, and that drawer sits on top of the order clusters, so dismissing it by clicking
+// past it is how you get back to them.
+//
+// RESULTS is deliberately NOT in that sentence. Kim: "keep results tab open." It opens
+// over empty wall and covers no control, and the whole point of orders-left/results-right
+// is reading a lab and shocking without choosing between them — but every chip is outside
+// the drawer, so "click anywhere but the drawer" closed the chart on the way to the
+// defibrillator. It now closes only when you say so: the tab, the ✕, or Esc.
 document.addEventListener('click', e=>{
   const b=document.body.classList;
-  if(!b.contains('console') || !(b.contains('resultsOpen') || b.contains('feedOpen'))) return;
+  if(!b.contains('console') || !b.contains('feedOpen')) return;
   const t=e.target;
   if(!t || !t.closest) return;
-  if(t.closest('#sideBar') || t.closest('#chat') || t.closest('.cinTab') ||
-     t.closest('.roomMenu') || t.closest('#orderBar') || t.closest('header')) return;
-  b.remove('resultsOpen','feedOpen'); paintLabsRail();
+  if(t.closest('#sideBar') || t.closest('#chat') || t.closest('.cinTab') || t.closest('#console') ||
+     t.closest('#ribbon') || t.closest('.roomMenu') || t.closest('#orderBar') || t.closest('header')) return;
+  b.remove('feedOpen'); paintLabsRail();
 });
 // H for the room. Guarded against every field a player types into — the order box is
 // the obvious one, but "h" is also a letter in the case-search box and in the free-text
@@ -7603,13 +7782,141 @@ function saveCaseLog(score, missed, died, dx){
     // GameLayer's win-streak predicate — a death earns XP but breaks the streak.
     // dxCalled/dxFirstCorrect drive the working-diagnosis XP and badges.
     const dosing=(S.messages||[]).reduce((n,m)=>n+((m.doseFlags||[]).length),0);
+    // WHAT THE SIM FAILED TO UNDERSTAND, kept run to run. Kim: "add a way to learn from
+    // the user's responses — maybe create a log report and learn from it." The debrief has
+    // always shown these for one case and then thrown them away, so the same missing
+    // phrase could be reported, forgotten and re-hit on the next case. Every one of them is
+    // a gap in the simulator's vocabulary — "cooling measure" was one, and it cost a
+    // critical action — so they are the most useful thing this log can carry.
+    const missedWords = (Array.isArray(dx && dx.unrecognizedOrders) ? dx.unrecognizedOrders : [])
+      .map(o => String(o || '').trim()).filter(Boolean).slice(0, 12);
     log.push({ when:localISO().slice(0,10), label:S.caseLabel||S.diagnosis,
                blind:!!S.blind,
                diagnosis:S.diagnosis, score:score, simMin:Math.round(S.simMin),
                missed:missed.slice(0,6), id:S.goldId||null, dosing:dosing, died:!!died,
+               unparsed:missedWords,
                dxCalled:(dx&&dx.dxCalled)||null, dxFirstCorrect:!!(dx&&dx.dxFirstCorrect) });
     localStorage.setItem('ms_log', JSON.stringify(log.slice(-500)));   // long-term progression memory
   }catch(_){ }
+}
+// THE LOG REPORT. Kim: "add a way to learn from the user's responses — maybe create a log
+// report and learn from it."
+//
+// Everything below is computed from ms_log, which never leaves this browser. Two audiences,
+// one page: the player sees what they keep missing, and the simulator's author sees what
+// the simulator keeps failing to understand — the second list is the one that gets fixed,
+// and it is exactly how "cooling measure" was found.
+function logReport(){
+  const log = getCaseLog();
+  const cases = log.length;
+  const scored = log.filter(e => typeof e.score === 'number');
+  const mean = scored.length ? Math.round(scored.reduce((n,e)=>n+e.score,0) / scored.length) : null;
+  // Recent first, and last-30 vs the rest, so a report says whether things are improving
+  // rather than only what the average is.
+  const recent = scored.slice(-30), earlier = scored.slice(0, -30);
+  const meanOf = a => a.length ? Math.round(a.reduce((n,e)=>n+e.score,0)/a.length) : null;
+  const tally = (rows, key) => {
+    const m = new Map();
+    for(const e of rows) for(const v of (e[key] || [])){
+      const k = String(v).trim(); if(!k) continue;
+      const cur = m.get(k.toLowerCase()) || { text:k, n:0, cases:[] };
+      cur.n++; if(e.id && !cur.cases.includes(e.id)) cur.cases.push(e.id);
+      m.set(k.toLowerCase(), cur);
+    }
+    return [...m.values()].sort((a,b)=> b.n - a.n || a.text.localeCompare(b.text));
+  };
+  return { cases, mean, trend: { recent: meanOf(recent), earlier: meanOf(earlier) },
+           deaths: log.filter(e=>e.died).length,
+           notUnderstood: tally(log, 'unparsed'),
+           missedActions: tally(log, 'missed'),
+           since: log.length ? log[0].when : null, until: log.length ? log[log.length-1].when : null };
+}
+// The same report as text, for handing to someone who can act on it.
+function logReportText(){
+  const r = logReport();
+  const L = [];
+  L.push('# MediSim ER — training log');
+  L.push('');
+  L.push(r.cases + ' case' + (r.cases === 1 ? '' : 's') +
+    (r.since ? ', ' + r.since + ' to ' + r.until : '') +
+    (r.mean == null ? '' : ' · mean score ' + r.mean) +
+    (r.deaths ? ' · ' + r.deaths + ' death' + (r.deaths === 1 ? '' : 's') : ''));
+  if(r.trend.earlier != null && r.trend.recent != null)
+    L.push('Last 30 cases ' + r.trend.recent + ', before that ' + r.trend.earlier + '.');
+  L.push('');
+  L.push('## Orders the sim did not understand');
+  L.push('Each of these is a gap in the simulator\u2019s vocabulary, not a mistake by the player.');
+  L.push('');
+  if(!r.notUnderstood.length) L.push('(none recorded)');
+  else for(const x of r.notUnderstood.slice(0, 40))
+    L.push('- ' + x.n + '\u00d7  ' + x.text + (x.cases.length ? '   [' + x.cases.slice(0,4).join(', ') + ']' : ''));
+  L.push('');
+  L.push('## Critical actions most often missed');
+  L.push('');
+  if(!r.missedActions.length) L.push('(none recorded)');
+  else for(const x of r.missedActions.slice(0, 25))
+    L.push('- ' + x.n + '\u00d7  ' + x.text + (x.cases.length ? '   [' + x.cases.slice(0,4).join(', ') + ']' : ''));
+  return L.join('\n');
+}
+function renderLogReport(){
+  const r = logReport();
+  const host = $('logReport'); if(!host) return;
+  const row = (x, tone) => `<div class="flex items-baseline gap-2 py-1 border-b border-slate-900/70 last:border-0">
+      <span class="mono text-[11px] ${tone} shrink-0 w-8 text-right">${x.n}\u00d7</span>
+      <span class="text-xs text-slate-300 flex-1">${esc(x.text)}</span>
+      ${x.cases.length ? `<span class="text-[9px] text-slate-600 shrink-0">${esc(x.cases.slice(0,2).join(', '))}</span>` : ''}
+    </div>`;
+  const section = (title, note, rows, tone, empty) => `
+    <div class="mt-4">
+      <h3 class="text-[10px] font-black uppercase tracking-widest ${tone}">${esc(title)}</h3>
+      <p class="text-[11px] text-slate-500 leading-relaxed mt-1">${esc(note)}</p>
+      <div class="mt-2 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-1.5">
+        ${rows.length ? rows.slice(0, 15).map(x => row(x, tone)).join('')
+                      : `<p class="py-2 text-xs text-slate-600">${esc(empty)}</p>`}
+      </div>
+      ${rows.length > 15 ? `<p class="text-[10px] text-slate-600 mt-1">and ${rows.length - 15} more \u2014 the copied report has all of them.</p>` : ''}
+    </div>`;
+  host.innerHTML = `
+    <div class="flex items-baseline justify-between gap-2">
+      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Training log</span>
+      <span class="text-[10px] text-slate-600">${r.cases} case${r.cases===1?'':'s'}${r.mean==null?'':' \u00b7 mean ' + r.mean}${r.since?' \u00b7 ' + esc(r.since) + ' \u2192 ' + esc(r.until):''}</span>
+    </div>
+    <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Built from this browser's own record of your cases. Nothing here has been sent anywhere.</p>
+    ${r.trend.earlier != null && r.trend.recent != null ? `<p class="text-[11px] mt-1 ${r.trend.recent >= r.trend.earlier ? 'text-emerald-400' : 'text-amber-400'}">Last 30 cases: ${r.trend.recent} \u00b7 before that: ${r.trend.earlier}</p>` : ''}
+    ${section('Orders the sim did not understand',
+        'The simulator\u2019s blind spots, not your medicine. Every line here is a phrase it should have known \u2014 send this list and it can be taught.',
+        r.notUnderstood, 'text-amber-400', 'Nothing yet \u2014 every order you have given has been understood.')}
+    ${section('What you keep missing',
+        'Critical actions marked missed, across every case you have played.',
+        r.missedActions, 'text-rose-400', 'Nothing yet.')}
+    <div class="flex gap-2 mt-4">
+      <button id="logCopy" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Copy the report</button>
+      <button id="logDownload" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Download JSON</button>
+    </div>
+    <p id="logCopied" class="text-[10px] text-emerald-400 mt-1.5 text-center hidden">Copied \u2014 paste it wherever it can be acted on.</p>`;
+  $('logCopy').onclick = async () => {
+    const text = logReportText();
+    try{ await navigator.clipboard.writeText(text); }
+    catch(_){
+      // Clipboard access is refused on an insecure origin and in some embedded views;
+      // a report you cannot get out of the page is not a report.
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(__){ }
+      ta.remove();
+    }
+    const c = $('logCopied'); if(c){ c.classList.remove('hidden'); setTimeout(()=>c.classList.add('hidden'), 2500); }
+  };
+  $('logDownload').onclick = () => {
+    const blob = new Blob([JSON.stringify({ report: logReport(), log: getCaseLog() }, null, 2)],
+      { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'medisim-log-' + localISO().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
 }
 // Most recent misses = current weaknesses to drill.
 function recentWeaknesses(){
