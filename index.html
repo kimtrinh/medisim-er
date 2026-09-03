@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-GpZvYI0Y7ghxjRMSWdBpPA0RcichOOB1gilWivsoBAg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-f5cPfdCTsz07CPbbDUlmXAwi4rNCp9NXZOdH6Pn9+bY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -102,6 +102,13 @@
   /* Header and HUD sit above the scene; the header turns to glass so the room runs
      edge to edge behind it. */
   body.cinema header{position:relative;z-index:30;background:linear-gradient(180deg,rgba(2,6,23,.86),rgba(2,6,23,.42));border-color:rgba(148,163,184,.14)}
+  /* CONSOLE ONLY. The lift exists so the diagnosis suggestions can paint over the wall
+     display; on a phone there is no wall display, and raising the header there put it over
+     the full-screen chart sheet and buried that sheet's close button under Leave the Room. */
+  body.cinema.console header{z-index:48}
+  /* …and the list itself must be able to run down over the room, so nothing may clip it. */
+  body.cinema #dxBox{overflow:visible}
+  #dxTypeahead{box-shadow:0 24px 60px -20px rgba(0,0,0,.95)}
   body.cinema #cinemaCtl{display:flex}
   /* The order bar becomes a floating HUD panel in cinema (see #orderBar rule below) —
      it never unmounts, so the big ENTER button would otherwise keep showing on top of
@@ -224,11 +231,12 @@
   #clRhythm{left:1%; top:21%;   width:19.5%}
   #clMeds  {left:1%; top:37.5%; width:19.5%}
   #clAirway{left:1%; top:58%;   width:19.5%}
+  #clMore  {left:1%; top:71%;   width:19.5%}
   /* THE CALL. Not a full-width ribbon along the foot: below the bed (which ends at y90%)
      there is only ~85px of picture left, and the nurse's line and the command box need
      it. It stands on the empty left wall instead, clear of the ultrasound cart (x4-18,
      y39-86) and the medic (x21-33). */
-  #ribbon  {position:absolute;left:1%;top:71%;width:19.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
+  #ribbon  {position:absolute;left:1%;top:78%;width:19.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
     gap:.25rem;align-content:flex-start;padding:.35rem .4rem;border-radius:12px;
     border:1px solid rgba(148,163,184,.13);background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(3,7,18,.62));
     -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
@@ -284,6 +292,14 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.cinema.console #ticker:hover{color:#e2e8f0}
   body.cinema.console.feedOpen #ticker{display:none}
+  /* THE TRANSCRIPT OPENS ON TOP OF THE ORDER WALL — they share the left column, and the
+     HUD is lifted above #main while a drawer is open, so the clusters painted over the
+     drawer AND over its close button. Reading the history through a grid of drug chips is
+     what Kim was describing. The wall stands down while the transcript is up; closing it
+     brings the wall straight back. (The chart on the right has no such problem: it opens
+     over empty wall, which is why it can stay open while you give orders.) */
+  body.cinema.console.feedOpen #console,
+  body.cinema.console.feedOpen #ribbon{display:none}
   body.cinema.console #obInputRow{margin:0}
   /* Order feedback and the nurse readback float ABOVE the dock instead of growing it. */
   body.cinema.console #orderFeedback,
@@ -293,7 +309,14 @@
   /* Transcript and chart become drawers, closed by default — the room is the point. */
   body.cinema.console #chat{display:none}
   body.cinema.console.feedOpen #chat{display:flex;left:var(--gap);width:var(--colL);
-    top:calc(var(--hdr,62px) + 8px);bottom:64px;height:auto}
+    top:calc(var(--hdr,62px) + 40px);bottom:64px;height:auto}
+  /* pointer-events:auto is NOT optional here. #main is pointer-events:none in cinema so a
+     click in the gaps reaches the room, and only the four named panels take theirs back —
+     a new control inside #main is invisible to the mouse until it says so, and the click
+     lands on the equipment zones behind it instead. Cost an hour once already. */
+  body.cinema.console.feedOpen #feedClose{display:flex;position:absolute;left:var(--gap);
+    width:var(--colL);top:calc(var(--hdr,62px) + 8px);height:32px;z-index:1;
+    pointer-events:auto;border-radius:12px 12px 0 0}
   /* An open drawer sits ABOVE the wall. #chat and #sideBar are inside #main, whose own
      z-index makes it their stacking context, so a z-index on the drawer cannot lift it
      past #cinemaHud — #main has to rise instead. 45 clears the HUD at 25 and the header
@@ -2482,14 +2505,20 @@ if(typeof speechSynthesis !== 'undefined'){
 // slow connection, and a matching language beats one that will mispronounce everything.
 // Word boundaries matter here: without them "aria" matched inside "Daria", and a
 // Bulgarian novelty voice was ranked above Samantha with a quality star beside it.
-const VOICE_GOOD = /\b(premium|enhanced|natural|neural|siri|ava|zoe|evan|samantha|allison|tom|aria|jenny|guy|libby|sonia)\b/i;
+const VOICE_TOP  = /\b(premium|enhanced|neural|natural)\b/i;                    // a download, and it shows
+const VOICE_NEURAL = /\b(google|siri)\b|\bonline\b|\b(aria|jenny|guy|libby|sonia|ava|zoe|evan)\b/i;  // modern engines
+const VOICE_GOOD = /\b(premium|enhanced|natural|neural|siri|google|online|ava|zoe|evan|samantha|allison|tom|aria|jenny|guy|libby|sonia)\b/i;
 const VOICE_BAD  = /\b(compact|espeak|robot|whisper|zarvox|albert|bahh|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|wobble|junior|ralph|fred|bad news|good news|pipe organ)\b/i;
 function voiceScore(v, lang){
   let n = 0;
-  if(VOICE_GOOD.test(v.name)) n += 30;
-  if(VOICE_BAD.test(v.name)) n -= 50;
-  if(v.localService) n += 10;
-  if(lang && v.lang && v.lang.toLowerCase().startsWith(String(lang).slice(0,2).toLowerCase())) n += 5;
+  if(VOICE_TOP.test(v.name)) n += 40;          // Enhanced / Premium / Natural / Neural
+  else if(VOICE_NEURAL.test(v.name)) n += 26;  // a modern engine, even over the network
+  else if(VOICE_GOOD.test(v.name)) n += 12;    // a decent legacy voice
+  if(VOICE_BAD.test(v.name)) n -= 60;
+  // A tiebreak, not a trump: a local voice starts instantly and never stalls, which is
+  // worth something — but not enough to prefer a 2005 formant synth over a neural one.
+  if(v.localService) n += 4;
+  if(lang && v.lang && v.lang.toLowerCase().startsWith(String(lang).slice(0,2).toLowerCase())) n += 8;
   return n;
 }
 // Female- and male-sounding names, so the nurse and the consultant are not the same
@@ -2525,8 +2554,8 @@ function pickVoice(list, role, lang, preferredName){
 // browser, so the ranking is the only part that can be checked automatically.
 if(typeof window !== 'undefined'){ window.pickVoice = pickVoice; window.voiceScore = voiceScore; }
 // Rate per role, mirroring the Kokoro cast's speeds so the two backends feel alike.
-const BROWSER_RATE = { narrator:1.06, nurse:1.12, consultant:1.02, medic:1.1,
-                       family:1.06, child:1.14, mentor:0.98, patient:1.0 };
+const BROWSER_RATE = { narrator:1.0, nurse:1.05, consultant:0.96, medic:1.02,
+                       family:1.0, child:1.06, mentor:0.94, patient:0.96 };
 // Pitch is the fallback when a machine has only one usable voice: it is the difference
 // between "one person read the whole scene" and "the nurse and the doctor spoke".
 const BROWSER_PITCH = { narrator:1, nurse:1.08, consultant:0.9, medic:0.96,
@@ -4703,6 +4732,50 @@ function wirePalChips(root){
   if(!root) return;
   for(const b of root.querySelectorAll('.pal')) b.onclick = () => palChipClick(b);
 }
+// EVERYTHING ELSE, one click away. Built from the same ORDER_SETS and PALETTE as the bar
+// and the prose wall, so there is one vocabulary and one basket however you reach it.
+function moreOrdersMenu(ev){
+  closeRoomMenu();
+  if(S.stage !== 'play' || S.loading) return;
+  const m = document.createElement('div');
+  m.className = 'roomMenu fixed z-[75] w-[19rem] max-w-[92vw] rounded-xl border border-slate-700 bg-slate-900/97 backdrop-blur shadow-2xl overflow-y-auto';
+  m.style.left = '0px'; m.style.top = '0px'; m.style.maxHeight = '70vh';
+  const chip = (lab, order) =>
+    '<button data-pal="' + esc(order) + '" data-lab="' + esc(lab) + '" class="pal m-0.5 px-2 py-1 rounded-md border border-slate-700/70 bg-slate-950/60 text-[10px] text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition">' + esc(lab) + '</button>';
+  const head = t => '<div class="px-3 pt-2 pb-1 text-[9px] font-black uppercase tracking-widest text-slate-500">' + esc(t) + '</div>';
+  let h = '<div class="sticky top-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800 bg-slate-900/97">More orders</div>';
+  h += head('Order sets \u2014 fill the basket') + '<div class="px-2.5 pb-1">' +
+    Object.entries(ORDER_SETS).map(([name, items]) =>
+      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+      '" class="oset m-0.5 px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
+      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join('') + '</div>';
+  for(const [group, items] of Object.entries(PALETTE))
+    h += head(group) + '<div class="px-2.5 pb-1">' + items.map(it => chip(it[0], it[1])).join('') + '</div>';
+  m.innerHTML = h;
+  document.body.appendChild(m);
+  const pad = 6, w = m.offsetWidth, hh = m.offsetHeight;
+  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+    ? ev.currentTarget.getBoundingClientRect() : null;
+  const cx = box ? box.left : innerWidth / 2;
+  const cy = box ? Math.min(box.bottom + 4, innerHeight - hh - pad) : innerHeight / 4;
+  m.style.left = Math.round(Math.max(pad, Math.min(cx, innerWidth - w - pad))) + 'px';
+  m.style.top  = Math.round(Math.max(pad, cy)) + 'px';
+  wirePalChips(m);
+  for(const b of m.querySelectorAll('.oset')) b.onclick = () => { closeRoomMenu(); basketAddSet(b.dataset.os); };
+  // The chips inside close the menu themselves via the away-listener; wire it after this
+  // click has finished bubbling, exactly as the other room menus do.
+  setTimeout(() => {
+    document.addEventListener('click', _roomMenuAway, true);
+    window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway);
+  }, 0);
+}
+document.addEventListener('click', e => {
+  const hit = e.target && e.target.closest && e.target.closest('#moreOrders');
+  if(!hit) return;
+  e.stopPropagation();
+  moreOrdersMenu({ currentTarget: hit });
+});
 // The ordinary order palette, on the left wall, for a case with no code script. Same
 // source as the order bar (ORDER_SETS + PALETTE) and the same `.pal`/`.oset` markup, so
 // one basket, one set of handlers, one vocabulary — this is a second RENDERER, never a
@@ -4733,7 +4806,8 @@ function paintTicker(){
   const m = (S.messages || []).filter(x => x.role === 'assistant');
   const last = m.length ? String(m[m.length - 1].content || '').trim() : '';
   el.textContent = last ? '\u25b8 ' + last : '';
-  el.onclick = () => { document.body.classList.add('feedOpen'); const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };
+  el.onclick = () => { document.body.classList.add('feedOpen'); paintCast();
+    const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };
 }
 // EVERY ORDER, ALL CASE LONG. Kim: "keep a log of all the orders on the side."
 //
@@ -4802,6 +4876,9 @@ function paintConsole(){
     g.rhythm.map(x => consoleChip(x[0], x[1], x[2], null, 'border-amber-500/40 text-amber-200'))));
   if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
     g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
+  // A code case's wall is deliberately just the algorithm. This is the way to everything
+  // else — labs, imaging, exam, the order sets — without putting it all on the wall.
+  parts.push('<div class="cluster" id="clMore"><button id="moreOrders" class="pal w-full px-2 py-1.5 rounded-md border border-slate-600/70 bg-slate-950/70 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-emerald-300 hover:border-emerald-500/50 transition" title="Labs, imaging, exam and the order sets">+ More orders</button></div>');
   host.innerHTML = parts.join('');
   // The judgement calls and the reversible causes run along the foot of the picture,
   // below the bed (which ends at y 90%).
@@ -5298,6 +5375,9 @@ function renderPlay(){
   <!-- body -->
   <div id="playBody" class="flex-1 flex overflow-hidden">
     <div id="playCol" class="flex-1 flex flex-col border-r border-slate-900 min-w-0">
+      <button id="feedClose" class="hidden px-3 bg-slate-900/95 backdrop-blur border border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition items-center justify-between">
+        <span>Transcript</span><span>\u2715 Hide</span>
+      </button>
       <div id="chat" class="flex-1 overflow-y-auto p-3 md:p-5 space-y-4"></div>
       <div id="orderBar" class="border-t border-slate-900 p-3 md:p-4 bg-slate-950/70">
         <!-- Cinema's only other entry is the small icon on the room card, which lives in
@@ -6689,11 +6769,41 @@ function paintCast(){
   // voice that matters most and let the transcript carry the rest. Desktop has the room
   // to show them all and still does.
   const HEARD_FIRST=['patient','nurse','consultant','medic','family'];
-  const shown = roomIsStacked()
-    ? bubbles.slice().sort((a,b)=>HEARD_FIRST.indexOf(a.role)-HEARD_FIRST.indexOf(b.role)).slice(0,1)
-    : bubbles;
-  shown.forEach(b=>{ h+=castBubbleHTML(b.spot, b.lift, b.text); });   // last = on top
+  // NO BUBBLE MAY COVER ANOTHER, OR THE TRANSCRIPT. Kim: "it's hard to read history because
+  // it's obscured by the other text bubbles — make sure no text bubbles overlap."
+  //
+  // Two separate collisions. The transcript is the simpler one: while it is open it carries
+  // every line in full and attributed, so a bubble repeating one of them over the top of it
+  // is pure obstruction. Draw none.
+  if(document.body.classList.contains('feedOpen') || document.body.classList.contains('hudL')){
+    el.innerHTML=h; wireCast(el); return;
+  }
+  // The other is the figures standing near each other: the medic at x27 and the family at
+  // x31 are four percent apart, and a bubble is up to 14rem wide — roughly fifteen percent
+  // of the photo — so anchoring each one over its own speaker guarantees a pile. They are
+  // laid out in lanes instead: same anchor, lifted clear of anything already occupying that
+  // horizontal span. Two lines of a bubble is about 6% of the picture, so that is the step.
+  const sorted = bubbles.slice().sort((a,b)=>HEARD_FIRST.indexOf(a.role)-HEARD_FIRST.indexOf(b.role));
+  const shown = roomIsStacked() ? sorted.slice(0,1) : sorted.slice(0,3);
+  const placed = [];
+  for(const b of shown){
+    // Width in percent of the photo, from the text, capped at the CSS max-width.
+    const w = Math.min(15.5, Math.max(5, b.text.length * 0.42));
+    const l = b.spot.x - w/2, r = b.spot.x + w/2;
+    let lift = b.lift;
+    // Step up until this span is clear of everything already placed.
+    for(let guard=0; guard<6; guard++){
+      const clash = placed.some(p => r > p.l && l < p.r && Math.abs(lift - p.lift) < 6);
+      if(!clash) break;
+      lift += 6;
+    }
+    placed.push({ l, r, lift });
+    h += castBubbleHTML(b.spot, lift, b.text);
+  }
   el.innerHTML=h;
+  wireCast(el);
+}
+function wireCast(el){
   el.querySelectorAll('[data-cast]').forEach(im=>{
     im.onerror=()=>castImgErr(im.dataset.cast, im);
     im.onclick=ev=>{ ev.stopPropagation(); if(S.loading) return; closeRoomMenu();
@@ -6760,6 +6870,7 @@ function ensureCinemaStage(){
     hud.querySelector('#cinLeft').onclick=()=>{
       const cls = document.body.classList.contains('console') ? 'feedOpen' : 'hudL';
       document.body.classList.toggle(cls);
+      paintCast();          // bubbles are suppressed while the transcript is open
       const c=$('chat');
       const showing = cls === 'feedOpen' ? document.body.classList.contains('feedOpen')
                                          : !document.body.classList.contains('hudL');
@@ -6908,6 +7019,9 @@ async function startSignIn(){
   await Account.signIn(location.origin + location.pathname);
 }
 document.addEventListener('click', e => {
+  if(e.target && e.target.closest && e.target.closest('#feedClose')){
+    document.body.classList.remove('feedOpen'); paintLabsRail(); paintCast(); return;
+  }
   const t = e.target;
   if(!t || !t.closest) return;
   if(t.closest('#authBtn') || t.closest('#acctBtn')){
@@ -7052,7 +7166,7 @@ document.addEventListener('keydown', e=>{
   // every exit a second keystroke — the first one appearing to do nothing but take the
   // chart away. The chart has its own ✕ and its own tab.
   const b=document.body.classList;
-  if(b.contains('feedOpen')){ b.remove('feedOpen'); paintLabsRail(); return; }
+  if(b.contains('feedOpen')){ b.remove('feedOpen'); paintLabsRail(); paintCast(); return; }
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinExit')) leaveCinema(true); });   // the labelled button IS deliberate
