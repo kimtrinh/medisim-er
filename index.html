@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LByRgivxIysMk6em3hvT9YyS4WRBeWhYsGe9FejP2EA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-FxuCbUoWToKWsbmeqfagt6yiGr0bVPw4t1ikd/+aLI4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -202,21 +202,35 @@
      starts at y4 and runs full bleed. So the top row is placed against the header's
      measured height rather than against the top of the frame: an element at frame-offset
      T sits at viewport --rt + T, and we want it at --hdr + 8. */
-  #clCpr   {left:1%;   top:calc(var(--hdr,66px) + 8px - var(--rt)); width:19%}
-  #clMeds  {left:71.5%;top:calc(var(--hdr,66px) + 8px - var(--rt)); width:27.5%}
-  #clRhythm{left:78%;  top:23%;   width:21%}    /* above the defibrillator (x72-85, y39-76) */
-  #clAirway{left:85.5%;top:39.5%; width:13.5%}  /* above the airway cart (x85-99, y51-84) */
+  /* ORDERS ON THE LEFT, RESULTS ON THE RIGHT — Kim's rule after using the room, and one
+     a player can hold in their head. Everything clickable stacks down the left wall in
+     algorithm order; the RESULTS drawer opens on the right and therefore can never cover
+     a chip, so a lab can be read while a shock is being given.
+     It also settles a collision: an open drawer has to paint over the wall, which lifts
+     #main above the HUD — and that buried the rail that closes it. Raising the HUD back
+     over #main only works because nothing clickable is on that side any more.
+     Right edge 20.5%: the bed starts at x27 and the medic stands at x21-33 from y25 down,
+     so his shoulder stays clear. This DOES cover the ultrasound cart (x4-18, y39-86) —
+     that is equipment, not the patient, and its zone is still reachable from the FOOT and
+     AIRWAY cameras and by typing the order. */
+  #clCpr   {left:1%; top:calc(var(--hdr,66px) + 8px - var(--rt)); width:19.5%}
+  #clRhythm{left:1%; top:21%;   width:19.5%}
+  #clMeds  {left:1%; top:37.5%; width:19.5%}
+  #clAirway{left:1%; top:58%;   width:19.5%}
   /* THE CALL. Not a full-width ribbon along the foot: below the bed (which ends at y90%)
      there is only ~85px of picture left, and the nurse's line and the command box need
      it. It stands on the empty left wall instead, clear of the ultrasound cart (x4-18,
      y39-86) and the medic (x21-33). */
-  #ribbon  {position:absolute;left:1%;top:52%;width:20.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
+  #ribbon  {position:absolute;left:1%;top:71%;width:19.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
     gap:.25rem;align-content:flex-start;padding:.35rem .4rem;border-radius:12px;
     border:1px solid rgba(148,163,184,.13);background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(3,7,18,.62));
     -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
     box-shadow:0 12px 34px -18px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
   body.cinema.console #ribbon{display:flex}
-  #ribbon.hidden{display:none}
+  /* Two classes beat the one above, so the painter's .hidden actually takes: with the
+     rhythm call moved to the monitor, a case with no required reversible causes has
+     nothing to put here and should not draw an empty panel. */
+  body.cinema.console #ribbon.hidden{display:none}
   /* THE OVERHEAD DISPLAY. #monBar itself, moved — not a new surface: tests/ui.test.cjs
      probes #ecg and #pleth by id for their backing store and trace coverage, startECG
      binds them on every renderPlay, and the wall monitor blits from them. */
@@ -279,9 +293,22 @@
      at 30, and stays under #settingsModal at 50; the same trick the phone chart sheet
      uses. */
   body.cinema.console.feedOpen #main,
-  body.cinema.console.labsOpen #main{z-index:45}
+  body.cinema.console.resultsOpen #main{z-index:45}
+  /* CLOSING THE DRAWER. Kim: "the labs once you click on it, it's hard to hide it again."
+     Lifting #main above the HUD is what lets the drawer paint over the wall chips — and
+     it also buried #cinRight, the one control that closes it, underneath the drawer. So
+     the rail rides the drawer's edge and the HUD comes up with it. 46 clears #main's 45
+     and stays under #settingsModal's 50.
+     #console is pointer-events:none and its chips are behind the drawer either way, so
+     raising the HUD costs nothing except putting the tab back within reach. */
+  body.cinema.console.resultsOpen #cinemaHud{z-index:46}
+  body.cinema.console.resultsOpen #cinRight{right:calc(var(--colR) + var(--gap) + 2px)}
+  body.cinema.console.feedOpen #cinemaHud{z-index:46}
+  body.cinema.console.feedOpen #cinLeft{left:calc(var(--colL) + var(--gap) + 2px)}
+  /* And a plain close button at the top of the drawer itself, which nothing can cover. */
+  body.cinema.console #chartClose{display:flex;position:sticky;top:0}
   body.cinema.console #sideBar{display:none}
-  body.cinema.console.labsOpen #sideBar{display:block;right:var(--gap);width:var(--colR);
+  body.cinema.console.resultsOpen #sideBar{display:block;right:var(--gap);width:var(--colR);
     top:calc(var(--hdr,62px) + 8px);bottom:64px}
   /* Same specificity as body.cinema.hudClear #console, and this block comes later — so
      CLEAR has to say it again here or the console would win the tie and stay up. */
@@ -336,6 +363,13 @@
      one wins everywhere except the phone layout, which swaps them (see #vitalsGrid
      below). Default here so a viewport that matches no phone rule shows exactly one. */
   .vLabShort{display:none}
+  /* The rhythm button rides the monitor's meta row, which WRAPS on a phone — it cost the
+     transcript 20px and pushed it under its 120px floor in the traumatic-arrest code.
+     Below md the caption itself is the target instead: it already reads "— CALL IT" and
+     the click handler listens on #v_rhythm as well as the button, so nothing is lost and
+     no height is spent. */
+  @media (max-width:767px){ #rhythmBtn{display:none !important} }
+  #v_rhythm{cursor:pointer}
   /* THE DIAGNOSIS BOX lives in the header so renderPlay (which rebuilds #main on every
      order) cannot destroy it, and so it never covers the room in cinema. Visibility is a
      CSS rule rather than a class the painter toggles: paintDxBox used to remove Tailwind's
@@ -833,6 +867,19 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       <input id="soundToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Monitor sounds (beep &amp; alarms)</span>
     </label>
+    <div class="pt-3 mt-1 border-t border-slate-800">
+        <div class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 mb-2">Voice</div>
+        <div class="flex items-center gap-2 mb-2">
+          <select id="voicePick" class="flex-1 px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200"></select>
+          <button id="voiceTest" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition">Test</button>
+        </div>
+        <p id="voiceHelp" class="text-[11px] leading-relaxed text-slate-500 mb-2"></p>
+        <div class="flex items-center gap-2 mb-2">
+          <span id="ttsDot" class="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
+          <span id="ttsStatus" class="text-[10px] font-black uppercase tracking-widest text-slate-500">Local voice server: checking…</span>
+        </div>
+        <input id="ttsURL" class="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 mb-3" placeholder="http://localhost:7070" />
+    </div>
     <label class="flex items-center gap-3 cursor-pointer select-none">
       <input id="hdVoicesToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">HD character voices <span class="text-slate-600 normal-case tracking-normal">(Gemini TTS — needs API key; falls back to local voices)</span></span>
@@ -954,6 +1001,9 @@ const S = {
   temperature: parseFloat(localStorage.getItem('ms_temp') || '0.7'),
   tts: localStorage.getItem('ms_tts') !== '0',
   ttsURL: localStorage.getItem('ms_ttsURL') || 'http://localhost:7070',
+  // The voice the player picked in Settings; empty means "best available".
+  ttsVoice: localStorage.getItem('ms_voice') || '',
+  ttsServerOK: false,
   // Default matches the observed 2026 free-tier limit for Gemini Flash (20 req/day,
   // seen on the AI Studio Rate Limit page) — raise it in Settings if billing is on.
   rpd: parseInt(localStorage.getItem('ms_rpd') || '20', 10) || 20,
@@ -2363,11 +2413,167 @@ async function gemSpeakSegments(roleSegs, seq){
     if(!await playUrlQueued(url, seq)) { proms.slice(i+1).forEach(p=>p.then(u=>URL.revokeObjectURL(u)).catch(()=>{})); return; }
   }
 }
-function browserSpeak(text){
-  if(!('speechSynthesis' in window) || !text) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1.03;
-  speechSynthesis.speak(u);
+// THE VOICE EVERYONE ACTUALLY HEARS.
+//
+// Kim: "is there a way for the user to download the voice to make it sound more
+// realistic?" The answer is yes — and the app was the thing standing in the way. Without
+// an API key or the local server (the default on the public site) EVERY speaker was
+// joined into one string and read by one utterance in whatever voice the operating system
+// happens to default to. Nothing here ever called getVoices(), so the good voices already
+// installed on the machine were never asked for, and the nurse, the patient and the
+// consultant all shared one flat delivery.
+//
+// macOS, iOS and Windows all ship high-quality voices that appear only once the user
+// downloads them (Ava, Zoe, Evan, Samantha Enhanced; Microsoft's Natural voices). The
+// Settings VOICE block tells them where; this picks the best of whatever is installed.
+let _voices = [], _voicesReady = false;
+function refreshVoices(){
+  if(!('speechSynthesis' in window)) return _voices;
+  const list = speechSynthesis.getVoices() || [];
+  if(list.length){ _voices = list; _voicesReady = true; }
+  return _voices;
+}
+if(typeof speechSynthesis !== 'undefined'){
+  // Chrome returns [] on the first call and fills the list asynchronously.
+  refreshVoices();
+  try{ speechSynthesis.addEventListener('voiceschanged', refreshVoices); }catch(_){ }
+}
+// How good a voice sounds, as far as a name can tell us. The downloadable high-quality
+// voices announce themselves — "Premium", "Enhanced", "Natural", "Neural" — and the ones
+// to avoid announce themselves too ("compact" is the low-bitrate fallback, eSpeak is the
+// robot). localService beats a network voice because Chrome's cloud voices stall on a
+// slow connection, and a matching language beats one that will mispronounce everything.
+// Word boundaries matter here: without them "aria" matched inside "Daria", and a
+// Bulgarian novelty voice was ranked above Samantha with a quality star beside it.
+const VOICE_GOOD = /\b(premium|enhanced|natural|neural|siri|ava|zoe|evan|samantha|allison|tom|aria|jenny|guy|libby|sonia)\b/i;
+const VOICE_BAD  = /\b(compact|espeak|robot|whisper|zarvox|albert|bahh|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|wobble|junior|ralph|fred|bad news|good news|pipe organ)\b/i;
+function voiceScore(v, lang){
+  let n = 0;
+  if(VOICE_GOOD.test(v.name)) n += 30;
+  if(VOICE_BAD.test(v.name)) n -= 50;
+  if(v.localService) n += 10;
+  if(lang && v.lang && v.lang.toLowerCase().startsWith(String(lang).slice(0,2).toLowerCase())) n += 5;
+  return n;
+}
+// Female- and male-sounding names, so the nurse and the consultant are not the same
+// person. A guess from a name, nothing more — when it is wrong the fallback is a pitch
+// offset, which still tells two speakers apart.
+const VOICE_F = /\b(ava|zoe|samantha|allison|susan|karen|moira|tessa|fiona|victoria|serena|kate|aria|jenny|libby|sonia|female|nicky|joelle|sandy)\b/i;
+const VOICE_M = /\b(evan|tom|alex|daniel|oliver|rishi|gordon|lee|guy|davis|jason|male|aaron|arthur|nathan|reed)\b/i;
+// Pure and exported for testing: given a voice list and a role, which voice speaks it.
+function pickVoice(list, role, lang, preferredName){
+  const vs = (list || []).slice();
+  if(!vs.length) return null;
+  if(preferredName){
+    const exact = vs.find(v => v.name === preferredName);
+    if(exact) return exact;
+  }
+  const ranked = vs.map(v => ({ v, n: voiceScore(v, lang) })).sort((a, b) => b.n - a.n);
+  const best = ranked[0].v;
+  const wantF = role === 'nurse' || role === 'family';
+  const wantM = role === 'consultant' || role === 'medic' || role === 'mentor';
+  if(wantF || wantM){
+    const re = wantF ? VOICE_F : VOICE_M;
+    const other = wantF ? VOICE_M : VOICE_F;
+    // Prefer a well-scoring voice of the right apparent sex that is NOT the default one,
+    // so two speakers in the same turn are actually distinguishable.
+    const match = ranked.find(x => re.test(x.v.name) && x.v !== best && !other.test(x.v.name));
+    if(match) return match.v;
+    const any = ranked.find(x => re.test(x.v.name) && !other.test(x.v.name));
+    if(any) return any.v;
+  }
+  return best;
+}
+// Exposed so tests can feed it a fabricated voice list — there is no audio in a headless
+// browser, so the ranking is the only part that can be checked automatically.
+if(typeof window !== 'undefined'){ window.pickVoice = pickVoice; window.voiceScore = voiceScore; }
+// Rate per role, mirroring the Kokoro cast's speeds so the two backends feel alike.
+const BROWSER_RATE = { narrator:1.06, nurse:1.12, consultant:1.02, medic:1.1,
+                       family:1.06, child:1.14, mentor:0.98, patient:1.0 };
+// Pitch is the fallback when a machine has only one usable voice: it is the difference
+// between "one person read the whole scene" and "the nurse and the doctor spoke".
+const BROWSER_PITCH = { narrator:1, nurse:1.08, consultant:0.9, medic:0.96,
+                        family:1.05, child:1.25, mentor:0.92, patient:1 };
+// One utterance PER SEGMENT, queued — speakers alternate instead of one voice reading the
+// whole turn as a single run-on line.
+function browserSpeak(segments){
+  if(!('speechSynthesis' in window)) return;
+  const segs = Array.isArray(segments) ? segments
+             : [{ role:'narrator', text:String(segments || '') }];
+  const list = refreshVoices();
+  const lang = (navigator && navigator.language) || 'en';
+  const only = new Set(list.map(v => v.name)).size <= 1;
+  for(const seg of segs){
+    const text = String((seg && seg.text) || '').trim();
+    if(!text) continue;
+    const role = (seg && seg.role) || 'narrator';
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice(list, role, lang, S.ttsVoice);
+    if(v) u.voice = v;
+    u.rate = BROWSER_RATE[role] || 1.03;
+    // Only lean on pitch when the voices cannot do the work themselves.
+    u.pitch = only ? (BROWSER_PITCH[role] || 1) : 1;
+    speechSynthesis.speak(u);
+  }
+}
+// IS THE LOCAL CAST RUNNING? kokoro_tts_server.py has always exposed /health and the app
+// has never called it: the per-turn POST was fired blind and its failure swallowed, so a
+// player had no way to know the twelve-voice cast existed, and the public site fired a
+// doomed localhost request on every single turn. Probed once, and the answer gates the
+// POST.
+let _ttsProbe = null;
+async function probeTtsServer(force){
+  if(PUBLIC_BUILD){ S.ttsServerOK = false; return false; }   // never on the public site
+  if(_ttsProbe && !force) return _ttsProbe;
+  _ttsProbe = (async () => {
+    if(!S.ttsURL){ S.ttsServerOK = false; return false; }
+    try{
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 1500);
+      const r = await fetch(S.ttsURL.replace(/\/+$/,'') + '/health', { signal: ctl.signal });
+      clearTimeout(t);
+      S.ttsServerOK = !!(r && r.ok);
+    }catch(_){ S.ttsServerOK = false; }
+    paintVoiceStatus();
+    return S.ttsServerOK;
+  })();
+  return _ttsProbe;
+}
+// Ask once, early, so the first turn already knows which backend it has.
+if(typeof window !== 'undefined') setTimeout(() => { try{ probeTtsServer(); }catch(_){ } }, 800);
+function paintVoiceStatus(){
+  const dot = $('ttsDot'), st = $('ttsStatus');
+  if(!dot || !st) return;
+  const ok = !!S.ttsServerOK;
+  dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' + (ok ? 'bg-emerald-400' : 'bg-slate-600');
+  st.textContent = ok ? 'Local voice server: running — full 12-voice cast'
+                      : 'Local voice server: not running — using your browser voices';
+  st.className = 'text-[10px] font-black uppercase tracking-widest ' + (ok ? 'text-emerald-400' : 'text-slate-500');
+}
+// Where this machine keeps its downloadable voices. The good ones are a download, not a
+// setting — which is the real answer to "can I download a better voice".
+function voiceHelpText(){
+  const p = ((navigator && navigator.platform) || '') + ' ' + ((navigator && navigator.userAgent) || '');
+  if(/Mac|iPhone|iPad/i.test(p))
+    return 'Better voices are a free download: System Settings \u2192 Accessibility \u2192 Spoken Content \u2192 System Voice \u2192 Manage Voices, then tick one marked Premium or Enhanced (Ava, Zoe, Evan, Samantha). Reload this page and it will appear in the list above.';
+  if(/Windows/i.test(p))
+    return 'Better voices are a free download: Settings \u2192 Time & Language \u2192 Speech \u2192 Manage voices \u2192 Add voices. Microsoft\u2019s Natural voices sound best. Reload this page and they will appear in the list above.';
+  return 'Your system\u2019s speech settings may offer extra voices to download; anything marked Premium, Enhanced or Natural sounds markedly better. Reload this page after installing one.';
+}
+function paintVoicePicker(){
+  const sel = $('voicePick'); if(!sel) return;
+  const list = refreshVoices();
+  const help = $('voiceHelp'); if(help) help.textContent = voiceHelpText();
+  if(!list.length){
+    sel.innerHTML = '<option value="">No browser voices found</option>';
+    return;
+  }
+  const lang = (navigator && navigator.language) || 'en';
+  const ranked = list.map(v => ({ v, n: voiceScore(v, lang) })).sort((a, b) => b.n - a.n);
+  sel.innerHTML = '<option value="">Best available (recommended)</option>' +
+    ranked.map(({ v, n }) =>
+      '<option value="' + esc(v.name) + '"' + (S.ttsVoice === v.name ? ' selected' : '') + '>' +
+      esc(v.name) + (v.lang ? ' \u00b7 ' + esc(v.lang) : '') + (n >= 30 ? ' \u2605' : '') + '</option>').join('');
 }
 // Speak an ordered [{speaker,text}] cast list. Prefers the local Kokoro server
 // (different voice per speaker, stitched into one clip); falls back to the
@@ -2395,7 +2601,9 @@ async function speakSegments(segments, force){
   }
   // 2) Local Kokoro cast
   const segs = roleSegs.map(s=>({ ...segVoice(s.role), text: s.text }));
-  if(S.ttsURL){
+  // Only when the server actually answered /health — otherwise every turn paid for a
+  // doomed request, on the public site too.
+  if(S.ttsURL && S.ttsServerOK){
     try{
       const res = await fetch(S.ttsURL.replace(/\/+$/,'')+'/tts_multi', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -2412,7 +2620,8 @@ async function speakSegments(segments, force){
       }
     }catch(_){ /* server unreachable → fall through to browser voice */ }
   }
-  if(seq===_ttsSeq && S.tts) browserSpeak(segs.map(s=>s.text).join(' '));
+  // roleSegs, not segs: segs carry the Kokoro voice ids, roleSegs carry the speaker.
+  if(seq===_ttsSeq && S.tts) browserSpeak(roleSegs);
 }
 // Single-voice narrator line (used when no structured speech is available).
 function speak(text){ if(text) speakSegments([{speaker:'narrator', text:String(text)}]); }
@@ -2813,6 +3022,15 @@ function paintVitals(){
   // tested, so the caption reads as it always did.
   const hideRhythm = codeActive() && S.code && !S.code.rhythmCalled;
   $('v_rhythm').textContent = hideRhythm ? '— call it' : v.rhythm;
+  // THE CALL BELONGS BESIDE THE STRIP. Kim: "it'd be better to add the telerhythm strip
+  // interpretation button next to the telemetry." The chips were on the far wall, which
+  // is a long way from the trace they are a judgement about — and after a rhythm CHANGE
+  // uncalls the read, the button is how a player finds their way back to making it.
+  const rb = $('rhythmBtn');
+  if(rb){
+    rb.classList.toggle('hidden', !codeActive());
+    rb.textContent = hideRhythm ? 'Read rhythm \u25be' : 'Re-read \u25be';
+  }
   $('v_rhythm').className='text-[10px] font-black uppercase tracking-widest mono '+(hideRhythm?'text-slate-500':(hrCrit?'text-red-500':'text-emerald-500'));
   const trendEl=$('v_trend');
   if(trendEl){
@@ -3310,6 +3528,41 @@ function endCode(kind){
   narrate(line, back);
 }
 
+// ONE TURN'S ORDERS, EACH OFFERED TO THE RIGHT ENGINE.
+//
+// Kim signed "Intubate · cooling measure" as one basket after ROSC and only the tube
+// happened. The basket joins its items with "; " and the whole joined string was handed
+// to CodeEngine.act, whose regexes test the WHOLE string: /intubate/ matched, the engine
+// reported the order handled, and the Send path returned — so progress() never ran and
+// the turn engine never saw "cooling measure" at all. Her debrief listed targeted
+// temperature management as the one critical action missed.
+//
+// The engines have to be offered CLAUSES, not the line. splitClauses is the turn engine's
+// own splitter, so the two agree on what a clause is, and its AND_PROTECT list keeps drug
+// pairs ("vanc and zosyn") whole.
+//
+// Clock: code orders still cost nothing, and whatever is left runs as a single turn.
+async function dispatchOrders(action, label){
+  const clauses = InstantEngine.splitClauses(InstantEngine.normalize(action));
+  if(clauses.length < 2 || !codeAnswers()){
+    // Nothing to split, or no code to split for: the original single-order path, so a
+    // one-order line behaves exactly as it always did.
+    if(codeAnswers() && fireCodeOrder(action, label)) return true;
+    await progress(action, label);
+    return false;
+  }
+  const rest = [];
+  let tookAny = false;
+  for(const c of clauses){
+    // Each clause carries its own label into the timeline — the order log should read
+    // "intubate" then "cooling measure", not the signed-basket label twice.
+    if(fireCodeOrder(c)) tookAny = true; else rest.push(c);
+  }
+  // The turn engine's share goes as ONE turn, under the basket's own label so the
+  // debrief's ORDERS YOU ENTERED still shows one row per signature for that part.
+  if(rest.length) await progress(rest.join('; '), rest.length === clauses.length ? label : undefined);
+  return tookAny;
+}
 // One code order: applied synchronously, credited, drawn. Returns false when the code
 // engine does not recognise it, so the caller falls through to the turn engine.
 function fireCodeOrder(text, label){
@@ -4238,6 +4491,22 @@ const CODE_PALETTE = {
 // assessment marker reaches the pack's own recognition responders in all eight. Every
 // phrasing below was replayed against all eight packs: zero not-understood, thirteen
 // credit hits. Do not reword one without replaying it the same way.
+// AFTER ROSC. The palette swaps back to the ordinary order set the moment the code ends,
+// so post-arrest care had no chips at all: Kim had to TYPE "cooling measure", and the
+// debrief then marked targeted temperature management missed. These are the seven things
+// a post-arrest patient needs, in the order they are wanted.
+//
+// The first two are answered by the code engine (which keeps answering after ROSC); the
+// rest are the pack's own responders. "Start targeted temperature management" is the
+// canonical the order catalog now rewrites every cooling phrasing to.
+const POST_ARREST = [
+  ['Intubate','Intubate the patient'],
+  ['Confirm EtCO\u2082','Attach waveform capnography'],
+  ['12-lead ECG','Obtain a 12-lead ECG'],
+  ['Cath lab','Activate the cath lab'],
+  ['Cooling (TTM)','Start targeted temperature management'],
+  ['Norepinephrine','Start a norepinephrine infusion'],
+  ['Admit to ICU','Admit to the ICU']];
 const CALL_IT_ARREST = [
   ['Shockable','I think this is a shockable rhythm'],
   ['Not shockable','I think this is not shockable'],
@@ -4286,7 +4555,12 @@ function codeChipGroups(){
   out.meds = Object.keys(sc.drugs || {})
     .filter(n => codeDrugDose(sc, c, n) != null)
     .map(n => [n, null, 'console_' + n, n]);          // label + dose are painted per tick
-  out.callIt = (c.pulse ? CALL_IT_PERFUSING : CALL_IT_ARREST).map(x => [x[0], x[1]]);
+  // The rhythm call now lives on the monitor (rhythmMenu), beside the trace it is about.
+  // The wall keeps only the reversible causes.
+  out.callIt = [];
+  // Once the arrest is over the shock ladder is finished with; post-arrest care takes its
+  // place on the wall.
+  if(c.ended === 'rosc') out.postrosc = POST_ARREST.map(x => [x[0], x[1]]);
   const acts = (sc.causes && sc.causes.actions) || {};
   out.causes = ((sc.causes && sc.causes.required) || [])
     .map(k => (acts[k] || [])[0]).filter(Boolean).map(a => [a, a]);
@@ -4379,7 +4653,11 @@ function paintConsole(){
     g.cpr.map(x => consoleChip(x[0], x[1], null, null, 'border-rose-500/40 text-rose-200'))));
   if(g.meds.length)   parts.push(cluster('clMeds', 'Meds',
     g.meds.map(x => consoleChip(x[0], null, x[2], x[3], 'border-emerald-500/40 text-emerald-200'))));
-  if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
+  // Post-arrest replaces the rhythm cluster in the same slot: nothing on it applies to a
+  // patient with a pulse, and the room should not offer a shock ladder to one.
+  if((g.postrosc || []).length) parts.push(cluster('clRhythm', 'Post-arrest',
+    g.postrosc.map(x => consoleChip(x[0], x[1], null, null, 'border-sky-500/40 text-sky-200'))));
+  else if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
     g.rhythm.map(x => consoleChip(x[0], x[1], x[2], null, 'border-amber-500/40 text-amber-200'))));
   if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
     g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
@@ -4399,6 +4677,9 @@ function paintConsole(){
         bits.push(consoleChip(lab, order, null, null, 'border-amber-500/40 text-amber-200'));
     }
     rib.innerHTML = bits.join('');
+    // An empty panel is clutter. With the rhythm call moved to the monitor, a case with
+    // no required reversible causes (the VF arrest is one) has nothing to put here.
+    rib.classList.toggle('hidden', bits.length === 0);
   }
   wirePalChips(host); wirePalChips(rib);
   paintCodeStrip();      // fills the drug faces with their live doses
@@ -4478,6 +4759,14 @@ function paletteBodyHTML(){
       ? chips.join('')   // folded into the single Actions row below
       : row('Hs &amp; Ts', 'amber-500/70', chips);
   }
+  // Post-arrest care, once there is a pulse to look after. Same list as the console's
+  // cluster, so the two layouts offer the same orders.
+  let postArrest = '';
+  if(S.code && S.code.ended === 'rosc'){
+    const chips = POST_ARREST.map(([lab, order]) =>
+      `<button data-pal="${esc(order)}" data-lab="${esc(lab)}" class="pal px-2 py-1 bg-slate-900/60 border border-sky-500/40 rounded-md text-[10px] font-black uppercase tracking-wider text-sky-200 hover:bg-slate-800 transition">${esc(lab)}</button>`);
+    postArrest = narrow ? chips.join('') : row('Post-arrest', 'sky-400/70', chips);
+  }
   // The rhythm call. Violet, so it reads as a judgement rather than an order — nothing
   // here touches the patient.
   let callIt = '';
@@ -4491,10 +4780,15 @@ function paletteBodyHTML(){
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[9px] font-black uppercase tracking-widest text-${inCode?'emerald-500/70':'slate-600'} w-20 shrink-0">${tab}</span>
                 ${items.map(it=>`<button ${it[2]?`id="${it[2]}" `:''}data-pal="${esc(it[1])}" data-lab="${esc(it[0])}" class="pal px-2 py-1 bg-slate-900/60 border border-${inCode?'emerald-500/25':'slate-800'} rounded-md text-[10px] text-${inCode?'emerald-300/90':'slate-400'} hover:text-emerald-300 hover:border-emerald-500/30 transition">${esc(it[0])}</button>`).join('')}${tab === 'Actions' && narrow ? callIt + causes : ''}
-              </div>`).join('') + meds + (narrow ? '' : callIt + causes);
+              </div>`).join('') + meds + (narrow ? postArrest : postArrest + callIt + causes);
 }
 
 const PALETTE = {
+  'Critical care':[
+    ['Cooling (TTM)','Start targeted temperature management'],
+    ['Norepinephrine','Start a norepinephrine infusion'],
+    ['Central line','Place a central line'],
+    ['Arterial line','Place an arterial line']],
   'Labs':[
     ['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],['CMP','Order a comprehensive metabolic panel.'],
     ['Troponin','Order a troponin.'],['Lactate','Order a lactate.'],['VBG','Order a venous blood gas.'],
@@ -4684,8 +4978,9 @@ function queueClinicalAction(label, text){
   // unchanged. Played once, that cost three of six defibrillations and marked a secured
   // airway as missed. Orders the code engine cannot answer still fall through.
   if(codeAnswers()){
-    if(fireCodeOrder(text, label||text)) return;
-    return progress(text, label||text);
+    // Same split as the Send path: a chip or a room-menu item whose order text is itself
+    // two clauses must reach both engines.
+    return dispatchOrders(text, label||text);
   }
   const added=basketAdd(label||text, text, true);
   basketNote(added ? 'Queued — sign when ready' : 'Already in the basket');
@@ -4849,6 +5144,7 @@ function renderPlay(){
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Temp: <span id="v_temp" class="text-slate-300"></span></span>
       <span id="v_clockChip" title="Sim time since arrival. Orders cost time — labs ~18 min, CT ~25, consults ~10. The bar drains toward the next change in the patient's condition." class="text-[13px] font-black uppercase tracking-widest px-3 py-1 rounded-md border border-emerald-800/60 bg-emerald-500/10 text-emerald-300 transition-colors">ER&nbsp;Clock <span id="v_clock" class="mono">T+0 min</span><span id="v_next" class="hidden"> · <span id="v_nextMin" class="mono"></span> to next event</span></span>
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Rhythm: <span id="v_rhythm"></span></span>
+      <button id="rhythmBtn" class="hidden ml-1 px-2 py-0.5 rounded-md border border-violet-500/50 bg-violet-950/60 text-violet-200 text-[9px] font-black uppercase tracking-widest hover:bg-violet-900/60 transition" title="Read the strip and call the rhythm (R)">Read rhythm \u25be</button>
     </div>
     <div id="v_nextBar" class="max-w-[1500px] mx-auto mt-1.5 h-1 rounded bg-slate-800/80 overflow-hidden hidden"><div id="v_nextFill" class="h-full bg-emerald-500 transition-all" style="width:100%"></div></div>
   </div>
@@ -4950,9 +5246,14 @@ function renderPlay(){
     // A code is running: the code engine answers what it recognises RIGHT NOW — no
     // turn, no engine latency, no clock cost. A shock has to land the instant it is
     // ordered, or the simulator is teaching a rhythm-check delay that does not exist.
-    if(codeAnswers() && fireCodeOrder(t, plan.label)) {
+    // A signed basket can mix engines — "intubate; cooling measure" is one code order and
+    // one turn order — so it is dispatched clause by clause. A line the code engine takes
+    // nothing from falls through untouched to the resolver below.
+    if(codeAnswers()){
       cmd.value=''; cmd.style.height='auto';
-      basketClear(); return;
+      basketClear();
+      await dispatchOrders(t, plan.label);
+      return;
     }
     const catalog = await loadOrderCatalog();
     if(catalog.length && await willUseInstant()){
@@ -5050,7 +5351,16 @@ function renderPlay(){
   const setChart=open=>{ document.body.classList.toggle('chartOpen', open);
     if(open){ const a=$('sideBar'); if(a) a.scrollTop=0; } };
   if($('chartBtn')) $('chartBtn').onclick=()=>setChart(!document.body.classList.contains('chartOpen'));
-  if($('chartClose')) $('chartClose').onclick=()=>setChart(false);
+  // One close button, two shapes of chart: the full-screen sheet on a phone and the
+  // console's right-hand drawer. It was wired only to the sheet, so on the desktop it was
+  // visible, sitting at the top of the open drawer, and did nothing.
+  if($('chartClose')) $('chartClose').onclick=()=>{
+    const b=document.body.classList;
+    if(b.contains('resultsOpen') || b.contains('feedOpen')){
+      b.remove('resultsOpen','feedOpen'); paintLabsRail(); return;
+    }
+    setChart(false);
+  };
   // Works at any width: cinema builds into #cinemaStage on <body>, not the sidebar.
   if($('cinemaBtn')) $('cinemaBtn').onclick=()=>{ setChart(false); setRoomFirst(true);
     // The room can only show the walkthrough positions. Coming from BEDSIDE (the one
@@ -5343,6 +5653,45 @@ const ZONE_TITLES={examPick:'Examine which region?', monitor:'Monitor', defib:'D
 // The menu is position:fixed on <body>, NOT inside the scene: the room box and the
 // bedside photo are both overflow-hidden, so an in-box menu gets clipped at every edge.
 // Clamping uses the menu's measured size, so no row-height guesswork.
+// The rhythm call, as a popover anchored on the monitor. Built like roomMenu — a fixed
+// panel appended to <body>, dismissed by the same closeRoomMenu — but its items are
+// computed at open time, because which set is right depends on whether there is a pulse.
+function rhythmMenu(ev){
+  closeRoomMenu();
+  if(!codeAnswers() || !S.code) return;
+  const items = S.code.pulse ? CALL_IT_PERFUSING : CALL_IT_ARREST;
+  const m = document.createElement('div');
+  m.className = 'roomMenu fixed z-[75] min-w-[190px] max-w-[16rem] rounded-xl border border-violet-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  m.style.left = '0px'; m.style.top = '0px';
+  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-violet-400 border-b border-slate-800">What is the rhythm?</div>' +
+    items.map((it, i) => '<button data-ri="' + i + '" class="block w-full text-left px-3 py-1.5 text-xs text-slate-200 hover:bg-violet-900/50">' + esc(it[0]) + '</button>').join('');
+  document.body.appendChild(m);
+  const pad = 6, w = m.offsetWidth, h = m.offsetHeight;
+  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+    ? ev.currentTarget.getBoundingClientRect() : null;
+  // Anchored to the RIGHT of the overhead display, on the wall the orders-left rule just
+  // emptied. Dropping it below the display put it straight over the patient, which is the
+  // one thing this layout exists to prevent.
+  const mon = $('monBar') ? $('monBar').getBoundingClientRect() : null;
+  const cx = mon ? mon.right + 6
+           : (box ? box.left : (Number.isFinite(ev && ev.clientX) ? ev.clientX : innerWidth / 2));
+  const cy = mon ? mon.top
+           : (box ? box.bottom + 4 : (Number.isFinite(ev && ev.clientY) ? ev.clientY : innerHeight / 3));
+  m.style.left = Math.round(Math.max(pad, Math.min(cx, innerWidth - w - pad))) + 'px';
+  m.style.top  = Math.round(Math.max(pad, Math.min(cy, innerHeight - h - pad))) + 'px';
+  m.querySelectorAll('[data-ri]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [lbl, ord] = items[+b.dataset.ri];
+    closeRoomMenu();
+    if(S.loading) return;
+    queueClinicalAction(lbl, ord);
+  });
+  setTimeout(() => {
+    document.addEventListener('click', _roomMenuAway, true);
+    window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway);
+  }, 0);
+}
 function closeRoomMenu(){
   document.querySelectorAll('.roomMenu').forEach(m=>m.remove());
   document.removeEventListener('click', _roomMenuAway, true);
@@ -6149,7 +6498,7 @@ function ensureCinemaStage(){
     hud=document.createElement('div'); hud.id='cinemaHud';
     hud.innerHTML=`<div id="console"></div><div id="ribbon" class="hidden"></div><div id="cinemaCard"></div>
       <button id="cinLeft" class="cinTab" title="Show / hide the transcript">FEED</button>
-      <button id="cinRight" class="cinTab" title="Show / hide the clinical workspace">LABS</button>`;
+      <button id="cinRight" class="cinTab" title="Show / hide the results">RESULTS</button>`;
     document.body.appendChild(hud);
     // Collapsing a column is pure CSS — nothing is unmounted, so the panels keep every
     // handler. display:none DOES zero an element's scrollTop, though, so the transcript
@@ -6166,7 +6515,7 @@ function ensureCinemaStage(){
       if(c && showing) c.scrollTop=c.scrollHeight;
     };
     hud.querySelector('#cinRight').onclick=()=>{
-      document.body.classList.toggle(document.body.classList.contains('console') ? 'labsOpen' : 'hudR');
+      document.body.classList.toggle(document.body.classList.contains('console') ? 'resultsOpen' : 'hudR');
       // Opened or closed, repaint: opening marks what is in the chart as read, and
       // closing starts the next result waiting again.
       paintLabsRail(); };
@@ -6246,7 +6595,7 @@ function toggleClearRoom(){
 function exitCinema(){
   if(!S.cinema) return;
   S.cinema=false;
-  document.body.classList.remove('cinema','hudL','hudR','hudClear','console','feedOpen','labsOpen');   // collapsed columns don't outlive the room
+  document.body.classList.remove('cinema','hudL','hudR','hudClear','console','feedOpen','resultsOpen');   // collapsed columns don't outlive the room
   document.body.style.removeProperty('--hdr');
   document.body.style.removeProperty('--mb');
   document.body.style.removeProperty('--ra');
@@ -6338,10 +6687,45 @@ document.addEventListener('keydown', e=>{
   if(lb && !lb.classList.contains('hidden')) return;
   const sm=document.getElementById('settingsModal');
   if(sm && !sm.classList.contains('hidden')) return;
+  // An open drawer is the nearest thing to dismiss, and Esc is the universal dismiss key.
+  // Leaving the room out from under a player who only wanted to shut the chart is the
+  // wrong answer to that keystroke.
+  const b=document.body.classList;
+  if(b.contains('resultsOpen') || b.contains('feedOpen')){
+    b.remove('resultsOpen','feedOpen'); paintLabsRail(); return;
+  }
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinExit')) leaveCinema(true); });   // the labelled button IS deliberate
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinClear')) toggleClearRoom(); });
+// The button and the caption beside it are the same target — a player who reads
+// "— CALL IT" and clicks the words should get the menu.
+document.addEventListener('click', e=>{
+  const hit = e.target && e.target.closest && (e.target.closest('#rhythmBtn') || e.target.closest('#v_rhythm'));
+  if(!hit || !codeAnswers()) return;
+  e.stopPropagation();
+  rhythmMenu({ currentTarget: $('rhythmBtn') || hit });
+});
+// R for rhythm, guarded like H and D.
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'r' && e.key !== 'R') return;
+  if(!S.cinema || !codeAnswers() || e.metaKey || e.ctrlKey || e.altKey) return;
+  const el = e.target;
+  if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+  e.preventDefault();
+  rhythmMenu({ currentTarget: $('rhythmBtn') });
+});
+// Clicking the room itself puts a drawer away — the same instinct as tapping outside a
+// sheet. Anything inside a drawer, a rail or a menu is left alone.
+document.addEventListener('click', e=>{
+  const b=document.body.classList;
+  if(!b.contains('console') || !(b.contains('resultsOpen') || b.contains('feedOpen'))) return;
+  const t=e.target;
+  if(!t || !t.closest) return;
+  if(t.closest('#sideBar') || t.closest('#chat') || t.closest('.cinTab') ||
+     t.closest('.roomMenu') || t.closest('#orderBar') || t.closest('header')) return;
+  b.remove('resultsOpen','feedOpen'); paintLabsRail();
+});
 // H for the room. Guarded against every field a player types into — the order box is
 // the obvious one, but "h" is also a letter in the case-search box and in the free-text
 // diagnosis, and a shortcut that eats a keystroke there would be worse than no shortcut.
@@ -6801,10 +7185,10 @@ function paintLabsRail(){
   if(chartOnScreen()) S.chartSeen = n;          // they are looking at it
   const unseen = Math.max(0, n - (S.chartSeen || 0));
   tab.classList.toggle('hasNew', unseen > 0);
-  tab.textContent = unseen > 0 ? 'LABS ' + unseen : 'LABS';
+  tab.textContent = unseen > 0 ? 'RESULTS ' + unseen : 'RESULTS';
   tab.title = unseen > 0
-    ? unseen + ' new result' + (unseen === 1 ? '' : 's') + ' waiting — open the chart'
-    : 'Show / hide the clinical workspace';
+    ? unseen + ' new result' + (unseen === 1 ? '' : 's') + ' waiting — open the results'
+    : (document.body.classList.contains('resultsOpen') ? 'Hide the results' : 'Show the results');
   tab.setAttribute('aria-label', tab.title);
 }
 function renderWorkspace(){
@@ -7509,6 +7893,10 @@ function openSettings(){
   $('model').value=S.model; $('deepModel').value=S.deepModel;
   $('temp').value=S.temperature; $('tempVal').textContent=S.temperature; $('soundToggle').checked=S.sound;
   $('hdVoicesToggle').checked=S.hdVoices;
+  paintVoicePicker();
+  if($('ttsURL')) $('ttsURL').value = S.ttsURL || '';
+  paintVoiceStatus();
+  probeTtsServer(true);   // they may have started it since the page loaded
   $('instantToggle').checked=useInstant();
   paintInstantState();
   $('logRunsToggle').checked=S.logRuns;
@@ -7606,6 +7994,19 @@ $('rpdLimit').addEventListener('change',e=>{ S.rpd=Math.max(1,parseInt(e.target.
 $('soundToggle').addEventListener('change',e=>{ S.sound=e.target.checked; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(!S.sound) stopMonitorSound(); });
 $('logRunsToggle').addEventListener('change',e=>{ S.logRuns=e.target.checked; localStorage.setItem('ms_logRuns',S.logRuns?'1':'0'); });
 $('hdVoicesToggle').addEventListener('change',e=>{ S.hdVoices=e.target.checked; localStorage.setItem('ms_hdVoices',S.hdVoices?'1':'0'); });
+$('voicePick').addEventListener('change',e=>{
+  S.ttsVoice=e.target.value||''; localStorage.setItem('ms_voice',S.ttsVoice);
+});
+// Hear it before committing to it. force=true so it plays even with narration muted —
+// pressing Test is asking to hear something.
+$('voiceTest').addEventListener('click',()=>{
+  stopSpeak();
+  speakSegments([{speaker:'nurse', text:'No pulse. Rhythm is up on the monitor, doctor \u2014 what is it?'}], true);
+});
+$('ttsURL').addEventListener('change',e=>{
+  S.ttsURL=e.target.value.trim(); localStorage.setItem('ms_ttsURL',S.ttsURL);
+  probeTtsServer(true);
+});
 $('celebrateSel').addEventListener('change',e=>{ localStorage.setItem('ms_celebrate',e.target.value); });
 $('temp').addEventListener('input',e=>{ S.temperature=parseFloat(e.target.value); $('tempVal').textContent=S.temperature; localStorage.setItem('ms_temp',S.temperature); });
 // Detect/Test operate on the ACTIVE engine (the ③ field edits only the local rung —
