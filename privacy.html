@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — MediSim ER</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#020617;color:#cbd5e1;
+    font:16px/1.65 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+  h1{color:#fff;font-size:1.9rem;line-height:1.2;margin:0 0 .35rem;letter-spacing:-.02em}
+  h2{color:#fff;font-size:1.05rem;margin:2.4rem 0 .6rem;letter-spacing:-.01em}
+  .sub{color:#64748b;font-size:.85rem;margin:0 0 2rem}
+  a{color:#34d399}
+  code{background:#0f172a;border:1px solid #1e293b;border-radius:5px;padding:.1rem .35rem;font-size:.85em}
+  table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.92rem}
+  th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #1e293b;vertical-align:top}
+  th{color:#94a3b8;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800}
+  ul{padding-left:1.15rem}
+  li{margin:.35rem 0}
+  .note{border:1px solid #334155;background:#0b1220;border-radius:12px;padding:.9rem 1.1rem;margin:1.4rem 0}
+  footer{margin-top:3.5rem;padding-top:1.5rem;border-top:1px solid #1e293b;color:#64748b;font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy</h1>
+  <p class="sub">MediSim ER · last updated 3 September 2026</p>
+
+  <p>MediSim ER is an educational emergency-medicine simulator. It is free, it carries no
+  advertising, and it has no analytics or third-party trackers of any kind. This page
+  describes exactly what it stores and where.</p>
+
+  <div class="note">
+    <p style="margin:0"><strong>Never enter real patient information.</strong> The simulated
+    patients are fictional. Nothing you type into the app should identify a real person.</p>
+  </div>
+
+  <h2>If you do not sign in</h2>
+  <p>Nothing you do leaves your browser. Your cases, scores, settings and training log are
+  kept in your own browser's local storage on your own device. There is no account, and no
+  server receives them. Clearing your browser data deletes them permanently; nobody can
+  recover them for you.</p>
+  <p>Because that storage belongs to the computer rather than to you, anyone who uses the
+  same browser could see it. That is why the training log stays hidden until you sign in.</p>
+
+  <h2>If you sign in with Google</h2>
+  <p>Signing in is optional and exists for one reason: so your training log is private to
+  you and follows you between devices. Google tells us only what you approve on its consent
+  screen, which for this app is limited to the three basic scopes
+  <code>openid</code>, <code>email</code> and <code>profile</code>. We never receive your
+  Google password, and we cannot read your mail, contacts, files or anything else in your
+  Google account.</p>
+
+  <table>
+    <tr><th>What is stored</th><th>Why</th></tr>
+    <tr><td>Your email address</td><td>To identify your account and support it if you write in</td></tr>
+    <tr><td>Your name and profile picture URL</td><td>To greet you in the app</td></tr>
+    <tr><td>The date you signed up and the date you last played</td><td>To understand how the simulator is used</td></tr>
+    <tr><td>The number of cases you have completed</td><td>The same</td></tr>
+    <tr><td>Your training log: for each case, the score, the critical actions missed, the diagnosis you gave, the time taken, and any orders the simulator failed to understand</td><td>To show you your own progress, and to find gaps in the simulator's vocabulary</td></tr>
+  </table>
+
+  <p>These are held in a database run by <a href="https://supabase.com/privacy" rel="noopener">Supabase</a>
+  in the United States. Access is enforced by the database itself: each row is readable only
+  by the account that created it. Other users of the simulator cannot see your log, your
+  email, or that you have an account at all.</p>
+
+  <h2>What is never done</h2>
+  <ul>
+    <li>Your data is never sold, rented, or shared with advertisers. There are no advertisers.</li>
+    <li>There are no analytics, tracking pixels, fingerprinting, or third-party cookies.</li>
+    <li>No profile is built about you beyond the training log described above.</li>
+    <li>You are not emailed marketing. Signing in does not subscribe you to anything.</li>
+  </ul>
+
+  <h2>Your own API keys</h2>
+  <p>The simulator can optionally run on an AI model of your choosing. If you paste an
+  Anthropic or Google API key into Settings, it is held in your browser for that session
+  only, never written to permanent storage, and never transmitted to us. Your browser sends
+  it directly to the provider you chose. Closing the tab discards it.</p>
+
+  <h2>Optional research logs</h2>
+  <p>Settings contains a switch, <em>off by default</em>, for sharing de-identified case
+  logs — the orders given and how they were graded — so that mistakes in the simulator can
+  be found and fixed. Those records carry no account, name or email, and email addresses,
+  phone numbers and identifier-shaped text are stripped from them before they are sent.
+  Leaving the switch off shares nothing.</p>
+
+  <h2>Other services the page contacts</h2>
+  <ul>
+    <li><strong>Supabase</strong> — sign-in and your training log, only when you are signed in.</li>
+    <li><strong>Anthropic or Google</strong> — only if you supply your own API key, and only from your browser.</li>
+    <li><strong>Wikimedia Commons</strong> — some of the study images are hosted there.</li>
+    <li><strong>jsDelivr and cdnjs</strong> — code libraries, loaded only when needed.</li>
+    <li><strong>GitHub Pages</strong> — serves the site itself.</li>
+  </ul>
+  <p>The page's content security policy blocks connections to anywhere else.</p>
+
+  <h2>Children</h2>
+  <p>MediSim ER is intended for clinicians and clinical students. It is not directed at
+  children and we do not knowingly collect information from anyone under 16.</p>
+
+  <h2>Keeping, and deleting</h2>
+  <p>Your training log is kept until you ask for it to be removed. To delete your account and
+  everything attached to it, email the address below from the account you signed up with; it
+  is removed within 30 days. You can also sign out at any time, which leaves nothing about
+  you on that device.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes materially, the date at the top changes with it. Continuing to
+  use the simulator after that means the new version applies.</p>
+
+  <h2>Contact</h2>
+  <p>Questions, or a deletion request: <a href="mailto:kltrinh@gmail.com">kltrinh@gmail.com</a>.</p>
+
+  <footer>
+    <p><a href="./">← Back to MediSim ER</a> · <a href="terms.html">Terms of use</a></p>
+    <p>MediSim ER is a training simulation. It is not medical advice and not a substitute for
+    clinical judgment or real patient care.</p>
+  </footer>
+</main>
+</body>
+</html>

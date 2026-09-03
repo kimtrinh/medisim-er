@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Xb0J/pHRb1AfdpNMNF3GNGzu/PTYpV4fa+5PhK9CbTA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NmYnLfnrlyU4JW+gKE/DiylNBmb/LL24tiSklDV/sD0=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3265,6 +3265,7 @@ function renderSetup(){
                maintains the case packs. Hidden until there is a case in it. -->
           <div id="mergeOffer" class="hidden mt-4 p-3 rounded-xl border border-emerald-800/50 bg-emerald-950/20"></div>
           <div id="logReport" class="mt-5 pt-4 border-t border-slate-800 hidden"></div>
+          <p class="text-[10px] text-slate-600 mt-2"><a href="privacy.html" class="hover:text-emerald-500 underline underline-offset-2">Privacy</a> · <a href="terms.html" class="hover:text-emerald-500 underline underline-offset-2">Terms of use</a></p>
           <p class="text-[10px] text-slate-600 mt-1.5">Written in advance and mechanically validated, but not all independently clinician-reviewed. Verify teaching points against current guidance. ${useInstant()
             ? 'In Instant Mode the whole case — bedside, results and debrief — runs on the deterministic engine, with no API call at any point.'
             : 'They start with no API call; the bedside then runs on whichever engine you have set.'}</p>
