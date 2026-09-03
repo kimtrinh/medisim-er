@@ -1266,7 +1266,7 @@ const NURSING_ACTIONS = [
     'Taped and charted — I\'ll remeasure with every check and flag any gain.',
     'Circumference re-taped and logged next to the last set.']},
   {re:/\bintubate\b|rapid sequence intubation/, act:true, prep:true, text:[
-    'Tube\'s in — end-tidal color change, bilateral breath sounds, secured at the lip.',
+    'Tube\'s in — waveform capnography confirms it, bilateral breath sounds, secured at the lip.',
     'Airway\'s secured — tube confirmed and tied at the lip, bagging easily.']},
   {re:/to suction at|tube to suction|suction at (negative |-)?\d+/, text:'Tube to suction — set, swinging, and bubbling as expected.'},
   {re:/head of (the )?bed|\bhob\b|sit (him|her|them) up(right)?|semi ?fowler|reverse trendelenburg/, strong:true, text:'Head of the bed is up.'},

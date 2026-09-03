@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-OLJ1Ax2A6c4BrT2iWS54+huS/bAaNSFT5HM2R4fEboU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-npFCGnQAsW7DaOJ2vd7XHMJ49twHc7qHfqlSO3C3K0M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2954,6 +2954,15 @@ async function loadOfflinePacks(){
 // the ticker owns time, and a lab order must not skip the patient forward 18 minutes.
 let _codeTimer = null;
 function codeActive(){ return !!(S.code && !S.code.ended); }
+// codeActive() answers "is a resuscitation RUNNING" — it gates the ticker, the code
+// strip, the palette swap and the zero-cost clock. codeAnswers() is a different
+// question: "can the code engine still answer an order". After ROSC the answer is yes —
+// the airway, capnography, access and the post-arrest drugs are all things it models,
+// and post-arrest care is the rest of the resuscitation, not an epilogue. Routing on
+// codeActive() sent every one of those to the turn engine instead, which has no airway
+// responder in any live-code pack, so Kim's intubation at T+12 earned nothing and the
+// debrief called the airway MISSED on a run where she secured it.
+function codeAnswers(){ return !!(S.code && S.code.ended !== 'death'); }
 
 function enterCodeMode(script){
   if(!window.CodeEngine || !script) return;
@@ -3126,9 +3135,13 @@ function fireCodeOrder(text, label){
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
   codeCredit(r.credits);
+  const roscHandoffDone = !!S.code.ended;
   if(/\b(shock|defib|cardiovert)/i.test(text)) roomDefib();
   onCodeEvents(r.events);
-  applyCodeVitals();
+  // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
+  // point — the code's state IS the monitor. After it, the turn engine owns them, so a
+  // post-arrest order must update the books without rewinding the patient.
+  if(roscHandoffDone) syncCodeFlags(); else applyCodeVitals();
   paintCodeStrip();
   // The room is persistent in cinema mode, so a code order does not rebuild it.
   // Repaint explicitly when CPR starts/stops (or a shock resumes it) so the rescuer
@@ -3164,6 +3177,7 @@ const TALLY_KIND = {
   vagal:      ['H / T',  'border-violet-500/50 bg-violet-500/10 text-violet-300'],
   pacing:     ['Pacing', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
   check:      ['Check',  'border-slate-600 bg-slate-800/70 text-slate-300'],
+  rhythmCheck:['Cycle',  'border-slate-600 bg-slate-800/70 text-slate-400'],
   convert:    ['Rhythm', 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'],
   degrade:    ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
   crash:      ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
@@ -3899,7 +3913,7 @@ const QUICK=[
 const CODE_PALETTE = {
   'Rhythm':[
     ['Defibrillate','Defibrillate at 200 joules'],['Sync cardiovert','Synchronized cardioversion at 100 joules'],
-    ['Pacing','Start transcutaneous pacing'],['Vagal','Try vagal maneuvers'],['Pulse check','Pulse check']],
+    ['Pacing','Start transcutaneous pacing'],['Vagal','Try vagal maneuvers']],
   'CPR, airway & access':[
     ['Start CPR','Start compressions'],['Hold CPR','Hold compressions'],
     ['Bag-mask','Bag-mask ventilate the patient'],['Intubate','Intubate the patient'],
@@ -3955,8 +3969,7 @@ function paletteBodyHTML(){
     groups = Object.assign({}, groups, { 'Rhythm': [
       ['Defibrillate ' + codeShockJoules(sc2, c2) + ' J', codeShockOrder(sc2, c2), 'codePalDefib'],
       ['Sync cardiovert ' + codeSyncJoules(sc2) + ' J', codeSyncOrder(sc2)],
-      ['Pacing','Start transcutaneous pacing'],['Vagal','Try vagal maneuvers'],
-      ['Pulse check','Pulse check']] });
+      ['Pacing','Start transcutaneous pacing'],['Vagal','Try vagal maneuvers']] });
   }
   // A phone cannot afford four labelled rows: measured at 375x812 they left the
   // transcript at 96px against its 120px floor. Below 768px the action rows collapse
@@ -4212,7 +4225,7 @@ function queueClinicalAction(label, text){
   // clicked anywhere outside the code strip was answered in prose while the rhythm sat
   // unchanged. Played once, that cost three of six defibrillations and marked a secured
   // airway as missed. Orders the code engine cannot answer still fall through.
-  if(codeActive()){
+  if(codeAnswers()){
     if(fireCodeOrder(text, label||text)) return;
     return progress(text, label||text);
   }
@@ -4472,7 +4485,7 @@ function renderPlay(){
     // A code is running: the code engine answers what it recognises RIGHT NOW — no
     // turn, no engine latency, no clock cost. A shock has to land the instant it is
     // ordered, or the simulator is teaching a rhythm-check delay that does not exist.
-    if(codeActive() && fireCodeOrder(t, plan.label)) {
+    if(codeAnswers() && fireCodeOrder(t, plan.label)) {
       cmd.value=''; cmd.style.height='auto';
       basketClear(); return;
     }
@@ -4599,7 +4612,7 @@ function renderPlay(){
   // This wiring went straight to basketAdd, which is why a defibrillation clicked here
   // never reached the code engine even after queueClinicalAction was taught to.
   document.querySelectorAll('.pal').forEach(b=>b.onclick=()=>{
-    if(typeof codeActive === 'function' && codeActive()){
+    if(typeof codeAnswers === 'function' && codeAnswers()){
       // A drug chip computes its order NOW — amiodarone is 150 mg while the pulse
       // holds and 300 the moment it is lost, and the dose ordered must be the dose
       // that is true at the click, not at the last repaint.

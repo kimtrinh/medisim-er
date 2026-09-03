@@ -29,7 +29,7 @@ function newState(script){
     // Arrays, not Sets: the whole state is JSON.stringify'd for the determinism
     // test, the run log and the debrief, and a Set serialises to {}.
     causesTreated: [], events: [], flags: {}, ended: null, credited: [], hintsFired: [],
-    checksDue: 0, checksDone: 0
+    checksDone: 0
   };
 }
 
@@ -56,14 +56,42 @@ function tick(state, script, dt){
     if(state.cycleT >= CYCLE_SEC){
       state.cycleT -= CYCLE_SEC;
       state.cycle += 1;
-      state.checksDue += 1;
       state.checksDone += 1;                       // the team checks; the player need not type it
       if(!state.cpr) state.cyclesWithoutCpr = (state.cyclesWithoutCpr || 0) + 1;
-      // Built from the clock, not a constant: CYCLE_SEC can change and the nurse now
-      // says whatever has actually elapsed. And she only announces stopping
-      // compressions when somebody is doing them.
-      out.push(ev(state, 'rhythmCheck', capitalize(spokenTime(state.t)) + ' on the clock — ' +
-        (state.cpr ? 'stopping compressions, pulse check.' : 'pulse check.')));
+      // THE TEAM CHECKS, AND SAYS WHAT IT FINDS.
+      //
+      // The engine has always performed this check — the line above is older than this
+      // comment. What it never did was report the RESULT, so the only way to see a
+      // rhythm named at the cycle boundary was to click the Pulse check button, which
+      // stopped compressions with nothing to restart them. Kim's run: four clicks, one
+      // forgotten restart, 67% compression fraction and both scored metrics failed.
+      // Clicking it was strictly worse than ignoring it.
+      //
+      // So the boundary now speaks twice: the pause, then the finding. The learner's job
+      // at a rhythm check is to decide shock or no shock, and that decision needs the
+      // rhythm said out loud — hence "Shockable — charge."
+      //
+      // Built from the clock, not a constant: CYCLE_SEC can change and the nurse says
+      // whatever has actually elapsed. She only announces stopping compressions when
+      // somebody is doing them.
+      out.push(ev(state, 'rhythmCheck', 'Cycle ' + state.cycle + ' — ' + spokenTime(state.t) +
+        ' on the clock' + (state.cpr ? ', pausing compressions for the pulse check.' : ', pulse check.')));
+      // A pause is a pause, and it is paid rather than mimed: the nurse says she is
+      // pausing, so the compression fraction must show one. Five seconds, not ten —
+      // ten is the guideline CEILING for any interruption, while a team that checks
+      // with the defibrillator already charged is off the chest for about five, and
+      // this pause is the sim team's, not the learner's. Charging the maximum put the
+      // PALS respiratory-arrest case's own model answer at 79% against an 80% bar,
+      // which would have taught that a textbook run is substandard CPR.
+      // Nothing to subtract if nobody had hands on the chest.
+      if(state.cpr) state.cprSecs -= Math.min(5, state.cprSecs);
+      out.push(ev(state, 'check', state.pulse
+        ? 'I have a pulse — ' + rhythmName(state.rhythm) + ' at ' + state.hr + '.'
+        : 'No pulse — ' + rhythmName(state.rhythm) + '. ' +
+          (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') +
+          ' Back on the chest.'));
+      // AFTER the finding: a rosc row that resolves here reads as the consequence of the
+      // check, not as something that happened before anyone felt for a pulse.
       out.push(...resolveChecks(state, script));
     }
   }
@@ -541,6 +569,30 @@ const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actual
 // Guarded on the LEADING verb so a real refusal of that same treatment still refuses:
 // the player's line has to open with the verb the author used, which "stop the
 // methadone" does and "don't stop the methadone" does not.
+// After ROSC the patient has a pulse, and three orders become wrong rather than merely
+// unnecessary: an unsynchronised shock, chest compressions, and cardioversion of a
+// perfusing sinus rhythm. Everything else the engine models — airway, capnography,
+// access, drugs (which carry their own perfusing-patient dose checks), the pulse check,
+// pacing, treating a reversible cause — is exactly what post-arrest care consists of.
+//
+// Matched on the same shapes the performing branches use, so a phrase that would have
+// reached one of those three branches is the phrase that gets refused here.
+const POST_ROSC_REFUSE = [
+  [/\b(defibrillat\w*|defib|shock|clear and shock|zap|dsed)\b/, 'He has a pulse, doctor — no shock.'],
+  [/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bcompressions\b|\bhands on the chest\b/,
+   'He has a pulse and a pressure — no compressions.'],
+];
+function postRoscAllows(s){
+  // A stop/hold order is always allowed through: it is an instruction to the team about
+  // something already running, and refusing it would strand a pacer or a bag.
+  if(CODE_HOLD_ACTION_RE.test(s)) return true;
+  for(const [re] of POST_ROSC_REFUSE) if(re.test(s)) return false;
+  return true;
+}
+function postRoscRefusal(state, s){
+  for(const [re, text] of POST_ROSC_REFUSE) if(re.test(s)) return ev(state, 'withheld', text);
+  return ev(state, 'withheld', 'He has a pulse, doctor.');
+}
 function codeStopIsTreatment(script, s){
   const hit = matchCause(script, s);
   if(!hit || !CODE_WITHHOLD_RE.test(hit.phrase)) return false;
@@ -550,8 +602,22 @@ function codeStopIsTreatment(script, s){
 const CODE_HOLD_ACTION_RE = /^\s*(?:hold|holding|stop|stopping|pause|pausing)\s+(?:the\s+)?(cpr|compressions|chest compressions|pacing|pacer|bagging|ventilation|ventilations)\b/i;
 
 function actInner(state, script, text){
-  if(state.ended) return { handled: false };
+  // THE ENGINE DOES NOT RETIRE AT ROSC.
+  //
+  // This was a blanket `if(state.ended) return {handled:false}`, and achieveRosc sets
+  // ended='rosc' BEFORE the handoff, so from the instant a pulse came back the code
+  // engine refused every order: airway, capnography, access, drugs, the pulse check,
+  // all of it. Kim intubated at T+12 on a case whose credits map says airway/ett/sga/
+  // capnography all satisfy critical action 4, and the debrief still marked "Secure the
+  // airway and confirm it with waveform capnography" MISSED — because the order never
+  // reached the engine, and no live-code pack has an airway responder to catch it.
+  //
+  // Post-arrest care IS the resuscitation. Securing the airway after ROSC is the
+  // standard next move, not an epilogue. So the engine keeps answering; it simply
+  // refuses the things a patient with a pulse must not be given.
+  if(state.ended === 'death') return { handled: false };
   const s = norm(text);
+  if(state.ended === 'rosc' && !postRoscAllows(s)) return { handled: true, events: [postRoscRefusal(state, s)] };
   // The nurse asks questions ("do you want another epi?") and a doctor answers them
   // with a word. "yes" used to fall through to the turn engine and do nothing — a
   // playtested run typed it twice and lost both turns. A bare yes/no is only ever an
@@ -622,8 +688,12 @@ function actInner(state, script, text){
   }
   // rhythm / pulse check
   if(/\b(pulse check|rhythm check|check (for )?a? ?pulse|check the rhythm|feel for a pulse|is there a pulse|any pulse|do we have a pulse|palpate a pulse)\b/.test(s)){
-    state.checksDone += 1; state.cpr = false;
-    const out = [ev(state, 'check', state.pulse ? 'I have a pulse.' : 'No pulse — rhythm is ' + rhythmName(state.rhythm) + '.')];
+    state.checksDone += 1;   // NOT state.cpr = false: see the boundary block in tick()
+    const out = [ev(state, 'check', state.pulse
+      ? 'I have a pulse — ' + rhythmName(state.rhythm) + ' at ' + state.hr + '.'
+      : 'No pulse — ' + rhythmName(state.rhythm) + '. ' +
+        (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') +
+        ' Back on the chest.')];
     out.push(...resolveChecks(state, script));
     return { handled: true, events: out };
   }
@@ -659,7 +729,13 @@ function actInner(state, script, text){
   if(/\b(intubate|intubation|ett|endotracheal tube|rsi)\b/.test(s)
      || (/\b(et tube|tube (him|her|the patient|them))\b/.test(s) && !/\bchest tube\b/.test(s))){
     state.airway = 'ett'; state.flags.ppv = true;   // a tube is a route for ventilation
-    return { handled: true, events: [ev(state, 'airway', 'Tube is in, equal breath sounds.')] };
+    // The nurse asks for the confirmation rather than assuming it. The credits map lets
+    // the tube alone satisfy the airway action, as the case authors wrote it, so this
+    // withholds nothing the player earned — it just refuses to let the sim imply that a
+    // tube is confirmed because it went in.
+    return { handled: true, events: [ev(state, 'airway',
+      state.capnography ? 'Tube is in, equal breath sounds — waveform trace confirms it.'
+                        : 'Tube is in, equal breath sounds — get waveform capnography on it.')] };
   }
   if(/\b(capnograph\w*|capno|etco2|end tidal)\b/.test(s)){
     state.capnography = true;
