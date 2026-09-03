@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-iNzh5jDSjDn8E26D0HIWp0yECJyNAFVrlp70mBOrPuE=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LByRgivxIysMk6em3hvT9YyS4WRBeWhYsGe9FejP2EA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -308,6 +308,28 @@
     writing-mode:vertical-rl;font-weight:900;letter-spacing:.22em;
     color:#94a3b8;font-size:9px;line-height:1;cursor:pointer;transition:color .15s,background .15s}
   .cinTab:hover{color:#6ee7b7;background:rgba(6,78,59,.55)}
+  /* RESULTS ARE READY. Kim: "The lab results should be more obvious, the tab on the
+     right. Especially when you order something, there should be like a blinking light
+     showing the labs are actually ready."
+     In the console the chart is a closed drawer, so a troponin could come back and the
+     only sign was a 9px grey tab at the edge of the screen. When something is waiting
+     that the player has not looked at, the tab lights up and keeps pulsing until they
+     open it. The COUNT is in the label, so the signal survives for anyone who cannot see
+     the animation. */
+  .cinTab.hasNew{width:38px;font-size:10px;letter-spacing:.14em;padding:1.15rem 0;
+    color:#d1fae5;border-color:rgba(16,185,129,.7);
+    animation:labsReady 1.25s ease-in-out infinite}
+  /* Both the glow AND the fill move, so it reads as a light coming on rather than a
+     border that got brighter. */
+  @keyframes labsReady{
+    0%,100%{background:rgba(6,78,59,.8);
+            box-shadow:0 0 0 1px rgba(16,185,129,.3), 0 0 6px rgba(16,185,129,.2)}
+    50%    {background:rgba(16,185,129,.55);
+            box-shadow:0 0 0 1px rgba(16,185,129,.8), 0 0 26px rgba(16,185,129,.85)}}
+  /* The colour, the width and the count remain — only the pulsing stops. */
+  @media (prefers-reduced-motion: reduce){ .cinTab.hasNew{animation:none;
+    background:rgba(16,185,129,.45);
+    box-shadow:0 0 0 1px rgba(16,185,129,.75), 0 0 14px rgba(16,185,129,.5)} }
   #cinLeft{left:0;bottom:calc(var(--gap) + min(46vh,420px) / 2 - 26px);border-radius:0 10px 10px 0}
   #cinRight{right:0;top:50%;border-radius:10px 0 0 10px}
   /* Every vital box carries both a long label and its monitor abbreviation; the long
@@ -3352,6 +3374,7 @@ const TALLY_KIND = {
 // was done to the patient.
 function paintCodeTally(){
   paintOrderLog();   // both books are kept in step
+  paintLabsRail();
   const box = $('codeTally'); if(!box) return;
   const c = S.code;
   if(!c){ box.classList.add('hidden'); box.innerHTML=''; _tallyN = -1; return; }
@@ -4026,7 +4049,7 @@ async function loadGoldCase(seed, opts){
   S.goldId = seed.id || null; S.instantState = null;   // fresh Instant-Mode pack + state for this case
   S.generatedPack = S.goldId ? null : InstantEngine.buildGeneratedPack(S.criticalActions,
     {catalog: await loadOrderCatalog()});
-  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[];
+  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.chartSeen=0;
   if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
     model: useInstant()?null:S.model, difficulty: S.difficulty, goldId: S.goldId,
     title: S.blind ? 'Blind case' : S.caseLabel, blind: S.blind,
@@ -4909,6 +4932,7 @@ function renderPlay(){
   // to be repainted here or it vanishes the moment the player does anything.
   paintCodeStrip();
   renderChat(); renderWorkspace(); renderPatient();
+  paintLabsRail();
   paintDxBox();
   paintOrderLog();
   paintConsole();   // the wall chips live in #cinemaHud, outside the rebuild
@@ -6142,7 +6166,10 @@ function ensureCinemaStage(){
       if(c && showing) c.scrollTop=c.scrollHeight;
     };
     hud.querySelector('#cinRight').onclick=()=>{
-      document.body.classList.toggle(document.body.classList.contains('console') ? 'labsOpen' : 'hudR'); };
+      document.body.classList.toggle(document.body.classList.contains('console') ? 'labsOpen' : 'hudR');
+      // Opened or closed, repaint: opening marks what is in the chart as read, and
+      // closing starts the next result waiting again.
+      paintLabsRail(); };
     if(!window._cinResize){ window._cinResize=true; addEventListener('resize', cinemaMetrics); }
   }
   cinemaMetrics();
@@ -6743,12 +6770,42 @@ function equipmentVisualsForTimeline(){
     return e&&e.file?{key,url:e.file,label:e.label||key,credit:e.credit||'',license:e.license||''}:null;
   }).filter(Boolean).slice(-4);
 }
+// How much is in the chart at all.
+function chartTotal(){
+  return (S.labs||[]).length+(S.reports||[]).length+(S.exam||[]).length+equipmentVisualsForTimeline().length;
+}
+// Is the chart actually in front of the player right now? On the ordinary desktop layout
+// the sidebar is simply always there, so nothing is ever "waiting"; in the console it is
+// a drawer, and on a phone it is a sheet.
+function chartOnScreen(){
+  const sb = $('sideBar');
+  if(!sb) return false;
+  const cs = getComputedStyle(sb);
+  return cs.display !== 'none' && cs.visibility !== 'hidden' && sb.getBoundingClientRect().width > 0;
+}
 // How much is waiting in the chart — shown on the phone's Chart button, since on a
 // phone the sidebar is closed and results would otherwise arrive with no signal at all.
 function paintChartCount(){
-  const el=$('chartCount'); if(!el) return;
-  const n=(S.labs||[]).length+(S.reports||[]).length+(S.exam||[]).length+equipmentVisualsForTimeline().length;
-  el.textContent = n ? '· '+n : '';
+  const el=$('chartCount');
+  const n=chartTotal();
+  if(el) el.textContent = n ? '· '+n : '';
+  paintLabsRail();
+}
+// THE LIGHT ON THE LABS TAB. Anything in the chart the player has not had in front of
+// them counts as waiting; opening the drawer marks it read. Seen is stored as a count
+// rather than a flag so a SECOND result arriving while the drawer is shut lights it
+// again — which is exactly the moment a player wants to be told.
+function paintLabsRail(){
+  const tab = $('cinRight'); if(!tab) return;
+  const n = chartTotal();
+  if(chartOnScreen()) S.chartSeen = n;          // they are looking at it
+  const unseen = Math.max(0, n - (S.chartSeen || 0));
+  tab.classList.toggle('hasNew', unseen > 0);
+  tab.textContent = unseen > 0 ? 'LABS ' + unseen : 'LABS';
+  tab.title = unseen > 0
+    ? unseen + ' new result' + (unseen === 1 ? '' : 's') + ' waiting — open the chart'
+    : 'Show / hide the clinical workspace';
+  tab.setAttribute('aria-label', tab.title);
 }
 function renderWorkspace(){
   const ws=$('ws'); if(!ws) return;
