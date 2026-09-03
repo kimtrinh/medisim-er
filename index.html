@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-f5cPfdCTsz07CPbbDUlmXAwi4rNCp9NXZOdH6Pn9+bY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Xb0J/pHRb1AfdpNMNF3GNGzu/PTYpV4fa+5PhK9CbTA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2496,7 +2496,11 @@ function refreshVoices(){
 if(typeof speechSynthesis !== 'undefined'){
   // Chrome returns [] on the first call and fills the list asynchronously.
   refreshVoices();
-  try{ speechSynthesis.addEventListener('voiceschanged', refreshVoices); }catch(_){ }
+  try{ speechSynthesis.addEventListener('voiceschanged', () => {
+    refreshVoices();
+    try{ if(typeof paintVoiceTip === 'function') paintVoiceTip(); }catch(_){ }
+    try{ if(typeof paintVoicePicker === 'function' && $('voicePick')) paintVoicePicker(); }catch(_){ }
+  }); }catch(_){ }
 }
 // How good a voice sounds, as far as a name can tell us. The downloadable high-quality
 // voices announce themselves — "Premium", "Enhanced", "Natural", "Neural" — and the ones
@@ -2625,6 +2629,72 @@ function voiceHelpText(){
   if(/Windows/i.test(p))
     return 'Better voices are a free download: Settings \u2192 Time & Language \u2192 Speech \u2192 Manage voices \u2192 Add voices. Microsoft\u2019s Natural voices sound best. Reload this page and they will appear in the list above.';
   return 'Your system\u2019s speech settings may offer extra voices to download; anything marked Premium, Enhanced or Natural sounds markedly better. Reload this page after installing one.';
+}
+// The best score any installed voice can manage. 40 is a downloaded Enhanced/Premium or
+// a Natural/Neural one; 26 is a modern engine. Below that the machine has only legacy
+// voices, and narration will sound like 2005 however well it is driven.
+function bestVoiceScore(){
+  const list = refreshVoices();
+  if(!list.length) return -1;
+  const lang = (navigator && navigator.language) || 'en';
+  return list.reduce((best, v) => Math.max(best, voiceScore(v, lang)), -1);
+}
+// Step-by-step, for the platform in front of them. Same content as the Settings help, cut
+// into numbered steps because this is being read by someone who has not gone looking.
+function voiceSteps(){
+  const p = ((navigator && navigator.platform) || '') + ' ' + ((navigator && navigator.userAgent) || '');
+  if(/Mac/i.test(p)) return ['Apple menu \u2192 System Settings',
+    'Accessibility \u2192 Spoken Content', 'System Voice \u2192 Manage Voices\u2026',
+    'Tick one marked Premium or Enhanced \u2014 Ava, Zoe, Evan or Samantha',
+    'Come back and reload this page'];
+  if(/iPhone|iPad/i.test(p)) return ['Settings \u2192 Accessibility',
+    'Spoken Content \u2192 Voices \u2192 English',
+    'Tap a voice marked Premium or Enhanced to download it', 'Come back and reload this page'];
+  if(/Windows/i.test(p)) return ['Settings \u2192 Time & Language \u2192 Speech',
+    'Manage voices \u2192 Add voices',
+    'Choose one of Microsoft\u2019s Natural voices', 'Come back and reload this page'];
+  return ['Open your system\u2019s speech or accessibility settings',
+    'Look for extra voices to download', 'Anything marked Premium, Enhanced or Natural is worth having',
+    'Come back and reload this page'];
+}
+let _voiceTipOpen = false;
+function paintVoiceTip(){
+  const host = $('voiceTip'); if(!host) return;
+  let dismissed = false;
+  try{ dismissed = localStorage.getItem('ms_voiceTip') === 'off'; }catch(_){ }
+  const score = bestVoiceScore();
+  // Nothing to say when the machine is already well equipped, when it reports no voices at
+  // all (nothing to download into), or when the local cast is running and far better anyway.
+  const needed = score >= 0 && score < 26 && !(S.ttsServerOK) && !dismissed;
+  host.classList.toggle('hidden', !needed);
+  if(!needed) return;
+  host.innerHTML = `
+    <div class="rounded-2xl border border-amber-700/50 bg-amber-950/20 p-4">
+      <div class="flex items-start gap-3">
+        <span class="text-lg leading-none mt-0.5">\u{1F50A}</span>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-amber-200">The voices on this computer sound robotic \u2014 there are better ones, free.</p>
+          <p class="text-[11px] text-slate-400 leading-relaxed mt-1">Your system ships a much more natural voice, but only downloads it if you ask. It takes about a minute and the whole simulator sounds different afterwards.</p>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <button id="voiceTipHow" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest transition">${_voiceTipOpen ? 'Hide the steps' : 'Show me how'}</button>
+            <button id="voiceTipHear" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Hear it now</button>
+            <button id="voiceTipNo" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-300 text-[10px] font-black uppercase tracking-widest transition">Not now</button>
+          </div>
+          ${_voiceTipOpen ? `<ol class="mt-3 space-y-1 text-[11px] text-slate-300 list-decimal list-inside">
+            ${voiceSteps().map(x => `<li>${esc(x)}</li>`).join('')}
+          </ol>` : ''}
+        </div>
+      </div>
+    </div>`;
+  $('voiceTipHow').onclick = () => { _voiceTipOpen = !_voiceTipOpen; paintVoiceTip(); };
+  $('voiceTipHear').onclick = () => {
+    try{ speechSynthesis.cancel(); }catch(_){ }
+    browserSpeak([{ role:'nurse', text:'Doctor, his pressure is down to eighty-two. What do you want to do?' }]);
+  };
+  $('voiceTipNo').onclick = () => {
+    try{ localStorage.setItem('ms_voiceTip', 'off'); }catch(_){ }
+    paintVoiceTip();
+  };
 }
 function paintVoicePicker(){
   const sel = $('voicePick'); if(!sel) return;
@@ -3154,6 +3224,13 @@ function renderSetup(){
       <p id="heroHint" class="text-center text-[11px] text-amber-400 mb-2 hidden"></p>
       <p class="text-[11px] text-slate-400 mb-5 text-center">A witnessed collapse, the clock running, every order a click away — no API key, no setup.
         <b class="text-slate-300">1</b> read the strip and call the rhythm&nbsp;· <b class="text-slate-300">2</b> shock, compress, drug&nbsp;· <b class="text-slate-300">3</b> commit a diagnosis with <b>Dx</b>&nbsp;· <b class="text-slate-300">4</b> send the patient with <b>Dispo</b>.</p>
+      <!-- BETTER VOICES, WHERE PEOPLE WILL SEE IT. Kim: "instead of burying [it in]
+           settings make it more obvious to get better voices." The one thing that fixes
+           robotic narration is a free download the operating system hides three menus
+           deep, and the app's explanation of it was itself buried eleven sections into
+           Settings. It is offered here instead — but ONLY on a machine that actually
+           needs it, so anyone who already has a good voice is never nagged. -->
+      <div id="voiceTip" class="hidden mb-5"></div>
       <div class="bg-slate-900/50 border border-slate-800 rounded-3xl p-7">
         <div class="mb-1">
           <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Difficulty</label>
@@ -4408,6 +4485,7 @@ async function initGold(){
   };
   paint('');
   const gs=$('goldSearch'); if(gs && !gs._wired){ gs._wired=true; gs.addEventListener('input',e=>paint(e.target.value)); }
+  paintVoiceTip();
   const lr=$('logReport');
   if(lr){
     // Signed in: the log, once there is one. Signed out with sign-in available: the offer.
