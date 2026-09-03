@@ -9,13 +9,14 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-rKM6XbdXRfZl+MNSKlRW6EG/1+bRGJMxIKRg5vGptcA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-u3chIJJTynERmsI89hybz4X/dh/sFnSsVmOkjxxyveQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
 <script src="code-engine.js"></script>
 <script src="game-layer.js"></script>
 <script src="runlog.js"></script>
+<script src="account.js"></script>
 <link rel="stylesheet" href="fonts-local.css">
 <style>
   @keyframes clocktick{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
@@ -380,6 +381,7 @@
      and that panel has always led with the age — so below md the chip is redundant as
      well as expensive. It exists for the sim room, where nothing else says who this is. */
   @media (max-width:767px){ #rhythmBtn, #v_who{display:none !important} }
+  @media (max-width:639px){ #authBtn{display:none !important} }
   #v_rhythm{cursor:pointer}
   /* THE DIAGNOSIS BOX lives in the header so renderPlay (which rebuilds #main on every
      order) cannot destroy it, and so it never covers the room in cinema. Visibility is a
@@ -807,6 +809,9 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
         <span class="text-sm leading-none">✕</span> <span class="hidden sm:inline">Leave the Room</span><span class="sm:hidden">Leave</span>
       </button>
     </div>
+    <!-- WHO YOU ARE. Hidden entirely when no project is configured, so a build with the
+         feature switched off looks exactly as it did before. -->
+    <button id="authBtn" class="hidden items-center gap-2 px-3 py-2 rounded-xl border bg-slate-900 border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition text-[10px] font-black uppercase tracking-widest"></button>
     <button id="ttsBtn" aria-label="Toggle voice narration" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Toggle voice narration">
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
     </button>
@@ -895,6 +900,12 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       <input id="hdVoicesToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">HD character voices <span class="text-slate-600 normal-case tracking-normal">(Gemini TTS — needs API key; falls back to local voices)</span></span>
     </label>
+    <div id="acctBox" class="hidden pt-3 mt-1 border-t border-slate-800">
+      <div class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 mb-2">Account</div>
+      <p id="acctStatus" class="text-[11px] leading-relaxed text-slate-400 mb-2"></p>
+      <button id="acctBtn" class="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition"></button>
+      <p class="text-[11px] leading-relaxed text-slate-600 mt-2">Signing in keeps your training log private to you and carries it to your other devices. It is separate from sharing case logs below, which sends orders and grading with no account attached.</p>
+    </div>
     <label class="flex items-center gap-3 cursor-pointer select-none">
       <input id="logRunsToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Share de-identified case logs <span class="text-slate-600 normal-case tracking-normal">(off by default; includes orders and grading. Never type patient identifiers.)</span></span>
@@ -1073,6 +1084,21 @@ const $ = id => document.getElementById(id);
 // Local builds log to this machine for simulator QA. Public builds collect only
 // when a collector is configured and the player explicitly opts in.
 const COLLECTOR_URL = '';   // set in Phase 3 to the deployed Worker endpoint
+// SIGNING IN. Kim: "I don't want everybody to see my training log. I want everybody to
+// have their individual training logs."
+//
+// The key below is PUBLIC by design — it identifies the project, it does not authorise
+// anything. Every table is row-level-secured to the signed-in user, so this key on its own
+// can read and write nothing. Empty either constant and the whole feature goes inert: no
+// script is fetched, no chip is drawn, and the log is this browser's localStorage exactly
+// as it has always been.
+const SUPABASE_URL = 'https://rtkhtxnrjkgxniqxrbcf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_mzYMGb894gBdeCqn-hOOlw_bteGdh_n';
+// Pinned and hash-checked, like every other CDN script here. The hash is of THIS version;
+// a floating @2 URL could never be checked. Recompute with:
+//   curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
+const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.js';
+const SUPABASE_SRI = 'sha384-CLZeq1dk8+Uzrs7TVvBUdlFoV5F0DMqgRoeHa8g5wJcuPe5SkVfEvdxB0ZuzlnBQ';
 const RUNLOG = new RunLog.Recorder();
 function loggingOn(){ return !PUBLIC_BUILD || (S.logRuns && !!COLLECTOR_URL); }
 async function sendRun(rec){
@@ -3131,6 +3157,7 @@ function renderSetup(){
           <!-- The training log lives with the library because that is where a returning
                player already is, and because its second list is a to-do for whoever
                maintains the case packs. Hidden until there is a case in it. -->
+          <div id="mergeOffer" class="hidden mt-4 p-3 rounded-xl border border-emerald-800/50 bg-emerald-950/20"></div>
           <div id="logReport" class="mt-5 pt-4 border-t border-slate-800 hidden"></div>
           <p class="text-[10px] text-slate-600 mt-1.5">Written in advance and mechanically validated, but not all independently clinician-reviewed. Verify teaching points against current guidance. ${useInstant()
             ? 'In Instant Mode the whole case — bedside, results and debrief — runs on the deterministic engine, with no API call at any point.'
@@ -6801,6 +6828,92 @@ function enterCinema(){
 // Fold every panel away and give the room the whole screen; press again to bring them
 // back exactly as they were. hudL and hudR are deliberately untouched, so a player who
 // had already folded the transcript still has it folded when the panels return.
+// ---------------------------------------------------------------- SIGNING IN, on screen
+// The chip, the Settings block and the one-time offer to bring this browser's existing
+// runs along. Everything here no-ops when no project is configured.
+function paintAuth(){
+  const st = (typeof Account === 'undefined') ? { enabled:false } : Account.status();
+  const btn = $('authBtn');
+  if(btn){
+    btn.classList.toggle('hidden', !st.enabled);
+    btn.classList.toggle('flex', !!st.enabled);
+    if(st.enabled){
+      if(st.user){
+        const tag = st.offline ? ' \u00b7 offline' : (st.waiting ? ' \u00b7 ' + st.waiting + ' to sync' : '');
+        btn.innerHTML = (st.user.avatar
+            ? '<img src="' + esc(st.user.avatar) + '" alt="" class="w-5 h-5 rounded-full" referrerpolicy="no-referrer">'
+            : '<span class="w-5 h-5 rounded-full bg-emerald-600/30 text-emerald-300 flex items-center justify-center">' +
+              esc((st.user.first || '?').charAt(0).toUpperCase()) + '</span>') +
+          '<span class="hidden sm:inline">' + esc(st.user.first) + esc(tag) + '</span>';
+        btn.title = 'Signed in as ' + st.user.email + ' \u2014 your training log is private to you';
+      }else{
+        btn.innerHTML = '<span>\u25cf</span><span class="hidden sm:inline">' +
+          (st.pending ? 'Opening\u2026' : 'Sign in') + '</span>';
+        btn.title = 'Sign in with Google to keep your training log private and carry it between devices';
+      }
+    }
+  }
+  const box = $('acctBox');
+  if(box){
+    box.classList.toggle('hidden', !st.enabled);
+    const line = $('acctStatus'), act = $('acctBtn');
+    if(st.enabled && line && act){
+      line.innerHTML = st.user
+        ? 'Signed in as <span class="text-emerald-300">' + esc(st.user.email) + '</span>. Your training log is private to you and follows you to other devices.' +
+          (st.offline ? ' <span class="text-amber-400">The server is unreachable right now \u2014 your cases are safe here and will sync.</span>' : '')
+        : 'Your training log is kept in this browser only. Anyone using this computer can see it, and it does not follow you to your phone.';
+      act.textContent = st.user ? 'Sign out' : 'Sign in with Google';
+    }
+  }
+  paintMergeOffer();
+  const lr = $('logReport');
+  if(lr && !lr.classList.contains('hidden')) renderLogReport();
+}
+// The runs already in this browser, offered once. Never taken silently: on a shared
+// computer that would file a stranger's cases under whoever signed in next, and delete
+// them from under them.
+function paintMergeOffer(){
+  const host = $('mergeOffer'); if(!host) return;
+  const offer = (typeof Account === 'undefined') ? null : Account.pendingMerge();
+  if(!offer){ host.classList.add('hidden'); host.innerHTML = ''; return; }
+  host.classList.remove('hidden');
+  host.innerHTML = '<p class="text-[11px] leading-relaxed text-slate-300">This browser has <b>' + offer.count +
+    '</b> case' + (offer.count === 1 ? '' : 's') +
+    (offer.first ? ' (' + esc(offer.first) + (offer.last && offer.last !== offer.first ? ' \u2013 ' + esc(offer.last) : '') + ')' : '') +
+    ' that are not in your account. If someone else used this computer, they are theirs \u2014 leave them.</p>' +
+    '<div class="flex gap-2 mt-2">' +
+    '<button id="mergeYes" class="flex-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition">Add them to my log</button>' +
+    '<button id="mergeNo" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-black uppercase tracking-widest transition">Leave them here</button></div>';
+  $('mergeYes').onclick = async () => {
+    $('mergeYes').textContent = 'Adding\u2026';
+    const ok = await Account.mergeLocal();
+    if(!ok) $('mergeYes').textContent = 'Could not reach the server \u2014 try again';
+    else { paintAuth(); if(S.stage === 'setup') renderSetup(); }
+  };
+  $('mergeNo').onclick = () => { Account.declineMerge(); paintAuth(); };
+}
+async function startSignIn(){
+  if(typeof Account === 'undefined') return;
+  // The library is fetched here, the first time it is needed, and nowhere else.
+  if(!Account.status().user && !Account._state.client)
+    await Account.init({ url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY, force: true,
+      script: SUPABASE_JS, integrity: SUPABASE_SRI, loadScript, onChange: paintAuth,
+      search: location.search });
+  paintAuth();
+  // Back to exactly this page: the deployed file is index.html, the local one is not.
+  await Account.signIn(location.origin + location.pathname);
+}
+document.addEventListener('click', e => {
+  const t = e.target;
+  if(!t || !t.closest) return;
+  if(t.closest('#authBtn') || t.closest('#acctBtn')){
+    e.stopPropagation();
+    const st = Account.status();
+    if(st.user) Account.signOut().then(() => { paintAuth(); if(S.stage === 'setup') renderSetup(); });
+    else startSignIn();
+  }
+});
+
 // THE RESULTS DRAWER IS OPENED AND CLOSED IN ONE PLACE. Kim: "keep results tab open."
 // Three separate handlers used to toggle the class by hand, so the drawer's state was
 // wherever the last one left it and nothing remembered it between rooms. Every deliberate
@@ -7822,7 +7935,14 @@ function arrSec(title,color,arr){
 }
 
 // ===================== LEARNING LOG (performance across cases) =====================
-function getCaseLog(){ try{ return JSON.parse(localStorage.getItem('ms_log')||'[]'); }catch(_){ return []; } }
+// THE ONE PLACE THE LOG IS READ. Signed out this is the same localStorage array it has
+// always been; signed in it is that person's rows, hydrated into memory when they signed
+// in. Still synchronous, because twelve callers — computeProgress, the Department, the
+// mentor prompt, the report — read it in the middle of rendering.
+function getCaseLog(){
+  try{ if(typeof Account !== 'undefined' && Account.status().enabled) return Account.log(); }catch(_){ }
+  try{ return JSON.parse(localStorage.getItem('ms_log')||'[]'); }catch(_){ return []; }
+}
 // All gold case ids, for progression totals (Board Certified, per-system
 // counts). _gold is lazily loaded; before it exists, fall back to the
 // offline-pack cache so the Department can still render tile counts.
@@ -7867,12 +7987,17 @@ function saveCaseLog(score, missed, died, dx){
     // critical action — so they are the most useful thing this log can carry.
     const missedWords = (Array.isArray(dx && dx.unrecognizedOrders) ? dx.unrecognizedOrders : [])
       .map(o => String(o || '').trim()).filter(Boolean).slice(0, 12);
-    log.push({ when:localISO().slice(0,10), label:S.caseLabel||S.diagnosis,
+    const entry = { when:localISO().slice(0,10), label:S.caseLabel||S.diagnosis,
                blind:!!S.blind,
                diagnosis:S.diagnosis, score:score, simMin:Math.round(S.simMin),
                missed:missed.slice(0,6), id:S.goldId||null, dosing:dosing, died:!!died,
                unparsed:missedWords,
-               dxCalled:(dx&&dx.dxCalled)||null, dxFirstCorrect:!!(dx&&dx.dxFirstCorrect) });
+               dxCalled:(dx&&dx.dxCalled)||null, dxFirstCorrect:!!(dx&&dx.dxFirstCorrect) };
+    // Signed in, this lands in that person's own rows and follows them to any device;
+    // signed out it is the same 500-entry localStorage array as before. Either way the
+    // case is written down locally first, so a network that is down cannot lose it.
+    if(typeof Account !== 'undefined' && Account.status().enabled){ Account.append(entry); return; }
+    log.push(entry);
     localStorage.setItem('ms_log', JSON.stringify(log.slice(-500)));   // long-term progression memory
   }catch(_){ }
 }
@@ -7883,6 +8008,10 @@ function saveCaseLog(score, missed, died, dx){
 // one page: the player sees what they keep missing, and the simulator's author sees what
 // the simulator keeps failing to understand — the second list is the one that gets fixed,
 // and it is exactly how "cooling measure" was found.
+function _acctUser(){
+  try{ return (typeof Account !== 'undefined' && Account.status().enabled) ? Account.status().user : null; }
+  catch(_){ return null; }
+}
 function logReport(){
   const log = getCaseLog();
   const cases = log.length;
@@ -7958,7 +8087,9 @@ function renderLogReport(){
       <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Training log</span>
       <span class="text-[10px] text-slate-600">${r.cases} case${r.cases===1?'':'s'}${r.mean==null?'':' \u00b7 mean ' + r.mean}${r.since?' \u00b7 ' + esc(r.since) + ' \u2192 ' + esc(r.until):''}</span>
     </div>
-    <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Built from this browser's own record of your cases. Nothing here has been sent anywhere.</p>
+    <p class="text-[11px] leading-relaxed mt-1 ${_acctUser() ? 'text-emerald-400/90' : 'text-slate-500'}">${_acctUser()
+      ? 'Private to ' + esc(_acctUser().email) + '. It follows you to your other devices; nobody else can read it.'
+      : 'Kept in this browser only, and never sent anywhere. Anyone using this computer can see it \u2014 sign in to keep it private and carry it with you.'}</p>
     ${r.trend.earlier != null && r.trend.recent != null ? `<p class="text-[11px] mt-1 ${r.trend.recent >= r.trend.earlier ? 'text-emerald-400' : 'text-amber-400'}">Last 30 cases: ${r.trend.recent} \u00b7 before that: ${r.trend.earlier}</p>` : ''}
     ${section('Orders the sim did not understand',
         'The simulator\u2019s blind spots, not your medicine. Every line here is a phrase it should have known \u2014 send this list and it can be taught.',
@@ -7966,11 +8097,14 @@ function renderLogReport(){
     ${section('What you keep missing',
         'Critical actions marked missed, across every case you have played.',
         r.missedActions, 'text-rose-400', 'Nothing yet.')}
+    ${(!_acctUser() && typeof Account !== 'undefined' && Account.status().enabled)
+      ? `<button id="logSignIn" class="w-full mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition">Sign in with Google to keep this private</button>` : ''}
     <div class="flex gap-2 mt-4">
       <button id="logCopy" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Copy the report</button>
       <button id="logDownload" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Download JSON</button>
     </div>
     <p id="logCopied" class="text-[10px] text-emerald-400 mt-1.5 text-center hidden">Copied \u2014 paste it wherever it can be acted on.</p>`;
+  if($('logSignIn')) $('logSignIn').onclick = startSignIn;
   $('logCopy').onclick = async () => {
     const text = logReportText();
     try{ await navigator.clipboard.writeText(text); }
@@ -8431,6 +8565,24 @@ if(PUBLIC_BUILD){
 autoBestTier();   // pick the best cascade rung at load (async — badge refreshes when done)
 renderSetup();
 loadKnowledge();   // async — repaints the perf strip when the profile arrives
+// Restore a session if there is one, or finish a sign-in that is coming back. supabase-js
+// exchanges the ?code= and strips it from the URL itself; what is handled here is the two
+// ways that can fail — the provider refused, or the verifier belongs to another tab.
+(async () => {
+  try{
+    await Account.init({ url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY,
+      script: SUPABASE_JS, integrity: SUPABASE_SRI, loadScript,
+      search: location.search, onChange: () => { paintAuth(); if(S.stage === 'setup') renderSetup(); } });
+  }catch(_){ }
+  paintAuth();
+  if(/[?&](error|code)=/.test(location.search) && !Account.status().user){
+    const h = $('heroHint');
+    if(h){ h.textContent = 'That sign-in did not finish. Try again from this tab — everything still works signed out.'; h.classList.remove('hidden'); }
+  }
+  if(/[?&](error|error_description)=/.test(location.search))
+    try{ history.replaceState(history.state, '', location.origin + location.pathname); }catch(_){ }
+  Account.flush();   // anything a previous session could not get up
+})();
 </script>
 </body>
 </html>
