@@ -24,6 +24,8 @@ function newState(script){
     hr: st.hr || 0, bpSys: st.bpSys || 0, bpDia: st.bpDia || 0,
     spo2: st.spo2 || 0, rr: st.rr || 0, etco2: st.etco2 || 0,
     cycle: 1, cycleT: 0, statusT: 0, cpr: false, cprSecs: 0, pulselessSecs: 0, firstCprT: null, cyclesWithoutCpr: 0,
+    // The doctor has not read the strip yet, so nobody names it. See RHYTHM_CALLS.
+    rhythmCalled: false,
     shocks: [], drugs: [], lastEpiT: null, amioDoses: 0,
     airway: 'none', capnography: false, ivAccess: false, io: false,
     // Arrays, not Sets: the whole state is JSON.stringify'd for the determinism
@@ -86,10 +88,13 @@ function tick(state, script, dt){
       // Nothing to subtract if nobody had hands on the chest.
       if(state.cpr) state.cprSecs -= Math.min(5, state.cprSecs);
       out.push(ev(state, 'check', state.pulse
-        ? 'I have a pulse — ' + rhythmName(state.rhythm) + ' at ' + state.hr + '.'
-        : 'No pulse — ' + rhythmName(state.rhythm) + '. ' +
-          (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') +
-          ' Back on the chest.'));
+        ? 'I have a pulse' + (heardName(state) ? ' — ' + heardName(state) : '') + ' at ' + state.hr + '.'
+        : heardName(state)
+          ? 'No pulse — ' + heardName(state) + '. ' +
+            (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') + ' Back on the chest.'
+          // Uncalled: she reports the pulse, which is hers to report, and leaves the
+          // strip to the doctor. Naming it here took the ACLS branch for them.
+          : 'No pulse. Rhythm is up on the monitor, doctor — what is it? Back on the chest.'));
       // AFTER the finding: a rosc row that resolves here reads as the consequence of the
       // check, not as something that happened before anyone felt for a pulse.
       out.push(...resolveChecks(state, script));
@@ -134,7 +139,7 @@ function resolveChecks(state, script){
     if(r.requires && !r.requires.every(k => hasAction(state, k))) continue;
     if(r.atNextCheck === false) continue;
     out.push(...achieveRosc(state, script, 'algorithm'));
-    if(r.to) state.rhythm = r.to;
+    if(r.to) setRhythm(state, r.to);
     break;
   }
   return out;
@@ -150,8 +155,12 @@ function runDegrade(state, script){
     if(state.t < d.afterSec) continue;
     if(d.unless && d.unless.some(k => hasAction(state, k))) continue;
     if(d.to === 'dead'){ out.push(...die(state, d.text)); break; }
-    state.rhythm = d.to;
-    out.push(ev(state, 'degrade', d.text || ('Rhythm has deteriorated to ' + rhythmName(d.to) + '.')));
+    setRhythm(state, d.to);
+    // The authored line, when a case supplies one, is the case's own voice and stays.
+    // The generated fallback must not name what the doctor has not called.
+    out.push(ev(state, 'degrade', d.text ||
+      (heardName(state) ? 'Rhythm has deteriorated to ' + rhythmName(d.to) + '.'
+                        : 'The rhythm has changed on the monitor, doctor.')));
     break;
   }
   return out;
@@ -172,7 +181,7 @@ function runCrash(state, script){
     if(row.bpSys != null){ state.bpSys = row.bpSys; state.bpDia = Math.round(row.bpSys * 0.6); }
     if(row.spo2 != null) state.spo2 = row.spo2;
     if(row.rr != null) state.rr = row.rr;
-    if(row.rhythm) state.rhythm = row.rhythm;
+    if(row.rhythm) setRhythm(state, row.rhythm);
     if(row.arrest){ state.pulse = false; state.phase = 'arrest'; state.rhythm = row.arrest;
       state.cycleT = 0; state.cycle = 1;
       out.push(ev(state, 'arrest', row.text || 'She has lost her pulse.')); }
@@ -294,8 +303,10 @@ function deliverShock(state, script, joules){
     out.push(ev(state, 'shock', 'Shock delivered — organized rhythm on the monitor, checking for a pulse.', { ok }));
     out.push(...achieveRosc(state, script, 'shock'));
   }
-  else if(row && row.to){ state.rhythm = row.to; rec.rhythmAfter = row.to;
-    out.push(ev(state, 'shock', 'Shock delivered — still ' + rhythmName(row.to) + '. Back on the chest.', { ok })); }
+  else if(row && row.to){ setRhythm(state, row.to); rec.rhythmAfter = row.to;
+    out.push(ev(state, 'shock', 'Shock delivered — ' +
+      (heardName(state) ? 'still ' + heardName(state) : 'no change on the monitor') +
+      '. Back on the chest.', { ok })); }
   else out.push(ev(state, 'shock', 'Shock delivered — no change on the monitor. Compressions.', { ok }));
   return out;
 }
@@ -338,6 +349,62 @@ function hasAction(state, key){
 }
 
 // The nurse says these out loud, so they are spoken English, not monitor labels.
+// READING THE STRIP IS THE LEARNER'S JOB.
+//
+// Kim: "I would like to be able to interpret the rhythm myself. You are divulging the
+// results of the case by calling ventricular fibrillation."
+//
+// She is right, and it is the whole of ACLS. The monitor caption read
+// "RHYTHM: VENTRICULAR FIBRILLATION" from the first second, and the nurse announced
+// "No pulse — ventricular fibrillation. Shockable — charge." before the player had
+// looked at anything. Every branch the algorithm turns on had already been taken.
+//
+// So the team no longer names it. The nurse reports what she can feel — no pulse — and
+// the strip is on the wall to be read. Once the doctor CALLS it, and calls it right, the
+// team adopts the reading and says it out loud from then on: that is what a resuscitation
+// sounds like, and it gives the call a consequence.
+//
+// A rhythm that CHANGES is uncalled again. Nobody gets to keep a stale read.
+const RHYTHM_CALLS = {
+  VF: /\b(v\s?fib|vfib|ventricular fibrillation|coarse vf|fine vf|\bvf\b)/i,
+  pVT: /\b(pulseless v\s?tach|pulseless vt|pulseless ventricular tachycardia)/i,
+  VT: /\b(v\s?tach|vtach|ventricular tachycardia|\bvt\b)/i,
+  torsades: /\btorsade/i,
+  PEA: /\b(pea|pulseless electrical activity|organized rhythm)/i,
+  asystole: /\b(asystole|flat\s?line|flatline)/i,
+  SVT: /\b(svt|supraventricular)/i,
+  AF: /\b(a\s?fib|afib|atrial fibrillation|\baf\b)/i,
+  CHB: /\b(complete heart block|third degree|3rd degree|chb)/i,
+  'sinus-brady': /\b(sinus brady|bradycardia)/i,
+  'sinus-tachy': /\b(sinus tach|sinus tachycardia)/i,
+  sinus: /\b(sinus rhythm|normal sinus|nsr)/i,
+  '2nd-degree-I': /\b(mobitz i\b|wenckebach)/i,
+  '2nd-degree-II': /\b(mobitz ii\b)/i,
+  paced: /\bpaced\b/i,
+  agonal: /\bagonal\b/i,
+};
+// Did this order call the rhythm the monitor is actually showing? Longest keys first so
+// "pulseless VT" is not read as plain VT, and VF is checked before VT for the same
+// reason ("\bvf\b" cannot match inside "pulseless vt", but the order is cheap insurance).
+function callsRhythm(text, rhythm){
+  const t = String(text || '');
+  const re = RHYTHM_CALLS[rhythm];
+  if(!re || !re.test(t)) return false;
+  // "shockable" alone is a category, not a reading — it is a legitimate call and it
+  // narrows the algorithm, but it does not name the rhythm, so it does not reveal it.
+  if(rhythm === 'VT' && /pulseless/i.test(t)) return false;      // that is pVT, not VT
+  return true;
+}
+// Every rhythm change makes the doctor's read stale — they call it again. One helper, so
+// a future rhythm transition cannot forget to clear it.
+function setRhythm(state, to){
+  if(to && to !== state.rhythm) state.rhythmCalled = false;
+  if(to) state.rhythm = to;
+}
+// The name, but only once the doctor has earned it.
+function heardName(state){
+  return state.rhythmCalled ? rhythmName(state.rhythm) : null;
+}
 function rhythmName(r){
   return ({ VF: 'ventricular fibrillation', pVT: 'pulseless VT', torsades: 'torsades',
     VT: 'ventricular tachycardia',
@@ -350,7 +417,7 @@ function rhythmName(r){
 function achieveRosc(state, script, via){
   const p = script.postRosc || {};
   state.pulse = true; state.phase = 'rosc';
-  state.rhythm = p.rhythm || 'sinus-tachy';
+  setRhythm(state, p.rhythm || 'sinus-tachy');
   state.hr = p.hr || 110; state.bpSys = p.bpSys || 95; state.bpDia = p.bpDia || Math.round((p.bpSys || 95) * 0.6);
   state.spo2 = p.spo2 || 94; state.rr = p.rr || 14; state.etco2 = 38; state.cpr = false;
   state.ended = 'rosc';
@@ -514,7 +581,7 @@ function checkConversion(state, script, action){
     if(r.nth != null && state.drugs.filter(d => d.name === action).length !== r.nth) continue;
     if(r.requires && !r.requires.every(k => hasAction(state, k))) continue;
     if(r.to === 'ROSC') return achieveRosc(state, script, action);
-    state.rhythm = r.to;
+    setRhythm(state, r.to);
     // `pulse` is a deliberate authoring decision, never a side effect. It used to
     // default to TRUE, so a row written to say "nothing changed" — amiodarone in
     // torsades, atropine in complete block — quietly resuscitated a pulseless
@@ -690,10 +757,11 @@ function actInner(state, script, text){
   if(/\b(pulse check|rhythm check|check (for )?a? ?pulse|check the rhythm|feel for a pulse|is there a pulse|any pulse|do we have a pulse|palpate a pulse)\b/.test(s)){
     state.checksDone += 1;   // NOT state.cpr = false: see the boundary block in tick()
     const out = [ev(state, 'check', state.pulse
-      ? 'I have a pulse — ' + rhythmName(state.rhythm) + ' at ' + state.hr + '.'
-      : 'No pulse — ' + rhythmName(state.rhythm) + '. ' +
-        (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') +
-        ' Back on the chest.')];
+      ? 'I have a pulse' + (heardName(state) ? ' — ' + heardName(state) : '') + ' at ' + state.hr + '.'
+      : heardName(state)
+        ? 'No pulse — ' + heardName(state) + '. ' +
+          (SHOCKABLE.has(state.rhythm) ? 'Shockable — charge.' : 'Not shockable.') + ' Back on the chest.'
+        : 'No pulse. Rhythm is up on the monitor, doctor — what is it? Back on the chest.')];
     out.push(...resolveChecks(state, script));
     return { handled: true, events: out };
   }
@@ -941,6 +1009,11 @@ function creditKeysFor(state, script, text, before){
 }
 
 function act(state, script, text){
+  // A correct call reveals the rhythm from here on. Done in act() rather than as an
+  // actInner branch on purpose: actInner would CLAIM the order, and the Call it chips
+  // have to keep falling through to the turn engine, where naming the rhythm is what
+  // earns the recognition critical action. This only listens.
+  if(!state.ended && !state.rhythmCalled && callsRhythm(text, state.rhythm)) state.rhythmCalled = true;
   const before = { shocks: state.shocks.length, drugs: state.drugs.length, cpr: state.cpr,
     airway: state.airway, capnography: state.capnography, ivAccess: state.ivAccess,
     io: state.io, causes: state.causesTreated.length,

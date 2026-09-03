@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-43h1NmU0ZvaB7h02x0XdY+APjknRNSM0eQC6UayuLOY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-iNzh5jDSjDn8E26D0HIWp0yECJyNAFVrlp70mBOrPuE=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -182,6 +182,9 @@
      may enter it, and tests/room-and-tally.test.cjs measures that it does not. */
   body.cinema.console{--rh:calc(var(--rw) / var(--ra, 1.791));
                       --rt:calc((100vh - var(--rh)) / 2)}
+  /* A frame the exact size of the photo, so a cluster is placed in plain percentages of
+     the picture. It must never take a click of its own — see the :not(#console) on the
+     HUD's pointer-events rule below. */
   #console{position:absolute;left:var(--rl);top:var(--rt);width:var(--rw);height:var(--rh);
     pointer-events:none;display:none}
   body.cinema.console #console{display:block}
@@ -263,14 +266,23 @@
   body.cinema.console #obInputRow{margin:0}
   /* Order feedback and the nurse readback float ABOVE the dock instead of growing it. */
   body.cinema.console #orderFeedback,
-  body.cinema.console #readbackChip{position:absolute;left:.5rem;right:.5rem;bottom:100%;margin-bottom:.4rem}
+  body.cinema.console #readbackChip{position:absolute;left:.5rem;right:.5rem;bottom:100%;margin-bottom:.4rem;
+    max-height:4.5rem;overflow-y:auto;border-radius:10px;padding:.3rem .5rem;
+    background:rgba(2,6,23,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   /* Transcript and chart become drawers, closed by default — the room is the point. */
   body.cinema.console #chat{display:none}
   body.cinema.console.feedOpen #chat{display:flex;left:var(--gap);width:var(--colL);
-    top:calc(var(--hdr,62px) + 8px);bottom:64px;height:auto;z-index:26}
+    top:calc(var(--hdr,62px) + 8px);bottom:64px;height:auto}
+  /* An open drawer sits ABOVE the wall. #chat and #sideBar are inside #main, whose own
+     z-index makes it their stacking context, so a z-index on the drawer cannot lift it
+     past #cinemaHud — #main has to rise instead. 45 clears the HUD at 25 and the header
+     at 30, and stays under #settingsModal at 50; the same trick the phone chart sheet
+     uses. */
+  body.cinema.console.feedOpen #main,
+  body.cinema.console.labsOpen #main{z-index:45}
   body.cinema.console #sideBar{display:none}
   body.cinema.console.labsOpen #sideBar{display:block;right:var(--gap);width:var(--colR);
-    top:calc(var(--hdr,62px) + 8px);bottom:64px;z-index:26}
+    top:calc(var(--hdr,62px) + 8px);bottom:64px}
   /* Same specificity as body.cinema.hudClear #console, and this block comes later — so
      CLEAR has to say it again here or the console would win the tie and stay up. */
   body.cinema.console.hudClear #console,
@@ -279,7 +291,12 @@
   body.cinema.console #cinRight{top:38%}
   #cinemaHud{position:fixed;inset:0;z-index:25;pointer-events:none;display:none}
   body.cinema #cinemaHud{display:block}
-  #cinemaHud > *{pointer-events:auto}
+  /* Every HUD child takes its own clicks back — EXCEPT the console frame, which is a
+     positioning device the size of the whole photo, not a panel. Left in, it swallowed
+     every click underneath it: the order box, the room zones, all of it. Naming it here
+     rather than fighting the cascade from the other end, because this is the rule that
+     means "panels are clickable" and the frame is not a panel. */
+  #cinemaHud > *:not(#console){pointer-events:auto}
   #cinemaCard{position:absolute;left:var(--gap);top:calc(var(--hdr,62px) + 6px);width:min(250px,21vw);
     border:1px solid rgba(148,163,184,.14);border-radius:18px;padding:.65rem .7rem;
     background:linear-gradient(180deg,rgba(2,6,23,.88),rgba(3,7,18,.72));
@@ -2767,8 +2784,14 @@ function paintVitals(){
       } else { nx.classList.add('hidden'); nb.classList.add('hidden'); }
     }
   }
-  $('v_rhythm').textContent=v.rhythm;
-  $('v_rhythm').className='text-[10px] font-black uppercase tracking-widest mono '+(hrCrit?'text-red-500':'text-emerald-500');
+  // THE CAPTION IS THE LOUDEST SPOILER. It read "RHYTHM: VENTRICULAR FIBRILLATION" from
+  // the first second of the case, which is the answer to the only question ACLS asks.
+  // During a live code the strip is there to be read; the name appears once the doctor
+  // has called it (see rhythmCalled in code-engine.js). Outside a code nothing is being
+  // tested, so the caption reads as it always did.
+  const hideRhythm = codeActive() && S.code && !S.code.rhythmCalled;
+  $('v_rhythm').textContent = hideRhythm ? '— call it' : v.rhythm;
+  $('v_rhythm').className='text-[10px] font-black uppercase tracking-widest mono '+(hideRhythm?'text-slate-500':(hrCrit?'text-red-500':'text-emerald-500'));
   const trendEl=$('v_trend');
   if(trendEl){
     const bad=S.trend==='worsening'||S.trend==='critical';
@@ -3328,6 +3351,7 @@ const TALLY_KIND = {
 // 'hint' and 'note' are the sim talking to the learner, and a scribe writes down what
 // was done to the patient.
 function paintCodeTally(){
+  paintOrderLog();   // both books are kept in step
   const box = $('codeTally'); if(!box) return;
   const c = S.code;
   if(!c){ box.classList.add('hidden'); box.innerHTML=''; _tallyN = -1; return; }
@@ -4281,6 +4305,43 @@ function paintTicker(){
   el.textContent = last ? '\u25b8 ' + last : '';
   el.onclick = () => { document.body.classList.add('feedOpen'); const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };
 }
+// EVERY ORDER, ALL CASE LONG. Kim: "keep a log of all the orders on the side."
+//
+// The Code Record beside it is the resuscitation scribe — shocks, drugs, airway, with the
+// code clock — and it starts when the code starts and holds only what the code engine
+// saw. This is the other book: the twelve-lead, the labs, the consult, the diagnosis, the
+// disposition, stamped with the ER clock. S.timeline is what the debrief's "ORDERS YOU
+// ENTERED" is built from, so the list on the rail during the case and the list in the
+// report after it are the same list.
+//
+// An order the sim could not read is marked, not hidden. That is the one thing a player
+// most needs to know while there is still time to say it another way.
+function paintOrderLog(){
+  const box = $('orderLog'); if(!box) return;
+  const rows = (S.timeline || []);
+  if(S.stage !== 'play' || !rows.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
+  box.classList.remove('hidden');
+  const line = t => {
+    const bad = t.unmatched && t.unmatched.length;
+    return `<div class="flex items-start gap-2 px-3 py-1.5">
+      <span class="text-[10px] font-black tabular-nums text-slate-500 w-11 shrink-0 pt-px">T+${Math.round(t.min)}</span>
+      <span class="text-[11px] leading-snug ${bad ? 'text-amber-300' : 'text-slate-200'}">${esc(t.text || '')}${
+        bad ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">not read</span>' : ''}</span>
+    </div>`;
+  };
+  box.innerHTML = `
+    <div class="rounded-2xl border border-slate-800 bg-slate-950/70 overflow-hidden">
+      <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900/60">
+        <span class="text-[10px] font-black uppercase tracking-[.3em] text-sky-300">Orders</span>
+        <span class="text-[10px] font-black tabular-nums text-slate-400">${rows.length}</span>
+      </div>
+      <div id="orderLogList" class="divide-y divide-slate-900 max-h-[32vh] overflow-y-auto">
+        ${rows.map(line).join('')}
+      </div>
+    </div>`;
+  const list = $('orderLogList');
+  if(list) list.scrollTop = list.scrollHeight;      // the newest order in view
+}
 function paintConsole(){
   const host = $('console'); if(!host) return;
   const on = document.body.classList.contains('console') && codeAnswers();
@@ -4836,6 +4897,8 @@ function renderPlay(){
       <div id="patientPanel"></div>
       <!-- The code record. Empty and hidden outside a code; paintCodeStrip fills it. -->
       <div id="codeTally" class="hidden"></div>
+      <!-- Everything ordered, all case long. paintOrderLog fills it. -->
+      <div id="orderLog" class="hidden"></div>
       <h3 class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 border-b border-slate-800 pb-3">Clinical Workspace</h3>
       <div id="ws"></div>
     </aside>
@@ -4847,6 +4910,7 @@ function renderPlay(){
   paintCodeStrip();
   renderChat(); renderWorkspace(); renderPatient();
   paintDxBox();
+  paintOrderLog();
   paintConsole();   // the wall chips live in #cinemaHud, outside the rebuild
   paintSoundBtn();
   $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
