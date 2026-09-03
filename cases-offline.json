@@ -4953,6 +4953,28 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "le fort fracture",
+       "le fort ii",
+       "le fort iii",
+       "midface fracture",
+       "maxillofacial fracture",
+       "facial fracture",
+       "failed airway",
+       "cant intubate cant oxygenate",
+       "difficult airway"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 a midface fracture with a failing airway. Surgical airway kit is open."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -35251,6 +35273,26 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "hemorrhagic shock",
+       "haemorrhagic shock",
+       "traumatic hemorrhagic shock",
+       "hypovolemic shock",
+       "class iv shock",
+       "exsanguination",
+       "internal bleeding"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 he is bleeding to death. Blood is going, and we need the source."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -40114,6 +40156,26 @@
     "sedationGiven": false
    },
    "responders": [
+    {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "methamphetamine toxicity",
+       "meth toxicity",
+       "stimulant toxicity",
+       "sympathomimetic toxidrome",
+       "amphetamine overdose",
+       "meth overdose",
+       "excited delirium"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 a sympathomimetic toxidrome. Cooling and benzodiazepines, not restraints alone."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {
@@ -46092,6 +46154,25 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "opioid overdose",
+       "opiate overdose",
+       "narcotic overdose",
+       "heroin overdose",
+       "fentanyl overdose",
+       "opioid toxidrome"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 an opioid toxidrome. Ventilate first, then titrate the naloxone."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -48681,6 +48762,24 @@
     "coagsChecked": false
    },
    "responders": [
+    {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "posterior epistaxis",
+       "posterior nosebleed",
+       "posterior bleed",
+       "epistaxis",
+       "nosebleed"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 this is posterior. Anterior packing will not hold it."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {
@@ -51321,6 +51420,28 @@
     "coagsChecked": false
    },
    "responders": [
+    {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "severe traumatic brain injury",
+       "severe tbi",
+       "traumatic brain injury",
+       "tbi",
+       "head injury",
+       "intracranial hemorrhage",
+       "herniation",
+       "raised icp",
+       "elevated icp"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 a severe head injury with rising pressure. Airway and perfusion are the treatment."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {
@@ -77434,6 +77555,27 @@
   "id-mammalian-bite-infection": {
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "flexor tenosynovitis",
+       "septic tenosynovitis",
+       "pasteurella",
+       "pasteurella multocida",
+       "cat bite infection",
+       "bite wound infection",
+       "hand infection",
+       "kanavel"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 Kanavel signs in that finger. This is a surgical infection, not a wound check."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -96779,6 +96921,24 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "eclampsia",
+       "eclamptic seizure",
+       "severe preeclampsia",
+       "pre eclampsia with seizure",
+       "hypertensive emergency of pregnancy"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 eclampsia. Magnesium, and the baby has to come out."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -98710,6 +98870,24 @@
     "uterotonicsGiven": false
    },
    "responders": [
+    {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "postpartum hemorrhage",
+       "post partum hemorrhage",
+       "pph",
+       "uterine atony",
+       "obstetric hemorrhage"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 she is bleeding from an atonic uterus. Massage, uterotonics, and call obstetrics."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {
@@ -143075,6 +143253,34 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "ventricular fibrillation",
+       "vf",
+       "v fib",
+       "vfib",
+       "vf arrest",
+       "ventricular fibrillation arrest",
+       "cardiac arrest",
+       "stemi",
+       "st elevation mi",
+       "acute coronary occlusion",
+       "coronary occlusion",
+       "omi",
+       "acute mi",
+       "myocardial infarction",
+       "heart attack"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 a sudden VF arrest in a middle-aged man is a coronary occlusion until proven otherwise. The cath lab is the destination."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -153373,6 +153579,27 @@
    },
    "responders": [
     {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "ventricular fibrillation",
+       "vf",
+       "v fib",
+       "vfib",
+       "vf arrest",
+       "commotio cordis",
+       "cardiac arrest",
+       "ventricular fibrillation arrest"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 commotio cordis. A blow on the upstroke of the T wave, and the only treatment is electricity."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -156526,6 +156753,26 @@
     "rosc": false
    },
    "responders": [
+    {
+     "intent": "assessment",
+     "match": {
+      "any": [
+       "status asthmaticus",
+       "severe asthma",
+       "asthma exacerbation",
+       "dynamic hyperinflation",
+       "breath stacking",
+       "air trapping",
+       "respiratory arrest"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Agreed \u2014 status asthmaticus with breath stacking. Slow the rate right down and let him empty."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {

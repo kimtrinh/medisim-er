@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-npFCGnQAsW7DaOJ2vd7XHMJ49twHc7qHfqlSO3C3K0M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-W4VKFfzHLpNNR880DbpmI/jhIsdi5D2FTlAeo5gqEJk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -175,6 +175,15 @@
      one wins everywhere except the phone layout, which swaps them (see #vitalsGrid
      below). Default here so a viewport that matches no phone rule shows exactly one. */
   .vLabShort{display:none}
+  /* THE DIAGNOSIS BOX lives in the header so renderPlay (which rebuilds #main on every
+     order) cannot destroy it, and so it never covers the room in cinema. Visibility is a
+     CSS rule rather than a class the painter toggles: paintDxBox used to remove Tailwind's
+     `hidden`, which un-hid it on a phone too and forced a 375px header to scroll
+     sideways. It is a desktop control — on a phone the order box and Dx carry it. */
+  #dxBox{display:none}
+  @media (min-width:768px){
+    #dxBox.dxReady{display:flex;min-width:min(430px,34vw);max-width:38rem}
+  }
   /* ===================== CINEMA ON A PHONE =====================
      Below md the floating HUD has nowhere to float: four panels squeezed over a 375px
      photo, a 79px patient card, a 34px command box. So on a phone the room is NOT a
@@ -572,6 +581,13 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       </div>
     </div>
   </div>
+  <!-- THE DIAGNOSIS BOX. Kim: "There should be an easier way to enter a diagnosis
+       rather than writing Dx or 'I think this is' — it should be more obvious, maybe a
+       separate box." It is a separate box, it is always visible, and it is in the header
+       for the same reason the cinema chrome is: renderPlay() rebuilds #main on every
+       single order, and the header is the only place a control can stand still. In the
+       sim room that also means it can never cover the patient. -->
+  <div id="dxBox" class="flex-1 mx-4 items-center gap-2"></div>
   <div class="flex items-center gap-2">
     <!-- Cinema-mode chrome. Lives in the static header (not in #main, which progress()
          rebuilds on every order) and is revealed by body.cinema — see the CINEMA MODE
@@ -3429,6 +3445,9 @@ async function instantTurn(action){
   return InstantEngine.runTurn(pack, S.instantState, action,
     {vitals:S.vitals, simMin:S.simMin, criticalActions:S.criticalActions,
      learningPoints:S.learningPoints, difficulty:S.difficulty, catalog: await loadOrderCatalog(),
+     // The condition vocabulary, so a bare "stemi" is read as a diagnosis rather than
+     // filed as an order nobody understood.
+     dxCatalog: await loadDxCatalog(),
      diagnosis: S.diagnosis,
      trend: S.trend, trace: loggingOn(),
      // Carry the code through every later turn: the case usually ENDS on a disposition
@@ -3436,6 +3455,114 @@ async function instantTurn(action){
      // and the code-quality score would exist only for a code that ended in death.
      code: S.code ? {metrics: CodeEngine.summary(S.code, S.codeScript), events: S.code.events} : undefined});
 }
+
+// ===================== THE DIAGNOSIS BOX =====================
+// A diagnosis is not an order, and it never belonged in the order box. Kim typed four
+// of them into it — "stemi", "acute STEMI", "ST elevation MI" — and the sim filed three
+// under ORDERS THE SIM DID NOT UNDERSTAND. The fourth went through the Dx button, whose
+// framing phrase the typeahead had already dropped into the basket as its own chip, so
+// the engine received "I think this is; stemi" as two clauses and graded the empty half.
+//
+// This is one field with one job. It commits through the same progress() call the Dx
+// button used, and it is the only place a working diagnosis is entered or shown — the
+// nurse says it goes "up on the board", and now there is a board.
+let _dxCatalog = null;
+async function loadDxCatalog(){
+  if(_dxCatalog) return _dxCatalog;
+  try{
+    const r = await fetch('dx-catalog.json');
+    _dxCatalog = (await r.json()).entries || [];
+  }catch(_){ _dxCatalog = []; }   // offline or file missing: DX_EQUIV still carries the engine
+  return _dxCatalog;
+}
+function focusDxBox(){
+  const i = $('dxInput');
+  if(i){ i.focus(); i.select(); return true; }
+  return false;
+}
+// The one commit path. The engine reads a leading frame, so an unframed name is framed
+// here — "stemi" becomes "Working diagnosis: stemi" — while a diagnosis the player has
+// already framed is passed through untouched.
+function commitDiagnosis(raw){
+  const t = String(raw || '').trim();
+  if(!t || S.loading) return;
+  const framed = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b/i.test(t)
+    ? t : 'Working diagnosis: ' + t;
+  S.dxSaid = t;
+  const box = $('dxInput'); if(box) box.value = '';
+  paintDxBox();
+  progress(framed, 'Working diagnosis: ' + t);
+}
+// Everything the player has called it, newest last — read back from the engine's own
+// committed assessments so the board and the debrief cannot disagree.
+function dxCommitted(){
+  const a = (S.instantState && S.instantState.assessments) || [];
+  return a.map(x => String(x.text || '').replace(/^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b\s*:?\s*/i, '').trim())
+    .filter(Boolean);
+}
+function paintDxBox(){
+  const host = $('dxBox'); if(!host) return;
+  if(S.stage !== 'play'){ host.classList.remove('dxReady'); host.innerHTML = ''; return; }
+  host.classList.add('dxReady');
+  const said = dxCommitted();
+  const current = said.length ? said[said.length - 1] : '';
+  // The committed diagnosis is NEVER graded on screen — the case is blind until the
+  // debrief, and a tick here would give the answer away.
+  host.innerHTML = `
+    <span class="text-[9px] font-black uppercase tracking-[.25em] text-violet-400 shrink-0 hidden lg:inline">Diagnosis</span>
+    <div class="relative flex-1">
+      <input id="dxInput" type="text" autocomplete="off" spellcheck="false"
+        class="w-full px-3 py-2 rounded-xl bg-violet-950/40 border border-violet-800/70 text-xs text-violet-100 placeholder-violet-400/50 focus:outline-none focus:border-violet-500"
+        placeholder="${current ? 'Working dx: ' + esc(current) : 'Working diagnosis…'}"
+        aria-label="Working diagnosis">
+      <div id="dxTypeahead" class="hidden absolute left-0 right-0 top-full mt-1 z-[80] rounded-xl border border-violet-800 bg-slate-950/95 backdrop-blur shadow-2xl max-h-56 overflow-y-auto"></div>
+    </div>
+    <button id="dxCall" class="px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 text-white text-[10px] font-black uppercase tracking-widest shrink-0 transition"
+      title="Commit this as your working diagnosis">Call it</button>`;
+  wireDxBox();
+}
+let _dxMatches = [];
+function wireDxBox(){
+  const input = $('dxInput'), menu = $('dxTypeahead'), call = $('dxCall');
+  if(!input) return;
+  const hide = () => { if(menu){ menu.classList.add('hidden'); menu.innerHTML = ''; } _dxMatches = []; };
+  const commit = () => { const v = input.value.trim(); hide(); if(v) commitDiagnosis(v); };
+  call.onclick = commit;
+  input.oninput = async () => {
+    const q = input.value.trim().toLowerCase();
+    if(q.length < 2) return hide();
+    const list = await loadDxCatalog();
+    // Prefix first, then contains — the same ordering the order typeahead uses, so the
+    // condition you are part-way through typing is the top row.
+    const starts = [], has = [];
+    for(const e of list){
+      const hay = [e.canonical, ...(e.aliases || [])];
+      if(hay.some(h => h.startsWith(q))) starts.push(e);
+      else if(hay.some(h => h.includes(q))) has.push(e);
+      if(starts.length >= 8) break;
+    }
+    _dxMatches = starts.concat(has).slice(0, 8);
+    if(!_dxMatches.length) return hide();
+    menu.innerHTML = _dxMatches.map((e, i) =>
+      `<button data-dxi="${i}" class="w-full text-left px-3 py-2 text-xs text-violet-100 hover:bg-violet-900/50 border-b border-violet-900/50 last:border-0">${esc(e.label)}</button>`).join('');
+    menu.classList.remove('hidden');
+    for(const b of menu.querySelectorAll('[data-dxi]'))
+      b.onclick = () => { input.value = _dxMatches[+b.dataset.dxi].label; hide(); input.focus(); };
+  };
+  input.onkeydown = e => {
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    else if(e.key === 'Escape'){ hide(); input.blur(); }
+  };
+  input.onblur = () => setTimeout(hide, 150);   // let a click on a row land first
+}
+// D focuses it, the same guarded shape as H for the room.
+document.addEventListener('keydown', e => {
+  if(e.key !== 'd' && e.key !== 'D') return;
+  if(S.stage !== 'play' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const el = e.target;
+  if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+  if(focusDxBox()) e.preventDefault();
+});
 
 // ===================== ORDER CATALOG: typeahead + nurse readback =====================
 // Global, generated (tools_build_catalog.cjs), identical for every case — the
@@ -3587,6 +3714,11 @@ function basketTypeahead(i){
   const text = cmd.value;
   const prefix = text.slice(0, text.length - currentFragment(text).length).replace(/[,;\s]+$/,'').trim();
   if(prefix) basketAdd(prefix, prefix, true);
+  // An assessment entry is a diagnosis, not an order: it belongs in the DIAGNOSIS box,
+  // whose own typeahead has the whole condition vocabulary behind it.
+  if(entry.category === 'assessment'){
+    cmd.value=''; cmd.style.height='auto'; hideTypeahead(); focusDxBox(); return;
+  }
   basketAdd(entry.label, entry.label);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
@@ -4196,8 +4328,21 @@ function basketPlan(items, typed){
     count: list.length
   };
 }
+// "I think this is" with nothing after it is the opening of a sentence, not an order.
+// It was the LABEL of the order catalog's only assessment entry, so the typeahead
+// offered it as its own chip and the basket signed it as its own clause: Kim's
+// "Signed 2 orders: I think this is · stemi" reached the engine as
+// "I think this is; stemi", and splitClauses cut it in two. The frame committed an
+// empty diagnosis and "stemi" was filed as not understood.
+const FRAME_ONLY_RE = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is|dx|diagnosis|impression)\b\s*:?\s*$/i;
 function basketAdd(label, text, quiet){
   const t=basketText(text); if(!t) return false;
+  if(FRAME_ONLY_RE.test(t)){
+    // Send them where the thought belongs instead of queueing half a sentence.
+    focusDxBox();
+    if(!quiet) basketNote('Name the diagnosis in the DIAGNOSIS box');
+    return false;
+  }
   // Adding an order supersedes any pending nurse-readback confirmation — that chip was
   // raised for a different, now-stale, signature.
   hideReadbackChip();
@@ -4471,6 +4616,7 @@ function renderPlay(){
   // to be repainted here or it vanishes the moment the player does anything.
   paintCodeStrip();
   renderChat(); renderWorkspace(); renderPatient();
+  paintDxBox();
   paintSoundBtn();
   $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
   const cmd=$('cmd');
@@ -4631,15 +4777,14 @@ function renderPlay(){
     cmd.value=''; cmd.style.height='auto'; cmd.focus();
     syncBasketInput(); measureDock();
   };
+  // Dx still works — it is the shortcut for text already typed in the order box — but it
+  // no longer owns the logic. One commit path, so the box and the button cannot drift.
   $('dxBtn').onclick=()=>{
     if(S.loading) return;
-    const raw=basketText(cmd.value); if(!raw){ cmd.focus(); return; }
-    // Diagnosis framing is explicit: bare shorthand such as "DKA" cannot be
-    // mistaken for an order, while a framed management plan stays an order.
-    const framed=/^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b/i.test(raw)
-      ? raw : 'Working diagnosis: '+raw;
+    const raw=basketText(cmd.value);
+    if(!raw){ focusDxBox(); return; }
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); hideReadbackChip();
-    progress(framed, 'Working diagnosis: '+raw);
+    commitDiagnosis(raw);
   };
   renderBasket();   // the play screen is rebuilt on every turn — repaint the basket with it
   renderOrderFeedback();

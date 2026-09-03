@@ -646,7 +646,7 @@ const ASSESS_WORDS = ['i think','my diagnosis','this is likely','concern for','i
 // dose, consult and bolus are all common clinical NOUNS. So look at structure: an
 // explicit plan phrase anywhere, or an imperative verb leading what follows the frame.
 const PLAN_PHRASE_RE = /\b(we should|we need|need to|needs|let'?s|should get|should start)\b/i;
-const ASSESS_FRAME_RE = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b\s*/i;
+const ASSESS_FRAME_RE = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is|dx|diagnosis|impression)\b\s*:?\s*/i;
 // This runs on the NORMALIZED clause, where ABBREV has folded the verb
 // 'transfuse' onto the noun 'transfusion', so the noun has to be listed or
 // "I think transfuse him" stops looking like an order — and a diagnosisClause
@@ -773,7 +773,9 @@ function classifyIntent(clause){
   if(!discussing && ADMISSION_RE.test(clause) && !PRIOR_ADMISSION_RE.test(clause)) return 'disposition';
   if((CONSULT_WORDS.some(w=>toks.includes(w)) || CONSULT_PHRASE_RE.test(clause))
      && CONSULT_SERVICES.some(s=>fuzzyHas(toks,s))) return 'consult';
-  if(ASSESS_WORDS.some(w=>clause.includes(w))) return 'assessment';
+  // ASSESS_WORDS is a substring test over the whole clause, so "dx" cannot live in it —
+  // it would fire inside other words. The anchored frame regex carries it instead.
+  if(ASSESS_WORDS.some(w=>clause.includes(w)) || ASSESS_FRAME_RE.test(clause)) return 'assessment';
   if(findImaging(clause) || clauseModality(clause)) return 'imaging';   // bare "ct scan" is still an imaging order
   if(findPanel(clause) || findSolo(clause) || /\blabs\b|\bbloodwork\b|\blab work\b/.test(clause)) return 'lab';
   if(MED_WORDS.some(w=>fuzzyHas(toks,w)) &&
@@ -796,6 +798,9 @@ function classifyIntent(clause){
      (!INTERROG_RE.test(clause) && (/^(?:\w+\s+){0,3}(give|administer|push|hang|start|bolus)\b/.test(clause) || /\d+\s*(mg|mcg|g|units|ml|l)\b/.test(clause)))) return 'med';
   if(EXAM_REGIONS.some(r=>regionOK(r, clause) && r.aliases.some(a=>fuzzyHas(toks,a)))) return 'exam';
   if(clause.includes('?') || HISTORY_VERBS.some(w=>clause.includes(w)) || HISTORY_TOPICS.some(t=>t.aliases.some(a=>fuzzyHas(toks,a)))) return 'history';
+  // Last, so a drug, a test or an imaging study is never mistaken for a diagnosis:
+  // anything that is JUST the name of a condition is the player calling it.
+  if(isBareDiagnosis(clause)) return 'assessment';
   return 'other';
 }
 // Which pack-responder intents may answer a clause of a given intent. An exam
@@ -1599,11 +1604,18 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       // the line specific without the nurse knowing anything, so a wrong call is
       // answered with the same weight as a right one and the reply never grades it.
       const read = String(rawClause || '').replace(/^.*?\b(?:i think(?: this is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment) is|working (?:diagnosis|dx)(?: is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b\s*/i, '').replace(/[.?!]+$/, '').trim();
-      const board = read
-        ? [`Got it — working diagnosis ${read}. I'll put it up on the board.`,
-           `Understood, ${read}. It's on the board — what do you want to do about it?`,
-           `${read.charAt(0).toUpperCase() + read.slice(1)} — noted as your working diagnosis. What next?`]
-        : ['Got it — I\'ll put that up as the working diagnosis.'];
+      // A diagnosis is a proper clinical term, so it is echoed the way it would be
+      // written on the board: "Understood, STEMI", not "Understood, stemi". Short forms
+      // stay upper case; ordinary words get a leading capital.
+      const shown = dxDisplay(read);
+      const board = shown
+        ? [`Got it — working diagnosis ${shown}. I'll put it up on the board.`,
+           `Understood, ${shown}. It's on the board — what do you want to do about it?`,
+           `${shown} — noted as your working diagnosis. What next?`]
+        // Nothing after the frame: ask, and do NOT also claim something went up on the
+        // board. The basket used to sign "I think this is" as its own clause, and the
+        // debrief carried a working-diagnosis row reading exactly that.
+        : ["What's the diagnosis, doctor?"];
       const boardLine = board[(state && state.turnCount || 0) % board.length];
       fb.speech.push({speaker:'nurse', text: boardLine});
       // The transcript renders `narrative`, not `speech` — an acknowledgement that
@@ -1774,8 +1786,110 @@ function moTokens(s){
 // "/" is a stop char too — normalize() itself splits "beta-blocker / calcium-
 // channel blocker overdose" into two clauses ahead of the comma logic below it,
 // so a head that kept the slash would name a diagnosis the engine never sees whole.
+// The head is the noun phrase before any qualifier — unchanged, and still what the
+// debrief titles itself with.
 function diagnosisHead(dx){
   return String(dx || '').split(/[(,:/]| following | due to | from | with /i)[0].trim();
+}
+// The parts are the things the answer NAMES. Only a cause word introduces a second
+// nameable condition ("...cardiac arrest FROM acute coronary occlusion"); a parenthesis
+// or a comma introduces a qualifier, and splitting on those produced fragments like
+// "RSV)" and "EF ~20%)" that are not diagnoses anybody would say. Each piece is then
+// reduced to its own head, so the qualifiers fall away either way.
+function diagnosisParts(dx){
+  return String(dx || '').split(/ following | due to | from | secondary to | caused by /i)
+    .map(p => diagnosisHead(p)).filter(Boolean);
+}
+// TERMS THAT NAME THE SAME THING.
+//
+// Kim called the witnessed VF arrest a STEMI — which is the answer the case itself
+// teaches: its learning point says "a sudden VF arrest in a middle-aged adult is
+// coronary occlusion until proven otherwise" and its critical action says "activate the
+// cath lab for the occlusion". The grader marked it wrong, four times, because
+// diagnosisHead truncates the gold answer at " from ": "Ventricular fibrillation
+// cardiac arrest from acute coronary occlusion" was compared as "Ventricular
+// fibrillation cardiac arrest", and the half she named had been thrown away.
+//
+// Two fixes, both here. diagnosisParts keeps every part of the answer, and a group
+// below counts as matched when the player names ANY member and the gold answer names
+// any member — which is also how "VF" finally counts on a ventricular-fibrillation
+// case, since moTokens drops tokens of three characters or fewer.
+//
+// These expand ONLY while grading a working diagnosis. In the global abbreviation
+// table they would make ordinary orders ambiguous and could steal a drug or a test.
+const DX_EQUIV = [
+  ['stemi','st elevation mi','st elevation myocardial infarction','st elevation myocardial infarct',
+   'acute coronary occlusion','coronary occlusion','occlusion mi','omi','acute mi',
+   'acute myocardial infarction','myocardial infarction','heart attack','mi'],
+  ['vf','v fib','vfib','ventricular fibrillation'],
+  ['pvt','pulseless vt','pulseless ventricular tachycardia'],
+  ['vt','v tach','vtach','ventricular tachycardia'],
+  ['pe','pulmonary embolism','pulmonary embolus','saddle embolus'],
+  ['dka','diabetic ketoacidosis'],
+  ['tbi','traumatic brain injury'],
+  ['pph','postpartum hemorrhage','post partum hemorrhage'],
+  ['svt','supraventricular tachycardia','avnrt'],
+  ['af','afib','a fib','atrial fibrillation'],
+  ['chb','complete heart block','third degree av block','third degree heart block'],
+  ['sah','subarachnoid hemorrhage','subarachnoid haemorrhage'],
+  ['ich','intracranial hemorrhage','intracerebral hemorrhage'],
+];
+// Padded and punctuation-stripped so a term matches as a WHOLE phrase: "mi" must not
+// fire inside "mild", and "af" must not fire inside "after".
+function dxPad(t){
+  return ' ' + String(t || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+}
+function dxEquivMatch(text, parts){
+  const said = dxPad(text);
+  const golds = parts.map(dxPad);
+  for(const group of DX_EQUIV){
+    if(!group.some(term => said.includes(' ' + term + ' '))) continue;
+    if(golds.some(g => group.some(term => g.includes(' ' + term + ' ')))) return true;
+  }
+  return false;
+}
+// Every DX_EQUIV term, for recognising a bare diagnosis with no frame in front of it.
+const DX_EQUIV_TERMS = new Set(DX_EQUIV.flat());
+// The condition names this library actually contains, handed in by the page as
+// opts.dxCatalog exactly the way the order catalog already arrives. The engine is
+// loaded standalone by every test with no file access, so it must work without one:
+// with no catalog supplied, DX_EQUIV alone is the vocabulary.
+let _dxVocab = new Set();
+function setDxVocab(list){
+  _dxVocab = new Set();
+  for(const e of (Array.isArray(list) ? list : [])){
+    for(const term of [e && e.label, ...((e && e.aliases) || [])]){
+      const t = dxPad(term).trim();
+      if(t) _dxVocab.add(t);
+    }
+  }
+}
+// A bare condition name IS a diagnosis. Kim typed "stemi", then "acute STEMI", then
+// "ST elevation MI", and all three were filed under ORDERS THE SIM DID NOT UNDERSTAND
+// because classifyIntent required one of the ASSESS_WORDS somewhere in the clause. A
+// player naming a disease is committing to it; the framing was never the point.
+// Leading qualifiers a clinician says out loud and never means as a separate word.
+// Kim typed "acute STEMI" as her second attempt; without this it is not the name of a
+// condition, it is two words that happen to contain one.
+// Short forms are said as letters and belong in capitals; everything else takes a
+// leading capital. Kim saw "Understood, pea." on an earlier case and called it sloppy —
+// it is the same echo.
+const DX_UPPER = new Set(['stemi','nstemi','vf','vt','pvt','pea','svt','af','afib','dka','tbi','pph',
+  'chb','sah','ich','pe','mi','omi','copd','chf','ards','aki','gi','ivh','nstemi','tia','cva','uti','dvt']);
+function dxDisplay(text){
+  const t = String(text || '').trim();
+  if(!t) return '';
+  return t.split(/\s+/).map(w => DX_UPPER.has(w.toLowerCase().replace(/[^a-z]/g,''))
+    ? w.toUpperCase() : w).join(' ')
+    .replace(/^([a-z])/, m => m.toUpperCase());
+}
+const DX_QUALIFIER_RE = /^(?:an?\s+|the\s+|acute\s+|chronic\s+|severe\s+|new\s+|old\s+|likely\s+|probable\s+|possible\s+|suspected\s+|presumed\s+|anterior\s+|inferior\s+|lateral\s+|posterior\s+|massive\s+|submassive\s+)+/;
+function isBareDiagnosis(clause){
+  const t = dxPad(clause).trim();
+  if(!t) return false;
+  if(DX_EQUIV_TERMS.has(t) || _dxVocab.has(t)) return true;
+  const bare = t.replace(DX_QUALIFIER_RE, '').trim();
+  return !!bare && bare !== t && (DX_EQUIV_TERMS.has(bare) || _dxVocab.has(bare));
 }
 // Diagnosis shorthand is deliberately expanded ONLY while comparing a working
 // diagnosis to this case's ground truth. Putting these in the global ABBREV table
@@ -1817,17 +1931,28 @@ function diagnosisTokens(text, dx){
 // passes and "fever" alone does not. Deliberately approximate: an authored alias
 // exists for packs that need a looser or tighter read.
 function matchesDiagnosis(text, dx){
-  const want = moTokens(diagnosisHead(dx));
-  if(!want.size) return false;
+  const parts = diagnosisParts(dx);
+  // Naming the same thing by another name is naming it. This is the clause that lets
+  // "STEMI" answer "…from acute coronary occlusion", and "VF" answer a ventricular
+  // fibrillation arrest.
+  if(dxEquivMatch(text, parts)) return true;
   const got = diagnosisTokens(text, dx);
-  // The identity of a diagnosis sits in the tail of its noun phrase; everything
-  // before it is qualifier a clinician drops out loud ("Acute Stanford type A
-  // aortic dissection" is said as "aortic dissection"). So the tail alone counts,
-  // alongside the two-thirds rule that catches partial and reordered phrasings.
-  const tail = [...want].slice(-2);
-  if(tail.length && tail.every(w => got.has(w))) return true;
-  let hit = 0; for(const w of want) if(got.has(w)) hit++;
-  return hit / want.size >= 2/3;
+  // Every part of the answer counts, not only the head. A gold diagnosis that names a
+  // condition AND its cause is asking for either; grading the head alone threw away the
+  // half the case's own learning points are about.
+  for(const part of parts){
+    const want = moTokens(part);
+    if(!want.size) continue;
+    // The identity of a diagnosis sits in the tail of its noun phrase; everything
+    // before it is qualifier a clinician drops out loud ("Acute Stanford type A
+    // aortic dissection" is said as "aortic dissection"). So the tail alone counts,
+    // alongside the two-thirds rule that catches partial and reordered phrasings.
+    const tail = [...want].slice(-2);
+    if(tail.length && tail.every(w => got.has(w))) return true;
+    let hit = 0; for(const w of want) if(got.has(w)) hit++;
+    if(hit / want.size >= 2/3) return true;
+  }
+  return false;
 }
 function coveredByMet(opportunity, metTexts){
   const o = moTokens(opportunity);
@@ -2256,6 +2381,7 @@ function runTurn(pack, state, action, opts){
   const discussingAction = DISCUSS_RE.test(rawNorm) && !DISCUSS_IS_DISPO_RE.test(rawNorm);
   const rawClauses = splitClauses(rawNorm);
   const clauseList = rawClauses.length ? rawClauses : [rawNorm];
+  setDxVocab(opts.dxCatalog);
   const hasCatalog = !!(opts.catalog && opts.catalog.length);
   const dosedMedInLine = clauseList.some(cl => hasDoseEvidence(cl) && classifyIntent(cl) === 'med');
   const questionLine = /\?/.test(String(action));
@@ -2351,8 +2477,14 @@ function runTurn(pack, state, action, opts){
     // an order wearing a hedge ("I think we should give aspirin") — only the former
     // is a commitment. `clause` is already normalized (lowercased, articles
     // dropped), so match it as-is.
-    const diagnosisClause = intent === 'assessment' && !PLAN_PHRASE_RE.test(clause)
-      && !LEADING_ORDER_RE.test(clause.replace(ASSESS_FRAME_RE, ''));
+    // A frame with nothing after it commits nothing. The order catalog's one assessment
+    // entry is labelled "I think this is", and the basket signed it as its own clause —
+    // so Kim's debrief carried a working-diagnosis row reading "i think this is", graded
+    // wrong, while the diagnosis she actually typed was filed as not understood.
+    const framedBody = clause.replace(ASSESS_FRAME_RE, '').trim();
+    const emptyFrame = intent === 'assessment' && !framedBody;   // fallbackFor asks for it
+    const diagnosisClause = intent === 'assessment' && !emptyFrame && !PLAN_PHRASE_RE.test(clause)
+      && !LEADING_ORDER_RE.test(framedBody);
     if(diagnosisClause) committed.push({ clause, matchedAssessment: false });
     // One trace row per clause. matchScore is a pure function of (responder, tokens),
     // so recomputing it here returns exactly the value matchResponders selected on.
@@ -2503,11 +2635,15 @@ function runTurn(pack, state, action, opts){
           // commitment (below) — so a right call reads no differently in play
           // than a wrong one; only the debrief tells them apart.
           const read = String(rawClause || '').replace(ASSESS_FRAME_RE, '').replace(/[.?!]+$/, '').trim();
-          const board = read
-            ? [`Got it — working diagnosis ${read}. I'll put it up on the board.`,
-               `Understood, ${read}. It's on the board — what do you want to do about it?`,
-               `${read.charAt(0).toUpperCase() + read.slice(1)} — noted as your working diagnosis. What next?`]
-            : ['Got it — I\'ll put that up as the working diagnosis.'];
+          // Same board wording, same capitalisation rule as the unmatched path below —
+          // a right call must read no differently from a wrong one, and both write the
+          // term the way it goes on the board.
+          const shownDx = dxDisplay(read);
+          const board = shownDx
+            ? [`Got it — working diagnosis ${shownDx}. I'll put it up on the board.`,
+               `Understood, ${shownDx}. It's on the board — what do you want to do about it?`,
+               `${shownDx} — noted as your working diagnosis. What next?`]
+            : ["What's the diagnosis, doctor?"];
           const boardLine = board[(state.turnCount || 0) % board.length];
           out.speech.push({speaker:'nurse', text: boardLine});
           out.narrative = boardLine;   // visible on screen; see fallbackFor for why
@@ -3048,6 +3184,8 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
 
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
-  runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, matchesDiagnosis, fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders };
+  runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
+  DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
+  fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders };
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.InstantEngine;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
