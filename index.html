@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nOh6TrOrshbEAUmucHVOTO2Yv5QL0feb9oa5HN0I35M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-h2Ackbw92oY7bn7w2LNRbtaDxiMzAON+bgCuCRpUd2M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2682,8 +2682,11 @@ function paintVoiceTip(){
           ${_voiceTipOpen ? `
             <p class="text-[11px] text-slate-300 mt-3 mb-1">In a terminal, from the MediSim folder \u2014 the first line downloads about 340&nbsp;MB and is needed once:</p>
             <pre class="rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-[11px] text-emerald-300 overflow-x-auto"><code>./voice-server/install.sh
-./start-tts.sh</code></pre>
-            <p class="text-[11px] text-slate-500 leading-relaxed mt-1.5">Leave it running and reload this page. The cast is picked up automatically, here and on the live site \u2014 a browser is allowed to talk to your own machine.</p>
+./start-tts.sh${PUBLIC_BUILD ? `
+python3 -m http.server 8000` : ''}</code></pre>
+            ${PUBLIC_BUILD
+              ? `<p class="text-[11px] text-slate-500 leading-relaxed mt-1.5">Then open <span class="text-slate-300">http://localhost:8000/medisim-er-local.html</span> instead of this page. The cast has to be reached from a page served by your own machine: a browser blocks this website from calling a plain-http server on your computer, and Chrome will refuse it outright unless you grant a local-network permission.</p>`
+              : `<p class="text-[11px] text-slate-500 leading-relaxed mt-1.5">Leave it running and reload this page \u2014 the cast is picked up automatically.</p>`}
             <p class="text-[11px] text-slate-500 leading-relaxed mt-2"><b class="text-slate-400">Would rather not run anything?</b> Your system has better voices than the one you are hearing, free, but only downloads them if you ask:</p>
             <ol class="mt-1 space-y-1 text-[11px] text-slate-400 list-decimal list-inside">
               ${voiceSteps().map(x => `<li>${esc(x)}</li>`).join('')}
