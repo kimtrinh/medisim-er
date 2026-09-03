@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-u3chIJJTynERmsI89hybz4X/dh/sFnSsVmOkjxxyveQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-GpZvYI0Y7ghxjRMSWdBpPA0RcichOOB1gilWivsoBAg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3091,7 +3091,7 @@ function renderSetup(){
   exitCinema();          // the room belongs to a case in progress; never leave the stage over the menu
   // Computed once — the header chip below reads it three times — and only when the chip
   // can actually show, so an `off` celebrateMode doesn't pay for a log scan + XP replay.
-  const gp=celebrateMode()!=='off'?gameProgress():null;
+  const gp=(celebrateMode()!=='off' && historyOwned())?gameProgress():null;
   main.innerHTML=`
   <!-- align-items:center on a scrolling flex container makes the TOP overflow
        unreachable: when the card is taller than this box the excess spills evenly
@@ -4381,9 +4381,12 @@ async function initGold(){
   const gs=$('goldSearch'); if(gs && !gs._wired){ gs._wired=true; gs.addEventListener('input',e=>paint(e.target.value)); }
   const lr=$('logReport');
   if(lr){
-    const any = getCaseLog().length > 0;
-    lr.classList.toggle('hidden', !any);
-    if(any) renderLogReport();
+    // Signed in: the log, once there is one. Signed out with sign-in available: the offer.
+    // Sign-in switched off entirely: exactly the old behaviour.
+    const show = historyOwned() ? getCaseLog().length > 0
+                                : (typeof Account !== 'undefined' && Account.status().enabled);
+    lr.classList.toggle('hidden', !show);
+    if(show) renderLogReport();
   }
 }
 // opts.blind marks a walk-in-blind run. The Blind case button has passed
@@ -4455,8 +4458,9 @@ function saveGoldCase(){
 
 // Setup-screen performance strip: record so far + weakness chips + targeted drill.
 function renderPerfStrip(){
-  const log=getCaseLog(); const strip=$('perfStrip');
-  if(!strip || (!log.length && !S.knowledge)) return;
+  const log=historyOwned()?getCaseLog():[]; const strip=$('perfStrip');
+  if(!strip || !historyOwned()) return;
+  if(!log.length && !S.knowledge) return;
   strip.classList.remove('hidden');
   if(log.length){
     const avg=Math.round(log.reduce((s,e)=>s+(e.score||0),0)/log.length);
@@ -6861,7 +6865,7 @@ function paintAuth(){
       line.innerHTML = st.user
         ? 'Signed in as <span class="text-emerald-300">' + esc(st.user.email) + '</span>. Your training log is private to you and follows you to other devices.' +
           (st.offline ? ' <span class="text-amber-400">The server is unreachable right now \u2014 your cases are safe here and will sync.</span>' : '')
-        : 'Your training log is kept in this browser only. Anyone using this computer can see it, and it does not follow you to your phone.';
+        : 'Your training log is hidden until you sign in \u2014 a shared computer should not show one person\u2019s record to the next. Signing in keeps it privately, and carries it to your phone.';
       act.textContent = st.user ? 'Sign out' : 'Sign in with Google';
     }
   }
@@ -8008,6 +8012,24 @@ function saveCaseLog(score, missed, died, dx){
 // one page: the player sees what they keep missing, and the simulator's author sees what
 // the simulator keeps failing to understand — the second list is the one that gets fixed,
 // and it is exactly how "cooling measure" was found.
+// ACCUMULATED HISTORY BELONGS TO SOMEBODY. Kim: "hide the training log (it's mine)
+// unless I am signed in — the training log should be based on the user."
+//
+// Her log was never visible to anyone else: it lives in this browser's localStorage, so
+// only someone sitting at this computer could see it. But that is exactly the problem on a
+// shared machine, and it is not what a stranger arriving at the site should be shown
+// either. So a running total of somebody's cases — the training log, the rank chip, the
+// average-score strip — appears only when there is an account for it to belong to.
+//
+// A single case is different: the debrief and its XP are about the case just played, and
+// stay open to everyone. And when sign-in is not configured at all, nothing is hidden —
+// there is no account to attach history to, so the app behaves exactly as it did before.
+function historyOwned(){
+  try{
+    if(typeof Account === 'undefined' || !Account.status().enabled) return true;
+    return !!Account.status().user;
+  }catch(_){ return true; }
+}
 function _acctUser(){
   try{ return (typeof Account !== 'undefined' && Account.status().enabled) ? Account.status().user : null; }
   catch(_){ return null; }
@@ -8065,8 +8087,21 @@ function logReportText(){
   return L.join('\n');
 }
 function renderLogReport(){
-  const r = logReport();
   const host = $('logReport'); if(!host) return;
+  // Signed out, there is no one to show a history to. What goes here instead is the reason
+  // to sign in — and never a count, a date or a score, because those are the very things
+  // that would tell whoever is at this computer what the last person had been doing.
+  if(!historyOwned()){
+    host.innerHTML = `
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Training log</span>
+      </div>
+      <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Your cases, what you keep missing, and the orders the simulator failed to understand \u2014 kept privately once you sign in, and carried to your other devices. Nobody else can read it, and it is not shown to anyone using this computer.</p>
+      <button id="logSignIn" class="w-full mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition">Sign in with Google</button>`;
+    $('logSignIn').onclick = startSignIn;
+    return;
+  }
+  const r = logReport();
   const row = (x, tone) => `<div class="flex items-baseline gap-2 py-1 border-b border-slate-900/70 last:border-0">
       <span class="mono text-[11px] ${tone} shrink-0 w-8 text-right">${x.n}\u00d7</span>
       <span class="text-xs text-slate-300 flex-1">${esc(x.text)}</span>
@@ -8089,7 +8124,7 @@ function renderLogReport(){
     </div>
     <p class="text-[11px] leading-relaxed mt-1 ${_acctUser() ? 'text-emerald-400/90' : 'text-slate-500'}">${_acctUser()
       ? 'Private to ' + esc(_acctUser().email) + '. It follows you to your other devices; nobody else can read it.'
-      : 'Kept in this browser only, and never sent anywhere. Anyone using this computer can see it \u2014 sign in to keep it private and carry it with you.'}</p>
+      : 'Kept in this browser only, and never sent anywhere.'}</p>
     ${r.trend.earlier != null && r.trend.recent != null ? `<p class="text-[11px] mt-1 ${r.trend.recent >= r.trend.earlier ? 'text-emerald-400' : 'text-amber-400'}">Last 30 cases: ${r.trend.recent} \u00b7 before that: ${r.trend.earlier}</p>` : ''}
     ${section('Orders the sim did not understand',
         'The simulator\u2019s blind spots, not your medicine. Every line here is a phrase it should have known \u2014 send this list and it can be taught.',
@@ -8097,14 +8132,11 @@ function renderLogReport(){
     ${section('What you keep missing',
         'Critical actions marked missed, across every case you have played.',
         r.missedActions, 'text-rose-400', 'Nothing yet.')}
-    ${(!_acctUser() && typeof Account !== 'undefined' && Account.status().enabled)
-      ? `<button id="logSignIn" class="w-full mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition">Sign in with Google to keep this private</button>` : ''}
     <div class="flex gap-2 mt-4">
       <button id="logCopy" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Copy the report</button>
       <button id="logDownload" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Download JSON</button>
     </div>
     <p id="logCopied" class="text-[10px] text-emerald-400 mt-1.5 text-center hidden">Copied \u2014 paste it wherever it can be acted on.</p>`;
-  if($('logSignIn')) $('logSignIn').onclick = startSignIn;
   $('logCopy').onclick = async () => {
     const text = logReportText();
     try{ await navigator.clipboard.writeText(text); }
