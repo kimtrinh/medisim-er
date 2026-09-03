@@ -7247,7 +7247,7 @@
     "Unnecessary extensive testing and hospitalization in a truly low-risk infant carries real risk without a high likelihood of finding a treatable cause or preventing a future event -- the exact problem the old ALTE label caused"
    ],
    "patient": {
-    "age": 0.19,
+    "age": "10 weeks",
     "sex": "female",
     "name": "Mila",
     "ageBand": "child"
@@ -7664,7 +7664,7 @@
     "Tachycardia is the primary compensatory sign of shock in infants — hypotension is a late, ominous finding."
    ],
    "patient": {
-    "age": 0.01,
+    "age": "3 days",
     "sex": "female",
     "name": "Baby Nora",
     "ageBand": "child"
@@ -7713,7 +7713,7 @@
     "The cremasteric reflex is physiologically unreliable in neonates and should not be used to reassure against torsion the way it can be in adolescents."
    ],
    "patient": {
-    "age": 0.01,
+    "age": "3 weeks",
     "sex": "male",
     "name": "Mason",
     "ageBand": "child"

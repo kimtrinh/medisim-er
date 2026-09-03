@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-F7N3lxpvE6yCBKlEAvzjMrBELxY0AkwNx0d0aVcL4kQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-rKM6XbdXRfZl+MNSKlRW6EG/1+bRGJMxIKRg5vGptcA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -213,6 +213,12 @@
      so his shoulder stays clear. This DOES cover the ultrasound cart (x4-18, y39-86) —
      that is equipment, not the patient, and its zone is still reachable from the FOOT and
      AIRWAY cameras and by typing the order. */
+  /* A case with no code has no shock ladder and no drug list, so the four boxes below
+     collapse into one that owns the wall from the header to the foot. It scrolls: the
+     full order set is 76 chips, and a wall that grew to fit them would be over the bed. */
+  #clOrders{left:1%; top:calc(var(--hdr,66px) + 8px - var(--rt)); width:19.5%;
+    max-height:calc(var(--rh) - (var(--hdr,66px) + 8px - var(--rt)) - 12%); overflow-y:auto;
+    scrollbar-width:thin}
   #clCpr   {left:1%; top:calc(var(--hdr,66px) + 8px - var(--rt)); width:19.5%}
   #clRhythm{left:1%; top:21%;   width:19.5%}
   #clMeds  {left:1%; top:37.5%; width:19.5%}
@@ -368,7 +374,12 @@
      Below md the caption itself is the target instead: it already reads "— CALL IT" and
      the click handler listens on #v_rhythm as well as the button, so nothing is lost and
      no height is spent. */
-  @media (max-width:767px){ #rhythmBtn{display:none !important} }
+  /* Same arithmetic, same victim. The age chip is a FOURTH item on a meta line built
+     for three; on a 375px phone it wrapped, cost the transcript 14px and dropped it under
+     its 250px floor. The phone is also the one layout where the chart panel is on screen,
+     and that panel has always led with the age — so below md the chip is redundant as
+     well as expensive. It exists for the sim room, where nothing else says who this is. */
+  @media (max-width:767px){ #rhythmBtn, #v_who{display:none !important} }
   #v_rhythm{cursor:pointer}
   /* THE DIAGNOSIS BOX lives in the header so renderPlay (which rebuilds #main on every
      order) cannot destroy it, and so it never covers the room in cinema. Visibility is a
@@ -2942,6 +2953,7 @@ function monitorHemodynamics(v, code){
 }
 function paintVitals(){
   const v=S.shown; if(!$('v_hr')) return;
+  paintWho();          // who the numbers below belong to — age first, before the clock
   const hemo=monitorHemodynamics(v,S.code), sys=hemo.sys, dia=hemo.dia,
         rr=Math.round(v.rr), o2=Math.min(100,Math.round(v.o2));
   // Only HR shows real-monitor beat-to-beat bounce (±1) so the readout is visibly ALIVE;
@@ -4660,6 +4672,29 @@ function wirePalChips(root){
   if(!root) return;
   for(const b of root.querySelectorAll('.pal')) b.onclick = () => palChipClick(b);
 }
+// The ordinary order palette, on the left wall, for a case with no code script. Same
+// source as the order bar (ORDER_SETS + PALETTE) and the same `.pal`/`.oset` markup, so
+// one basket, one set of handlers, one vocabulary — this is a second RENDERER, never a
+// second list. Seventy-six chips do not fit a wall the way six do, so it is one column
+// that scrolls, rather than four boxes pinned to the furniture.
+function paintProseConsole(host){
+  const chip = (lab, order) =>
+    '<button data-pal="' + esc(order) + '" data-lab="' + esc(lab) + '" class="pal px-2 py-1 rounded-md border border-slate-700/70 bg-slate-900/60 text-[10px] text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition">' + esc(lab) + '</button>';
+  const parts = [];
+  // The order sets first: one click fills the basket with a whole workup, which is the
+  // fastest thing on the screen and the thing Kim went looking for.
+  parts.push('<span class="clab">Order sets \u2014 fill the basket</span>' +
+    Object.entries(ORDER_SETS).map(([name, items]) =>
+      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+      '" class="oset px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 hover:border-emerald-400/60 transition">' +
+      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join(''));
+  for(const [group, items] of Object.entries(PALETTE))
+    parts.push('<span class="clab" style="margin-top:.45rem">' + esc(group) + '</span>' +
+      items.map(it => chip(it[0], it[1])).join(''));
+  host.innerHTML = '<div class="cluster" id="clOrders">' + parts.join('') + '</div>';
+  wirePalChips(host);
+  for(const b of host.querySelectorAll('.oset')) b.onclick = () => basketAddSet(b.dataset.os);
+}
 // The nurse's latest line, on one line above the command box. renderChat already runs on
 // every turn and every code callout, so it drives this too.
 function paintTicker(){
@@ -4708,9 +4743,17 @@ function paintOrderLog(){
 }
 function paintConsole(){
   const host = $('console'); if(!host) return;
-  const on = document.body.classList.contains('console') && codeAnswers();
+  const inRoom = document.body.classList.contains('console');
+  const on = inRoom && codeAnswers();
   host.innerHTML = '';
   const rib = $('ribbon'); if(rib){ rib.innerHTML = ''; rib.classList.toggle('hidden', !on); }
+  // EVERY CASE NEEDS ITS ORDERS ON THE WALL, not just the seventeen with a code.
+  // Kim: "I can't see the order sets on the orders tab at the bottom." The console hides
+  // #qaRow and #palWrap on the grounds that "the chips live on the wall now" — but the
+  // wall clusters are built from the code script, so on the 155 cases without one the
+  // wall was empty AND the bar was hidden, and the sim room offered no clickable order
+  // at all. The typed command line was the only way in.
+  if(inRoom && !on){ paintProseConsole(host); return; }
   if(!on) return;
   const g = codeChipGroups(); if(!g) return;
   const cluster = (id, label, chips) =>
@@ -5208,6 +5251,12 @@ function renderPlay(){
       </div>
     </div>
     <div id="monMeta" class="max-w-[1500px] mx-auto flex justify-between items-center mt-2 px-1">
+      <!-- WHO IS THIS. Kim: "in all the cases the age should appear at the beginning as an
+           actual number." Every one of the 172 cases carries patient.age, and the chart
+           panel has always led with it — but that panel is not on screen in the sim room,
+           so inside the room the patient had no age at all. Age changes the differential
+           and every weight-based dose, so it goes first, before the clock. -->
+      <span id="v_who" class="text-[10px] font-black uppercase tracking-widest text-amber-300/90"></span>
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Temp: <span id="v_temp" class="text-slate-300"></span></span>
       <span id="v_clockChip" title="Sim time since arrival. Orders cost time — labs ~18 min, CT ~25, consults ~10. The bar drains toward the next change in the patient's condition." class="text-[13px] font-black uppercase tracking-widest px-3 py-1 rounded-md border border-emerald-800/60 bg-emerald-500/10 text-emerald-300 transition-colors">ER&nbsp;Clock <span id="v_clock" class="mono">T+0 min</span><span id="v_next" class="hidden"> · <span id="v_nextMin" class="mono"></span> to next event</span></span>
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Rhythm: <span id="v_rhythm"></span></span>
@@ -6178,6 +6227,10 @@ function describeAge(p){
   const yrs = parseFloat(raw);
   if(isFinite(yrs)){
     if(yrs >= 1) return `${Math.round(yrs)}-year-old`;
+    // Under a month, months round to ZERO: the three-day-old with the sunken fontanelle
+    // was stored as 0.01 and her chart header read "0-month-old". Below one month the
+    // only honest unit is days, and at that age it is the unit every dose is written in.
+    if(yrs > 0 && yrs * 12 < 1) return `${Math.max(1, Math.round(yrs * 365))}-day-old`;
     if(yrs > 0)  return `${Math.round(yrs * 12)}-month-old`;
   }
   if(/\binfant\b/.test(text)) return 'infant';
@@ -6185,6 +6238,23 @@ function describeAge(p){
   return '';                       // nothing stated — caller falls back to the band
 }
 
+// The same age, said the way a chart header says it: "58 yr old", "3 day old",
+// "4 month old", "newborn". describeAge() is the prose form and stays as it is — it
+// spells the units and hyphenates for a sentence.
+function ageShort(p){
+  const long = describeAge(p);                       // '58-year-old' | 'newborn' | ''
+  if(!long) return '';
+  if(long === 'newborn' || long === 'infant' || long === 'child') return long;
+  return long.replace(/-old$/, ' old').replace(/-year /, ' yr ').replace(/-/g, ' ');
+}
+// Painted with the vitals, so it survives every repaint of the room and every camera.
+function paintWho(){
+  const el = $('v_who'); if(!el) return;
+  const p = S.patient || {};
+  const age = ageShort(p);
+  const sex = p.sex === 'female' ? 'female' : (p.sex === 'male' ? 'male' : '');
+  el.textContent = [age, sex].filter(Boolean).join(' ');
+}
 let patientRAF=null, _breathT=0;
 function renderPatient(){
   const host=$('patientPanel'); if(!host) return;
@@ -6736,7 +6806,12 @@ function enterCinema(){
 // wherever the last one left it and nothing remembered it between rooms. Every deliberate
 // open and close goes through here; the preference is what the player last chose, so the
 // chart is waiting where they left it in the next case too.
-function _resultsPref(){ try{ return localStorage.getItem('ms_results') === '1'; }catch(_){ return false; } }
+// OPEN BY DEFAULT. Kim: "keep results tab open by default." The drawer used to start
+// shut and only stay open once you had opened it yourself, so a first case — and every
+// case for anyone who never found the tab — ran with the chart hidden. It opens over
+// empty wall and covers no control, so there is nothing to be gained by hiding it. Only
+// an explicit close ('0') keeps it shut; a browser that has never been asked gets it open.
+function _resultsPref(){ try{ return localStorage.getItem('ms_results') !== '0'; }catch(_){ return true; } }
 function setResults(open){
   document.body.classList.toggle('resultsOpen', !!open);
   try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
@@ -6853,12 +6928,14 @@ document.addEventListener('keydown', e=>{
   // An open drawer is the nearest thing to dismiss, and Esc is the universal dismiss key.
   // Leaving the room out from under a player who only wanted to shut the chart is the
   // wrong answer to that keystroke.
+  // ESC MEANS LEAVE. It closes the TRANSCRIPT first, because that drawer is an overlay
+  // sitting on top of the order clusters and dismissing it is the nearest thing to
+  // dismiss. It does NOT close the chart: now that the chart opens by default it is part
+  // of the room rather than something you put there, and treating it as dismissable cost
+  // every exit a second keystroke — the first one appearing to do nothing but take the
+  // chart away. The chart has its own ✕ and its own tab.
   const b=document.body.classList;
-  if(b.contains('resultsOpen') || b.contains('feedOpen')){
-    b.remove('feedOpen');
-    if(b.contains('resultsOpen')) setResults(false); else paintLabsRail();
-    return;
-  }
+  if(b.contains('feedOpen')){ b.remove('feedOpen'); paintLabsRail(); return; }
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinExit')) leaveCinema(true); });   // the labelled button IS deliberate
