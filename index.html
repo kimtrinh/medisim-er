@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-1USev8OpNjJhEJcQPbWKnt4xIhiyNEoBLHI+vzn5/nw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nOh6TrOrshbEAUmucHVOTO2Yv5QL0feb9oa5HN0I35M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -915,7 +915,7 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
         <p id="voiceHelp" class="text-[11px] leading-relaxed text-slate-500 mb-2"></p>
         <div class="flex items-center gap-2 mb-2">
           <span id="ttsDot" class="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
-          <span id="ttsStatus" class="text-[10px] font-black uppercase tracking-widest text-slate-500">Local voice server: checking…</span>
+          <span id="ttsStatus" class="text-[10px] font-black uppercase tracking-widest text-slate-500">Voice cast: checking…</span>
         </div>
         <input id="ttsURL" class="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 mb-3" placeholder="http://localhost:7070" />
     </div>
@@ -2593,7 +2593,6 @@ function browserSpeak(segments){
 // POST.
 let _ttsProbe = null;
 async function probeTtsServer(force){
-  if(PUBLIC_BUILD){ S.ttsServerOK = false; return false; }   // never on the public site
   if(_ttsProbe && !force) return _ttsProbe;
   _ttsProbe = (async () => {
     if(!S.ttsURL){ S.ttsServerOK = false; return false; }
@@ -2616,8 +2615,8 @@ function paintVoiceStatus(){
   if(!dot || !st) return;
   const ok = !!S.ttsServerOK;
   dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' + (ok ? 'bg-emerald-400' : 'bg-slate-600');
-  st.textContent = ok ? 'Local voice server: running — full 12-voice cast'
-                      : 'Local voice server: not running — using your browser voices';
+  st.textContent = ok ? 'Voice cast: running — all twelve voices'
+                      : 'Voice cast: not running — ./voice-server/install.sh then ./start-tts.sh';
   st.className = 'text-[10px] font-black uppercase tracking-widest ' + (ok ? 'text-emerald-400' : 'text-slate-500');
 }
 // Where this machine keeps its downloadable voices. The good ones are a download, not a
@@ -2673,16 +2672,22 @@ function paintVoiceTip(){
       <div class="flex items-start gap-3">
         <span class="text-lg leading-none mt-0.5">\u{1F50A}</span>
         <div class="flex-1">
-          <p class="text-xs font-bold text-amber-200">The voices on this computer sound robotic \u2014 there are better ones, free.</p>
-          <p class="text-[11px] text-slate-400 leading-relaxed mt-1">Your system ships a much more natural voice, but only downloads it if you ask. It takes about a minute and the whole simulator sounds different afterwards.</p>
+          <p class="text-xs font-bold text-amber-200">Right now the team sounds robotic. There is a proper cast \u2014 twelve voices, made for this simulator.</p>
+          <p class="text-[11px] text-slate-400 leading-relaxed mt-1">A different voice for the nurse, the paramedic, the consultant and the family, with the patient matched to their age and sex. It runs on your own machine: no key, no account, and nothing you say leaves the computer. One command to install, one to start.</p>
           <div class="flex flex-wrap gap-2 mt-3">
-            <button id="voiceTipHow" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest transition">${_voiceTipOpen ? 'Hide the steps' : 'Show me how'}</button>
-            <button id="voiceTipHear" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Hear it now</button>
+            <button id="voiceTipHow" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest transition">${_voiceTipOpen ? 'Hide' : 'Get the voice cast'}</button>
+            <button id="voiceTipHear" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition">Hear what you have now</button>
             <button id="voiceTipNo" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-300 text-[10px] font-black uppercase tracking-widest transition">Not now</button>
           </div>
-          ${_voiceTipOpen ? `<ol class="mt-3 space-y-1 text-[11px] text-slate-300 list-decimal list-inside">
-            ${voiceSteps().map(x => `<li>${esc(x)}</li>`).join('')}
-          </ol>` : ''}
+          ${_voiceTipOpen ? `
+            <p class="text-[11px] text-slate-300 mt-3 mb-1">In a terminal, from the MediSim folder \u2014 the first line downloads about 340&nbsp;MB and is needed once:</p>
+            <pre class="rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-[11px] text-emerald-300 overflow-x-auto"><code>./voice-server/install.sh
+./start-tts.sh</code></pre>
+            <p class="text-[11px] text-slate-500 leading-relaxed mt-1.5">Leave it running and reload this page. The cast is picked up automatically, here and on the live site \u2014 a browser is allowed to talk to your own machine.</p>
+            <p class="text-[11px] text-slate-500 leading-relaxed mt-2"><b class="text-slate-400">Would rather not run anything?</b> Your system has better voices than the one you are hearing, free, but only downloads them if you ask:</p>
+            <ol class="mt-1 space-y-1 text-[11px] text-slate-400 list-decimal list-inside">
+              ${voiceSteps().map(x => `<li>${esc(x)}</li>`).join('')}
+            </ol>` : ''}
         </div>
       </div>
     </div>`;
@@ -2737,8 +2742,10 @@ async function speakSegments(segments, force){
   }
   // 2) Local Kokoro cast
   const segs = roleSegs.map(s=>({ ...segVoice(s.role), text: s.text }));
-  // Only when the server actually answered /health — otherwise every turn paid for a
-  // doomed request, on the public site too.
+  // Only when the server actually answered /health — otherwise every turn pays for a
+  // doomed request. The probe runs everywhere now, including the deployed site: a browser
+  // treats http://localhost as trustworthy, so a page on https can reach a cast running on
+  // the listener's own machine.
   if(S.ttsURL && S.ttsServerOK){
     try{
       const res = await fetch(S.ttsURL.replace(/\/+$/,'')+'/tts_multi', {
