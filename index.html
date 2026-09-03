@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NmYnLfnrlyU4JW+gKE/DiylNBmb/LL24tiSklDV/sD0=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-1USev8OpNjJhEJcQPbWKnt4xIhiyNEoBLHI+vzn5/nw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3230,6 +3230,7 @@ function renderSetup(){
            deep, and the app's explanation of it was itself buried eleven sections into
            Settings. It is offered here instead — but ONLY on a machine that actually
            needs it, so anyone who already has a good voice is never nagged. -->
+      <div id="mergeOffer" class="hidden mb-5 p-4 rounded-2xl border border-emerald-700/50 bg-emerald-950/25"></div>
       <div id="voiceTip" class="hidden mb-5"></div>
       <div class="bg-slate-900/50 border border-slate-800 rounded-3xl p-7">
         <div class="mb-1">
@@ -3263,7 +3264,6 @@ function renderSetup(){
           <!-- The training log lives with the library because that is where a returning
                player already is, and because its second list is a to-do for whoever
                maintains the case packs. Hidden until there is a case in it. -->
-          <div id="mergeOffer" class="hidden mt-4 p-3 rounded-xl border border-emerald-800/50 bg-emerald-950/20"></div>
           <div id="logReport" class="mt-5 pt-4 border-t border-slate-800 hidden"></div>
           <p class="text-[10px] text-slate-600 mt-2"><a href="privacy.html" class="hover:text-emerald-500 underline underline-offset-2">Privacy</a> · <a href="terms.html" class="hover:text-emerald-500 underline underline-offset-2">Terms of use</a></p>
           <p class="text-[10px] text-slate-600 mt-1.5">Written in advance and mechanically validated, but not all independently clinician-reviewed. Verify teaching points against current guidance. ${useInstant()
@@ -4491,8 +4491,9 @@ async function initGold(){
   if(lr){
     // Signed in: the log, once there is one. Signed out with sign-in available: the offer.
     // Sign-in switched off entirely: exactly the old behaviour.
-    const show = historyOwned() ? getCaseLog().length > 0
-                                : (typeof Account !== 'undefined' && Account.status().enabled);
+    const show = historyOwned()
+      ? (getCaseLog().length > 0 || !!_acctUser())      // signed in: always, even at zero
+      : (typeof Account !== 'undefined' && Account.status().enabled);
     lr.classList.toggle('hidden', !show);
     if(show) renderLogReport();
   }
@@ -8295,6 +8296,15 @@ function renderLogReport(){
     return;
   }
   const r = logReport();
+  if(!r.cases){
+    host.innerHTML = `
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Training log</span>
+        <span class="text-[10px] text-slate-600">${esc(_acctUser() ? _acctUser().email : '')}</span>
+      </div>
+      <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Empty so far. Finish a case and it starts here: your scores, the critical actions you keep missing, and the orders the simulator failed to understand. Private to you, and it follows you to your other devices.</p>`;
+    return;
+  }
   const row = (x, tone) => `<div class="flex items-baseline gap-2 py-1 border-b border-slate-900/70 last:border-0">
       <span class="mono text-[11px] ${tone} shrink-0 w-8 text-right">${x.n}\u00d7</span>
       <span class="text-xs text-slate-300 flex-1">${esc(x.text)}</span>
