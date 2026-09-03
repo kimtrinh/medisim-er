@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-W4VKFfzHLpNNR880DbpmI/jhIsdi5D2FTlAeo5gqEJk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-43h1NmU0ZvaB7h02x0XdY+APjknRNSM0eQC6UayuLOY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -152,9 +152,131 @@
   body.cinema.hudClear #sideBar,
   body.cinema.hudClear #orderBar,
   body.cinema.hudClear #cinemaCard,
+  body.cinema.hudClear #console,
+  body.cinema.hudClear #ribbon,
   body.cinema.hudClear .cinTab{display:none}
   body.cinema.hudClear #monMeta{display:none}
   body.cinema.hudClear #monBar{padding:.3rem .6rem}
+  /* ===================== THE ROOM IS THE CONSOLE =====================
+     Kim: "It's such a waste to have a beautiful picture of the patient and the room
+     being obscured by all the data. Can you think of innovative ways to have everything
+     showed?" — everything SHOWN, not hidden. The CLEAR toggle already hides it.
+
+     Measured at 1440x900 with the ACLS palette open, the order bar covered 53% of the
+     bed (up to 95% once the order feedback opened), and a code force-opens it — so the
+     state where the room is most worth watching was the state where the bar was
+     tallest. Every other panel was already over wall and equipment, not the patient.
+
+     So the chips move OUT of the bar and onto the wall beside the equipment they
+     belong to: shock energies by the defibrillator, drugs by the IV pole, airway by the
+     airway cart, CPR and access on the empty left wall. The telemetry strip becomes the
+     overhead display it is drawn as. The transcript and the chart become drawers. What
+     is left at the bottom is one line: the nurse's latest words and the order box.
+
+     ROOM_ASPECT (1.791) is WIDER than 16:9, so the photo is width-bound on every
+     desktop — there is no letterbox to move panels into, and the coordinates below are
+     the room's own furniture. #console is a frame the exact size of the photo, so a
+     cluster is positioned in plain percentages of the picture rather than the viewport.
+
+     The protected region is the bed: x 27-73%, y 43-90% (ROOM_BED_CLIP). Nothing here
+     may enter it, and tests/room-and-tally.test.cjs measures that it does not. */
+  body.cinema.console{--rh:calc(var(--rw) / var(--ra, 1.791));
+                      --rt:calc((100vh - var(--rh)) / 2)}
+  #console{position:absolute;left:var(--rl);top:var(--rt);width:var(--rw);height:var(--rh);
+    pointer-events:none;display:none}
+  body.cinema.console #console{display:block}
+  #console .cluster{position:absolute;pointer-events:auto;display:flex;flex-wrap:wrap;gap:.25rem;
+    align-content:flex-start;padding:.35rem .4rem;border-radius:12px;
+    border:1px solid rgba(148,163,184,.13);background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(3,7,18,.62));
+    -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
+    box-shadow:0 12px 34px -18px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05);
+    transition:opacity .35s ease}
+  #console .clab{width:100%;font-size:8px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;
+    color:#64748b;margin-bottom:.1rem}
+  /* Boxes chosen against the room's own furniture, and checked against the bed and the
+     cast: medic x21-33, nurse x64-78, both from y24 down. */
+  /* The header is GLASS OVER the photo in cinema, not a bar above it — the picture
+     starts at y4 and runs full bleed. So the top row is placed against the header's
+     measured height rather than against the top of the frame: an element at frame-offset
+     T sits at viewport --rt + T, and we want it at --hdr + 8. */
+  #clCpr   {left:1%;   top:calc(var(--hdr,66px) + 8px - var(--rt)); width:19%}
+  #clMeds  {left:71.5%;top:calc(var(--hdr,66px) + 8px - var(--rt)); width:27.5%}
+  #clRhythm{left:78%;  top:23%;   width:21%}    /* above the defibrillator (x72-85, y39-76) */
+  #clAirway{left:85.5%;top:39.5%; width:13.5%}  /* above the airway cart (x85-99, y51-84) */
+  /* THE CALL. Not a full-width ribbon along the foot: below the bed (which ends at y90%)
+     there is only ~85px of picture left, and the nurse's line and the command box need
+     it. It stands on the empty left wall instead, clear of the ultrasound cart (x4-18,
+     y39-86) and the medic (x21-33). */
+  #ribbon  {position:absolute;left:1%;top:52%;width:20.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
+    gap:.25rem;align-content:flex-start;padding:.35rem .4rem;border-radius:12px;
+    border:1px solid rgba(148,163,184,.13);background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(3,7,18,.62));
+    -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
+    box-shadow:0 12px 34px -18px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
+  body.cinema.console #ribbon{display:flex}
+  #ribbon.hidden{display:none}
+  /* THE OVERHEAD DISPLAY. #monBar itself, moved — not a new surface: tests/ui.test.cjs
+     probes #ecg and #pleth by id for their backing store and trace coverage, startECG
+     binds them on every renderPlay, and the wall monitor blits from them. */
+  /* #monBar is absolute inside #main, which already begins below the header — so `top`
+     here is measured from y=--hdr, not from the viewport. */
+  body.cinema.console #monBar{left:calc(var(--rl) + var(--rw) * .295);width:calc(var(--rw) * .405);
+    right:auto;top:4px;padding:.3rem .4rem}
+  body.cinema.console #monGrid{display:block}
+  /* Tall enough to read a rhythm off: the room tests pin a 45px floor on #ecg itself,
+     and #ecgBox holds the pleth under it at roughly a 3:2 split. */
+  body.cinema.console #ecgBox{height:76px}
+  /* Four across, not two down — a 2x2 grid made the display 364px tall and it reached
+     into the bed, which is the one thing this layout may never do. The long vital names
+     wrap and cost 40px of height, so the display wears the monitor's own abbreviations. */
+  body.cinema.console #vitalsGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.2rem;margin-top:.25rem}
+  body.cinema.console #vitalsGrid > div{padding:.2rem .3rem}
+  body.cinema.console #vitalsGrid .vLab{display:none}
+  body.cinema.console #vitalsGrid .vLabShort{display:inline}
+  body.cinema.console #monMeta{margin-top:.2rem;font-size:9px;line-height:1.25}
+  /* The dashboard wraps to two rows at this width, and those rows are what pushed the
+     display's foot into the bed. Smaller chips, tighter gaps — the numbers are still the
+     numbers. */
+  /* The stylesheet deliberately floors small text at 11px for legibility, so the
+     dashboard cannot be shrunk — it is widened instead: at 28% of the photo it wrapped
+     to two rows and those rows pushed the display's foot into the bed. */
+  body.cinema.console #codeStrip{margin-bottom:.1rem}
+  body.cinema.console #codeStrip > div{gap:.2rem}
+  body.cinema.console #monBar .text-3xl{font-size:clamp(.85rem,1.15vw,1.15rem)}
+  body.cinema.console #monMeta{margin-top:.25rem;font-size:9px}
+  /* The chips live on the wall now; the bar keeps only the command line. */
+  body.cinema.console #qaRow,
+  body.cinema.console #palWrap,
+  body.cinema.console #cinemaCard{display:none}
+  body.cinema.console #orderBar{left:var(--gap);right:var(--gap);bottom:2px;top:auto;
+    max-height:none;height:auto;overflow:visible;padding:.3rem .45rem}
+  /* "Hide quick actions" has nothing left to hide once the chips are on the wall. */
+  body.cinema.console #obToggleRow{display:none}
+  /* THE TICKER. The transcript is a drawer now, so the nurse's latest line rides above
+     the command box — she is the whole feedback loop of a code and must never be behind
+     a click. The bubbles over the cast still carry it too; this is the one that persists. */
+  #ticker{display:none}
+  body.cinema.console #ticker{display:block;margin:0 0 .3rem;padding:.15rem .3rem;
+    font-size:11px;line-height:1.35;color:#cbd5e1;cursor:pointer;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.cinema.console #ticker:hover{color:#e2e8f0}
+  body.cinema.console.feedOpen #ticker{display:none}
+  body.cinema.console #obInputRow{margin:0}
+  /* Order feedback and the nurse readback float ABOVE the dock instead of growing it. */
+  body.cinema.console #orderFeedback,
+  body.cinema.console #readbackChip{position:absolute;left:.5rem;right:.5rem;bottom:100%;margin-bottom:.4rem}
+  /* Transcript and chart become drawers, closed by default — the room is the point. */
+  body.cinema.console #chat{display:none}
+  body.cinema.console.feedOpen #chat{display:flex;left:var(--gap);width:var(--colL);
+    top:calc(var(--hdr,62px) + 8px);bottom:64px;height:auto;z-index:26}
+  body.cinema.console #sideBar{display:none}
+  body.cinema.console.labsOpen #sideBar{display:block;right:var(--gap);width:var(--colR);
+    top:calc(var(--hdr,62px) + 8px);bottom:64px;z-index:26}
+  /* Same specificity as body.cinema.hudClear #console, and this block comes later — so
+     CLEAR has to say it again here or the console would win the tie and stay up. */
+  body.cinema.console.hudClear #console,
+  body.cinema.console.hudClear #ribbon{display:none}
+  body.cinema.console #cinLeft{bottom:auto;top:38%}
+  body.cinema.console #cinRight{top:38%}
   #cinemaHud{position:fixed;inset:0;z-index:25;pointer-events:none;display:none}
   body.cinema #cinemaHud{display:block}
   #cinemaHud > *{pointer-events:auto}
@@ -182,7 +304,7 @@
      sideways. It is a desktop control — on a phone the order box and Dx carry it. */
   #dxBox{display:none}
   @media (min-width:768px){
-    #dxBox.dxReady{display:flex;min-width:min(430px,34vw);max-width:38rem}
+    #dxBox.dxReady{display:flex;min-width:min(340px,26vw);max-width:30rem}
   }
   /* ===================== CINEMA ON A PHONE =====================
      Below md the floating HUD has nowhere to float: four panels squeezed over a 375px
@@ -593,7 +715,7 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
          rebuilds on every order) and is revealed by body.cinema — see the CINEMA MODE
          block in the stylesheet. -->
     <div id="cinemaCtl" class="hidden items-center gap-2 mr-1">
-      <span class="text-[9px] font-black uppercase tracking-[.25em] text-slate-500 hidden lg:inline">Cinema · Esc to exit</span>
+      <span class="text-[9px] font-black uppercase tracking-[.25em] text-slate-500 hidden 2xl:inline">Cinema · Esc to exit</span>
       <button id="cinClear" title="Hide the panels and see the whole room (H)" class="px-3 py-2.5 rounded-2xl border-2 bg-slate-900/70 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-500 hover:text-slate-100 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
         <span id="cinClearIcon" class="text-sm leading-none">👁</span> <span id="cinClearLab" class="hidden sm:inline">Clear</span>
       </button>
@@ -4090,6 +4212,113 @@ const CALL_IT_PERFUSING = [
 // one readable branch instead of three nested template literals. During a code the
 // order sets are hidden too — a condition bundle is a considered workup, not something
 // you assemble mid-arrest.
+// THE CONSOLE. The same chips paletteBodyHTML builds, placed on the wall beside the
+// equipment they belong to instead of stacked in a bar over the patient.
+//
+// This deliberately does NOT share paletteBodyHTML's body. Three tests pin that
+// function's literal shape — the narrow flag, the callIt + causes branches, the
+// CALL_IT_PERFUSING ternary — and they exist because a previous refactor of it made the
+// Hs & Ts row silently invisible above 768px for weeks. So the two renderers read the
+// same SOURCES (CODE_PALETTE, the script's drugs and causes, CALL_IT_*) and a test
+// asserts they offer the same chips; drift is caught rather than designed away.
+function codeChipGroups(){
+  const sc = S.codeScript, c = S.code;
+  if(!sc || !c) return null;
+  const out = { rhythm: [], cpr: [], airway: [], meds: [], callIt: [], causes: [] };
+  out.rhythm = [
+    ['Defibrillate ' + codeShockJoules(sc, c) + ' J', codeShockOrder(sc, c), 'consolePalDefib'],
+    ['Sync cardiovert ' + codeSyncJoules(sc) + ' J', codeSyncOrder(sc)],
+    ['Pacing', 'Start transcutaneous pacing'],
+    ['Vagal', 'Try vagal maneuvers'],
+  ];
+  // CODE_PALETTE's second group is the hands-on work; it splits between the two
+  // clusters by what the equipment in the picture actually is.
+  const AIRWAY_LABELS = /bag|mask|intubat|supraglottic|capnograph|airway|tube/i;
+  for(const [lab, order] of (CODE_PALETTE['CPR, airway & access'] || []))
+    (AIRWAY_LABELS.test(lab) ? out.airway : out.cpr).push([lab, order]);
+  out.meds = Object.keys(sc.drugs || {})
+    .filter(n => codeDrugDose(sc, c, n) != null)
+    .map(n => [n, null, 'console_' + n, n]);          // label + dose are painted per tick
+  out.callIt = (c.pulse ? CALL_IT_PERFUSING : CALL_IT_ARREST).map(x => [x[0], x[1]]);
+  const acts = (sc.causes && sc.causes.actions) || {};
+  out.causes = ((sc.causes && sc.causes.required) || [])
+    .map(k => (acts[k] || [])[0]).filter(Boolean).map(a => [a, a]);
+  return out;
+}
+function consoleChip(lab, order, id, drug, tone){
+  const t = tone || 'border-slate-700 text-slate-200';
+  return '<button ' + (id ? 'id="' + esc(id) + '" ' : '') +
+    (drug ? 'data-drug="' + esc(drug) + '" ' : '') +
+    'data-pal="' + esc(order == null ? '' : order) + '" data-lab="' + esc(lab) + '" ' +
+    'class="pal px-1.5 py-1 rounded-md border bg-slate-900/70 hover:bg-slate-800 text-[10px] font-black ' +
+    'uppercase tracking-wider whitespace-nowrap transition ' + t + '">' + esc(lab) + '</button>';
+}
+// The chip click, in one place. It used to be an inline closure attached by renderPlay,
+// which meant only chips that existed at THAT moment were live — the console repaints on
+// its own clock (a rhythm change, ROSC, a walk to another camera) and its chips would
+// have been dead.
+function palChipClick(b){
+  if(typeof codeAnswers === 'function' && codeAnswers()){
+    // A drug chip computes its order NOW — amiodarone is 150 mg while the pulse holds
+    // and 300 the moment it is lost, and the dose ordered must be the dose that is true
+    // at the click, not at the last repaint.
+    if(b.dataset.drug) return queueClinicalAction(b.textContent.trim(),
+      codeDrugOrder(S.codeScript, S.code, b.dataset.drug));
+    return queueClinicalAction(b.dataset.lab, b.dataset.pal);
+  }
+  basketAdd(b.dataset.lab, b.dataset.pal);
+}
+function wirePalChips(root){
+  if(!root) return;
+  for(const b of root.querySelectorAll('.pal')) b.onclick = () => palChipClick(b);
+}
+// The nurse's latest line, on one line above the command box. renderChat already runs on
+// every turn and every code callout, so it drives this too.
+function paintTicker(){
+  const el = $('ticker'); if(!el) return;
+  const m = (S.messages || []).filter(x => x.role === 'assistant');
+  const last = m.length ? String(m[m.length - 1].content || '').trim() : '';
+  el.textContent = last ? '\u25b8 ' + last : '';
+  el.onclick = () => { document.body.classList.add('feedOpen'); const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };
+}
+function paintConsole(){
+  const host = $('console'); if(!host) return;
+  const on = document.body.classList.contains('console') && codeAnswers();
+  host.innerHTML = '';
+  const rib = $('ribbon'); if(rib){ rib.innerHTML = ''; rib.classList.toggle('hidden', !on); }
+  if(!on) return;
+  const g = codeChipGroups(); if(!g) return;
+  const cluster = (id, label, chips) =>
+    '<div class="cluster" id="' + id + '"><span class="clab">' + label + '</span>' + chips.join('') + '</div>';
+  const parts = [];
+  if(g.cpr.length)    parts.push(cluster('clCpr', 'CPR &amp; access',
+    g.cpr.map(x => consoleChip(x[0], x[1], null, null, 'border-rose-500/40 text-rose-200'))));
+  if(g.meds.length)   parts.push(cluster('clMeds', 'Meds',
+    g.meds.map(x => consoleChip(x[0], null, x[2], x[3], 'border-emerald-500/40 text-emerald-200'))));
+  if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
+    g.rhythm.map(x => consoleChip(x[0], x[1], x[2], null, 'border-amber-500/40 text-amber-200'))));
+  if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
+    g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
+  host.innerHTML = parts.join('');
+  // The judgement calls and the reversible causes run along the foot of the picture,
+  // below the bed (which ends at y 90%).
+  if(rib){
+    const bits = [];
+    if(g.callIt.length){
+      bits.push('<span class="clab" style="width:auto;margin:0 .3rem 0 0">Call it</span>');
+      for(const [lab, order] of g.callIt)
+        bits.push(consoleChip(lab, order, null, null, 'border-violet-500/40 text-violet-200'));
+    }
+    if(g.causes.length){
+      bits.push('<span class="clab" style="width:auto;margin:0 .3rem 0 .6rem">Hs &amp; Ts</span>');
+      for(const [lab, order] of g.causes)
+        bits.push(consoleChip(lab, order, null, null, 'border-amber-500/40 text-amber-200'));
+    }
+    rib.innerHTML = bits.join('');
+  }
+  wirePalChips(host); wirePalChips(rib);
+  paintCodeStrip();      // fills the drug faces with their live doses
+}
 function paletteBodyHTML(){
   const inCode = typeof codeActive === 'function' && codeActive();
   let groups = inCode ? CODE_PALETTE : PALETTE;
@@ -4579,6 +4808,7 @@ function renderPlay(){
         <div id="basketTray" class="hidden mb-2"></div>
         <div id="readbackChip" class="hidden mb-2"></div>
         <div id="orderFeedback" class="${(S.orderFeedback||[]).length?'':'hidden'} mb-2"></div>
+        <div id="ticker" title="Open the transcript"></div>
         <!-- KEEP "flex items-end" AND the id: the phone rules select
              "#orderBar > div.flex.items-end" to pin THIS row to the foot of the screen,
              which is the only thing that keeps the order input reachable there, and
@@ -4588,7 +4818,7 @@ function renderPlay(){
         <div id="obInputRow" class="flex items-end gap-2">
           <div class="relative flex-1">
             <div id="typeahead" class="hidden absolute bottom-full left-0 right-0 mb-1.5 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl z-20"></div>
-            <textarea id="cmd" rows="1" aria-label="Free-text orders or actions" placeholder="Type orders — combine with order sets, or use Dx for a diagnosis" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 max-h-32"></textarea>
+            <textarea id="cmd" rows="1" aria-label="Free-text orders or actions" placeholder="Type orders — or combine them with the order sets below" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 max-h-32"></textarea>
           </div>
           ${PUBLIC_BUILD ? '' : `<button id="micBtn" class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-400 transition" title="Dictate">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
@@ -4617,6 +4847,7 @@ function renderPlay(){
   paintCodeStrip();
   renderChat(); renderWorkspace(); renderPatient();
   paintDxBox();
+  paintConsole();   // the wall chips live in #cinemaHud, outside the rebuild
   paintSoundBtn();
   $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
   const cmd=$('cmd');
@@ -4757,17 +4988,7 @@ function renderPlay(){
   // the palette IS the ACLS list then, and nothing in a resuscitation is "queued".
   // This wiring went straight to basketAdd, which is why a defibrillation clicked here
   // never reached the code engine even after queueClinicalAction was taught to.
-  document.querySelectorAll('.pal').forEach(b=>b.onclick=()=>{
-    if(typeof codeAnswers === 'function' && codeAnswers()){
-      // A drug chip computes its order NOW — amiodarone is 150 mg while the pulse
-      // holds and 300 the moment it is lost, and the dose ordered must be the dose
-      // that is true at the click, not at the last repaint.
-      if(b.dataset.drug) return queueClinicalAction(b.textContent.trim(),
-        codeDrugOrder(S.codeScript, S.code, b.dataset.drug));
-      return queueClinicalAction(b.dataset.lab, b.dataset.pal);
-    }
-    basketAdd(b.dataset.lab, b.dataset.pal);
-  });
+  wirePalChips(document);
   document.querySelectorAll('.oset').forEach(b=>b.onclick=()=>basketAddSet(b.dataset.os));
   $('queueBtn').onclick=()=>{
     if(S.loading) return;
@@ -5838,16 +6059,26 @@ function ensureCinemaStage(){
   let hud=document.getElementById('cinemaHud');
   if(!hud){
     hud=document.createElement('div'); hud.id='cinemaHud';
-    hud.innerHTML=`<div id="cinemaCard"></div>
+    hud.innerHTML=`<div id="console"></div><div id="ribbon" class="hidden"></div><div id="cinemaCard"></div>
       <button id="cinLeft" class="cinTab" title="Show / hide the transcript">FEED</button>
       <button id="cinRight" class="cinTab" title="Show / hide the clinical workspace">LABS</button>`;
     document.body.appendChild(hud);
     // Collapsing a column is pure CSS — nothing is unmounted, so the panels keep every
     // handler. display:none DOES zero an element's scrollTop, though, so the transcript
     // is sent back to the newest message when it returns rather than to the top of the case.
-    hud.querySelector('#cinLeft').onclick=()=>{ document.body.classList.toggle('hudL');
-      const c=$('chat'); if(c && !document.body.classList.contains('hudL')) c.scrollTop=c.scrollHeight; };
-    hud.querySelector('#cinRight').onclick=()=>{ document.body.classList.toggle('hudR'); };
+    // In console mode the columns are drawers that start closed — the room is the point,
+    // and the rails are how you look something up. Outside it they fold the columns as
+    // before.
+    hud.querySelector('#cinLeft').onclick=()=>{
+      const cls = document.body.classList.contains('console') ? 'feedOpen' : 'hudL';
+      document.body.classList.toggle(cls);
+      const c=$('chat');
+      const showing = cls === 'feedOpen' ? document.body.classList.contains('feedOpen')
+                                         : !document.body.classList.contains('hudL');
+      if(c && showing) c.scrollTop=c.scrollHeight;
+    };
+    hud.querySelector('#cinRight').onclick=()=>{
+      document.body.classList.toggle(document.body.classList.contains('console') ? 'labsOpen' : 'hudR'); };
     if(!window._cinResize){ window._cinResize=true; addEventListener('resize', cinemaMetrics); }
   }
   cinemaMetrics();
@@ -5859,6 +6090,15 @@ function ensureCinemaStage(){
 // re-measured after every renderPlay, since that is what rebuilds the strip.
 function cinemaMetrics(){
   if(!S.cinema) return;
+  // The console needs room for four wall clusters and a full-width ribbon. Below this
+  // the photo is too small for a chip to sit anywhere that is not the patient, so the
+  // existing floating layout takes over; the phone's stacked layout is untouched below
+  // it again. Re-evaluated here because this is the resize hook.
+  const wantConsole = window.innerWidth >= 1200 && !roomIsStacked();
+  if(document.body.classList.contains('console') !== wantConsole){
+    document.body.classList.toggle('console', wantConsole);
+    paintConsole();
+  }
   document.body.style.setProperty('--ra', ROOM_ASPECT);   // the HUD is laid out against the photo
   const hdr=document.querySelector('header'), mb=$('monBar');
   if(hdr) document.body.style.setProperty('--hdr', Math.round(hdr.getBoundingClientRect().height)+'px');
@@ -5915,7 +6155,7 @@ function toggleClearRoom(){
 function exitCinema(){
   if(!S.cinema) return;
   S.cinema=false;
-  document.body.classList.remove('cinema','hudL','hudR','hudClear');   // collapsed columns don't outlive the room
+  document.body.classList.remove('cinema','hudL','hudR','hudClear','console','feedOpen','labsOpen');   // collapsed columns don't outlive the room
   document.body.style.removeProperty('--hdr');
   document.body.style.removeProperty('--mb');
   document.body.style.removeProperty('--ra');
@@ -6352,6 +6592,7 @@ function transcriptSpeechHTML(m){
   return `<div class="mt-3 pl-3 border-l-2 border-emerald-700/40 space-y-2 text-[13px] leading-relaxed text-slate-100">${rows.join('')}</div>`;
 }
 function renderChat(){
+  paintTicker();
   const c=$('chat'); if(!c) return;
   c.innerHTML=S.messages.map((m,i)=>{
     if(m.role==='user') return `<div class="flex justify-end fade"><div class="max-w-[80%] bg-blue-600/10 border border-blue-500/20 rounded-3xl rounded-tr-none p-4 text-sm text-blue-100">${esc(m.content)}</div></div>`;
