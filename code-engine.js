@@ -683,7 +683,18 @@ function actInner(state, script, text){
   // standard next move, not an epilogue. So the engine keeps answering; it simply
   // refuses the things a patient with a pulse must not be given.
   if(state.ended === 'death') return { handled: false };
-  const s = norm(text);
+  let s = norm(text);
+  // A NUMBER OF JOULES, ON ITS OWN, IS AN ORDER FOR ELECTRICITY.
+  // Kim's atrial-fibrillation run typed "use 200 j" after "cardiovert" had already
+  // failed her; it matched no branch and came back "I didn't understand". A doctor who
+  // has just been asked how much energy answers with the energy. Which therapy it means
+  // is not ambiguous and never a matter of guessing: with a pulse it is a synchronized
+  // cardioversion, without one it is a shock — the same rule the two branches below
+  // already encode. The unit is required, so "give 200 mg" and "sats 200" cannot reach
+  // this, and the clause must be nothing BUT the energy.
+  if(/^(?:use |give |deliver |do |try |go to |charge to |at )?\d{2,3}\s*(?:j|joules?)$/.test(s)){
+    s = (state.pulse ? 'synchronized cardioversion at ' : 'defibrillate at ') + s.replace(/^\D+/, '');
+  }
   if(state.ended === 'rosc' && !postRoscAllows(s)) return { handled: true, events: [postRoscRefusal(state, s)] };
   // The nurse asks questions ("do you want another epi?") and a doctor answers them
   // with a word. "yes" used to fall through to the turn engine and do nothing — a

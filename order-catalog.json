@@ -1462,7 +1462,15 @@
         "asa 325mg",
         "chewable asa",
         "aspirin chew"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "324 mg",
+          "text": "324 mg chewed",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-nitroglycerin",
@@ -1490,7 +1498,15 @@
         "nitro sl",
         "tridil",
         "sub-lingual nitroglycerin"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.4 mg SL",
+          "text": "0.4 mg sublingual",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-heparin",
@@ -1516,7 +1532,20 @@
         "start heparin",
         "anticoag with heparin",
         "heparin protocol"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "80 units/kg",
+          "text": "80 units/kg IV bolus",
+          "default": true,
+          "perKg": 80
+        },
+        {
+          "label": "5000 units",
+          "text": "5000 units IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-morphine",
@@ -1544,7 +1573,15 @@
         "morphine ivp",
         "morphine sc",
         "morphine sq"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "4 mg IV",
+          "text": "4 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-fentanyl",
@@ -1569,7 +1606,19 @@
         "fent 50mcg",
         "fent bolus",
         "fent ivp"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "50 mcg IV",
+          "text": "50 mcg IV",
+          "default": true
+        },
+        {
+          "label": "100 mcg IV",
+          "text": "100 mcg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ondansetron",
@@ -1594,7 +1643,15 @@
         "zofran 4mg",
         "antiemetic zofran",
         "zofran melt"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "4 mg IV",
+          "text": "4 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ketorolac",
@@ -1684,7 +1741,19 @@
         "ceftriaxone im",
         "rocephin gram",
         "rocephin 1g"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 g IV",
+          "text": "2 g IV",
+          "default": true
+        },
+        {
+          "label": "1 g IV",
+          "text": "1 g IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-vancomycin",
@@ -1706,7 +1775,16 @@
         "vanco drip",
         "vancomycin infusion",
         "vanco dosing"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "20 mg/kg IV",
+          "text": "20 mg/kg IV",
+          "default": true,
+          "perKg": 20
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-piperacillin",
@@ -1753,7 +1831,15 @@
         "zpak",
         "z-pack dose",
         "zithromax iv"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "500 mg IV",
+          "text": "500 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-cefepime",
@@ -1771,7 +1857,15 @@
         "cefepime gram",
         "maxipime iv",
         "cefepime 1g"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 g IV",
+          "text": "2 g IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-meropenem",
@@ -1789,7 +1883,15 @@
         "merrem iv",
         "meropenem 1g",
         "mero"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 g IV",
+          "text": "1 g IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-doxycycline",
@@ -1834,7 +1936,15 @@
         "c diff flagyl",
         "start metro",
         "flagyl for anaerobes"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "500 mg IV",
+          "text": "500 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-albuterol",
@@ -1922,7 +2032,27 @@
         "epi 0.3mg im",
         "code epi",
         "epi for anaphylaxis"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 mg IV",
+          "text": "1 mg IV",
+          "default": true
+        },
+        {
+          "label": "0.3 mg IM",
+          "text": "0.3 mg IM"
+        },
+        {
+          "label": "0.5 mg IM",
+          "text": "0.5 mg IM"
+        },
+        {
+          "label": "push-dose 20 mcg",
+          "text": "20 mcg IV push"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-norepinephrine",
@@ -1946,7 +2076,19 @@
         "norepinephrine drip",
         "levophed titrate",
         "first line pressor"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.1 mcg/kg/min",
+          "text": "at 0.1 mcg/kg/min",
+          "default": true
+        },
+        {
+          "label": "5 mcg/min",
+          "text": "at 5 mcg/min"
+        }
+      ],
+      "sentence": "Start {name} {dose}."
     },
     {
       "id": "med-insulin",
@@ -1974,7 +2116,15 @@
         "short acting insulin",
         "rapid acting insulin",
         "insulin for hyperkalemia"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.1 units/kg/hr",
+          "text": "at 0.1 units/kg per hour",
+          "default": true
+        }
+      ],
+      "sentence": "Start an {name} infusion {dose}."
     },
     {
       "id": "med-dextrose",
@@ -2004,7 +2154,24 @@
         "iv dextrose",
         "d50 amp",
         "dextrose gtt"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 amp D50",
+          "text": "one amp of D50 dextrose IV push",
+          "default": true
+        },
+        {
+          "label": "D10 250 mL",
+          "text": "250 mL of D10 dextrose IV"
+        },
+        {
+          "label": "D25 2 mL/kg",
+          "text": "2 mL/kg of D25 dextrose IV",
+          "perKg": 2
+        }
+      ],
+      "sentence": "Give {dose}."
     },
     {
       "id": "med-naloxone",
@@ -2031,7 +2198,23 @@
         "narcan for od",
         "narcan intranasal",
         "narcan 4mg nasal"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.4 mg IV",
+          "text": "0.4 mg IV",
+          "default": true
+        },
+        {
+          "label": "2 mg IV",
+          "text": "2 mg IV"
+        },
+        {
+          "label": "4 mg IN",
+          "text": "4 mg intranasal"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-normal-saline",
@@ -2039,6 +2222,13 @@
       "category": "med",
       "canonical": "normal saline",
       "aliases": [
+        "normal saline bolus",
+        "ns bolus",
+        "saline bolus",
+        "bolus of normal saline",
+        "bolus of saline",
+        "liter of normal saline",
+        "saline wide open",
         "ns",
         "0.9% saline",
         "normal saline bag",
@@ -2059,7 +2249,33 @@
         "0.9% sodium chloride",
         "saline drip",
         "iso saline"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 L",
+          "text": "1 liter",
+          "default": true
+        },
+        {
+          "label": "500 mL",
+          "text": "500 mL"
+        },
+        {
+          "label": "2 L",
+          "text": "2 liter"
+        },
+        {
+          "label": "20 mL/kg",
+          "text": "20 mL/kg",
+          "perKg": 20
+        },
+        {
+          "label": "30 mL/kg",
+          "text": "30 mL/kg",
+          "perKg": 30
+        }
+      ],
+      "sentence": "Give a {dose} {name} bolus."
     },
     {
       "id": "med-lactated-ringers",
@@ -2067,6 +2283,11 @@
       "category": "med",
       "canonical": "lactated ringers",
       "aliases": [
+        "lactated ringers bolus",
+        "lr bolus",
+        "ringers bolus",
+        "bolus of lactated ringers",
+        "liter of lactated ringers",
         "lr",
         "ringers lactate",
         "hang lr",
@@ -2081,7 +2302,33 @@
         "lr iv",
         "lr wide open",
         "give ringers"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 L",
+          "text": "1 liter",
+          "default": true
+        },
+        {
+          "label": "500 mL",
+          "text": "500 mL"
+        },
+        {
+          "label": "2 L",
+          "text": "2 liter"
+        },
+        {
+          "label": "20 mL/kg",
+          "text": "20 mL/kg",
+          "perKg": 20
+        },
+        {
+          "label": "30 mL/kg",
+          "text": "30 mL/kg",
+          "perKg": 30
+        }
+      ],
+      "sentence": "Give a {dose} {name} bolus."
     },
     {
       "id": "med-hypertonic",
@@ -2098,7 +2345,23 @@
         "hypertonic drip",
         "start hypertonic saline",
         "give 3% saline"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "250 mL 3%",
+          "text": "250 mL of 3% hypertonic saline",
+          "default": true
+        },
+        {
+          "label": "150 mL 3%",
+          "text": "150 mL of 3% hypertonic saline"
+        },
+        {
+          "label": "30 mL 23.4%",
+          "text": "30 mL of 23.4% hypertonic saline"
+        }
+      ],
+      "sentence": "Give {dose}."
     },
     {
       "id": "med-iv-fluids",
@@ -2106,6 +2369,10 @@
       "category": "med",
       "canonical": "iv fluids",
       "aliases": [
+        "crystalloid",
+        "crystalloid bolus",
+        "balanced crystalloid",
+        "isotonic fluids",
         "ivf",
         "start fluids",
         "hang fluids",
@@ -2123,7 +2390,31 @@
         "start ivf",
         "hydrate",
         "fluid replacement"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "wide open",
+          "text": "wide open",
+          "default": true
+        },
+        {
+          "label": "at 125 mL/hr",
+          "text": "at 125 mL/hr"
+        },
+        {
+          "label": "at 100 mL/hr",
+          "text": "at 100 mL/hr"
+        },
+        {
+          "label": "at 75 mL/hr",
+          "text": "at 75 mL/hr"
+        },
+        {
+          "label": "KVO",
+          "text": "KVO"
+        }
+      ],
+      "sentence": "Run {name} {dose}."
     },
     {
       "id": "med-bolus",
@@ -2147,7 +2438,33 @@
         "push fluids",
         "rapid infusion",
         "bolus challenge"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 L",
+          "text": "1 liter",
+          "default": true
+        },
+        {
+          "label": "500 mL",
+          "text": "500 mL"
+        },
+        {
+          "label": "2 L",
+          "text": "2 liter"
+        },
+        {
+          "label": "20 mL/kg",
+          "text": "20 mL/kg",
+          "perKg": 20
+        },
+        {
+          "label": "30 mL/kg",
+          "text": "30 mL/kg",
+          "perKg": 30
+        }
+      ],
+      "sentence": "Give a {dose} normal saline bolus."
     },
     {
       "id": "med-oxygen",
@@ -2221,7 +2538,19 @@
         "mag replacement",
         "mag gtt",
         "iv mag"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 g IV",
+          "text": "2 g IV",
+          "default": true
+        },
+        {
+          "label": "4 g IV",
+          "text": "4 g IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-potassium",
@@ -2271,7 +2600,19 @@
         "amio 150mg",
         "cordarone drip",
         "amio for vtach"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "300 mg IV",
+          "text": "300 mg IV",
+          "default": true
+        },
+        {
+          "label": "150 mg IV",
+          "text": "150 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-adenosine",
@@ -2292,7 +2633,19 @@
         "adenocard iv",
         "push adenosine fast",
         "adenosine for svt"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "6 mg IV",
+          "text": "6 mg IV push",
+          "default": true
+        },
+        {
+          "label": "12 mg IV",
+          "text": "12 mg IV push"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-diltiazem",
@@ -2316,7 +2669,24 @@
         "cardizem iv",
         "diltiazem gtt",
         "diltiazem push"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.25 mg/kg",
+          "text": "0.25 mg/kg IV over 2 minutes",
+          "default": true,
+          "perKg": 0.25
+        },
+        {
+          "label": "15 mg IV",
+          "text": "15 mg IV"
+        },
+        {
+          "label": "20 mg IV",
+          "text": "20 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-metoprolol",
@@ -2339,7 +2709,15 @@
         "iv metoprolol",
         "lopressor push",
         "toprol xl"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-labetalol",
@@ -2364,7 +2742,19 @@
         "iv labetalol",
         "labetalol for bp",
         "push some labetalol"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "10 mg IV",
+          "text": "10 mg IV",
+          "default": true
+        },
+        {
+          "label": "20 mg IV",
+          "text": "20 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-esmolol",
@@ -2390,7 +2780,16 @@
         "esmolol for rate control",
         "esmolol iv",
         "give esmolol"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.5 mg/kg",
+          "text": "0.5 mg/kg IV over 1 minute",
+          "default": true,
+          "perKg": 0.5
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-nicardipine",
@@ -2463,7 +2862,19 @@
         "furosemide iv push",
         "furosimide",
         "furosemide stat"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "40 mg IV",
+          "text": "40 mg IV",
+          "default": true
+        },
+        {
+          "label": "80 mg IV",
+          "text": "80 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-lasix",
@@ -2543,7 +2954,15 @@
         "methylprednisolone drip",
         "solumedrol iv",
         "solu-medrol 125 iv"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "125 mg IV",
+          "text": "125 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-dexamethasone",
@@ -2567,7 +2986,15 @@
         "decadron iv",
         "dexamethasone 10 iv",
         "dexamethasone injection"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "10 mg IV",
+          "text": "10 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-prednisone",
@@ -2612,7 +3039,15 @@
         "transexamic",
         "txa iv",
         "txa push"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 g IV",
+          "text": "1 g IV over 10 minutes",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-alteplase",
@@ -2636,7 +3071,16 @@
         "start tpa",
         "alteplase iv",
         "tpa for stroke"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.9 mg/kg",
+          "text": "0.9 mg/kg IV",
+          "default": true,
+          "perKg": 0.9
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-tenecteplase",
@@ -2682,7 +3126,21 @@
         "ketamine dissociative",
         "ketamine push",
         "ketamine iv"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 mg/kg IV",
+          "text": "1 mg/kg IV",
+          "default": true,
+          "perKg": 1
+        },
+        {
+          "label": "2 mg/kg IV",
+          "text": "2 mg/kg IV",
+          "perKg": 2
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-midazolam",
@@ -2707,7 +3165,19 @@
         "midazolam push",
         "versed for sedation",
         "versed for seizure"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 mg IV",
+          "text": "2 mg IV",
+          "default": true
+        },
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-lorazepam",
@@ -2730,7 +3200,19 @@
         "lorazepam push",
         "ativan for seizure",
         "ativan bolus"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 mg IV",
+          "text": "2 mg IV",
+          "default": true
+        },
+        {
+          "label": "4 mg IV",
+          "text": "4 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-propofol",
@@ -2771,7 +3253,16 @@
         "etomidate ivp",
         "etomidate iv",
         "etomidate for rsi"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.3 mg/kg IV",
+          "text": "0.3 mg/kg IV",
+          "default": true,
+          "perKg": 0.3
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-rocuronium",
@@ -2792,7 +3283,16 @@
         "roc for intubation",
         "rocuronium iv",
         "push roc"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1.2 mg/kg IV",
+          "text": "1.2 mg/kg IV",
+          "default": true,
+          "perKg": 1.2
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-succinylcholine",
@@ -2812,7 +3312,16 @@
         "depolarizing paralytic",
         "sux for intubation",
         "succinylcholine iv"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1.5 mg/kg IV",
+          "text": "1.5 mg/kg IV",
+          "default": true,
+          "perKg": 1.5
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-antibiotics",
@@ -2920,7 +3429,15 @@
         "cacl2",
         "calcium amp",
         "push calcium"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 g IV",
+          "text": "1 g of calcium chloride IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {dose}."
     },
     {
       "id": "med-bicarbonate",
@@ -2941,7 +3458,20 @@
         "bicarb push",
         "sodium bicarbonate amp",
         "give bicarb"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 amp",
+          "text": "one amp, 50 mEq, IV",
+          "default": true
+        },
+        {
+          "label": "1 mEq/kg",
+          "text": "1 mEq/kg IV",
+          "perKg": 1
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-octreotide",
@@ -3074,7 +3604,15 @@
         "ancef for cellulitis",
         "kefzol iv",
         "ancef surgical prophylaxis"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 g IV",
+          "text": "2 g IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-cephalexin",
@@ -3105,7 +3643,15 @@
         "clinda for abscess",
         "clindamycin 600mg iv",
         "clinda gel"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "900 mg IV",
+          "text": "900 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-levofloxacin",
@@ -3121,7 +3667,15 @@
         "levo iv",
         "start levaquin",
         "levo for pneumonia"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "750 mg IV",
+          "text": "750 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ciprofloxacin",
@@ -3153,7 +3707,15 @@
         "start ampicillin",
         "ampicillin for sepsis",
         "unasyn"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 g IV",
+          "text": "2 g IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-gentamicin",
@@ -3169,7 +3731,16 @@
         "garamycin iv",
         "gent for sepsis",
         "gent trough"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "5 mg/kg IV",
+          "text": "5 mg/kg IV",
+          "default": true,
+          "perKg": 5
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-trimethoprim",
@@ -3279,7 +3850,16 @@
         "acylovir",
         "acyclovir 10mg/kg",
         "order acyclovir"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "10 mg/kg IV",
+          "text": "10 mg/kg IV",
+          "default": true,
+          "perKg": 10
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-nafcillin",
@@ -3321,6 +3901,42 @@
       ]
     },
     {
+      "id": "med-atropine",
+      "label": "Atropine",
+      "category": "med",
+      "canonical": "atropine",
+      "aliases": [
+        "atropine sulfate"
+      ],
+      "doses": [
+        {
+          "label": "1 mg IV",
+          "text": "1 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
+    },
+    {
+      "id": "med-lidocaine",
+      "label": "Lidocaine",
+      "category": "med",
+      "canonical": "lidocaine",
+      "aliases": [
+        "lignocaine",
+        "lido"
+      ],
+      "doses": [
+        {
+          "label": "1.5 mg/kg IV",
+          "text": "1.5 mg/kg IV",
+          "default": true,
+          "perKg": 1.5
+        }
+      ],
+      "sentence": "Give {name} {dose}."
+    },
+    {
       "id": "procedure-suction",
       "label": "Suction",
       "category": "procedure",
@@ -3360,39 +3976,6 @@
         "start suctioning",
         "he needs suctioning",
         "suctioning frequently"
-      ]
-    },
-    {
-      "id": "procedure-targeted-temperature-management",
-      "label": "Targeted temperature management",
-      "category": "procedure",
-      "canonical": "targeted temperature management",
-      "aliases": [
-        "ttm",
-        "ttm protocol",
-        "therapeutic hypothermia",
-        "hypothermia protocol",
-        "induced hypothermia",
-        "induce hypothermia",
-        "cooling protocol",
-        "cooling measures",
-        "cooling measure",
-        "start cooling",
-        "initiate cooling",
-        "begin cooling",
-        "cool the patient",
-        "cool him",
-        "cool her",
-        "cooling",
-        "post arrest cooling",
-        "post-arrest cooling",
-        "temperature management",
-        "temperature control",
-        "targeted temp management",
-        "cool to 33",
-        "cool to 36",
-        "cooling blanket",
-        "cooling pads"
       ]
     },
     {
@@ -5392,11 +5975,45 @@
       ]
     },
     {
+      "id": "procedure-targeted-temperature-management",
+      "label": "Targeted temperature management",
+      "category": "procedure",
+      "canonical": "targeted temperature management",
+      "aliases": [
+        "ttm",
+        "ttm protocol",
+        "therapeutic hypothermia",
+        "hypothermia protocol",
+        "induced hypothermia",
+        "induce hypothermia",
+        "cooling protocol",
+        "cooling measures",
+        "cooling measure",
+        "start cooling",
+        "initiate cooling",
+        "begin cooling",
+        "cool the patient",
+        "cool him",
+        "cool her",
+        "cooling",
+        "post arrest cooling",
+        "post-arrest cooling",
+        "temperature management",
+        "temperature control",
+        "targeted temp management",
+        "cool to 33",
+        "cool to 36",
+        "cooling blanket",
+        "cooling pads"
+      ]
+    },
+    {
       "id": "assessment-working-diagnosis",
       "label": "I think this is",
       "category": "assessment",
       "canonical": "working diagnosis",
       "aliases": [
+        "working diagnosis",
         "working dx",
         "my diagnosis",
         "assessment",

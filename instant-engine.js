@@ -385,7 +385,10 @@ const FUZZ_EXACT = new Set(['fast', 'efast',
   // action. Paging heme in MIS-C is the wrong service, so that is false credit
   // for an objective the player never met. (SERVICE_FAMILY still bridges
   // heme≈onc: that comparison is on service NAMES in alias text, not fuzz.)
-  'hematology', 'rheumatology']);
+  'hematology', 'rheumatology',
+  // RINGERS is one edit from FINGERS ("he can't feel his fingers" is history, not a
+  // fluid order); SALINE is one edit from SALIVA/SPLINE. Both match exactly only.
+  'ringers', 'fingers', 'saline']);
 function fuzzyHas(tokens, phrase){
   const pts = phrase.split(' ').filter(Boolean);
   return pts.every(pt => tokens.some(ct => {
@@ -578,7 +581,34 @@ const MED_WORDS = ['aspirin','nitroglycerin','heparin','morphine','fentanyl','on
   // each checked against fuzzyHas tolerance so no pair collides.
   'cefazolin','cephalexin','clindamycin','levofloxacin','ciprofloxacin','ampicillin',
   'gentamicin','trimethoprim','nitrofurantoin','linezolid','daptomycin','aztreonam',
-  'acyclovir','nafcillin','penicillin'];
+  'acyclovir','nafcillin','penicillin',
+  // Bare fluid names: "saline" alone classified 'other' and hit the not-understood
+  // dead end; "crystalloid" was narrated as "Bolus are in". Listed AFTER
+  // 'normal saline'/'lactated ringers' so the nurse still names the full fluid.
+  'saline','ringers','crystalloid','plasmalyte',
+  // ATROPINE and LIDOCAINE were absent from this list entirely, so bare "atropine" hit
+  // the not-understood dead end — on a library where 58 pack aliases mention it and one
+  // of the six showcase cases IS a symptomatic bradycardia. The live-code engine knew
+  // them (DRUG_ALIASES) so they worked mid-arrest and nowhere else.
+  'atropine','lidocaine'];
+// A fluid without a volume is not an order the nurse can hang (rule 15's fluid twin
+// of MEDS_REQUIRING_DOSE). "bolus" alone credited the fluid critical action.
+const FLUIDS_REQUIRING_VOLUME = ['normal saline','lactated ringers','saline','ringers','crystalloid','plasmalyte','iv fluids','bolus'];
+// "wide open", "maintenance" and "KVO" are rates a nurse can hang without a number.
+const VOLUME_RE = /\b(wide open|maintenance|kvo|tko|open (it|them) up|to gravity)\b/;
+function hasVolumeEvidence(clause){ return hasDoseEvidence(clause) || VOLUME_RE.test(clause); }
+const FLUID_VOLUME_FLAG = 'Fluids ordered without a volume — specify volume (mL or mL/kg) and rate.';
+// A stated volume: "1 liter", "500 mL", "20 mL/kg", "2 l", "30 cc/kg".
+const VOLUME_PHRASE_RE = /\b\d+(?:\.\d+)?\s*(?:ml|cc|l|liters?|litres?)\s*(?:\/\s*|per\s+)?(?:kg|kilo|kilogram)?\b/i;
+// Swap the volume the pack author wrote for the one the doctor actually said. Only ever
+// touches a number that is already there: a line with no volume in it is left alone, so
+// authored prose that never promised a number cannot be mangled.
+function readbackVolume(text, clause){
+  const said = VOLUME_PHRASE_RE.exec(String(clause || ''));
+  if(!said) return text;
+  const mine = said[0].trim().replace(/\s+/g, ' ');
+  return String(text || '').replace(VOLUME_PHRASE_RE, m => (m.trim().toLowerCase() === mine.toLowerCase() ? m : mine));
+}
 
 const PROCEDURE_WORDS = ['suction','suctioning','yankauer','yankauers','oropharyngeal suction',
   // 'extubate'/'extubation' are deliberately ABSENT: fuzzyHas treats them as identical to
@@ -967,7 +997,11 @@ function matchResponders(pack, clause){
 // "to be CLEAR, no D5W near her" became "to be DEFIBRILLATE" and the nurse
 // delivered a phantom shock to a neonate in sinus tach.
 const CATALOG_ALIAS_BLOCKLIST = new Set(['clear','shock','line','time','call','cold','wet','dry',
-  'drip','push','scan','film','gas','fast','level','study','strip','tap','hold','mask']);
+  'drip','push','scan','film','gas','fast','level','study','strip','tap','hold','mask',
+  // A trailing route word is not an order for vascular access: "give 1 L normal saline
+  // bolus IV" was being rewritten to "... iv access" and credited two packs for the
+  // large-bore IVs it never asked for.
+  'iv']);
 function catalogAliasList(catalog){
   if(catalog._aliasList) return catalog._aliasList;
   const list = [];
@@ -987,19 +1021,60 @@ function catalogAliasList(catalog){
 // phrase BEFORE the existing pipeline (splitClauses/classifyIntent/
 // matchResponders) ever sees the text — so a pack responder keyed to the
 // canonical phrase still fires without needing to know any slang itself.
+// First-token index of every alias AND every canonical, longest phrase first.
+// Canonicals are indexed as identity rewrites so text that is already canonical
+// CONSUMES its own tokens: "give lactated ringers" was becoming "give lactated
+// lactated ringers" because the bare alias "ringers" re-fired inside the
+// canonical it maps to. An alias that itself contains its canonical ("1l bolus",
+// "heparin drip", "10 units insulin") is not indexed: the canonical is already in
+// the text, and rewriting would only delete the dose beside it.
+function catalogPhraseIndex(catalog){
+  if(catalog._phraseIndex) return catalog._phraseIndex;
+  const idx = Object.create(null);
+  const add = (phrase, canonical) => {
+    const toks = phrase.split(' ').filter(Boolean); if(!toks.length) return;
+    (idx[toks[0]] = idx[toks[0]] || []).push({toks, canonical});
+  };
+  for(const entry of catalog){
+    const canonical = normalize(entry.canonical); if(!canonical) continue;
+    add(canonical, canonical);
+    for(const alias of (entry.aliases||[])){
+      const na = normalize(alias);
+      if(!na || na === canonical || CATALOG_ALIAS_BLOCKLIST.has(na)) continue;
+      if((' '+na+' ').includes(' '+canonical+' ')) continue;
+      add(na, canonical);
+    }
+  }
+  for(const k of Object.keys(idx)) idx[k].sort((a,b)=> b.toks.length - a.toks.length || b.toks.join(' ').length - a.toks.join(' ').length);
+  catalog._phraseIndex = idx;
+  return idx;
+}
 function applyCatalogAliases(normText, catalog){
   if(!catalog || !catalog.length) return normText;
-  let s = ' '+normText+' ';
-  for(const {needle, canonical} of catalogAliasList(catalog)) s = s.split(needle).join(canonical);
-  return s.trim().replace(/\s+/g,' ');
+  const idx = catalogPhraseIndex(catalog);
+  const toks = normText.split(' ').filter(Boolean);
+  const out = [];
+  for(let i = 0; i < toks.length;){
+    let hit = null;
+    for(const c of (idx[toks[i]] || [])){
+      if(c.toks.every((t, k) => toks[i+k] === t)){ hit = c; break; }
+    }
+    if(hit){ out.push(hit.canonical); i += hit.toks.length; }
+    else { out.push(toks[i]); i++; }
+  }
+  return out.join(' ');
 }
+// The LONGEST alias that appears, not the first one listed. An entry's alias list is
+// authored for recall, not precedence, so "ns" sitting above "normal saline bolus" would
+// otherwise decide how much of the clause the match accounts for.
 function catalogExactHit(entry, clause){
   const s = ' '+clause+' ';
+  let best = null;
   for(const alias of [entry.canonical, ...(entry.aliases||[])]){
     const na = normalize(alias);
-    if(na && s.includes(' '+na+' ')) return na;
+    if(na && s.includes(' '+na+' ') && (!best || na.length > best.length)) best = na;
   }
-  return null;
+  return best;
 }
 // Order verbs, articles, routes and bedside quantities — words whose presence beside a
 // matched alias says nothing about WHAT was ordered. Everything else left over is
@@ -1009,10 +1084,15 @@ const CLAUSE_FILLER = new Set(['a','an','the','of','to','for','on','in','at','wi
   'do','perform','obtain','check','draw','give','run','his','her','their','him','her',
   'right','left','side','bedside','iv','io','im','po','mg','ml','mcg','g','l','cc',
   'gauge','fr','french','space','mid']);
+// Dose grammar — volume, weight basis, rate, route and the word "bolus" — says HOW
+// MUCH of the matched thing, never WHAT. The app's own chip "Give a 1 liter normal
+// saline bolus" left {liter, bolus} unexplained, capped at medium, and tripped
+// the readback gate on every send.
+const DOSE_TOKEN_RE = /^(l|ml|cc|liters?|litres?|mg|mcg|g|gm|grams?|meq|units?|iu|kg|kilos?|kilograms?|%|percent|hours?|hrs?|h|min|mins|minutes?|sec|secs|seconds?|bolus|boluses|amps?|ampoules?|ampules?|vials?|pushe?s?|drips?|gtt|infusions?|per|over|at|of|and|wide|open|rate|q\d*h?|(mg|mcg|ml|units?|meq|g)\/(kg|hr?|min|day|dose)(\/(hr?|min|day))?)$/;
 function unexplainedTokens(clause, aliasText){
   const covered = new Set(String(aliasText||'').split(' ').filter(Boolean));
   return clause.split(' ').filter(t => t && !covered.has(t) && !CLAUSE_FILLER.has(t)
-    && !/\d/.test(t)).length;
+    && !/\d/.test(t) && !DOSE_TOKEN_RE.test(t)).length;
 }
 function scoreCatalogEntry(entry, toks){
   let best = 0;
@@ -1060,10 +1140,23 @@ function resolveOrders(action, catalog){
     // confirmation gate — the resolver matched two stray words and ignored five it
     // could not account for. Leftover meaning caps the tier at medium, so the nurse
     // reads the order back and asks instead of quietly performing something else.
-    let exactAlias = null, exact = null;
-    for(const e of candidates){ const na = catalogExactHit(e, clause); if(na){ exact = e; exactAlias = na; break; } }
+    // The exact hit that accounts for the MOST of the clause wins — never simply the
+    // first candidate in the array. Played consequence of taking the first: "give a 1
+    // liter normal saline bolus" matched the entry Bolus, left "normal saline"
+    // unexplained, and was capped at medium — so the app's own fluid order tripped the
+    // nurse's readback while a bare "bolus" sailed through.
+    let exactAlias = null, exact = null, exactLeft = Infinity;
+    for(const e of candidates){
+      const na = catalogExactHit(e, clause);
+      if(!na) continue;
+      const lo = unexplainedTokens(clause, na);
+      if(lo < exactLeft || (lo === exactLeft && na.length > (exactAlias||'').length)){
+        exact = e; exactAlias = na; exactLeft = lo;
+      }
+      if(!exactLeft) break;
+    }
     if(exact){
-      const leftover = unexplainedTokens(clause, exactAlias);
+      const leftover = exactLeft;
       const tier = leftover >= 2 ? 'medium' : 'high';
       return {clause, intent, tier, leftover, suggestion:{id:exact.id, label:exact.label, canonical:exact.canonical}};
     }
@@ -1576,6 +1669,13 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       // unable to tell which agent was unconfirmed.
       fb.dosingFlags.push((med==='the medication' ? 'Medication' : med.charAt(0).toUpperCase()+med.slice(1))
         + ' ordered without a dose/route — specify dose, route, and rate.');
+    else if(FLUIDS_REQUIRING_VOLUME.some(m=>fuzzyHas(toks,m)) && !dosedHere
+       && !hasVolumeEvidence(clause) && !hasVolumeEvidence(String(rawClause||''))
+       && !(lineFlags && lineFlags.continuing)
+       && !(state && state.dosedOnce && state.dosedOnce['fluid']))
+      fb.dosingFlags.push(FLUID_VOLUME_FLAG);
+    if(FLUIDS_REQUIRING_VOLUME.some(m=>fuzzyHas(toks,m)) && (dosedHere || hasVolumeEvidence(String(rawClause||''))) && state){
+      state.dosedOnce = state.dosedOnce || {}; state.dosedOnce['fluid'] = true; }
   } else if(intent === 'procedure'){
     const procLines = ['Done — set up at the bedside and completed without complication.',
                        'Done at the bedside — no complications.',
@@ -2661,7 +2761,13 @@ function runTurn(pack, state, action, opts){
           out.speech.push({speaker:'nurse', text: boardLine});
           out.narrative = boardLine;   // visible on screen; see fallbackFor for why
         } else {
-          if(Array.isArray(r0.speech)) out.speech.push(...r0.speech);
+          if(Array.isArray(r0.speech)){
+            // For a fluid order, echo the doctor's own volume back at them.
+            const fluid = r0.intent === 'med' && FLUIDS_REQUIRING_VOLUME.some(m => fuzzyHas(ctoks, m));
+            out.speech.push(...(fluid
+              ? r0.speech.map(sp => Object.assign({}, sp, { text: readbackVolume(sp.text, rawClause || clause) }))
+              : r0.speech));
+          }
           // An authored narrative paragraph is delivered ONCE — the epiglottitis OR
           // sequence printed three times when late clauses re-touched its responder.
           if(r0.narrative && !state.narrSeen[r0.narrative]){
@@ -2681,6 +2787,14 @@ function runTurn(pack, state, action, opts){
           const dk = 'r:' + r0.dose.flagIfUnspecified;
           if(hasDoseEvidence(clause) || dosedMedInLine) state.dosedOnce[dk] = true;
           else if(!continuingLine && !state.dosedOnce[dk]) out.dosingFlags.push(r0.dose.flagIfUnspecified);
+        }
+        // Fluid twin of rule 15 on the matched path: a bare "bolus" credited the
+        // fluid critical action with no volume ever stated. Credit stands (the
+        // decision was right); the dosing score records the missing volume.
+        if(r0.intent === 'med' && !(r0.dose && r0.dose.required) && FLUIDS_REQUIRING_VOLUME.some(m => fuzzyHas(ctoks, m))
+           && !((r0.match && r0.match.any) || []).some(a => WITHHOLD_RE.test(a))){
+          if(hasVolumeEvidence(clause) || hasVolumeEvidence(rawClause) || dosedMedInLine) state.dosedOnce['fluid'] = true;
+          else if(!continuingLine && !state.dosedOnce['fluid'] && !out.dosingFlags.includes(FLUID_VOLUME_FLAG)) out.dosingFlags.push(FLUID_VOLUME_FLAG);
         }
         if(r0.vitals) Object.assign(targets, r0.vitals);
         if(r0.trend) trend = strongerTrend(trend, r0.trend);

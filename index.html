@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-z6ywss7pmUjrS9ADFRdhau4NNxOcz69l+0u6NcBcxBQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-eV/FbDHJGrzvoqzZalHbuw61r+Kntymfo+HRZ5h1S3g=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -4379,9 +4379,21 @@ function hideReadbackChip(){ const el=$('readbackChip'); if(el){ el.classList.ad
 function confirmReadback(){
   if(!_readback) return;
   const {originalText, resolved, clearInput} = _readback;
-  const action = resolved
-    .map(r => (r.tier==='medium'||r.tier==='none') && r.suggestion ? r.suggestion.canonical : r.clause)
-    .join(' and ');
+  // KEEP THE DOCTOR'S OWN WORDS. This used to send the catalog's bare canonical for every
+  // weak clause, so confirming "Give a 1 liter normal saline bolus" submitted "normal
+  // saline" — the volume the doctor had just been asked about, and had just confirmed,
+  // was dropped on the way to the engine. Substitute the canonical for the fragment it
+  // actually matched and leave the rest of the clause standing.
+  const action = resolved.map(r => {
+    if(!((r.tier==='medium'||r.tier==='none') && r.suggestion)) return r.clause;
+    const canon = r.suggestion.canonical, clause = String(r.clause||'');
+    if(!canon) return clause;
+    if(clause.includes(canon)) return clause;                 // already says it
+    const matched = r.suggestion.matched || r.suggestion.alias;
+    if(matched && clause.includes(matched)) return clause.replace(matched, canon);
+    // No fragment to swap: append the canonical so the modifiers survive beside it.
+    return clause + ' ' + canon;
+  }).join(' and ');
   hideReadbackChip();
   const cmd = $('cmd'); if(clearInput && cmd){ cmd.value=''; cmd.style.height='auto'; }
   basketClear();   // the confirmed text already contains the chips — see send()
@@ -4391,21 +4403,44 @@ function confirmReadback(){
 function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 // Ranked, deterministic, and identical across every case — the ONLY safe way
 // to rank suggestions without risking a spoiler.
+// Dose words a doctor types alongside the drug — they say how much, not what, so they must
+// not stop the noun being found. "normal saline 1 liter" has to find Normal Saline.
+const SEARCH_NOISE = /^(\d+(\.\d+)?(l|ml|cc|mg|mcg|g|meq|u|units?|kg)?|\d+(\.\d+)?(ml|cc|mg|mcg|units?)\/kg|l|ml|cc|liters?|litres?|mg|mcg|g|meq|units?|kg|of|a|an|the|per|iv|io|im|po|give|start|order|hang|run|push|administer|get|obtain|send|draw|place|and|with|for|to|on)$/;
 function searchCatalog(catalog, fragment){
   const f = fragment.toLowerCase().trim();
   if(f.length < 2) return [];
+  // Match EVERY word of the query against the start of some word of the entry, so the more
+  // the doctor types the better the match gets instead of the worse. The old whole-string
+  // test meant "ns bolus" and "normal saline bolus" both returned nothing.
+  const words = f.split(/[\s,/]+/).filter(w => w && !SEARCH_NOISE.test(w));
+  // A volume with no noun is a fluid order nine times out of ten. Kim: "nor does frequent
+  // amount like 1L, 2L, 20ml/kg" — those returned an empty list, because every word of them
+  // is dose grammar and dose grammar names nothing. Offer what a volume is usually poured
+  // into, in the order a resuscitation reaches for them.
+  if(!words.length && /\d/.test(f)){
+    const FLUID_FIRST = ['med-normal-saline','med-lactated-ringers','med-iv-fluids','med-dextrose'];
+    const out = FLUID_FIRST.map(id => catalog.find(e => e.id === id)).filter(Boolean);
+    if(out.length) return out;
+  }
   const wordRe = new RegExp('\\b'+escapeRegex(f));
   const scored = [];
   for(const entry of catalog){
-    const hay = [entry.label, ...(entry.aliases||[])].map(s=>s.toLowerCase());
+    const hay = [entry.label, entry.canonical || '', ...(entry.aliases||[])].map(s=>String(s).toLowerCase());
+    const toks = new Set();
+    for(const h of hay) for(const t of h.split(/[\s,/]+/)) if(t) toks.add(t);
     let rank = null;
     if(hay.some(h=>h.startsWith(f))) rank = 0;
     else if(hay.some(h=>wordRe.test(h))) rank = 1;
-    else if(hay.some(h=>InstantEngine.fuzzyHas(h.split(' '), f))) rank = 2;
+    else if(words.length && words.every(w => [...toks].some(t => t.startsWith(w)))) rank = 2;
+    else if(hay.some(h=>InstantEngine.fuzzyHas(h.split(' '), f))) rank = 3;
     if(rank !== null) scored.push({entry, rank});
   }
-  scored.sort((a,b)=> a.rank-b.rank || a.entry.label.length-b.entry.label.length);
-  return scored.slice(0,6).map(s=>s.entry);
+  // An entry that can be dosed is a more complete answer than one that cannot, so it wins a
+  // tie: typing "bolus" should reach the fluids before it reaches "heparin bolus".
+  scored.sort((a,b)=> a.rank-b.rank
+    || ((b.entry.doses?1:0) - (a.entry.doses?1:0))
+    || a.entry.label.length-b.entry.label.length);
+  return scored.slice(0,8).map(s=>s.entry);
 }
 // Mirrors instant-engine.js's own AND_PROTECT list: these specific "X and Y"
 // phrases are ONE concept and must never be treated as a clause boundary
@@ -4428,6 +4463,79 @@ function currentFragment(text){
 }
 const CATEGORY_LABEL = {lab:'LAB', imaging:'IMG', med:'MED', procedure:'PROC', consult:'CONSULT', assessment:'DX'};
 let _taMatches=[], _taIdx=-1;
+// THE COMPOSER'S SECOND STAGE. Kim: "I want the orderset as deterministic as possible —
+// there are too many points of failure." Picking a drug used to basket its bare NAME and
+// throw away whatever the doctor had typed beside it, because there was nowhere in the app
+// to put a dose. Entries that can be dosed now open their own doses instead, one click
+// each, and the order that leaves is one fixed sentence per (entry, dose).
+let _taEntry = null, _taDoses = null, _taDoseIdx = 0;
+// The weight this case actually states. 18 of 172 carry one; where it is absent a per-kg
+// chip says "20 mL/kg" and stops there rather than inventing a child's weight.
+function caseWeightKg(){
+  const w = (S.patient && S.patient.weightKg) || (S.codeScript && S.codeScript.patient && S.codeScript.patient.weightKg);
+  return (typeof w === 'number' && w > 0) ? w : null;
+}
+function doseChipLabel(d){
+  const kg = d.perKg ? caseWeightKg() : null;
+  return kg ? d.label + ' \u00b7 ' + Math.round(d.perKg * kg) + (/ml/i.test(d.label) ? ' mL' : ' mg') : d.label;
+}
+// The one sentence this (entry, dose) emits. Measured, not chosen by taste: of nine
+// candidate phrasings run against every pack that grades a fluid order, "Give a {dose}
+// {name} bolus." credited the most, and it is already the app's own chip text.
+function composeOrder(entry, d){
+  const kg = d.perKg ? caseWeightKg() : null;
+  const dose = kg ? d.text + ' (' + Math.round(d.perKg * kg) + (/ml/i.test(d.text) ? ' mL' : ' mg') + ')' : d.text;
+  const tmpl = entry.sentence || 'Give {name} {dose}.';
+  return tmpl.replace('{name}', entry.canonical || entry.label.toLowerCase()).replace('{dose}', dose);
+}
+// If the doctor already typed the volume, do not make them pick it again.
+function doseFromFragment(entry, frag){
+  const f = String(frag||'').toLowerCase().replace(/\s+/g,'');
+  if(!f) return -1;
+  return (entry.doses||[]).findIndex(d => {
+    const l = d.label.toLowerCase().replace(/[\s·]+/g,'');
+    return l && (f.includes(l) || f.includes(l.replace('ml/kg','mlkg')));
+  });
+}
+function renderDosePicker(entry){
+  const el = $('typeahead'); if(!el || !entry || !entry.doses) return false;
+  _taEntry = entry; _taDoses = entry.doses;
+  const def = entry.doses.findIndex(d => d.default);
+  const typed = doseFromFragment(entry, currentFragment(($('cmd')||{}).value || ''));
+  _taDoseIdx = typed >= 0 ? typed : (def >= 0 ? def : 0);
+  el.innerHTML =
+    '<div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800">' +
+      esc(entry.label) + ' \u2014 how much?</div>' +
+    entry.doses.map((d,i) =>
+      '<div data-dose="' + i + '" class="ta-dose flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ' +
+      (i === _taDoseIdx ? 'bg-emerald-900/40 text-emerald-100' : 'text-slate-200 hover:bg-slate-800') + '">' +
+      '<span>' + esc(doseChipLabel(d)) + '</span>' +
+      (d.default ? '<span class="text-[9px] font-black uppercase tracking-widest text-slate-500 shrink-0">usual</span>' : '') +
+      '</div>').join('') +
+    '<div class="px-3 py-1.5 text-[10px] text-slate-600 border-t border-slate-800">Enter takes the highlighted dose \u00b7 Esc goes back</div>';
+  el.classList.remove('hidden');
+  document.body.classList.add('taOpen');
+  el.querySelectorAll('[data-dose]').forEach(r => r.onclick = () => takeDose(+r.dataset.dose));
+  return true;
+}
+function paintDoseHighlight(){
+  const el = $('typeahead'); if(!el) return;
+  el.querySelectorAll('[data-dose]').forEach(r => {
+    const on = +r.dataset.dose === _taDoseIdx;
+    r.className = 'ta-dose flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ' +
+      (on ? 'bg-emerald-900/40 text-emerald-100' : 'text-slate-200 hover:bg-slate-800');
+  });
+}
+function takeDose(i){
+  const cmd = $('cmd'); const entry = _taEntry, d = (_taDoses||[])[i];
+  if(!cmd || !entry || !d) return;
+  const text = cmd.value;
+  const prefix = text.slice(0, text.length - currentFragment(text).length).replace(/[,;\s]+$/,'').trim();
+  if(prefix) basketAdd(prefix, prefix, true);
+  basketAdd(entry.label + ' ' + doseChipLabel(d), composeOrder(entry, d));
+  cmd.value=''; cmd.style.height='auto';
+  hideTypeahead(); cmd.focus(); syncBasketInput(); measureDock();
+}
 function renderTypeahead(matches){
   const el = $('typeahead'); if(!el) return;
   _taMatches = matches; _taIdx = -1;
@@ -4442,7 +4550,7 @@ function renderTypeahead(matches){
   el.querySelectorAll('.ta-row').forEach(row=>row.onclick=()=>basketTypeahead(+row.dataset.ta));
 }
 function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.innerHTML=''; }
-  document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; }
+  document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; _taEntry=null; _taDoses=null; }
 function paintTaHighlight(){
   const el=$('typeahead'); if(!el) return;
   el.querySelectorAll('.ta-row').forEach((row,i)=>row.classList.toggle('bg-slate-800', i===_taIdx));
@@ -4473,6 +4581,10 @@ function basketTypeahead(i){
   if(entry.category === 'assessment'){
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); focusDxBox(); return;
   }
+  // An entry that carries doses is not finished yet: a drug without a dose is the thing
+  // the nurse has to come back and ask about, so ask now, with the usual one already
+  // highlighted and Enter away.
+  if(entry.doses && entry.doses.length && renderDosePicker(entry)) return;
   basketAdd(entry.label, entry.label);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
@@ -4941,7 +5053,54 @@ function consoleChip(lab, order, id, drug, tone){
 // which meant only chips that existed at THAT moment were live — the console repaints on
 // its own clock (a rhythm change, ROSC, a walk to another camera) and its chips would
 // have been dead.
-function palChipClick(b){
+// The dose menu for a chip, in the room. Same doses, same composed sentence as the order
+// box's second stage; the popover shape is energyMenu's.
+function chipDoseMenu(ev, entry, fallbackLab){
+  closeRoomMenu();
+  if(S.stage !== 'play' || S.loading) return false;
+  const m = document.createElement('div');
+  m.className = 'roomMenu fixed z-[75] min-w-[210px] rounded-xl border border-emerald-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  m.style.left='0px'; m.style.top='0px';
+  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800">' +
+      esc(entry.label) + ' \u2014 how much?</div>' +
+    entry.doses.map((d,i) => '<button data-di="' + i + '" class="block w-full text-left px-3 py-1.5 text-xs ' +
+      (d.default ? 'text-emerald-200 font-bold' : 'text-slate-200') + ' hover:bg-emerald-900/40">' +
+      esc(doseChipLabel(d)) + (d.default ? ' \u00b7 usual' : '') + '</button>').join('');
+  document.body.appendChild(m);
+  const pad=6, w=m.offsetWidth, h=m.offsetHeight;
+  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect ? ev.currentTarget.getBoundingClientRect() : null;
+  m.style.left = Math.round(Math.max(pad, Math.min(box?box.left:innerWidth/2, innerWidth-w-pad))) + 'px';
+  m.style.top  = Math.round(Math.max(pad, Math.min(box?box.bottom+4:innerHeight/3, innerHeight-h-pad))) + 'px';
+  m.querySelectorAll('[data-di]').forEach(btn => btn.onclick = e => {
+    e.stopPropagation();
+    const d = entry.doses[+btn.dataset.di];
+    closeRoomMenu();
+    if(S.loading) return;
+    const lab = entry.label + ' ' + doseChipLabel(d), order = composeOrder(entry, d);
+    if(typeof codeAnswers === 'function' && codeAnswers()) queueClinicalAction(lab, order);
+    else basketAdd(lab, order);
+  });
+  setTimeout(() => {
+    document.addEventListener('click', _roomMenuAway, true);
+    window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway);
+  }, 0);
+  return true;
+}
+// Which catalog entry a chip is really about, by its order text or its label.
+function entryForChip(b){
+  if(!_catalog || !_catalog.length) return null;
+  const pal = String(b.dataset.pal||'').toLowerCase(), lab = String(b.dataset.lab||'').toLowerCase();
+  return _catalog.find(e => e.doses && e.doses.length &&
+    (pal.includes(String(e.canonical||'').toLowerCase()) || lab === String(e.label||'').toLowerCase())) || null;
+}
+function palChipClick(b, ev){
+  // A code drug keeps its own path: the live engine computes the dose from the case's
+  // weight and the rhythm at this instant, which is more specific than any table here.
+  if(!(b.dataset.drug) && ev){
+    const entry = entryForChip(b);
+    if(entry && chipDoseMenu(ev, entry)) return;
+  }
   if(typeof codeAnswers === 'function' && codeAnswers()){
     // A drug chip computes its order NOW — amiodarone is 150 mg while the pulse holds
     // and 300 the moment it is lost, and the dose ordered must be the dose that is true
@@ -4954,7 +5113,7 @@ function palChipClick(b){
 }
 function wirePalChips(root){
   if(!root) return;
-  for(const b of root.querySelectorAll('.pal')) b.onclick = () => palChipClick(b);
+  for(const b of root.querySelectorAll('.pal')) b.onclick = ev => palChipClick(b, ev);
 }
 // HISTORY · EXAM · ORDERS. Kim: "maybe the best way is to have a history bubble, physical
 // exam bubble (I don't see how to do physical exam or re-evaluate), orders bubble. And
@@ -5822,12 +5981,22 @@ function renderPlay(){
     hideReadbackChip();
     syncBasketInput();
     const frag = currentFragment(cmd.value);
+    _taEntry = null; _taDoses = null;   // typing again means a different order
     if(_catalog && _catalog.length) renderTypeahead(searchCatalog(_catalog, frag));
     else hideTypeahead();
   });
   // ↑/↓ recall previous orders when the field is empty or the caret is at the very start.
   let _histIdx=-1;
   cmd.addEventListener('keydown',e=>{
+    if(_taDoses && !$('typeahead').classList.contains('hidden')){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){ e.preventDefault(); _taDoseIdx=Math.min(_taDoses.length-1,_taDoseIdx+1); paintDoseHighlight(); return; }
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){ e.preventDefault(); _taDoseIdx=Math.max(0,_taDoseIdx-1); paintDoseHighlight(); return; }
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); takeDose(_taDoseIdx); return; }
+      if(e.key==='Tab'){ e.preventDefault(); takeDose(_taDoseIdx); return; }
+      // Back to the list of orders, not out of the composer altogether.
+      if(e.key==='Escape'){ e.preventDefault(); _taEntry=null; _taDoses=null;
+        renderTypeahead(searchCatalog(_catalog||[], currentFragment(cmd.value))); return; }
+    }
     if(_taMatches.length && !$('typeahead').classList.contains('hidden')){
       if(e.key==='ArrowDown'){ e.preventDefault(); _taIdx=Math.min(_taMatches.length-1,_taIdx+1); paintTaHighlight(); return; }
       if(e.key==='ArrowUp'){ e.preventDefault(); _taIdx=Math.max(0,_taIdx-1); paintTaHighlight(); return; }
@@ -6673,7 +6842,10 @@ function paintWho(){
   const p = S.patient || {};
   const age = ageShort(p);
   const sex = p.sex === 'female' ? 'female' : (p.sex === 'male' ? 'male' : '');
-  el.textContent = [age, sex].filter(Boolean).join(' ');
+  // The weight, where the case states one — it is what every mL/kg and mg/kg chip is
+  // multiplied by, and a number you are dosing off should be on screen beside the patient.
+  const kg = (typeof caseWeightKg === 'function') ? caseWeightKg() : null;
+  el.textContent = [age, sex, kg ? kg + ' kg' : ''].filter(Boolean).join(' ');
 }
 let patientRAF=null, _breathT=0;
 function renderPatient(){
