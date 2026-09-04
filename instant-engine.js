@@ -1028,6 +1028,11 @@ function catalogAliasList(catalog){
 // canonical it maps to. An alias that itself contains its canonical ("1l bolus",
 // "heparin drip", "10 units insulin") is not indexed: the canonical is already in
 // the text, and rewriting would only delete the dose beside it.
+// A number in an alias, and the connective that carries it. Used to tell a name that
+// happens to contain a digit ("chem 7", "nh3", "12 lead") from a name with a dose bolted
+// on ("amio 150", "fent 50mcg", "roc 1mg/kg") — only the second kind is a problem.
+const ALIAS_DOSE_TOKEN = /^(?:\d+(?:\.\d+)?(?:mg|mcg|g|gm|ml|l|cc|units?|u|meq|iu|%)?(?:\/(?:kg|hr?|min|day|dose))?|of)$/i;
+
 function catalogPhraseIndex(catalog){
   if(catalog._phraseIndex) return catalog._phraseIndex;
   const idx = Object.create(null);
@@ -1037,11 +1042,24 @@ function catalogPhraseIndex(catalog){
   };
   for(const entry of catalog){
     const canonical = normalize(entry.canonical); if(!canonical) continue;
+    const own = new Set([canonical, ...(entry.aliases||[]).map(a => normalize(a))]);
     add(canonical, canonical);
     for(const alias of (entry.aliases||[])){
       const na = normalize(alias);
       if(!na || na === canonical || CATALOG_ALIAS_BLOCKLIST.has(na)) continue;
       if((' '+na+' ').includes(' '+canonical+' ')) continue;
+      // NAME + DOSE aliases are deliberately left out of the index. Matching one swallows
+      // the number — the canonical it maps to carries no dose — so "give amio 150" became
+      // "give amiodarone" and the 150 was gone before anything could grade it, read it
+      // back, or notice it was missing. Leaving the alias out costs nothing, because what
+      // remains after the number ("amio") is itself an alias of the same entry and matches
+      // on its own, so the name still canonicalises and the number stays in the clause.
+      // The same rescues a CONCENTRATION, which is not a dose and matters more: "dextrose
+      // 50" and "epinephrine 1 10000" used to arrive as bare "dextrose" and "epinephrine".
+      if(/\d/.test(na)){
+        const rest = na.split(' ').filter(t => !ALIAS_DOSE_TOKEN.test(t)).join(' ');
+        if(rest && rest !== na && own.has(rest)) continue;
+      }
       add(na, canonical);
     }
   }
