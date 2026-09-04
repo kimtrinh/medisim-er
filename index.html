@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5zsT2j44Pf5dyFLtgGhamigN5kQKJVOOUGh87dDJ2jY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nPqQZgudwwgMuvb25/3xw61L8g/1CwAfuPSp8tu5Rug=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2093,6 +2093,7 @@ async function generateCase(userContent, hint, label){
   }
   setLoading(true, hint || 'Generating case…');
   S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.gameDiff=null; S.gjFxDone=false;
+  S.rhythmCalled=false; S._rhythmSeen=null;   // a new patient is a new strip to read
   await autoBestTier();   // case boundary: climb back to the best engine (Gemini first)
   usageCaseStart();   // snapshot the request count → measures true calls-per-case
   try{
@@ -2233,6 +2234,7 @@ async function handlePdf(file){
 
 async function progress(action, label){
   if(S.loading) return;
+  hearRhythmCall(action);   // naming it correctly reveals it, typed or clicked
   hideReadbackChip();   // any prior turn's stale confirmation is irrelevant now
   // label = what the player sees in the chat; action = the full order sent to
   // the engine (region orders carry staging instructions the player shouldn't see)
@@ -3190,7 +3192,7 @@ function paintVitals(){
   // During a live code the strip is there to be read; the name appears once the doctor
   // has called it (see rhythmCalled in code-engine.js). Outside a code nothing is being
   // tested, so the caption reads as it always did.
-  const hideRhythm = codeActive() && S.code && !S.code.rhythmCalled;
+  const hideRhythm = !rhythmCalled();
   $('v_rhythm').textContent = hideRhythm ? '— call it' : v.rhythm;
   // THE CALL BELONGS BESIDE THE STRIP. Kim: "it'd be better to add the telerhythm strip
   // interpretation button next to the telemetry." The chips were on the far wall, which
@@ -3198,7 +3200,7 @@ function paintVitals(){
   // uncalls the read, the button is how a player finds their way back to making it.
   const rb = $('rhythmBtn');
   if(rb){
-    rb.classList.toggle('hidden', !codeActive());
+    rb.classList.toggle('hidden', !monitorRhythmId());
     rb.textContent = hideRhythm ? 'Read rhythm \u25be' : 'Re-read \u25be';
   }
   $('v_rhythm').className='text-[10px] font-black uppercase tracking-widest mono '+(hideRhythm?'text-slate-500':(hrCrit?'text-red-500':'text-emerald-500'));
@@ -3684,6 +3686,50 @@ function syncCodeFlags(){
   if(c.flags && c.flags.tensionPtx) on('decompressed', 'chestDecompressed');
   if(c.flags && c.flags.pacing) on('paced', 'pacingStarted');
   if((c.cprSecs || 0) > 0) on('cprStarted');
+}
+// THE STRIP IS THE DOCTOR'S TO READ — IN EVERY CASE, not only the seventeen with a code.
+// Kim: "for the atrial fibrillation case, it's already read the rhythm for me. Don't want
+// any case to read the rhythm for me." The caption hid itself only while a code engine was
+// running, so on the other 155 cases the monitor printed ATRIAL FIBRILLATION from the first
+// second — in a case whose own intro carefully says "irregularly irregular narrow-complex
+// tachycardia with no clear P waves" and leaves the naming to you.
+//
+// Which rhythm the monitor is showing, as one of CodeEngine's ids, worked out from the label
+// with the same vocabulary the engine uses to judge a call. Null when there is nothing to
+// read (no case running, or a rhythm nobody has a name for).
+function monitorRhythmId(){
+  if(S.stage !== 'play') return null;
+  if(S.code && !S.code.ended) return S.code.rhythm || null;
+  const label = String((S.vitals && S.vitals.rhythm) || '').trim();
+  if(!label) return null;
+  const calls = (typeof CodeEngine !== 'undefined' && CodeEngine.RHYTHM_CALLS) || null;
+  if(!calls) return null;
+  // Longest ids first so "pulseless VT" is not read as VT and sinus-tachy beats sinus.
+  const keys = Object.keys(calls).sort((a, b) => b.length - a.length);
+  for(const k of keys){
+    if(k === 'VT' && /pulseless/i.test(label)) continue;
+    if(calls[k].test(label)) return k;
+  }
+  return null;
+}
+// Has the rhythm on screen been called? The code engine keeps its own flag — it also has to
+// hear a call made mid-arrest — and outside a code the app keeps one, cleared whenever the
+// rhythm changes, because a new rhythm is a new question.
+function rhythmCalled(){
+  const id = monitorRhythmId();
+  if(!id) return true;                       // nothing to read: nothing to hide
+  if(S.code && !S.code.ended) return !!S.code.rhythmCalled;
+  if(S._rhythmSeen !== id){ S.rhythmCalled = false; S._rhythmSeen = id; }
+  return !!S.rhythmCalled;
+}
+// Listen without claiming: any order that names the rhythm correctly reveals it, whether it
+// came from the Read-rhythm menu or was typed. A wrong call reveals nothing.
+function hearRhythmCall(text){
+  try{
+    const id = monitorRhythmId(); if(!id) return;
+    if(S.code && !S.code.ended) return;      // the engine owns this while a code runs
+    if(CodeEngine.callsRhythm(String(text || ''), id)){ S.rhythmCalled = true; S._rhythmSeen = id; }
+  }catch(_){ }
 }
 // CodeEngine's compact rhythm ids -> the monitor's label strings, which ecgType parses.
 function codeRhythmLabel(r){
@@ -4543,6 +4589,7 @@ async function loadGoldCase(seed, opts){
   S.blind = !!(opts && opts.blind);
   try{ stopSpeak(); }catch(_){ }
   S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.gameDiff=null; S.gjFxDone=false;
+  S.rhythmCalled=false; S._rhythmSeen=null;   // a new patient is a new strip to read
   await autoBestTier();   // case boundary: climb back to the best engine BEFORE snapshotting usage — otherwise usageCaseStart is gated on the stale tier and the calls-per-case EMA corrupts. Fast (no network) when a hosted key is set.
   usageCaseStart();
   S.vitals=normVitals(seed.vitals); S.shown={...S.vitals}; S.vBase={...S.vitals};
@@ -6147,8 +6194,11 @@ function dispositionMenu(ev){
 // computed at open time, because which set is right depends on whether there is a pulse.
 function rhythmMenu(ev){
   closeRoomMenu();
-  if(!codeAnswers() || !S.code) return;
-  const items = S.code.pulse ? CALL_IT_PERFUSING : CALL_IT_ARREST;
+  if(!monitorRhythmId()) return;
+  // Arrest list only when there is genuinely no pulse; every other case gets the perfusing
+  // rhythms, which is what an atrial fibrillation or a heart block needs.
+  const arrest = !!(S.code && !S.code.ended && !S.code.pulse);
+  const items = arrest ? CALL_IT_ARREST : CALL_IT_PERFUSING;
   const m = document.createElement('div');
   m.className = 'roomMenu fixed z-[75] min-w-[190px] max-w-[16rem] rounded-xl border border-violet-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
   m.style.left = '0px'; m.style.top = '0px';
@@ -6173,6 +6223,8 @@ function rhythmMenu(ev){
     const [lbl, ord] = items[+b.dataset.ri];
     closeRoomMenu();
     if(S.loading) return;
+    hearRhythmCall(ord);          // a correct call reveals the caption immediately
+    paintVitals();
     queueClinicalAction(lbl, ord);
   });
   setTimeout(() => {

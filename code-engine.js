@@ -1033,6 +1033,9 @@ function act(state, script, text){
 }
 
 root.CodeEngine = { newState, tick, act, actInner, creditKeysFor, summary, rhythmName, fmt,
-  CYCLE_SEC, STATUS_SEC, spokenTime, parseDose, SHOCKABLE, PULSELESS, DRUG_ALIASES };
+  CYCLE_SEC, STATUS_SEC, spokenTime, parseDose, SHOCKABLE, PULSELESS, DRUG_ALIASES,
+  // Exported so the app can apply the same rule to the 155 cases that have no code script.
+  // Reading the strip is the exercise in an atrial fibrillation case too.
+  callsRhythm, RHYTHM_CALLS };
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.CodeEngine;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

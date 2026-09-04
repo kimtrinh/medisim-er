@@ -917,7 +917,7 @@
     },
     {
      "speaker": "nurse",
-     "text": "She's got a dense left-sided weakness and gaze deviation. AFib on the monitor, pressure 178 over 98."
+     "text": "She's got a dense left-sided weakness and gaze deviation. Irregularly irregular on the monitor, pressure 178 over 98."
     }
    ]
   },
@@ -1205,7 +1205,7 @@
     },
     {
      "speaker": "nurse",
-     "text": "Her belly's soft but she's in agony. She's in AFib and not anticoagulated."
+     "text": "Her belly's soft but she's in agony. She has atrial fibrillation and she's not anticoagulated."
     }
    ]
   },
@@ -1445,7 +1445,7 @@
     },
     {
      "speaker": "nurse",
-     "text": "Temp 40.1, AFib with a rate over 150, she's agitated and diaphoretic."
+     "text": "Temp 40.1, irregular and fast on the monitor at over 150, she's agitated and diaphoretic."
     }
    ]
   },
@@ -3261,15 +3261,15 @@
     "temp": 36.5,
     "rhythm": "Ventricular Fibrillation"
    },
-   "intro": "A 62-year-old man collapsed at the gym; a bystander started CPR immediately and medics continued it en route. He arrives pulseless with compressions ongoing, and the monitor shows a coarse ventricular fibrillation. The team looks to you to run the code.",
+   "intro": "A 62-year-old man collapsed at the gym; a bystander started CPR immediately and medics continued it en route. He arrives pulseless with compressions ongoing, and the monitor shows a coarse, chaotic trace with no organised complexes. The team looks to you to run the code.",
    "speech": [
     {
      "speaker": "medic",
-     "text": "Witnessed arrest at the gym, immediate bystander CPR. He's been in VF the whole time — two shocks so far, one round of epi."
+     "text": "Witnessed arrest at the gym, immediate bystander CPR. Same trace the whole time — two shocks so far, one round of epi."
     },
     {
      "speaker": "nurse",
-     "text": "Compressions are going, he's in VF. Defibrillator's charged. What do you want?"
+     "text": "Compressions are going, it's up on the monitor. Defibrillator's charged. What do you want?"
     }
    ]
   },
@@ -4184,7 +4184,7 @@
     },
     {
      "speaker": "nurse",
-     "text": "Symptoms resolved, exam looks normal now. He's got AFib on the monitor and a history of hypertension and diabetes."
+     "text": "Symptoms resolved, exam looks normal now. He's irregular on the monitor and has a history of hypertension and diabetes."
     }
    ]
   },
@@ -8107,7 +8107,7 @@
     },
     {
      "speaker": "nurse",
-     "text": "That's not a normal VT, look at it twisting. No pulse. My hands are going on the chest."
+     "text": "That's not the usual wide complex — look at it twisting. No pulse. My hands are going on the chest."
     }
    ]
   },
