@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ptz3OVOj/YIz1eUk+n1PU/OaoPkHFS8+WaKGOkQPlRA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-9VqqC3/VrF3np+TbGJqAVFNAjrr/Tf8Hajrc2PkmN1A=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -579,9 +579,71 @@
     body.cinema #chat{min-height:7.5rem}
     /* thumbs, not cursors: the figures' click strips are sized inline for a desktop
        room; the position tabs and gear chips get a taller touch box too */
-    body.cinema .roomCastHit{width:13% !important;min-height:34px}
+    /* 13% was too wide: measured at 390x844 the nurse's strip covered the IV pole's zone
+       and elementFromPoint returned the figure, so one of the ten pieces of equipment
+       could not be tapped at all. Narrower, and taller instead — the thumb still gets its
+       44px vertically, where there is nothing to collide with. */
+    body.cinema .roomCastHit{width:9% !important;min-height:44px}
     body.cinema #cinemaCard [data-pview]{padding-top:.5rem;padding-bottom:.5rem}
     body.cinema #gearTray > button{padding:.4rem .6rem}
+  }
+  /* ---------------------------------------------------------------- LEGIBILITY, PHONES
+     Measured at 390x844 before any of this: of the text actually on screen, 58 elements
+     were 11px, seven were 10px, one was 9px — and six were 14px or more. Fifty-one
+     visible buttons were under 44px tall. The room is read at arm's length in a noisy
+     resus bay, and 11px is not a size you can read there.
+     Scoped to phone widths on purpose: the desktop console starts at 1200px and its
+     density was measured against the bed, so none of this can reach it. */
+  @media (max-width:767px){
+    /* NOT while a code is running. The ACLS palette is force-open then, and the screen is
+       shared with the transcript, whose floor (120px, ui.test) is Kim's own guard against
+       losing the nurse's words — every version of this block took it to 96px. During a
+       code the phone keeps the density it was tuned to; the moment the code ends the
+       larger type comes back. :has() is how the sheet asks "is there a code on screen".
+    /* Nothing on a phone is smaller than 12px, and running text is 14px. The uppercase
+       micro-labels keep their letter-spacing — they are legible at 12 in a way they are
+       not at 9. */
+    body.cinema:not(:has(#palette.acls)) .pal, body.cinema:not(:has(#palette.acls)) .oset, body.cinema:not(:has(#palette.acls)) [data-pal],
+    body.cinema:not(:has(#palette.acls)) .secHead, body.cinema:not(:has(#palette.acls)) #gearTray > button,
+    body.cinema:not(:has(#palette.acls)) .cinTab, body.cinema:not(:has(#palette.acls)) [data-pview]{font-size:12px !important}
+    body.cinema:not(:has(#palette.acls)) #ticker, body.cinema:not(:has(#palette.acls)) #chat, body.cinema:not(:has(#palette.acls)) #orderFeedback,
+    body.cinema:not(:has(#palette.acls)) #cmd, body.cinema:not(:has(#palette.acls)) #basketTray{font-size:14px !important;line-height:1.45}
+    body.cinema:not(:has(#palette.acls)) .roomBubble{font-size:13px !important;line-height:1.4}
+    /* The monitor strip's own labels are deliberately NOT raised. Growing them pushed the
+       strip down onto the transcript, which has a measured floor (ui.test: 120px with a
+       code running) — it fell to 96px, and losing the nurse's words to read the word
+       "bpm" more comfortably is the wrong trade. These labels sit beside numbers that are
+       already large, and the number is what you read from across the bay.
+       The transcript gets the reclaimed pixels instead. */
+    body.cinema:not(:has(#palette.acls)) #chat{min-height:8.25rem}
+    /* A thumb wants 44px, and the chip rows cannot have it. Under a code the palette is
+       force-open and shares the screen with the transcript, which has a measured floor of
+       its own (ui.test: 250px at rest, 120px with a code running). At 44 the transcript
+       fell to 96px; at 40 it was still short. 36 is what the two constraints leave, and a
+       36px row of 12px text is a large improvement on a 17px row of 9px text. The
+       controls that are not in that contest keep the full 44 below. */
+    body.cinema:not(:has(#palette.acls)) .pal, body.cinema:not(:has(#palette.acls)) .oset, body.cinema:not(:has(#palette.acls)) .secHead{min-height:36px}
+    /* The running-code palette is the one row that cannot have this. It is force-open
+       during a code, it shares a 375px screen with the transcript, and the transcript's
+       floor (120px with a code running) is Kim's own guard against losing the nurse's
+       words. Grown to 36px/12px it took the transcript to 96px. These chips are already
+       the widest targets on the screen and sit in a row of their own; the compromise is
+       11px and 32px tall, against the 10px and 17px they were. */
+    body.cinema:not(:has(#palette.acls)) #palette.acls .pal{font-size:11px !important;min-height:32px}
+    /* NOT a blanket 44 on the command row: ui.test measures a floor under the transcript
+       (250px at 375x812) and growing every control in that row spent the transcript's
+       height to buy it — 243px, and 96px once a code is running. The controls you reach
+       for get 44; the row that shares its space with the transcript keeps its size. */
+    body.cinema:not(:has(#palette.acls)) [data-sec], body.cinema:not(:has(#palette.acls)) #chartBtn, body.cinema:not(:has(#palette.acls)) #sendBtn{min-height:44px}
+    /* A row that scrolls sideways says so. Measured: one action row overflowed its box by
+       1136px with nothing on screen to suggest there was more of it. */
+    body.cinema:not(:has(#palette.acls)) .secBody, body.cinema:not(:has(#palette.acls)) #palette, body.cinema:not(:has(#palette.acls)) #qaRow, body.cinema:not(:has(#palette.acls)) #basketTray{
+      -webkit-overflow-scrolling:touch;
+      mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent);
+      -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent)}
+    body.cinema:not(:has(#palette.acls)) .secBody:after, body.cinema:not(:has(#palette.acls)) #palette:after{
+      content:'\203a';position:sticky;right:2px;align-self:center;
+      color:#5eead4;font-weight:900;font-size:15px;opacity:.75;pointer-events:none}
   }
   /* Phone-width cinema: below about 560px the three-item strip cannot hold TEMP, the
      clock chip and RHYTHM on one line whatever the countdown says, so the chip takes a
@@ -5177,9 +5239,15 @@ function wirePalChips(root){
     (b.dataset.pal === '__recap') ? showRecap() : palChipClick(b, ev);
 }
 // The handover, back on screen. No turn is taken and no order is sent — this is reading
+// The transcript, and only the transcript: see setResults() for why they are exclusive.
+function openFeed(){
+  document.body.classList.remove('resultsOpen');
+  document.body.classList.add('feedOpen');
+  if(typeof paintLabsRail === 'function') paintLabsRail();
+}
 // what you were already told, which should never cost the patient a minute.
 function showRecap(){
-  document.body.classList.add('feedOpen');
+  openFeed();
   if(typeof paintCast === 'function') paintCast();
   const c = $('chat');
   if(c) c.scrollTop = 0;                 // the presentation is the first thing in it
@@ -5378,7 +5446,7 @@ function paintTicker(){
     ? ((said.speaker && said.speaker !== 'narrator' ? said.speaker + ': ' : '') + said.text).trim()
     : (msg ? String(msg.content || '').trim() : '');
   el.textContent = last ? '\u25b8 ' + last : '';
-  el.onclick = () => { document.body.classList.add('feedOpen'); paintCast();
+  el.onclick = () => { openFeed(); paintCast();
     const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };
 }
 // EVERY ORDER, ALL CASE LONG. Kim: "keep a log of all the orders on the side."
@@ -7643,7 +7711,12 @@ document.addEventListener('click', e => {
 // empty wall and covers no control, so there is nothing to be gained by hiding it. Only
 // an explicit close ('0') keeps it shut; a browser that has never been asked gets it open.
 function _resultsPref(){ try{ return localStorage.getItem('ms_results') !== '0'; }catch(_){ return true; } }
+// ONE DRAWER AT A TIME. The transcript and the chart share the screen — on a phone each
+// is most of it — and two open at once is how the room disappears behind them. Opening
+// either now closes the other, so there is one thing to read and the patient is still
+// visible beside it.
 function setResults(open){
+  if(open) document.body.classList.remove('feedOpen');
   document.body.classList.toggle('resultsOpen', !!open);
   try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
   paintLabsRail();
