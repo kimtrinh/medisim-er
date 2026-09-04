@@ -123821,6 +123821,71 @@
    },
    "responders": [
     {
+     "intent": "exam",
+     "when": {
+      "requires": [
+       "decompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "chest",
+       "lungs",
+       "breath sounds",
+       "auscultate the chest",
+       "pulmonary exam",
+       "chest exam",
+       "respiratory exam"
+      ]
+     },
+     "physicalExam": [
+      {
+       "system": "Respiratory",
+       "finding": "Breath sounds have returned over the right hemithorax \u2014 quieter than the left, but present \u2014 and the hyperresonance has gone. Right chest wall excursion has improved. Palpable subcutaneous emphysema along the right lateral chest wall is unchanged."
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Breath sounds are back on the right and the percussion note has evened up."
+      }
+     ]
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "decompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "bedside ultrasound",
+       "lung ultrasound",
+       "efast",
+       "point of care ultrasound",
+       "pocus",
+       "ultrasound chest"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "Bedside thoracic ultrasound",
+       "body": "Right hemithorax: lung sliding has returned across the anterior interspaces with a seashore sign on M-mode; the barcode pattern has gone and no lung point is seen. Left lung sliding preserved. IMPRESSION: The right pneumothorax has been decompressed.",
+       "image": {
+        "type": "us",
+        "query": "lung ultrasound absent lung sliding barcode sign right hemithorax M-mode"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Sliding is back on the right \u2014 seashore on M-mode now, not barcode."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -143965,6 +144030,74 @@
    },
    "responders": [
     {
+     "intent": "exam",
+     "when": {
+      "requires": [
+       "decompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "chest",
+       "breath sounds",
+       "lung exam",
+       "auscultate the chest",
+       "listen to the lungs",
+       "chest rise",
+       "percuss the chest",
+       "chest wall"
+      ]
+     },
+     "physicalExam": [
+      {
+       "system": "Respiratory",
+       "finding": "Air entry has returned on the right and the hyperresonance has gone; the bag no longer meets resistance. The crackling subcutaneous emphysema over the right clavicle and neck is unchanged \u2014 it takes days to reabsorb and is not a sign that the decompression failed."
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Right side's taking air now and the bag is soft."
+      }
+     ]
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "decompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "bedside ultrasound",
+       "pocus",
+       "lung ultrasound",
+       "point of care ultrasound",
+       "ultrasound the chest",
+       "cardiac ultrasound",
+       "echo during the pulse check",
+       "sonography"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "Bedside Thoracic and Cardiac Ultrasound",
+       "body": "FINDINGS: Right hemithorax: lung sliding has returned through the anterior interspaces and the lung point is no longer identified. Left hemithorax: normal sliding. IMPRESSION: The right pneumothorax has been decompressed.",
+       "image": {
+        "type": "us",
+        "query": "lung ultrasound absent sliding barcode sign m mode lung point right hemithorax"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Sliding is back on the right and I can't find the lung point any more."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -150286,6 +150419,76 @@
    },
    "responders": [
     {
+     "intent": "exam",
+     "when": {
+      "requires": [
+       "chestDecompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "breath sounds",
+       "lung exam",
+       "auscultate the chest",
+       "chest exam",
+       "chest rise",
+       "respiratory exam",
+       "listen to her chest",
+       "trachea",
+       "neck veins",
+       "percuss the chest"
+      ]
+     },
+     "physicalExam": [
+      {
+       "system": "Respiratory",
+       "finding": "The left chest now rises with the bag and breath sounds have returned \u2014 quieter than the right, but there. The trachea has come back to the midline and the neck veins have flattened. Bagging is easy again. The bruising over the left lower ribs is unchanged."
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Left side's moving now and the bag is soft again."
+      }
+     ]
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "chestDecompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "fast exam",
+       "efast",
+       "focused assessment sonography",
+       "trauma ultrasound",
+       "bedside ultrasound",
+       "fast scan",
+       "pocus",
+       "lung ultrasound"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "Extended FAST Examination",
+       "body": "FINDINGS: No pericardial fluid. Free fluid is still present in the hepatorenal recess and in the pelvis. Lung sliding has returned across the left anterior chest windows and no lung point is seen; sliding is present on the right. IMPRESSION: The left pneumothorax has been decompressed. The positive abdominal FAST is unchanged \u2014 that blood is still there and still needs a surgeon.",
+       "image": {
+        "type": "us",
+        "query": "extended FAST ultrasound free fluid hepatorenal recess pelvis absent lung sliding lung point left chest"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Sliding is back on the left. The free fluid in Morison's pouch and the pelvis has not changed."
+      }
+     ]
+    },
+    {
      "intent": "history",
      "match": {
       "any": [
@@ -152023,6 +152226,75 @@
     "rosc": false
    },
    "responders": [
+    {
+     "intent": "exam",
+     "when": {
+      "requires": [
+       "chestDecompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "breath sounds",
+       "lung exam",
+       "auscultate the chest",
+       "chest exam",
+       "respiratory exam",
+       "listen to his chest",
+       "trachea",
+       "neck veins",
+       "percuss the chest",
+       "chest wall"
+      ]
+     },
+     "physicalExam": [
+      {
+       "system": "Respiratory",
+       "finding": "Both chests now move with the bag and the resistance has gone. Surgical emphysema is still palpable across both anterior chest walls, which is expected and takes days to clear. Breath sounds remain unassessable over compressions \u2014 the change you can trust here is the bag, not the stethoscope."
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Both sides are moving now and the bag has gone soft."
+      }
+     ]
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "chestDecompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "fast exam",
+       "efast",
+       "focused assessment sonography",
+       "trauma ultrasound",
+       "bedside ultrasound",
+       "fast scan",
+       "lung ultrasound"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "Extended FAST Examination",
+       "body": "FINDINGS: Free fluid in the hepatorenal recess and the pelvis. No pericardial fluid. Lung sliding has returned in both anterior chest windows. IMPRESSION: Both chests are decompressed. The free intraperitoneal fluid is unchanged and remains an uncontrolled source of bleeding.",
+       "image": {
+        "type": "us",
+        "query": "extended FAST ultrasound free fluid hepatorenal pelvis absent lung sliding barcode sign both chests"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Sliding is back on both sides. The free fluid in the belly is unchanged."
+      }
+     ]
+    },
     {
      "intent": "history",
      "match": {
@@ -156753,6 +157025,42 @@
     "rosc": false
    },
    "responders": [
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "decompressed"
+      ]
+     },
+     "match": {
+      "any": [
+       "lung ultrasound",
+       "bedside ultrasound",
+       "pocus lung",
+       "thoracic ultrasound",
+       "ultrasound the chest",
+       "check for lung sliding",
+       "sonographic chest",
+       "point of care ultrasound"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "Bedside Lung Ultrasound",
+       "body": "FINDINGS: Lung sliding has returned throughout the right anterior chest with a seashore sign on M-mode, and no lung point is identified. The left anterior chest continues to show normal sliding. IMPRESSION: The right pneumothorax has been decompressed. Air entry may still be poor \u2014 that is the asthma, and it is treated separately.",
+       "image": {
+        "type": "us",
+        "query": "bedside lung ultrasound absent lung sliding barcode stratosphere sign M-mode lung point right anterior chest"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Sliding is back on the right. He is still tight everywhere, though \u2014 that part is the asthma."
+      }
+     ]
+    },
     {
      "intent": "assessment",
      "match": {

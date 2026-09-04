@@ -941,15 +941,45 @@ function responderHasImaging(r){ return r.intent==='imaging' || !!(r.diagnosticR
 // history" hits an exam region) and a correct order must never be dropped just because
 // its wording tripped the classifier. Any responder whose aliases actually match is
 // eligible; multi-word aliases keep this from over-matching.
-function matchResponders(pack, clause){
+// A CASE MAY ANSWER DIFFERENTLY ONCE IT HAS BEEN TREATED.
+//
+// Kim, on the blunt-trauma case: "I did do the needle thoracostomy, but even after that
+// and the chest tube it still said there was no lung sliding." It did, because the eFAST
+// report is one fixed block of text and nothing could tell it the chest had been
+// decompressed — not one responder in the whole library was conditioned on anything.
+//
+// `when` is that condition, and it is NOT `gate`. A gate REFUSES an order whose
+// prerequisite is missing ("he's still awake — sedation before you shock him"). A `when`
+// only decides which version of an answer applies: an order with no eligible variant is
+// performed exactly as before. So the scan is never refused; it simply reports what a
+// decompressed chest looks like once the chest is decompressed.
+//
+//   when: { requires: ['chestDecompressed'], absent: ['reAccumulated'] }
+//
+// A satisfied variant REPLACES the unconditioned answer of the same intent, so the "after"
+// findings do not print alongside the "before" ones.
+function whenSatisfied(r, flags){
+  const w = r && r.when;
+  if(!w) return true;
+  const f = flags || {};
+  if(Array.isArray(w.requires) && !w.requires.every(k => f[k])) return false;
+  if(Array.isArray(w.absent)   && !w.absent.every(k => !f[k])) return false;
+  return true;
+}
+function matchResponders(pack, clause, flags){
   if(!pack || !Array.isArray(pack.responders)) return [];
   const norm = normalize(clause), toks = norm.split(' ');
   const mod = clauseModality(norm);
   const isImaging = classifyIntent(norm)==='imaging' || !!mod;
-  const scored = pack.responders.map(r => ({r, s: matchScore(r, toks)})).filter(h => h.s > 0);
+  const eligible = pack.responders.filter(r => whenSatisfied(r, flags));
+  const scored = eligible.map(r => ({r, s: matchScore(r, toks)})).filter(h => h.s > 0);
+  // Where a conditioned variant applies, it stands IN PLACE OF the plain answer for that
+  // intent rather than beside it.
+  const conditioned = new Set(scored.filter(h => h.r.when).map(h => h.r.intent));
+  const keep = h => h.r.when || !conditioned.has(h.r.intent);
   if(isImaging){
     // imaging order → ONLY imaging content, of a compatible modality, best match only
-    let hits = scored.filter(h => responderHasImaging(h.r))
+    let hits = scored.filter(keep).filter(h => responderHasImaging(h.r))
       .filter(h => { if(!mod) return true; const rm = responderModality(h.r);
                      return !rm || (MODALITY_COMPAT[mod]||[mod]).includes(rm); });
     hits.sort((a,b)=>b.s-a.s);
@@ -959,7 +989,7 @@ function matchResponders(pack, clause){
   }
   // non-imaging order → everything that matches EXCEPT imaging-study responders
   // (so "give X" / "examine Y" / "ask Z" never surfaces a stray CT).
-  const hits = scored.filter(h => !responderHasImaging(h.r)).map(h=>h.r);
+  const hits = scored.filter(keep).filter(h => !responderHasImaging(h.r)).map(h=>h.r);
 
   // CONSULT bridging: "consult ob emergently" must reach a responder whose
   // aliases say "gyn consult"/"call ob" — the verb and spelling differ but the
@@ -2558,7 +2588,7 @@ function runTurn(pack, state, action, opts){
       || /\b(i d|i would) (start|give|add|push|hang|reach for|consider)\b/.test(rawClause)
       || /\bthreshold for\b/.test(rawClause);
     const counseling = DISCUSS_RE.test(rawClause) && !DISCUSS_IS_DISPO_RE.test(rawClause);
-    let matched = matchResponders(pack, rawClause);
+    let matched = matchResponders(pack, rawClause, state.flags);
     const ctoks = normalize(rawClause).split(' ');
     // Earliest clause position of EACH matched alias, per responder. A responder
     // often aliases several drugs of a class (kayexalate AND lokelma live on one
@@ -2614,7 +2644,7 @@ function runTurn(pack, state, action, opts){
     if(!matched.length && hasCatalog){
       const canon = applyCatalogAliases(rawClause, opts.catalog);
       if(canon !== rawClause){
-        const m2 = matchResponders(pack, canon);
+        const m2 = matchResponders(pack, canon, state.flags);
         if(m2.length){ matched = m2; viaCatalog = true; }
         clause = canon;               // canonical form for the match or the fallback
       }
@@ -2656,7 +2686,13 @@ function runTurn(pack, state, action, opts){
         // A responder whose results are ALL already on the chart, reached by a
         // clause with no re-order language, is a citation, not an order.
         const reorderVerb = /\b(recheck|repeat|redraw|send|draw|order|get|obtain|another|again|redo|stat)\b/.test(rawClause);
-        if(!reorderVerb && !(Number.isInteger(r0.satisfies) && !state.satisfied.includes(r0.satisfies))){
+        // A CONDITIONED VARIANT IS NEVER "already seen". This guard stops a re-ordered
+        // study from reprinting the same card, and it keys on the report TITLE — but a
+        // `when` variant carries the same title deliberately (it is the same study, after
+        // treatment) and different findings. Skipping it here would drop the very answer
+        // the variant exists to give: scan, decompress, scan again, and the second scan
+        // fell through to a generic negative FAST.
+        if(!reorderVerb && !r0.when && !(Number.isInteger(r0.satisfies) && !state.satisfied.includes(r0.satisfies))){
           const rows = r0.labResults || [], reps = r0.diagnosticReports || [];
           const allRows = rows.length && rows.every(l => state.labsSeen[canonLabName(l.name)] || state.labsSeen[l.name]);
           const allReps = reps.length && reps.every(rep => state.reportsSeen[rep.title]);
@@ -2953,7 +2989,7 @@ function runTurn(pack, state, action, opts){
   // bare "labs"/"routine labs" ⇒ CBC + BMP ONLY, preferring the pack's case-specific rows
   if(wantRoutine){
     for(const key of ['complete blood count','basic metabolic panel']){
-      const pr = matchResponders(pack, key).find(r=>Array.isArray(r.labResults));
+      const pr = matchResponders(pack, key, state.flags).find(r=>Array.isArray(r.labResults));
       out.labResults.push(...(pr ? pr.labResults : panelRows(key)));
     }
     minutes = Math.max(minutes, MINUTES.lab);
