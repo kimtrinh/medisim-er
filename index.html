@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-h2Ackbw92oY7bn7w2LNRbtaDxiMzAON+bgCuCRpUd2M=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5zsT2j44Pf5dyFLtgGhamigN5kQKJVOOUGh87dDJ2jY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -231,12 +231,33 @@
   #clRhythm{left:1%; top:21%;   width:19.5%}
   #clMeds  {left:1%; top:37.5%; width:19.5%}
   #clAirway{left:1%; top:58%;   width:19.5%}
-  #clMore  {left:1%; top:71%;   width:19.5%}
+  /* THE THREE SECTIONS. Collapsed they are three slim headers at the foot of the wall,
+     under the algorithm chips. Opened, the panel grows UP the column — anchored at the
+     bottom so the header you press does not move under your finger — takes the wall to
+     itself, and scrolls. The room keeps the whole right-hand side of the picture either
+     way, which is the layout Kim asked to keep. */
+  /* flex-wrap:nowrap is load-bearing: the shared .cluster rule sets flex-wrap:wrap for the
+     chip grids, and a wrapping COLUMN with a bounded height does not scroll — it starts a
+     second column beside itself. The three headers duly wrapped out of the left wall and
+     landed on top of the monitor. */
+  #console #clSections{left:1%; bottom:12%; width:19.5%; display:flex; flex-direction:column;
+    flex-wrap:nowrap; gap:.2rem;
+    background:none; border:0; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none;
+    padding:0; pointer-events:auto}
+  body.cinema.console.secOpen #clSections{top:calc(var(--hdr,66px) + 8px - var(--rt))}
+  #clSections .secBody{flex:1 1 auto; min-height:0; overflow-y:auto; scrollbar-width:thin;
+    margin-bottom:.25rem; padding:.35rem .4rem; border-radius:12px;
+    border:1px solid rgba(148,163,184,.13);
+    background:linear-gradient(180deg,rgba(2,6,23,.92),rgba(3,7,18,.82));
+    -webkit-backdrop-filter:blur(9px) saturate(1.1); backdrop-filter:blur(9px) saturate(1.1)}
+  #clSections .secGroup{width:100%; margin:.35rem 0 .1rem; font-size:8px; font-weight:900;
+    letter-spacing:.2em; text-transform:uppercase; color:#64748b}
+  #clSections .secGroup:first-child{margin-top:0}
   /* THE CALL. Not a full-width ribbon along the foot: below the bed (which ends at y90%)
      there is only ~85px of picture left, and the nurse's line and the command box need
      it. It stands on the empty left wall instead, clear of the ultrasound cart (x4-18,
      y39-86) and the medic (x21-33). */
-  #ribbon  {position:absolute;left:1%;top:78%;width:19.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
+  #ribbon  {position:absolute;left:1%;top:71%;width:19.5%;pointer-events:auto;display:flex;flex-wrap:wrap;
     gap:.25rem;align-content:flex-start;padding:.35rem .4rem;border-radius:12px;
     border:1px solid rgba(148,163,184,.13);background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(3,7,18,.62));
     -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
@@ -300,6 +321,8 @@
      over empty wall, which is why it can stay open while you give orders.) */
   body.cinema.console.feedOpen #console,
   body.cinema.console.feedOpen #ribbon{display:none}
+  /* An open section owns the wall; the reversible-causes ribbon shares that column. */
+  body.cinema.console.secOpen #ribbon{display:none}
   body.cinema.console #obInputRow{margin:0}
   /* Order feedback and the nurse readback float ABOVE the dock instead of growing it. */
   body.cinema.console #orderFeedback,
@@ -4822,6 +4845,71 @@ function wirePalChips(root){
   if(!root) return;
   for(const b of root.querySelectorAll('.pal')) b.onclick = () => palChipClick(b);
 }
+// HISTORY · EXAM · ORDERS. Kim: "maybe the best way is to have a history bubble, physical
+// exam bubble (I don't see how to do physical exam or re-evaluate), orders bubble. And
+// results as well. And make sure that they are fully expandable and collapsible. Keep it
+// generally the way it's laid out where you can see the patient very well."
+//
+// All of this already existed — History, Vitals, RE-EVALUATE, Exam, Labs are the quick-action
+// row — but the console hides that row, so in the sim room there was no way to reach any of
+// it. A 134-minute opioid-arrest case was typed one order at a time for want of these.
+//
+// Three collapsed headers stand at the foot of the left wall. Opening one grows it up the
+// column and stands the algorithm chips down while it is up; closing it brings them back.
+// One open at a time, so the patient is never behind more than one panel. RESULTS is the
+// fourth and it already exists — the drawer on the right.
+const SECTIONS = {
+  history: { label: 'History', items: [
+    ['Focused history','Take a focused history from the patient.'],
+    ['Collateral','Get collateral history from the family or the paramedics.'],
+    ['Past medical','Ask about past medical history, medications and allergies.'],
+    ['Recheck vitals','Recheck a full set of vital signs.'],
+    ['Re-evaluate','Reassess the patient.']] },
+  exam: { label: 'Exam', items: [
+    ['Primary survey','Perform a primary survey.'],
+    ['General','Assess general appearance.'],
+    ['Cardiac','Auscultate the heart.'],
+    ['Lungs','Auscultate the lungs.'],
+    ['Abdomen','Examine the abdomen.'],
+    ['Neuro','Perform a neurologic exam.'],
+    ['Pupils','Check the pupils.'],
+    ['Skin','Examine the skin.'],
+    ['Extremities','Examine the extremities.'],
+    ['Rectal','Perform a rectal exam.'],
+    ['Bedside glucose','Check a bedside glucose.']] },
+};
+let _openSection = null;
+function sectionsHTML(){
+  const chip = (lab, order) =>
+    '<button data-pal="' + esc(order) + '" data-lab="' + esc(lab) + '" class="pal m-0.5 px-2 py-1 rounded-md border border-slate-700/70 bg-slate-950/60 text-[10px] text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition">' + esc(lab) + '</button>';
+  const head = (key, label) =>
+    '<button data-sec="' + key + '" class="secHead w-full flex items-center justify-between px-2 py-1.5 rounded-md border text-[10px] font-black uppercase tracking-widest transition ' +
+    (_openSection === key ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300'
+                          : 'border-slate-700/70 bg-slate-950/70 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40') +
+    '"><span>' + esc(label) + '</span><span>' + (_openSection === key ? '\u2715' : '\u25b8') + '</span></button>';
+  let body = '';
+  if(_openSection === 'orders'){
+    body = '<div class="secBody"><div class="secGroup">Order sets \u2014 fill the basket</div>' +
+      Object.entries(ORDER_SETS).map(([name, items]) =>
+        '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+        '" class="oset m-0.5 px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
+        esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join('') +
+      Object.entries(PALETTE).map(([group, items]) =>
+        '<div class="secGroup">' + esc(group) + '</div>' + items.map(it => chip(it[0], it[1])).join('')).join('') +
+      '</div>';
+  }else if(_openSection && SECTIONS[_openSection]){
+    body = '<div class="secBody">' + SECTIONS[_openSection].items.map(it => chip(it[0], it[1])).join('') + '</div>';
+  }
+  return '<div class="cluster" id="clSections">' + body +
+    head('history', 'History') + head('exam', 'Exam') + head('orders', 'Orders') + '</div>';
+}
+document.addEventListener('click', e => {
+  const h = e.target && e.target.closest && e.target.closest('.secHead');
+  if(!h) return;
+  e.stopPropagation();
+  _openSection = (_openSection === h.dataset.sec) ? null : h.dataset.sec;
+  paintConsole();
+});
 // EVERYTHING ELSE, one click away. Built from the same ORDER_SETS and PALETTE as the bar
 // and the prose wall, so there is one vocabulary and one basket however you reach it.
 function moreOrdersMenu(ev){
@@ -4885,7 +4973,8 @@ function paintProseConsole(host){
   for(const [group, items] of Object.entries(PALETTE))
     parts.push('<span class="clab" style="margin-top:.45rem">' + esc(group) + '</span>' +
       items.map(it => chip(it[0], it[1])).join(''));
-  host.innerHTML = '<div class="cluster" id="clOrders">' + parts.join('') + '</div>';
+  document.body.classList.toggle('secOpen', !!_openSection);
+  host.innerHTML = sectionsHTML();
   wirePalChips(host);
   for(const b of host.querySelectorAll('.oset')) b.onclick = () => basketAddSet(b.dataset.os);
 }
@@ -4949,6 +5038,7 @@ function paintConsole(){
   // wall was empty AND the bar was hidden, and the sim room offered no clickable order
   // at all. The typed command line was the only way in.
   if(inRoom && !on){ paintProseConsole(host); return; }
+  document.body.classList.toggle('secOpen', !!_openSection);
   if(!on) return;
   const g = codeChipGroups(); if(!g) return;
   const cluster = (id, label, chips) =>
@@ -4968,8 +5058,7 @@ function paintConsole(){
     g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
   // A code case's wall is deliberately just the algorithm. This is the way to everything
   // else — labs, imaging, exam, the order sets — without putting it all on the wall.
-  parts.push('<div class="cluster" id="clMore"><button id="moreOrders" class="pal w-full px-2 py-1.5 rounded-md border border-slate-600/70 bg-slate-950/70 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-emerald-300 hover:border-emerald-500/50 transition" title="Labs, imaging, exam and the order sets">+ More orders</button></div>');
-  host.innerHTML = parts.join('');
+  host.innerHTML = (_openSection ? '' : parts.join('')) + sectionsHTML();
   // The judgement calls and the reversible causes run along the foot of the picture,
   // below the bed (which ends at y 90%).
   if(rib){
@@ -6099,7 +6188,11 @@ function closeRoomMenu(){
   window.removeEventListener('resize', _roomMenuAway);
 }
 function _roomMenuAway(e){
-  if(e && e.type==='click'){ const m=document.querySelector('.roomMenu'); if(m && m.contains(e.target)) return; }
+  // A scroll INSIDE the panel is the panel being used, not the player looking away. This
+  // listener is on window with capture, so it saw those scrolls and shut the panel the
+  // moment anyone tried to reach the bottom of it.
+  const m = document.querySelector('.roomMenu');
+  if(m && e && e.target && m.contains(e.target) && (e.type === 'click' || e.type === 'scroll' || e.type === 'wheel')) return;
   closeRoomMenu();
 }
 function roomMenu(ev, key){
