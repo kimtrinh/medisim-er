@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-zBDUHSgNPfC9v76Def4zwSu6fQkVGwW9w6npSXnsSbA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-D7c873FQ5hHQbMXracI68okC78rtqq9mbXqDE+TLXxM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -5204,11 +5204,37 @@ const SECTIONS = {
     ['Neuro','Perform a neurologic exam.'],
     ['Pupils','Check the pupils.'],
     ['Skin','Examine the skin.'],
-    ['Extremities','Examine the extremities.'],
+    ['Extremities','Examine the extremities.'],   // label swapped per case by examChipLabel()
     ['Rectal','Perform a rectal exam.'],
     ['Bedside glucose','Check a bedside glucose.']] },
 };
 let _openSection = null;
+// "Extremities" reads as a routine survey. On a case whose own exam responder names a
+// wound, that chip is how you find the bleeding — Kim, on the crush case: "I'm not sure I
+// have a way to examine the leg." She had one; it did not look like one, and behind it sat
+// "The left thigh is degloved over 25 cm with steady dark and bright bleeding".
+//
+// The LABEL changes and the ORDER does not. "Examine the extremities." is what reaches the
+// case's authored finding, and rewording it breaks that: measured, "examine the injured
+// limb and the bleeding" splits on its own "and" and comes back with the general survey.
+//
+// Which cases: asked of the pack, never a hand-kept list of ids, so a new trauma case is
+// covered the day it is written. The words below are injuries — "limb strength" and "four
+// limb blood pressures" are exam manoeuvres and must not trip it.
+// BOTH halves, on the SAME responder: it has to be the limb exam, and it has to name an
+// injury. An injury word alone picks up endocarditis on "splinter haemorrhages", dengue on
+// "bleeding", and a facial dog bite on "wound" — none of which is an injured limb.
+const LIMB_EXAM_RE  = /\b(extremit\w*|limbs?|legs?|arms?|hands?|feet|foot|ankles?|thighs?|calf|forearm)\b/i;
+const WOUND_EXAM_RE = /\b(crushed|mangled|amputat\w*|tourniquet|wounds?|bleeding|degloved|deformity|fracture)\b/i;
+function examChipLabel(){
+  const pack = (S.goldId && _offline && _offline[S.goldId]) || S.generatedPack || null;
+  const named = pack && (pack.responders || []).some(r => {
+    if(r.intent !== 'exam') return false;
+    const any = ((r.match && r.match.any) || []).map(String);
+    return any.some(a => LIMB_EXAM_RE.test(a)) && any.some(a => WOUND_EXAM_RE.test(a));
+  });
+  return named ? 'Injured limb' : 'Extremities';
+}
 function sectionsHTML(){
   const chip = (lab, order) =>
     '<button data-pal="' + esc(order) + '" data-lab="' + esc(lab) + '" class="pal m-0.5 px-2 py-1 rounded-md border border-slate-700/70 bg-slate-950/60 text-[10px] text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition">' + esc(lab) + '</button>';
@@ -5228,7 +5254,8 @@ function sectionsHTML(){
         '<div class="secGroup">' + esc(group) + '</div>' + items.map(it => chip(it[0], it[1])).join('')).join('') +
       '</div>';
   }else if(_openSection && SECTIONS[_openSection]){
-    body = '<div class="secBody">' + SECTIONS[_openSection].items.map(it => chip(it[0], it[1])).join('') + '</div>';
+    body = '<div class="secBody">' + SECTIONS[_openSection].items
+      .map(it => chip(it[0] === 'Extremities' ? examChipLabel() : it[0], it[1])).join('') + '</div>';
   }
   const reassess = '<button data-pal="Reassess the patient." data-lab="Re-evaluate" ' +
     'class="pal w-full px-2 py-1.5 rounded-md border border-sky-500/40 bg-sky-950/40 text-[10px] ' +
