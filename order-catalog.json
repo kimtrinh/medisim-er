@@ -1673,7 +1673,19 @@
         "toradol for pain",
         "ketorolac iv",
         "toradol 30mg"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "15 mg IV",
+          "text": "15 mg IV",
+          "default": true
+        },
+        {
+          "label": "30 mg IV",
+          "text": "30 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-acetaminophen",
@@ -1696,7 +1708,24 @@
         "paracetamol",
         "tylenol tabs",
         "tylenol 1000"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "650 mg PO",
+          "text": "650 mg PO",
+          "default": true
+        },
+        {
+          "label": "1000 mg IV",
+          "text": "1000 mg IV"
+        },
+        {
+          "label": "15 mg/kg",
+          "text": "15 mg/kg PO",
+          "perKg": 15
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ibuprofen",
@@ -1721,7 +1750,28 @@
         "ibu 600",
         "motrin tabs",
         "ibu 800"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "600 mg PO",
+          "text": "600 mg PO",
+          "default": true
+        },
+        {
+          "label": "400 mg PO",
+          "text": "400 mg PO"
+        },
+        {
+          "label": "800 mg PO",
+          "text": "800 mg PO"
+        },
+        {
+          "label": "10 mg/kg",
+          "text": "10 mg/kg PO",
+          "perKg": 10
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ceftriaxone",
@@ -1811,7 +1861,19 @@
         "3.375 zosyn",
         "4.5 zosyn",
         "pip tazo"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "3.375 g IV",
+          "text": "3.375 g IV",
+          "default": true
+        },
+        {
+          "label": "4.5 g IV",
+          "text": "4.5 g IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-azithromycin",
@@ -1911,7 +1973,19 @@
         "doxy iv",
         "doxycycline hyclate",
         "doxy 100"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "100 mg PO",
+          "text": "100 mg PO",
+          "default": true
+        },
+        {
+          "label": "100 mg IV",
+          "text": "100 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-metronidazole",
@@ -1976,7 +2050,23 @@
         "proventil hfa",
         "quick relief inhaler",
         "alb sulfate"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2.5 mg neb",
+          "text": "2.5 mg nebulized",
+          "default": true
+        },
+        {
+          "label": "5 mg neb",
+          "text": "5 mg nebulized"
+        },
+        {
+          "label": "continuous",
+          "text": "10 mg/hr nebulized"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ipratropium",
@@ -2000,7 +2090,15 @@
         "atrovent hfa",
         "ipratropium bromide neb",
         "atrovent mdi"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.5 mg neb",
+          "text": "0.5 mg nebulized",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-epinephrine",
@@ -2492,7 +2590,27 @@
         "o2 2l nc",
         "o2 therapy",
         "oxygen via cannula"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "2 L/min",
+          "text": "2 L/min",
+          "default": true
+        },
+        {
+          "label": "4 L/min",
+          "text": "4 L/min"
+        },
+        {
+          "label": "6 L/min",
+          "text": "6 L/min"
+        },
+        {
+          "label": "10 L/min",
+          "text": "10 L/min"
+        }
+      ],
+      "sentence": "Give {name} at {dose}."
     },
     {
       "id": "med-non-rebreather",
@@ -2516,7 +2634,15 @@
         "o2 mask 15l",
         "nrb at 15l",
         "face mask o2"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "15 L/min",
+          "text": "15 L/min",
+          "default": true
+        }
+      ],
+      "sentence": "Start a {name} at {dose}."
     },
     {
       "id": "med-magnesium",
@@ -2576,7 +2702,19 @@
         "k+ replacement",
         "give kcl",
         "potassium supplement"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "20 mEq IV",
+          "text": "20 mEq IV",
+          "default": true
+        },
+        {
+          "label": "40 mEq IV",
+          "text": "40 mEq IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-amiodarone",
@@ -2813,7 +2951,15 @@
         "start nicardipine",
         "nicardipine iv",
         "give nicardipine"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "5 mg/hr IV",
+          "text": "5 mg/hr IV",
+          "default": true
+        }
+      ],
+      "sentence": "Start {name} at {dose}."
     },
     {
       "id": "med-hydralazine",
@@ -2836,7 +2982,19 @@
         "hydralizine",
         "hydralazine for bp",
         "start hydralazine"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "10 mg IV",
+          "text": "10 mg IV",
+          "default": true
+        },
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-furosemide",
@@ -2903,7 +3061,19 @@
         "lasix 20 mg iv",
         "lasix drip please",
         "lasix now"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "40 mg IV",
+          "text": "40 mg IV",
+          "default": true
+        },
+        {
+          "label": "80 mg IV",
+          "text": "80 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-steroids",
@@ -3019,7 +3189,19 @@
         "oral steroid taper",
         "prednisone pack",
         "prednisone script"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "40 mg PO",
+          "text": "40 mg PO",
+          "default": true
+        },
+        {
+          "label": "60 mg PO",
+          "text": "60 mg PO"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-tranexamic",
@@ -3103,7 +3285,16 @@
         "tenecteplase iv",
         "tnkase bolus",
         "push tnk"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "0.25 mg/kg",
+          "text": "0.25 mg/kg IV push, max 25 mg",
+          "default": true,
+          "perKg": 0.25
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ketamine",
@@ -3235,7 +3426,19 @@
         "start propofol",
         "give propofol",
         "propofol for sedation"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "20 mcg/kg/min",
+          "text": "20 mcg/kg/min",
+          "default": true
+        },
+        {
+          "label": "50 mcg/kg/min",
+          "text": "50 mcg/kg/min"
+        }
+      ],
+      "sentence": "Start {name} at {dose}."
     },
     {
       "id": "med-etomidate",
@@ -3404,7 +3607,19 @@
         "glucagon im",
         "give glucagon",
         "1mg glucagon"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1 mg IM",
+          "text": "1 mg IM",
+          "default": true
+        },
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-calcium",
@@ -3492,7 +3707,19 @@
         "give octreotide",
         "sub q octreotide",
         "octreotide sq"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "50 mcg IV",
+          "text": "50 mcg IV",
+          "default": true
+        },
+        {
+          "label": "50 mcg/hr",
+          "text": "50 mcg/hr IV infusion"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-pantoprazole",
@@ -3515,7 +3742,19 @@
         "pantoprazole iv",
         "start ppi",
         "pantoprazole infusion"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "80 mg IV",
+          "text": "80 mg IV",
+          "default": true
+        },
+        {
+          "label": "40 mg IV",
+          "text": "40 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-famotidine",
@@ -3533,7 +3772,15 @@
         "famotidine iv",
         "h2 blocker",
         "famotidine push"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "20 mg IV",
+          "text": "20 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-droperidol",
@@ -3551,7 +3798,19 @@
         "droperidol shot",
         "droperidol iv",
         "inapsine im"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "1.25 mg IV",
+          "text": "1.25 mg IV",
+          "default": true
+        },
+        {
+          "label": "0.625 mg IV",
+          "text": "0.625 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-haloperidol",
@@ -3571,7 +3830,19 @@
         "5 of haldol",
         "haldol iv",
         "haloperidol shot"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV",
+          "default": true
+        },
+        {
+          "label": "5 mg IM",
+          "text": "5 mg IM"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-olanzapine",
@@ -3692,7 +3963,15 @@
         "cipro for uti",
         "start cipro",
         "cipro drops"
-      ]
+      ],
+      "doses": [
+        {
+          "label": "400 mg IV",
+          "text": "400 mg IV",
+          "default": true
+        }
+      ],
+      "sentence": "Give {name} {dose}."
     },
     {
       "id": "med-ampicillin",
