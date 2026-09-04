@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-D7c873FQ5hHQbMXracI68okC78rtqq9mbXqDE+TLXxM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ptz3OVOj/YIz1eUk+n1PU/OaoPkHFS8+WaKGOkQPlRA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -5173,7 +5173,18 @@ function palChipClick(b, ev){
 }
 function wirePalChips(root){
   if(!root) return;
-  for(const b of root.querySelectorAll('.pal')) b.onclick = ev => palChipClick(b, ev);
+  for(const b of root.querySelectorAll('.pal')) b.onclick = ev =>
+    (b.dataset.pal === '__recap') ? showRecap() : palChipClick(b, ev);
+}
+// The handover, back on screen. No turn is taken and no order is sent — this is reading
+// what you were already told, which should never cost the patient a minute.
+function showRecap(){
+  document.body.classList.add('feedOpen');
+  if(typeof paintCast === 'function') paintCast();
+  const c = $('chat');
+  if(c) c.scrollTop = 0;                 // the presentation is the first thing in it
+  const t = $('ticker');
+  if(t && !c) t.click();
 }
 // HISTORY · EXAM · ORDERS. Kim: "maybe the best way is to have a history bubble, physical
 // exam bubble (I don't see how to do physical exam or re-evaluate), orders bubble. And
@@ -5190,11 +5201,20 @@ function wirePalChips(root){
 // fourth and it already exists — the drawer on the right.
 const SECTIONS = {
   history: { label: 'History', items: [
+    // RECAP is not an order — it reopens the handover you were given. Kim, on the blunt
+    // trauma case: "it's hard to get the history… even when you click on history, it
+    // doesn't really show a summary of what is presented in front of you." The
+    // presentation is the FIRST line of the transcript, and by the time you want it again
+    // it has scrolled away inside a drawer that is closed by default. Marked with
+    // data-recap so the chip wiring opens the transcript at the top instead of sending it
+    // to the engine; everything else in this list is a real order.
+    ['↑ Recap the presentation','__recap'],
     ['Focused history','Take a focused history from the patient.'],
     ['Collateral','Get collateral history from the family or the paramedics.'],
     ['Past medical','Ask about past medical history, medications and allergies.'],
-    ['Recheck vitals','Recheck a full set of vital signs.'],
-    ['Re-evaluate','Reassess the patient.']] },
+    ['Recheck vitals','Recheck a full set of vital signs.']] },
+    // Re-evaluate is NOT listed here: it has its own full-width button under the panels,
+    // and carrying it in both places put the same control on screen twice.
   exam: { label: 'Exam', items: [
     ['Primary survey','Perform a primary survey.'],
     ['General','Assess general appearance.'],
