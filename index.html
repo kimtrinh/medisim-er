@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-N9c1tYhrtsgB1AmnP/yTIyoxk2Sk4QPexcODS61OnCM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-zBDUHSgNPfC9v76Def4zwSu6fQkVGwW9w6npSXnsSbA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -4508,16 +4508,33 @@ function caseWeightKg(){
   const w = (S.patient && S.patient.weightKg) || (S.codeScript && S.codeScript.patient && S.codeScript.patient.weightKg);
   return (typeof w === 'number' && w > 0) ? w : null;
 }
+// THE UNIT COMES FROM THE DOSE, NOT FROM A GUESS. This was `/ml/i.test(...) ? 'mL' : 'mg'`,
+// so everything that was not millilitres was called milligrams: bicarbonate 1 mEq/kg came
+// out as "88 mg" in Kim's crush-injury case, and heparin 80 units/kg as "7040 mg" — an
+// order that reads like a thousandfold error. A computed amount with the wrong unit on it
+// is worse than no computed amount at all. Any rate the dose carries is kept, so
+// 20 mcg/kg/min stays a per-minute figure instead of becoming a total.
+const PER_KG_RE = /(?:\d+(?:\.\d+)?)\s*(mcg|mg|g|ml|meq|units?|iu)\s*\/\s*kg(?:\s*\/\s*(min|hr|h|day|dose))?/i;
+const UNIT_CASE = { mcg:'mcg', mg:'mg', g:'g', ml:'mL', meq:'mEq', unit:'units', units:'units', iu:'units' };
+function perKgAmount(d, kg){
+  const m = PER_KG_RE.exec(String(d.text || d.label || ''));
+  if(!m) return null;
+  const total = d.perKg * kg;
+  const n = total < 10 ? Math.round(total * 10) / 10 : Math.round(total);
+  return n + ' ' + (UNIT_CASE[m[1].toLowerCase()] || m[1]) + (m[2] ? '/' + m[2].toLowerCase() : '');
+}
 function doseChipLabel(d){
   const kg = d.perKg ? caseWeightKg() : null;
-  return kg ? d.label + ' \u00b7 ' + Math.round(d.perKg * kg) + (/ml/i.test(d.label) ? ' mL' : ' mg') : d.label;
+  const amt = kg ? perKgAmount(d, kg) : null;
+  return amt ? d.label + ' \u00b7 ' + amt : d.label;
 }
 // The one sentence this (entry, dose) emits. Measured, not chosen by taste: of nine
 // candidate phrasings run against every pack that grades a fluid order, "Give a {dose}
 // {name} bolus." credited the most, and it is already the app's own chip text.
 function composeOrder(entry, d){
   const kg = d.perKg ? caseWeightKg() : null;
-  const dose = kg ? d.text + ' (' + Math.round(d.perKg * kg) + (/ml/i.test(d.text) ? ' mL' : ' mg') + ')' : d.text;
+  const amt = kg ? perKgAmount(d, kg) : null;
+  const dose = amt ? d.text + ' (' + amt + ')' : d.text;
   const tmpl = entry.sentence || 'Give {name} {dose}.';
   return tmpl.replace('{name}', entry.canonical || entry.label.toLowerCase()).replace('{dose}', dose);
 }
@@ -5299,7 +5316,20 @@ function paintProseConsole(host){
 function paintTicker(){
   const el = $('ticker'); if(!el) return;
   const m = (S.messages || []).filter(x => x.role === 'assistant');
-  const last = m.length ? String(m[m.length - 1].content || '').trim() : '';
+  const msg = m.length ? m[m.length - 1] : null;
+  // WHAT WAS SAID, not the sentence saying something happened. Kim, on the crush case:
+  // "the consultants were not talking." They were. Ordering the trauma surgeon produced
+  // "Trauma lead, hands already on. Both chests are mine, and the moment he has a pulse we
+  // go straight to theatre" — into a room bubble that clears after seven seconds, while
+  // this line, the only one always on screen, read "Done — the team moves on it." and the
+  // transcript holding the real words sits in a drawer that is closed by default. A
+  // consultant's advice is the most useful thing said in that turn and it reached no
+  // surface that keeps it. The speech is already on the message; show it.
+  const sp = msg && Array.isArray(msg.speech) ? msg.speech.filter(x => x && x.text) : [];
+  const said = sp.length ? sp[sp.length - 1] : null;
+  const last = said
+    ? ((said.speaker && said.speaker !== 'narrator' ? said.speaker + ': ' : '') + said.text).trim()
+    : (msg ? String(msg.content || '').trim() : '');
   el.textContent = last ? '\u25b8 ' + last : '';
   el.onclick = () => { document.body.classList.add('feedOpen'); paintCast();
     const c = $('chat'); if(c) c.scrollTop = c.scrollHeight; };

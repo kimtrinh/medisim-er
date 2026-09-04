@@ -3288,8 +3288,8 @@
       ],
       "doses": [
         {
-          "label": "0.25 mg/kg",
-          "text": "0.25 mg/kg IV push, max 25 mg",
+          "label": "0.25 mg/kg (max 25 mg)",
+          "text": "0.25 mg/kg IV push",
           "default": true,
           "perKg": 0.25
         }
@@ -3677,8 +3677,8 @@
       ],
       "doses": [
         {
-          "label": "1 amp",
-          "text": "one amp, 50 mEq, IV",
+          "label": "1 amp (50 mEq)",
+          "text": "50 mEq IV",
           "default": true
         },
         {

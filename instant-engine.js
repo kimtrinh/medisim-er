@@ -229,7 +229,15 @@ function normalize(text){
   // was a SINGLE unmatched clause and four labs vanished without a word. Split only when
   // both sides are long enough to be real order words, so "w/", "n/v", "s/p" and "d/c"
   // survive; the phrase rules above have already consumed pt/inr and friends.
+  // A RATE IS NOT TWO ORDERS. The split below turns "cbc/bmp" into two labs, and it caught
+  // "5 mcg/min" with it: norepinephrine reached the engine as "start norepinephrine at 5
+  // mcg" plus a second clause reading "min", which then showed up as an order the sim did
+  // not understand. Both sides must be three letters for that rule to fire, so mcg/kg/min
+  // and mL/hr escaped by the luck of "kg" and "hr" being two — mcg/min had no such luck.
+  // Protect unit-over-time pairs first and restore them straight after.
+  s = s.replace(/\b(mcg|mg|g|ml|l|cc|meq|mmol|units?|iu)\s*\/\s*(kg|hr|hour|h|min|minute|day|dose)\b/g, '$1&$2');
   s = s.replace(/([a-z]{3,})\s*\/\s*(?=[a-z]{3,})/g, '$1 , ');
+  s = s.replace(/\b(mcg|mg|g|ml|l|cc|meq|mmol|units?|iu)&(kg|hr|hour|h|min|minute|day|dose)\b/g, '$1/$2');
   // Placement verbs are interchangeable. Pack aliases pair a verb with the device
   // ("place an lma"), so only that verb matched and "drop an LMA size 4 as rescue" — how
   // the rescue is actually called — missed entirely. That single false negative left the
