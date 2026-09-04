@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XvJBprZo6wutEEKTBY9eOvB/XJiBRfVkwNHbz6XSiII=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-N9c1tYhrtsgB1AmnP/yTIyoxk2Sk4QPexcODS61OnCM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -3499,6 +3499,15 @@ function renderDepartment(){
 // Loading one pre-fills S.* exactly like generateCase does, minus the model call, so
 // the bedside then runs dynamically on the cheap/local model from the hidden context.
 let _gold=null;
+// The IN-FLIGHT load, shared. Two callers can reach initGold() at once — the boot path
+// and Account's onChange when a signed-in session resolves both paint the setup screen —
+// and the old `if(_gold===null){_gold=[]; await fetch…}` handed the second caller an
+// EMPTY array to render, because _gold stops being null the instant the first one starts.
+// The second caller then took the "library didn't load" branch and latched a dead handler
+// onto the page's biggest button. Reproduced in the browser: 172 cases loaded, 172 rows on
+// screen, and Start doing nothing while claiming the library was missing. Kim: "I'm
+// clicking run a cardiac arrest but nothing is happening."
+let _goldP=null;
 let _goldCat='';      // '' = every system; otherwise a GOLD_SYS key
 let _goldOpen=false;  // false = 24rem scroll box, true = whole list laid out in the page
 // The picker is browsed by body system. Most pack ids already carry the system as a
@@ -4616,12 +4625,18 @@ function basketTypeahead(i){
   syncBasketInput(); measureDock();
 }
 async function initGold(){
-  if(_gold===null){
-    _gold=[];
-    if(location.protocol!=='file:'){
-      try{ const r=await fetch('cases-gold.json'); if(r.ok) _gold=(await r.json()).cases||[]; }catch(_){ }
-    }
+  // Everyone awaits the same load, so nobody renders against a half-populated library.
+  if(_goldP === null){
+    _goldP = (async () => {
+      let out = [];
+      if(location.protocol!=='file:'){
+        try{ const r=await fetch('cases-gold.json'); if(r.ok) out=(await r.json()).cases||[]; }catch(_){ }
+      }
+      _gold = out;
+      return out;
+    })();
   }
+  await _goldP;
   const sec=$('goldSection'); if(!sec) return;
   const all=goldAll();
   if(!all.length){
@@ -4643,21 +4658,25 @@ async function initGold(){
         <pre class="mt-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-emerald-300 overflow-x-auto">python3 -m http.server 8000</pre>`;
       // The hero Start button has nothing to start either — say so where the eye is,
       // rather than leaving the page's most prominent button silently inert.
+      // NOT latched with _wired: this handler is only right while the library is empty,
+      // and freezing it here is what left the button permanently dead once cases arrived.
       const hs=$('heroStart');
-      if(hs && !hs._wired){ hs._wired = true; hs.onclick = () => {
+      if(hs) hs.onclick = () => {
         const h=$('heroHint');
         if(h){ h.textContent='Opened directly from disk — cases can\'t load. Serve the folder: python3 -m http.server 8000, then open http://localhost:8000/medisim-er-local.html'; h.classList.remove('hidden'); }
-      }; }
+      };
       return;
     }
     // Served, but the library came back empty — cases-gold.json 404s, or does not parse.
     // Hiding an empty list is right; leaving the page's biggest button dead and mute is
     // not, so Start says what went wrong instead of doing nothing forever.
+    // Same rule: say what is wrong, but do not weld it on. If the library turns up a
+    // moment later this button must become the real Start again.
     const hs=$('heroStart');
-    if(hs && !hs._wired){ hs._wired = true; hs.onclick = () => {
+    if(hs) hs.onclick = () => {
       const h=$('heroHint');
       if(h){ h.textContent='The case library didn\'t load, so there is nothing to start. Reload the page — if that doesn\'t help, cases-gold.json is missing from the folder this page is served from.'; h.classList.remove('hidden'); }
-    }; }
+    };
     sec.classList.add('hidden'); return;
   }
   if(useInstant()) await loadOfflinePacks();   // the row badge needs to know which cases have packs
