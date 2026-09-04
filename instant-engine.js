@@ -2397,6 +2397,7 @@ function buildDebrief(pack, state, opts, outcome){
     // nothing, and a player wondering whether they were robbed can now see the
     // list instead of guessing. (Capped at 8, deduplicated, verbatim clauses.)
     unrecognizedOrders: (state.unparsed || []).slice(),
+    unrecognizedOrdersDropped: state.unparsedDropped || 0,
     missedOpportunities: (function(){
       const list = dbf.missedOpportunities || [];
       const tags = dbf.missedOpportunityFor;
@@ -2432,7 +2433,14 @@ function buildDebrief(pack, state, opts, outcome){
 // leaves "drip" as its own clause, which then reports as an order the sim did not
 // understand. Listing those alongside a real miss like "lactulose" teaches the
 // player to ignore the list, so they never enter it.
+// THE definition of a stray fragment — the one every surface must use.
+// Clause splitting strands connectives ("vancomycin and drip" -> "drip"), and reporting
+// those as orders the sim did not understand is noise that teaches the player to ignore
+// the list. This lived in three places: here, and twice more in the app with seven words
+// missing (gtt, too, sq, one, two, both, plus, with), so the same clause could be called
+// unrecognised in the timeline and be absent from the debrief. Exported, so there is one.
 const ORDER_FRAGMENT = /^(drip|gtt|and|then|also|too|stat|now|please|iv|po|im|sq|it|that|this|one|two|both|plus|with)$/i;
+function isOrderFragment(text){ return ORDER_FRAGMENT.test(String(text == null ? '' : text).trim()); }
 
 function runTurn(pack, state, action, opts){
   // Defensive init for fields added after the original state shape shipped.
@@ -2880,9 +2888,16 @@ function runTurn(pack, state, action, opts){
       // The player deserves to know what the sim never understood — an order that
       // drew only filler earned no effect and no credit, and until now that fact
       // was invisible. Collected here, surfaced in the debrief.
-      if(fb._unparsed && !ORDER_FRAGMENT.test(String(rawClause).trim())){
+      if(fb._unparsed && !isOrderFragment(rawClause)){
         state.unparsed = state.unparsed || [];
-        if(!state.unparsed.includes(rawClause) && state.unparsed.length < 8) state.unparsed.push(rawClause);
+        // The cap was 8, and the timeline had none — so a player's ninth distinct miss
+        // was shown during the case and then quietly missing from the debrief that is
+        // supposed to summarise it. Room for a genuinely bad run, and when even that
+        // overflows the debrief says so rather than trimming in silence.
+        if(!state.unparsed.includes(rawClause)){
+          if(state.unparsed.length < 40) state.unparsed.push(rawClause);
+          else state.unparsedDropped = (state.unparsedDropped || 0) + 1;
+        }
         // Put it on the trace row too. The debrief's per-order "[NOT RECOGNISED]"
         // note used to re-derive this from the clause intent and got it wrong: an
         // unrecognised DRUG falls back with intent 'assessment', which that filter
@@ -3313,6 +3328,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
-  fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders };
+  fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders,
+  isOrderFragment };   // one definition of "not understood", shared with the app
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.InstantEngine;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

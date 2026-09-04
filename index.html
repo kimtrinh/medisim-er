@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-eV/FbDHJGrzvoqzZalHbuw61r+Kntymfo+HRZ5h1S3g=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XvJBprZo6wutEEKTBY9eOvB/XJiBRfVkwNHbz6XSiII=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2313,9 +2313,9 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}`;
       .filter(c => _hasFlag ? c.unparsed
                             : (c.fallback && c.intent !== 'history' && c.intent !== 'assessment'))
       // Clause splitting strands connective fragments ("...and drip" -> "drip").
-      // Reporting those as unrecognised orders is noise that would teach the player
-      // to ignore the list.
-      .filter(c => !/^(drip|and|then|also|stat|now|please|iv|po|im|it|that|this)$/i.test(String(c.text).trim()))
+      // The engine owns this list — a local copy here was missing seven of its words, so
+      // a stray "gtt" could be called out in the timeline and be absent from the debrief.
+      .filter(c => !InstantEngine.isOrderFragment(c.text))
       .map(c => c.text);
     // Surface this while the player can still change course. A generic fallback may
     // look clinically responsive but cannot satisfy a case-specific checklist item.
@@ -4199,7 +4199,15 @@ async function instantTurn(action){
      // filed as an order nobody understood.
      dxCatalog: await loadDxCatalog(),
      diagnosis: S.diagnosis,
-     trend: S.trend, trace: loggingOn(),
+     // trace: ALWAYS. Three things the player sees are built from it — the per-order
+     // feedback card, the "not understood" mark in the timeline, and the same mark in the
+     // debrief's ORDERS YOU ENTERED. It used to be `loggingOn()`, which is true on this
+     // machine and false for everyone on the public site unless they opt into research
+     // logging, so in public every one of those silently rendered nothing and the debrief
+     // block was the only place a miss was ever mentioned. Building the trace sends
+     // nothing anywhere: shipping it to the collector is separately gated by loggingOn()
+     // at the RUNLOG.turn call below.
+     trend: S.trend, trace: true,
      // Carry the code through every later turn: the case usually ENDS on a disposition
      // long after ROSC, and that is where buildDebrief runs. Without this the timeline
      // and the code-quality score would exist only for a code that ended in death.
@@ -5282,7 +5290,7 @@ function paintOrderLog(){
     return `<div class="flex items-start gap-2 px-3 py-1.5">
       <span class="text-[10px] font-black tabular-nums text-slate-500 w-11 shrink-0 pt-px">T+${Math.round(t.min)}</span>
       <span class="text-[11px] leading-snug ${bad ? 'text-amber-300' : 'text-slate-200'}">${esc(t.text || '')}${
-        bad ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">not read</span>' : ''}</span>
+        bad ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">not understood</span>' : ''}</span>
     </div>`;
   };
   box.innerHTML = `
@@ -5700,9 +5708,8 @@ function syncBasketInput(){
 // earn a case objective?". Show the distinction immediately after the turn — not
 // only in the debrief, where it is too late to correct course.
 function orderFeedbackFromTrace(trace){
-  const fragments=/^(drip|and|then|also|stat|now|please|iv|po|im|it|that|this)$/i;
   return ((trace&&trace.clauses)||[])
-    .filter(c=>c&&c.text&&!fragments.test(String(c.text).trim()))
+    .filter(c=>c&&c.text&&!InstantEngine.isOrderFragment(c.text))
     .map(c=>{
       if(c.unparsed) return {text:c.text, kind:'unparsed', note:'Not understood — no effect or checklist credit.'};
       if(c.gateBlocked) return {text:c.text, kind:'blocked', note:'Not performed yet — a prerequisite is still required.'};
@@ -8258,15 +8265,15 @@ function ordersEnteredHTML(){
     return `<div class="px-4 py-2 text-xs flex gap-3 items-baseline">
       <span class="mono text-slate-500 shrink-0 w-16">T+${Math.round(t.min)} min</span>
       <span class="text-slate-300 flex-1">${esc(t.text)}</span>
-      ${un?`<span class="shrink-0 text-[9px] font-black uppercase tracking-widest text-amber-500" title="No responder answered: ${esc(un.join('; '))}">not recognised</span>`:''}
+      ${un?`<span class="shrink-0 text-[9px] font-black uppercase tracking-widest text-amber-500" title="The sim did not understand: ${esc(un.join('; '))}">not understood</span>`:''}
     </div>`;
   }).join('');
   const misses=tl.filter(t=>t.unmatched&&t.unmatched.length).length;
   return `<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Orders You Entered (${tl.length})</h3>
     <div class="bg-slate-900/40 border border-slate-800 rounded-xl divide-y divide-slate-800/50">${rows}</div>
     <p class="text-[10px] text-slate-600">${misses
-      ? `${misses} order${misses===1?'':'s'} marked <span class="text-amber-500 font-bold">not recognised</span> — the simulator had no response for it, so it could not credit a critical action. If one of those should have counted, flag it above.`
-      : 'Every order was recognised by the simulator.'}</p></div>`;
+      ? `${misses} order${misses===1?'':'s'} marked <span class="text-amber-500 font-bold">not understood</span> — the simulator had no response for it, so it could not credit a critical action. If one of those should have counted, flag it above.`
+      : 'The simulator understood every order.'}</p></div>`;
 }
 function timingTableHTML(){
   const tl=S.timeline||[]; if(!tl.length) return '';
@@ -8490,10 +8497,11 @@ function renderDebrief(){
         </div>`).join('')}
         </div></div>`:''}
       ${ordersEnteredHTML()}
-      ${Array.isArray(d.unrecognizedOrders)&&d.unrecognizedOrders.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-amber-500">Orders the sim couldn't interpret</h3>
+      ${Array.isArray(d.unrecognizedOrders)&&d.unrecognizedOrders.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-amber-500">Orders the sim did not understand</h3>
         <div class="bg-slate-900/40 border border-amber-900/40 rounded-xl p-4 space-y-1.5">
         <p class="text-[11px] text-slate-400 leading-relaxed">These earned no effect and no credit — the sim didn't understand them, and that's the sim's blind spot, not your medicine. If one of them mattered, rephrase it or pick it from the order palette next time.</p>
         ${d.unrecognizedOrders.map(o=>`<div class="text-xs mono text-amber-200/90">· ${esc(o)}</div>`).join('')}
+        ${d.unrecognizedOrdersDropped?`<div class="text-[10px] text-amber-200/60">and ${d.unrecognizedOrdersDropped} more the simulator stopped listing</div>`:''}
         </div></div>`:''}
       ${timingTableHTML()}
       ${ev.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Critical Events</h3>${ev.map(e=>`<div class="p-4 bg-slate-900/40 border border-slate-800 rounded-xl border-l-4 ${e.type==='positive'?'border-l-emerald-600':e.type==='negative'?'border-l-red-600':'border-l-slate-600'}"><div class="text-sm font-bold ${e.type==='positive'?'text-emerald-400':e.type==='negative'?'text-red-400':'text-slate-300'}">${esc(e.event)}</div><p class="text-xs text-slate-400 mt-1">${esc(e.feedback)}</p></div>`).join('')}</div>`:''}
@@ -8796,7 +8804,7 @@ SUMMARY
 ${d.summary||''}
 
 ORDERS YOU ENTERED
-${(S.timeline||[]).map(t=>`T+${String(Math.round(t.min)).padStart(3)} min  ${t.text}${t.unmatched&&t.unmatched.length?'   [NOT RECOGNISED: '+t.unmatched.join('; ')+']':''}`).join('\n')||'(none recorded)'}
+${(S.timeline||[]).map(t=>`T+${String(Math.round(t.min)).padStart(3)} min  ${t.text}${t.unmatched&&t.unmatched.length?'   [NOT UNDERSTOOD: '+t.unmatched.join('; ')+']':''}`).join('\n')||'(none recorded)'}
 
 ${Array.isArray(d.codeTimeline)&&d.codeTimeline.length?`THE CODE, MINUTE BY MINUTE
 ${d.codeTimeline.map(e=>e.at.padStart(5)+'  '+e.text).join('\n')}
@@ -8814,7 +8822,7 @@ ${Array.isArray(d.unrecognizedOrders)&&d.unrecognizedOrders.length?`ORDERS THE S
 These earned no effect and no credit. That is the simulator's blind spot, not
 necessarily yours — check them against the critical actions before you conclude
 you missed something.
-${d.unrecognizedOrders.map(x=>'? '+x).join('\n')}
+${d.unrecognizedOrders.map(x=>'? '+x).join('\n')}${d.unrecognizedOrdersDropped?'\n(and '+d.unrecognizedOrdersDropped+' more the simulator stopped listing)':''}
 
 `:''}MISSED OPPORTUNITIES
 ${(d.missedOpportunities||[]).map(x=>'- '+x).join('\n')}
