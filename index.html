@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nPqQZgudwwgMuvb25/3xw61L8g/1CwAfuPSp8tu5Rug=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-z6ywss7pmUjrS9ADFRdhau4NNxOcz69l+0u6NcBcxBQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -313,6 +313,10 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.cinema.console #ticker:hover{color:#e2e8f0}
   body.cinema.console.feedOpen #ticker{display:none}
+  /* While the order typeahead is open the command bar comes above the wall — nothing on the
+     wall matters more than the list of orders you are choosing from. 47 clears #cinemaHud's
+     46 and stays under the settings modal at 50. */
+  body.cinema.console.taOpen #orderBar{z-index:47}
   /* THE TRANSCRIPT OPENS ON TOP OF THE ORDER WALL — they share the left column, and the
      HUD is lifted above #main while a drawer is open, so the clusters painted over the
      drawer AND over its close button. Reading the history through a grid of drug chips is
@@ -3824,12 +3828,13 @@ async function dispatchOrders(action, label){
 // One code order: applied synchronously, credited, drawn. Returns false when the code
 // engine does not recognise it, so the caller falls through to the turn engine.
 function fireCodeOrder(text, label){
+  const wasEnded = !!(S.code && S.code.ended);   // BEFORE the engine acts — see below
   const r = CodeEngine.act(S.code, S.codeScript, text);
   if(!r || !r.handled) return false;
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
   codeCredit(r.credits);
-  const roscHandoffDone = !!S.code.ended;
+  const roscHandoffDone = wasEnded;
   if(/\b(shock|defib|cardiovert)/i.test(text)) roomDefib();
   onCodeEvents(r.events);
   // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
@@ -4065,7 +4070,64 @@ function codeShockOrder(sc, c){ return 'shock ' + codeShockJoules(sc, c) + ' jou
 // declares none (the engine accepts silently in that case, so the number is a label,
 // not a claim it will grade).
 function codeSyncJoules(sc){ return ((sc.shock||{}).sync||[])[0] || 100; }
-function codeSyncOrder(sc){ return 'synchronized cardioversion at ' + codeSyncJoules(sc) + ' joules'; }
+function codeSyncOrder(sc, j){ return 'synchronized cardioversion at ' + (j || codeSyncJoules(sc)) + ' joules'; }
+// The ladder this case allows, from its own range: the starting energy, then the rungs a
+// clinician would actually climb, never above the maximum the script permits.
+function codeSyncLadder(sc){
+  const range = (sc.shock || {}).sync || [];
+  const lo = range[0] || 100, hi = range[1] || lo;
+  const rungs = [lo, 150, 200, 300, 360].filter((j, i, a) => j >= lo && j <= hi && a.indexOf(j) === i);
+  return rungs.length ? rungs : [lo];
+}
+// Same for defibrillation, so an escalating unsynchronised shock is reachable too.
+function codeShockLadder(sc, c){
+  const e = ((sc.shock || {}).energy || {});
+  const range = (c && c.child ? e.child : e.adult) || e.adult || [];
+  const lo = range[0] || 200, hi = range[1] || lo;
+  const rungs = [lo, 200, 300, 360].filter((j, i, a) => j >= lo && j <= hi && a.indexOf(j) === i);
+  return rungs.length ? rungs : [lo];
+}
+// Pick the energy, rather than being given one. Anchored on the chip, same shape as the
+// rhythm and disposition menus.
+function energyMenu(ev, kind){
+  closeRoomMenu();
+  if(!codeAnswers() || !S.codeScript) return;
+  const sc = S.codeScript, c = S.code;
+  const sync = kind === 'sync';
+  const rungs = sync ? codeSyncLadder(sc) : codeShockLadder(sc, c);
+  const m = document.createElement('div');
+  m.className = 'roomMenu fixed z-[75] min-w-[190px] rounded-xl border border-amber-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  m.style.left = '0px'; m.style.top = '0px';
+  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-amber-400 border-b border-slate-800">' +
+      (sync ? 'Synchronised \u2014 how many joules?' : 'Defibrillate \u2014 how many joules?') + '</div>' +
+    rungs.map((j, i) => '<button data-j="' + j + '" class="block w-full text-left px-3 py-1.5 text-xs text-slate-200 hover:bg-amber-900/40">' +
+      j + ' J' + (i === 0 ? ' \u00b7 start here' : '') + '</button>').join('');
+  document.body.appendChild(m);
+  const pad = 6, w = m.offsetWidth, h = m.offsetHeight;
+  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+    ? ev.currentTarget.getBoundingClientRect() : null;
+  m.style.left = Math.round(Math.max(pad, Math.min(box ? box.left : innerWidth/2, innerWidth - w - pad))) + 'px';
+  m.style.top  = Math.round(Math.max(pad, Math.min(box ? box.bottom + 4 : innerHeight/3, innerHeight - h - pad))) + 'px';
+  m.querySelectorAll('[data-j]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const j = +b.dataset.j;
+    closeRoomMenu();
+    if(S.loading) return;
+    queueClinicalAction((sync ? 'Sync cardiovert ' : 'Defibrillate ') + j + ' J',
+      sync ? codeSyncOrder(sc, j) : ('defibrillate at ' + j + ' joules'));
+  });
+  setTimeout(() => {
+    document.addEventListener('click', _roomMenuAway, true);
+    window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway);
+  }, 0);
+}
+document.addEventListener('click', e => {
+  const hit = e.target && e.target.closest && e.target.closest('[data-energy]');
+  if(!hit) return;
+  e.stopPropagation();
+  energyMenu({ currentTarget: hit }, hit.dataset.energy);
+});
 // The room's defibrillator prop: charge whine, then the flash, as the rhythm changes.
 function roomDefib(){
   try{ const st = roomState(); st.defib='charging'; paintRoom(); defibCharge();
@@ -4369,16 +4431,18 @@ let _taMatches=[], _taIdx=-1;
 function renderTypeahead(matches){
   const el = $('typeahead'); if(!el) return;
   _taMatches = matches; _taIdx = -1;
-  if(!matches.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
+  if(!matches.length){ el.classList.add('hidden'); el.innerHTML=''; document.body.classList.remove('taOpen'); return; }
   el.innerHTML = matches.map((m,i)=>
     `<div data-ta="${i}" class="ta-row flex items-center justify-between gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
        <span>${esc(m.label)}</span>
        <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 shrink-0">${CATEGORY_LABEL[m.category]||''}</span>
      </div>`).join('');
   el.classList.remove('hidden');
+  document.body.classList.add('taOpen');
   el.querySelectorAll('.ta-row').forEach(row=>row.onclick=()=>basketTypeahead(+row.dataset.ta));
 }
-function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.innerHTML=''; } _taMatches=[]; _taIdx=-1; }
+function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.innerHTML=''; }
+  document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; }
 function paintTaHighlight(){
   const el=$('typeahead'); if(!el) return;
   el.querySelectorAll('.ta-row').forEach((row,i)=>row.classList.toggle('bg-slate-800', i===_taIdx));
@@ -4947,7 +5011,10 @@ function sectionsHTML(){
   }else if(_openSection && SECTIONS[_openSection]){
     body = '<div class="secBody">' + SECTIONS[_openSection].items.map(it => chip(it[0], it[1])).join('') + '</div>';
   }
-  return '<div class="cluster" id="clSections">' + body +
+  const reassess = '<button data-pal="Reassess the patient." data-lab="Re-evaluate" ' +
+    'class="pal w-full px-2 py-1.5 rounded-md border border-sky-500/40 bg-sky-950/40 text-[10px] ' +
+    'font-black uppercase tracking-widest text-sky-200 hover:bg-sky-900/50 transition">Re-evaluate</button>';
+  return '<div class="cluster" id="clSections">' + body + reassess +
     head('history', 'History') + head('exam', 'Exam') + head('orders', 'Orders') + '</div>';
 }
 document.addEventListener('click', e => {
@@ -5100,7 +5167,14 @@ function paintConsole(){
   if((g.postrosc || []).length) parts.push(cluster('clRhythm', 'Post-arrest',
     g.postrosc.map(x => consoleChip(x[0], x[1], null, null, 'border-sky-500/40 text-sky-200'))));
   else if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
-    g.rhythm.map(x => consoleChip(x[0], x[1], x[2], null, 'border-amber-500/40 text-amber-200'))));
+    g.rhythm.map(x => {
+      // Electricity opens its energy ladder. Kim: "there should be options to have different
+      // joules for cardioversion, to increase it if you need it" — her own case's teaching
+      // says escalate stepwise, and the wall offered exactly one number.
+      const energy = /^Defibrillate /.test(x[0]) ? 'shock' : (/^Sync cardiovert /.test(x[0]) ? 'sync' : null);
+      const chip = consoleChip(x[0] + (energy ? ' \u25be' : ''), x[1], x[2], null, 'border-amber-500/40 text-amber-200');
+      return energy ? chip.replace('<button ', '<button data-energy="' + energy + '" ') : chip;
+    })));
   if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
     g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
   // A code case's wall is deliberately just the algorithm. This is the way to everything
