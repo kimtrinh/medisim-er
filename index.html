@@ -314,9 +314,25 @@
   body.cinema.console #ticker:hover{color:#e2e8f0}
   body.cinema.console.feedOpen #ticker{display:none}
   /* While the order typeahead is open the command bar comes above the wall — nothing on the
-     wall matters more than the list of orders you are choosing from. 47 clears #cinemaHud's
-     46 and stays under the settings modal at 50. */
+     wall matters more than the list of orders you are choosing from. */
   body.cinema.console.taOpen #orderBar{z-index:47}
+  /* …AND THE COLUMN IT LIVES IN HAS TO COME WITH IT. That 47 is local: #orderBar sits
+     inside #main, which is itself a stacking context (z-20 normally, z-45 while a drawer
+     is open), so no z-index on a child can clear #cinemaHud at 25/46 — the wall painted
+     over the suggestions no matter what the bar asked for. Measured with elementFromPoint
+     across the open list: every sample came back #clSections, the History/Exam/Orders
+     panels, sitting on top of the orders you were choosing from. It surfaced the moment
+     the RESULTS drawer became the default, because that is what lifts #main to 45 and the
+     HUD to 46. Lift the whole column while the list is open; 48 stays under the settings
+     modal (50) and the room menus (75). Not scoped to .console — the same trap exists in
+     plain cinema at 20 against 25.
+     The drawer rules below carry one class more than this one, so they win on specificity
+     and #main stayed at 45 — measured, not assumed: the first version of this fix changed
+     nothing and elementFromPoint still returned #clSections. Hence the explicit pairs. */
+  body.cinema.taOpen #main,
+  body.cinema.console.resultsOpen.taOpen #main,
+  body.cinema.console.feedOpen.taOpen #main,
+  body.cinema.chartOpen.taOpen #main{z-index:48}
   /* THE TRANSCRIPT OPENS ON TOP OF THE ORDER WALL — they share the left column, and the
      HUD is lifted above #main while a drawer is open, so the clusters painted over the
      drawer AND over its close button. Reading the history through a grid of drug chips is
