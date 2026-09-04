@@ -27,7 +27,8 @@
    "patient": {
     "age": 16,
     "sex": "female",
-    "name": "Maya"
+    "name": "Maya",
+    "weightKg": 55
    },
    "vitals": {
     "hr": 92,
@@ -75,7 +76,8 @@
    "patient": {
     "age": 14,
     "sex": "male",
-    "name": "Ethan"
+    "name": "Ethan",
+    "weightKg": 51
    },
    "vitals": {
     "hr": 116,
@@ -124,7 +126,8 @@
    "patient": {
     "age": 17,
     "sex": "male",
-    "name": "Diego"
+    "name": "Diego",
+    "weightKg": 66
    },
    "vitals": {
     "hr": 118,
@@ -173,7 +176,8 @@
    "patient": {
     "age": 15,
     "sex": "female",
-    "name": "Priya"
+    "name": "Priya",
+    "weightKg": 45
    },
    "vitals": {
     "hr": 124,
@@ -1330,7 +1334,8 @@
    "patient": {
     "age": 16,
     "sex": "male",
-    "name": "Lucas"
+    "name": "Lucas",
+    "weightKg": 61
    },
    "vitals": {
     "hr": 104,
@@ -2385,7 +2390,8 @@
    "patient": {
     "age": 1,
     "sex": "male",
-    "name": "Baby Owen"
+    "name": "Baby Owen",
+    "weightKg": 9.6
    },
    "vitals": {
     "hr": 160,
@@ -2433,7 +2439,8 @@
    "patient": {
     "age": 3,
     "sex": "female",
-    "name": "Baby Lily"
+    "name": "Baby Lily",
+    "weightKg": 14
    },
    "vitals": {
     "hr": 150,
@@ -2481,7 +2488,8 @@
    "patient": {
     "age": 4,
     "sex": "male",
-    "name": "Baby Noah"
+    "name": "Baby Noah",
+    "weightKg": 16
    },
    "vitals": {
     "hr": 150,
@@ -2625,7 +2633,8 @@
    "patient": {
     "age": 7,
     "sex": "male",
-    "name": "Mason"
+    "name": "Mason",
+    "weightKg": 24
    },
    "vitals": {
     "hr": 118,
@@ -2962,7 +2971,8 @@
     "age": "3 weeks",
     "sex": "female",
     "name": "Baby Ava",
-    "ageBand": "infant"
+    "ageBand": "infant",
+    "weightKg": 3.7
    },
    "vitals": {
     "hr": 170,
@@ -3010,7 +3020,8 @@
     "age": "5 months",
     "sex": "male",
     "name": "Baby Liam",
-    "ageBand": "infant"
+    "ageBand": "infant",
+    "weightKg": 7.5
    },
    "vitals": {
     "hr": 165,
@@ -3154,7 +3165,8 @@
    "patient": {
     "age": 3,
     "sex": "male",
-    "name": "Baby Eli"
+    "name": "Baby Eli",
+    "weightKg": 14
    },
    "vitals": {
     "hr": 150,
@@ -3635,7 +3647,8 @@
     "age": "10 days",
     "sex": "male",
     "name": "Baby Jacob",
-    "ageBand": "infant"
+    "ageBand": "infant",
+    "weightKg": 3.5
    },
    "vitals": {
     "hr": 190,
@@ -3683,7 +3696,8 @@
    "patient": {
     "age": 8,
     "sex": "female",
-    "name": "Zoe"
+    "name": "Zoe",
+    "weightKg": 26
    },
    "vitals": {
     "hr": 150,
@@ -3875,7 +3889,8 @@
    "patient": {
     "age": 2,
     "sex": "female",
-    "name": "Baby Mia"
+    "name": "Baby Mia",
+    "weightKg": 11.5
    },
    "vitals": {
     "hr": 140,
@@ -3923,7 +3938,8 @@
    "patient": {
     "age": 9,
     "sex": "male",
-    "name": "Ryan"
+    "name": "Ryan",
+    "weightKg": 29
    },
    "vitals": {
     "hr": 118,
@@ -3972,7 +3988,8 @@
     "age": "4 months",
     "sex": "male",
     "name": "Baby Caleb",
-    "ageBand": "infant"
+    "ageBand": "infant",
+    "weightKg": 7
    },
    "vitals": {
     "hr": 140,
@@ -4021,7 +4038,8 @@
     "age": "5 weeks",
     "sex": "female",
     "name": "Baby Grace",
-    "ageBand": "infant"
+    "ageBand": "infant",
+    "weightKg": 4.3
    },
    "vitals": {
     "hr": 140,
@@ -4458,7 +4476,8 @@
     "age": 9,
     "sex": "male",
     "name": "Sione",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 29
    },
    "vitals": {
     "hr": 158,
@@ -4617,7 +4636,8 @@
     "age": 1,
     "sex": "male",
     "name": "Eli",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 9.6
    },
    "vitals": {
     "hr": 128,
@@ -4988,7 +5008,8 @@
     "age": 7,
     "sex": "female",
     "name": "Maya",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 23
    },
    "vitals": {
     "hr": 108,
@@ -5147,7 +5168,8 @@
     "age": 7,
     "sex": "male",
     "name": "Ethan",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 24
    },
    "vitals": {
     "hr": 104,
@@ -5200,7 +5222,8 @@
     "age": 4,
     "sex": "male",
     "name": "Caleb",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 16
    },
    "vitals": {
     "hr": 148,
@@ -5253,7 +5276,8 @@
     "age": 9,
     "sex": "female",
     "name": "Lily",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 25
    },
    "vitals": {
     "hr": 150,
@@ -5832,7 +5856,8 @@
     "age": 1,
     "sex": "female",
     "name": "Nora",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 8.9
    },
    "vitals": {
     "hr": 84,
@@ -5934,7 +5959,8 @@
     "age": 6,
     "sex": "male",
     "name": "Eli",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 21
    },
    "vitals": {
     "hr": 68,
@@ -6513,7 +6539,8 @@
     "age": 7,
     "sex": "male",
     "name": "Marcus",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 21
    },
    "vitals": {
     "hr": 118,
@@ -6566,7 +6593,8 @@
     "age": 13,
     "sex": "female",
     "name": "Maya",
-    "ageBand": "young"
+    "ageBand": "young",
+    "weightKg": 46
    },
    "vitals": {
     "hr": 84,
@@ -6827,7 +6855,8 @@
     "age": 2,
     "sex": "male",
     "name": "Mason",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 12.2
    },
    "vitals": {
     "hr": 130,
@@ -6880,7 +6909,8 @@
     "age": 5,
     "sex": "male",
     "name": "Miles",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 18
    },
    "vitals": {
     "hr": 178,
@@ -6986,7 +7016,8 @@
     "age": 11,
     "sex": "male",
     "name": "Mason",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 36
    },
    "vitals": {
     "hr": 92,
@@ -7039,7 +7070,8 @@
     "age": 13,
     "sex": "female",
     "name": "Maya",
-    "ageBand": "young"
+    "ageBand": "young",
+    "weightKg": 46
    },
    "vitals": {
     "hr": 112,
@@ -7092,7 +7124,8 @@
     "age": 16,
     "sex": "female",
     "name": "Maya",
-    "ageBand": "young"
+    "ageBand": "young",
+    "weightKg": 90
    },
    "vitals": {
     "hr": 78,
@@ -7250,7 +7283,8 @@
     "age": "10 weeks",
     "sex": "female",
     "name": "Mila",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 5.3
    },
    "vitals": {
     "hr": 148,
@@ -7405,7 +7439,8 @@
     "age": 5,
     "sex": "male",
     "name": "Mason",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 18
    },
    "vitals": {
     "hr": 118,
@@ -7459,7 +7494,8 @@
     "age": 1.5,
     "sex": "female",
     "name": "Maya",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 10.2
    },
    "vitals": {
     "hr": 150,
@@ -7512,7 +7548,8 @@
     "age": 9,
     "sex": "male",
     "name": "Malik",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 29
    },
    "vitals": {
     "hr": 96,
@@ -7667,7 +7704,8 @@
     "age": "3 days",
     "sex": "female",
     "name": "Baby Nora",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 3
    },
    "vitals": {
     "hr": 200,
@@ -7716,7 +7754,8 @@
     "age": "3 weeks",
     "sex": "male",
     "name": "Mason",
-    "ageBand": "child"
+    "ageBand": "child",
+    "weightKg": 3.8
    },
    "vitals": {
     "hr": 145,
