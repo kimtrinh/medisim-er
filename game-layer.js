@@ -43,6 +43,9 @@ function xpForEntry(entry, prevBest, winLen){
   return Math.round(xp * mult);
 }
 
+// One definition of what "assisted" means, shared by the progression and the run record.
+// TrainingCoach writes the field; this reads it. An entry with no `assist` is unassisted.
+function isAssisted(entry){ return !!(entry && entry.assist && entry.assist.assisted); }
 function computeProgress(log, goldIds, caseMeta){
   log = (Array.isArray(log) ? log : []).filter(e => e && typeof e === 'object');
   goldIds = Array.isArray(goldIds) ? goldIds : [];
@@ -54,16 +57,29 @@ function computeProgress(log, goldIds, caseMeta){
     systems[sys] = systems[sys] || { played: 0, total: 0, _seen: {} };
     systems[sys].total++;
   }
+  // ASSISTED RUNS ARE COUNTED, BUT THEY ARE NOT THE RECORD (Task 10). A run that took a
+  // hint or used a retry still earns XP and still counts as a play — practice is practice,
+  // and hiding it would make the log lie about what the learner did. What it does not do is
+  // set a personal best, unlock mastery, extend the unassisted win streak, or feed a badge.
+  // A trophy has to mean you did it alone, or it means nothing.
+  //
+  // An entry with no `assist` field — every entry written before this existed — is
+  // unassisted, so nothing about an existing log changes.
+  const solo = e => !isAssisted(e);
   let xp = 0, winLen = 0;
   for(const entry of log){
-    if((entry.score || 0) >= 80 && !entry.died) winLen++; else winLen = 0;
+    const isSolo = solo(entry);
+    if(isSolo){ if((entry.score || 0) >= 80 && !entry.died) winLen++; else winLen = 0; }
     const prev = entry.id && perCase[entry.id] ? perCase[entry.id].best : null;
-    xp += xpForEntry(entry, entry.id ? prev : null, winLen);
+    // The streak bonus belongs to the unassisted streak, so an assisted run is scored as
+    // if it stood alone rather than borrowing the run of wins before it.
+    xp += xpForEntry(entry, entry.id ? prev : null, isSolo ? winLen : 0);
     if(entry.id){
-      const pc = perCase[entry.id] = perCase[entry.id] || { best: -1, bestWin: -1, plays: 0, mastered: false };
+      const pc = perCase[entry.id] = perCase[entry.id] || { best: -1, bestWin: -1, plays: 0, mastered: false, assistedPlays: 0 };
       pc.plays++;
-      if((entry.score || 0) > pc.best) pc.best = entry.score || 0;
-      if(!entry.died && (entry.score||0)>=70 && (entry.score||0)>pc.bestWin) pc.bestWin=entry.score||0;
+      if(!isSolo){ pc.assistedPlays = (pc.assistedPlays || 0) + 1; }
+      if(isSolo && (entry.score || 0) > pc.best) pc.best = entry.score || 0;
+      if(isSolo && !entry.died && (entry.score||0)>=70 && (entry.score||0)>pc.bestWin) pc.bestWin=entry.score||0;
       pc.mastered = pc.bestWin >= 90;
       const sys = String(entry.id).split('-')[0];
       if(systems[sys] && !systems[sys]._seen[entry.id]){ systems[sys]._seen[entry.id] = true; systems[sys].played++; }
@@ -80,8 +96,9 @@ function computeProgress(log, goldIds, caseMeta){
     }
   }
   for(const s of Object.values(systems)) delete s._seen;
-  const badges = BADGES.filter(b => b.test(log, perCase, systems, goldIds, caseMeta)).map(b => b.id);
-  const caseBadges = caseBadgesFrom(log, caseMeta);
+  const soloLog = log.filter(solo);
+  const badges = BADGES.filter(b => b.test(soloLog, perCase, systems, goldIds, caseMeta)).map(b => b.id);
+  const caseBadges = caseBadgesFrom(soloLog, caseMeta);
   return { xp, level: levelFor(xp), badges, caseBadges, perCase, systems,
            streaks: { daily, win: winLen } };
 }
@@ -203,7 +220,7 @@ function diffProgress(before, after){
   };
 }
 
-root.GameLayer = { LEVELS, BADGES, SPECIALTIES, computeProgress, diffProgress, xpForEntry, levelFor,
+root.GameLayer = { LEVELS, BADGES, SPECIALTIES, computeProgress, diffProgress, xpForEntry, levelFor, isAssisted,
                    caseBadgeFor, caseBadgesFrom, systemFor };
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.GameLayer;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

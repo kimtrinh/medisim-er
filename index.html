@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NHP3HVyrGIfjKDV/COnohMF4kEmHR8mvzVpWdXHDMQ8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5JhlyDEHyhq6WLu6ImHLHf7Grzdws3JhibyeqUJQ/xI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -19,6 +19,8 @@
 <script src="account.js"></script>
 <script src="order-intents.js"></script>
 <script src="order-dispatch.js"></script>
+<script src="objective-rules.js"></script>
+<script src="training-coach.js"></script>
 <link rel="stylesheet" href="fonts-local.css">
 <style>
   @keyframes clocktick{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
@@ -372,6 +374,15 @@
   body.cinema.console #readbackChip{position:absolute;left:.5rem;right:.5rem;bottom:100%;margin-bottom:.4rem;
     max-height:4.5rem;overflow-y:auto;border-radius:10px;padding:.3rem .5rem;
     background:rgba(2,6,23,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  /* ...and they stop where an open drawer starts. Found by the Task 11 smoke test on the
+     built artifact: with RESULTS open, the readback chip still spanned the full dock, so
+     "Yes, that's the order" — the only way to confirm an order the parser was unsure of —
+     sat underneath the drawer and could not be clicked. Same family as every other
+     obscured-control report: the control was drawn, and the click landed elsewhere. */
+  body.cinema.console.resultsOpen #orderFeedback,
+  body.cinema.console.resultsOpen #readbackChip{right:calc(var(--colR) + var(--gap) + .5rem)}
+  body.cinema.console.feedOpen #orderFeedback,
+  body.cinema.console.feedOpen #readbackChip{left:calc(var(--colL) + var(--gap) + .5rem)}
   /* Transcript and chart become drawers, closed by default — the room is the point. */
   body.cinema.console #chat{display:none}
   body.cinema.console.feedOpen #chat{display:flex;left:var(--gap);width:var(--colL);
@@ -1085,6 +1096,10 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       <input id="logRunsToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Share de-identified case logs <span class="text-slate-600 normal-case tracking-normal">(off by default; includes orders and grading. Never type patient identifiers.)</span></span>
     </label>
+    <label class="flex items-start gap-3 cursor-pointer select-none">
+      <input id="legacyToggle" type="checkbox" class="w-4 h-4 mt-0.5 accent-amber-500" />
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Use the older order handling <span class="text-slate-600 normal-case tracking-normal">(a fallback if orders start behaving oddly. It applies to the NEXT case you start — a case already in progress keeps the rules it began under, so nothing you have already done is re-judged.)</span></span>
+    </label>
     <div>
       <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Celebrations</label>
       <select id="celebrateSel" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm">
@@ -1308,6 +1323,38 @@ function isGemini(){ return /generativelanguage\.googleapis\.com/.test(S.baseURL
 // Active when the user flips the toggle, or automatically on the public build
 // with no key (the only thing that can work there without BYOK).
 function useInstant(){ return S.instant || (PUBLIC_BUILD && !S.geminiKey && !S.claudeKey); }
+
+// WHICH SIMULATOR THIS RUN IS (Task 11 of the reliability plan).
+//
+// The plan's rule: enable new dispatch and grading for validated cases through an explicit
+// capability, never silently mix old and new within a run, and keep a rollback that applies
+// to NEW runs only. So the capability set is decided ONCE, when the case starts, written
+// into S.caps, and read from there for the rest of the run. Nothing recomputes it per turn —
+// a learner who flips a switch mid-case must not have the first half of their run graded by
+// one set of rules and the second half by another.
+//
+// `grading` is deliberately still the legacy checklist everywhere. Task 5's objective rules
+// ship in shadow and are read only by the coach; moving the score waits for its evidence
+// work. This constant exists so that when it does move, the runs graded each way are
+// distinguishable in the log rather than indistinguishable.
+const RUN_CAPS   = { schema: 1, dispatch: 'receipts-v1',   grading: 'legacy-checklist-v1', coach: 'coach-v1' };
+const LEGACY_CAPS = { schema: 1, dispatch: 'legacy-text-v1', grading: 'legacy-checklist-v1', coach: null };
+// The rollback. It selects the pre-Task-4 path that ALREADY ships as the fallback for a
+// failed script load, so it is exercised code rather than a second untested branch.
+function legacyModeOn(){ try{ return localStorage.getItem('ms_legacy') === '1'; }catch(_){ return false; } }
+// Cases validated for the new work. Everything else still runs the new dispatch — that has
+// been live for every case since Task 4 — but only these carry the authored objectives and
+// hints the coach needs, so only these get one.
+const PILOT_CASES = ['core-septic-shock-uro', 'resp-tension-ptx', 'resus-acls-pea-tension',
+                     'eb-appendicitis', 'resus-pals-resp-arrest'];
+function capsForNewRun(caseId){
+  const base = legacyModeOn() ? LEGACY_CAPS : RUN_CAPS;
+  const pilot = PILOT_CASES.includes(caseId);
+  return { ...base, pilot, coach: (base.coach && pilot) ? base.coach : null };
+}
+// Read the run's OWN capabilities, never the current preference. Falls back to the modern
+// set for a run that started before this existed.
+function runCaps(){ return S.caps || RUN_CAPS; }
 // Is ANY model engine reachable in principle? (Public build: BYOK keys only;
 // local edition always has the bridge/local-model rungs to try.)
 function hasAnyKey(){ return !!(S.geminiKey||S.claudeKey) || !PUBLIC_BUILD; }
@@ -2254,6 +2301,8 @@ async function generateCase(userContent, hint, label){
       intro: c.intro||'', speech: c.speech||[] };
     S.messages = [{role:'assistant', content:c.intro||'The patient is at the bedside.', speech:c.speech}];
     S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
+    S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
+    startCoachSession();
     renderPlay();
     openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
     narrate(c.speech, c.intro);
@@ -2363,6 +2412,9 @@ async function handlePdf(file){
 
 async function progress(action, label){
   if(S.loading) return;
+  // Before anything of this turn is applied, so "back to last checkpoint" returns the
+  // learner to the moment they were deciding — not to the moment after the decision.
+  saveCheckpoint();
   hearRhythmCall(action);   // naming it correctly reveals it, typed or clicked
   hideReadbackChip();   // any prior turn's stale confirmation is irrelevant now
   // label = what the player sees in the chat; action = the full order sent to
@@ -3280,7 +3332,8 @@ function monitorHemodynamics(v, code){
 // Task 8 of the reliability plan. Orders, Results and History share the lower half of a
 // phone; opening one closes the others, and which one is open survives a re-render of the
 // play screen rather than being rebuilt from whichever class happened to survive.
-// `coach` is reserved for Task 10 and is disabled until then.
+// `coach` is Task 10's, and it shares this one state so the coach cannot open on top of
+// the chart on a phone — the same one-panel-at-a-time rule as everything else.
 const PANELS_LOWER = ['orders', 'results', 'history', 'coach'];
 function panelState(){
   if(!S.panel) S.panel = { activePanel: null, expanded: false, unreadResultIds: [] };
@@ -3288,7 +3341,7 @@ function panelState(){
 }
 function setPanel(name){
   const st = panelState();
-  const next = (name && PANELS_LOWER.includes(name) && name !== 'coach') ? name : null;
+  const next = (name && PANELS_LOWER.includes(name)) ? name : null;
   st.activePanel = (st.activePanel === next) ? null : next;   // tapping the open one closes it
   if(st.activePanel !== 'results') st.expanded = false;       // expansion belongs to what is open
   applyPanel();
@@ -3308,6 +3361,7 @@ function togglePanelExpanded(){
 function applyPanel(){
   const st = panelState(), b = document.body.classList;
   if(innerWidth >= 768){ b.remove('chartOpen', 'panelExpanded'); return; }
+  b.toggle('coachOpen',    st.activePanel === 'coach');
   b.toggle('feedOpen',     st.activePanel === 'history');
   b.toggle('resultsOpen',  st.activePanel === 'results');
   b.toggle('chartOpen',    st.activePanel === 'results');
@@ -3390,16 +3444,27 @@ function paintVitals(){
     // Countdown to the next case landmark — sim-minutes, time only.
     const nb=$('v_nextBar'), nx=$('v_next');
     if(nb && nx){
+      // The words come from TrainingCoach so there is ONE description of pacing, and the
+      // number still comes from the engine's own deadline arithmetic — the caption never
+      // recomputes a deadline of its own that could drift from the one the case uses.
       const lm = nextLandmark();
-      if(lm && !codeActive()){
-        const rem = Math.max(0, lm.afterMin - S.simMin);
+      const pd = !!(S.instantState && S.instantState.pendingDeath != null);
+      const cap = window.TrainingCoach
+        ? TrainingCoach.pacingCaption(lm, S.simMin, { pendingDeath: pd, paused: TrainingCoach.paused(S.coach) })
+        : { kind: lm ? 'countdown' : 'none', label: '', detail: '', fraction: 1, urgent: false };
+      if(cap.kind === 'rescue' || cap.kind === 'paused' || (cap.kind === 'countdown' && !codeActive())){
         nx.classList.remove('hidden');
-        $('v_nextMin').textContent = '~'+Math.round(rem)+' min';
+        // A death stage that has fired used to hide the countdown altogether, so the most
+        // time-critical moment in the run looked exactly like no time pressure at all.
+        $('v_nextMin').textContent = cap.label;
+        $('v_next').lastChild.textContent = cap.kind === 'countdown' ? ' to next event' : '';
+        $('v_next').title = cap.detail;
         nb.classList.remove('hidden');
-        const frac = Math.max(0, Math.min(1, rem / lm.window));
         const fill=$('v_nextFill');
-        fill.style.width = (frac*100).toFixed(1)+'%';
-        fill.className = 'h-full transition-all ' + (rem <= 5 ? 'bg-red-500' : rem <= 12 ? 'bg-amber-500' : 'bg-emerald-500');
+        fill.style.width = ((cap.kind === 'countdown' ? cap.fraction : cap.kind === 'rescue' ? 1 : 0.5)*100).toFixed(1)+'%';
+        fill.className = 'h-full transition-all ' + (cap.kind === 'rescue' ? 'bg-red-500 animate-pulse'
+          : cap.kind === 'paused' ? 'bg-sky-500'
+          : cap.remaining <= 5 ? 'bg-red-500' : cap.remaining <= 12 ? 'bg-amber-500' : 'bg-emerald-500');
       } else { nx.classList.add('hidden'); nb.classList.add('hidden'); }
     }
   }
@@ -3523,7 +3588,15 @@ function renderSetup(){
             : 'They start with no API call; the bedside then runs on whichever engine you have set.'}</p>
         </div>
 
-        <div class="mt-5 pt-5 border-t border-slate-800/60">
+        <!-- ADVANCED, AND FOLDED AWAY (Task 11 of the reliability plan). Everything a
+             learner needs is above this line and needs no key, no account and no network.
+             What is inside needs an API key: the topic generator, the PDF builder and the
+             key itself. The plan asks for model controls to be out of the default flow but
+             still reachable, so this is a disclosure rather than a deletion — and the DOM
+             order the setup-flow test pins (start, library, topic, key) is unchanged. -->
+        <details id="advancedTools" class="mt-5 pt-5 border-t border-slate-800/60">
+          <summary class="cursor-pointer list-none text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 transition select-none">▸ Build your own case <span class="normal-case font-bold text-slate-600">— needs an API key</span></summary>
+        <div class="mt-4">
           <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Topic-based case <span class="normal-case font-bold text-slate-600">(needs an API key)</span></label>
           <input id="topic" placeholder="e.g. Diabetic Ketoacidosis…" class="w-full mt-2 bg-slate-950 border border-slate-800 rounded-2xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500/50" />
           <div class="flex flex-wrap gap-2 mt-3">
@@ -3544,6 +3617,23 @@ function renderSetup(){
           <p class="text-[11px] text-amber-500/80 mt-2 leading-relaxed"><b>Do not upload real patient records or protected health information.</b> Extracted PDF text is sent directly to your selected AI provider to generate the case.</p>
           <p id="pdfMsg" class="text-[11px] text-slate-500 mt-2 text-center"></p>
         </div>
+        ${(S.geminiKey||S.claudeKey)
+        ? `<div class="mt-5 rounded-2xl border border-emerald-800/50 bg-emerald-500/5 p-3.5 flex items-center gap-2 text-[12px]">
+             <span class="text-emerald-400 font-black">✓ Your API key is set</span>
+             <span class="text-slate-400">Available for this browser session. Used first for live cases.${PUBLIC_BUILD?'':' The local engine stays as a fallback.'}</span>
+             <button id="editKeyBtn" class="ml-auto shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-400 transition">Change key</button>
+           </div>`
+        : `<div class="mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+               <div class="flex-1">
+                 <div class="text-emerald-300 font-black text-sm mb-1">Optional: add an API key for AI-generated cases</div>
+                 <div class="text-[11px] text-slate-300 leading-relaxed">The key stays in this browser session and is sent straight to the provider. No MediSim server receives it. A <b>Gemini</b> key is free and takes about a minute: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">get one here →</a>. If you would rather use Claude, <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">Claude API keys →</a></div>
+               </div>
+               <button id="addKeyBtn" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm px-5 py-3 rounded-xl transition whitespace-nowrap">Add your key →</button>
+             </div>
+             <div class="text-[10px] text-slate-500 mt-2.5 pt-2.5 border-t border-slate-800">Everything above plays without a key.${PUBLIC_BUILD?'':' Without one, live cases fall back to your local Claude bridge or LM Studio (Settings ③).'}</div>
+           </div>`}
+        </details>
 
         <div id="libSection" class="mt-5 pt-5 border-t border-slate-800/60 hidden">
           <div class="flex items-center justify-between">
@@ -3567,22 +3657,8 @@ function renderSetup(){
         </div>
         <div id="usageStrip" class="mt-5 pt-5 border-t border-slate-800/60 text-[11px] leading-relaxed hidden"></div>
       </div>
-      ${(S.geminiKey||S.claudeKey)
-        ? `<div class="mt-5 rounded-2xl border border-emerald-800/50 bg-emerald-500/5 p-3.5 flex items-center gap-2 text-[12px]">
-             <span class="text-emerald-400 font-black">✓ Your API key is set</span>
-             <span class="text-slate-400">Available for this browser session. Used first for live cases.${PUBLIC_BUILD?'':' The local engine stays as a fallback.'}</span>
-             <button id="editKeyBtn" class="ml-auto shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-400 transition">Change key</button>
-           </div>`
-        : `<div class="mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-               <div class="flex-1">
-                 <div class="text-emerald-300 font-black text-sm mb-1">Optional: add an API key for AI-generated cases</div>
-                 <div class="text-[11px] text-slate-300 leading-relaxed">The key stays in this browser session and is sent straight to the provider. No MediSim server receives it. A <b>Gemini</b> key is free and takes about a minute: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">get one here →</a>. If you would rather use Claude, <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">Claude API keys →</a></div>
-               </div>
-               <button id="addKeyBtn" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm px-5 py-3 rounded-xl transition whitespace-nowrap">Add your key →</button>
-             </div>
-             <div class="text-[10px] text-slate-500 mt-2.5 pt-2.5 border-t border-slate-800">Everything above plays without a key.${PUBLIC_BUILD?'':' Without one, live cases fall back to your local Claude bridge or LM Studio (Settings ③).'}</div>
-           </div>`}
+      <!-- the API-key card moved INTO the advanced disclosure above (Task 11): it is a
+           model control, and the default learning flow should not lead with one. -->
     </div>
   </div>`;
   $('genBtn').onclick=()=>{ const t=$('topic').value.trim(); if(t) startCase(t); };
@@ -3833,7 +3909,9 @@ function enterCodeMode(script){
   _codeTimer = setInterval(()=>{
     // A hidden tab does not run a code — coming back to find the patient dead because
     // you answered a phone call is a punishment the simulator has not earned.
-    if(!codeActive() || document.hidden) return;
+    // A hidden tab already does not run a code. Neither does a paused coach: a hint the
+    // learner is reading must not cost them code time, or the help is a trap.
+    if(!codeActive() || document.hidden || (window.TrainingCoach && TrainingCoach.paused(S.coach))) return;
     onCodeEvents(CodeEngine.tick(S.code, S.codeScript, 6));
     applyCodeVitals();
     paintCodeStrip();
@@ -4062,8 +4140,10 @@ async function dispatchOrders(action, label, intents){
       list = (clauses.length < 2)
         ? [OI.fromText(action, null, label || action)]
         : clauses.map(c => OI.fromText(c, null, c));
-    if(!OD || !list.length){
-      // No boundary available (the script failed to load) — the original path, unchanged.
+    if(!OD || !list.length || runCaps().dispatch === 'legacy-text-v1'){
+      // No boundary available (the script failed to load), or this run was started under
+      // the rollback — the original path, unchanged. One branch, both reasons, so the
+      // rollback is the path that already ships rather than a second one to keep working.
       if(codeAnswers() && fireCodeOrder(action, label)) return true;
       await progress(action, label);
       return false;
@@ -4532,6 +4612,143 @@ async function instantTurn(action){
 // button used, and it is the only place a working diagnosis is entered or shown — the
 // nurse says it goes "up on the board", and now there is a board.
 let _dxCatalog = null;
+// The coach's two data files. Only the pilot cases have either, which is what scopes the
+// coach to them: no rules for this case means no coach button, rather than a coach that
+// invents structure the case does not have.
+let _objRules = null, _trainHints = null;
+// ---------------------------------------------------------------- the training coach
+//
+// Task 10. A learner who is stuck could previously only guess or lose the case. The coach
+// gives a third option that is bounded on purpose: tiered so a nudge does not have to
+// become the answer, state-aware so it cannot name work already done, and recorded so the
+// unassisted record still means what it says. TrainingCoach holds all of that logic; this
+// is the surface.
+function trainingMode(){
+  try{ const m = localStorage.getItem('ms_mode'); if(m === 'exam' || m === 'training') return m; }catch(_){ }
+  return 'training';
+}
+function setTrainingMode(m){
+  try{ localStorage.setItem('ms_mode', m === 'exam' ? 'exam' : 'training'); }catch(_){ }
+  if(S.coach) S.coach.mode = (m === 'exam') ? 'exam' : 'training';
+  if(S.coach && S.coach.mode === 'exam') TrainingCoach.setPaused(S.coach, false);
+  paintCoach(); paintVitals();
+}
+// A case starts with a clean session, no checkpoint and no hint history, and pulls the
+// two authored files so coachAvailable() can answer immediately rather than on the second
+// render. A case with no authored objectives simply never shows the button.
+function startCoachSession(){
+  S.coach = TrainingCoach.newSession(trainingMode());
+  S.checkpoint = null; S.coachLast = null;
+  panelState().activePanel = (panelState().activePanel === 'coach') ? null : panelState().activePanel;
+  Promise.all([loadObjectiveRules(), loadTrainingHints()]).then(paintCoachButton).catch(()=>{});
+}
+function coachSession(){
+  if(!S.coach) S.coach = TrainingCoach.newSession(trainingMode());
+  return S.coach;
+}
+// Only the cases that carry authored objectives and authored hints get a coach. Everything
+// else keeps exactly today's behaviour rather than getting a coach that guesses.
+function coachRules(){ return (_objRules && S.goldId) ? _objRules[S.goldId] : null; }
+function coachMeta(){ return (_trainHints && S.goldId) ? _trainHints[S.goldId] : null; }
+function coachAvailable(){
+  return !!(runCaps().coach && window.TrainingCoach && window.ObjectiveRules && coachRules() && coachMeta());
+}
+// What the coach is allowed to know about the run: the receipts (what was actually
+// performed), the pack's flags, and three coach-supplied facts about the patient's state
+// so an authored `notWhen` can rule a step out. No diagnosis, no case id beyond the lookup.
+function coachCtx(){
+  const c = S.code, packFlags = (S.instantState && S.instantState.flags) || {};
+  return { receipts: S.receipts || [],
+           flags: { ...packFlags,
+                    __pulse:  c ? !!c.pulse : true,
+                    __arrest: !!(c && !c.ended && !c.pulse),
+                    __rosc:   !!(c && c.ended === 'rosc') } };
+}
+function askHint(){
+  if(!coachAvailable()) return;
+  const ses = coachSession();
+  const h = TrainingCoach.nextHint(coachRules(), coachMeta(), coachCtx(), ses);
+  if(!h.refused && h.tier) TrainingCoach.recordHint(ses, h);
+  S.coachLast = h;
+  paintCoach();
+}
+// The pause is real: the code ticker asks TrainingCoach.paused() before every tick, so
+// while the coach is open in training mode no simulated second passes. Exam mode never
+// pauses, which is what makes its timing continuous rather than continuous by habit.
+function openCoach(on){
+  const ses = coachSession();
+  const want = (on === undefined) ? (panelState().activePanel !== 'coach') : !!on;
+  panelState().activePanel = want ? 'coach' : (panelState().activePanel === 'coach' ? null : panelState().activePanel);
+  TrainingCoach.setPaused(ses, want);
+  applyPanel(); paintCoach(); paintVitals();
+}
+// A retry puts BOTH engines, the clock, the receipts and the run seed back to the last
+// checkpoint. Restoring less than that would replay differently and read as a bug: the
+// seed decides the illustrative lab values, so a run replayed without it produces
+// different chemistry from the same orders.
+function saveCheckpoint(label){
+  if(!window.TrainingCoach) return;
+  S.checkpoint = TrainingCoach.checkpoint(S, label || ('T+' + Math.round(S.simMin || 0)));
+}
+function coachRetry(){
+  if(!S.checkpoint || !TrainingCoach.helpAllowed(coachSession())) return;
+  TrainingCoach.restore(S, S.checkpoint);
+  TrainingCoach.recordRetry(S.coach);
+  S.coachLast = { tier: 0, text: 'Back to T+' + Math.round(S.simMin || 0) + ' min. Everything the case knew then is restored, including the seed, so the same orders give the same results.' };
+  try{ if(S.code) applyCodeVitals(); }catch(_){ }
+  renderPlay(); paintCoach(); paintVitals();
+}
+function coachPanelHTML(){
+  const ses = coachSession(), h = S.coachLast, exam = ses.mode === 'exam';
+  const rows = coachAvailable() ? TrainingCoach.outstanding(coachRules(), coachMeta(), coachCtx()) : [];
+  const phase = coachAvailable() ? TrainingCoach.phaseFor(coachRules(), coachMeta(), coachCtx()) : 'assess';
+  return `<div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-black uppercase tracking-widest text-sky-300">Coach${exam ? ' — exam mode' : ''}</div>
+      <button id="coachClose" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-200">✕ Hide</button>
+    </div>
+    <p class="text-[11px] text-slate-400 mb-2">Phase: <span class="text-slate-200 font-bold">${esc(phase)}</span> · ${rows.length} step${rows.length===1?'':'s'} outstanding. ${exam ? 'Exam mode runs the clock continuously and gives no hints.' : 'Simulation time is paused while this is open.'}</p>
+    ${h ? `<p class="text-[12px] leading-relaxed text-slate-100 bg-slate-900/70 border border-sky-900/60 rounded-lg p-2.5 mb-2">${esc(h.text)}</p>` : ''}
+    <div class="flex flex-wrap gap-2">
+      <button id="coachHint" class="px-3 py-2 rounded-lg bg-sky-950/70 border border-sky-800 text-sky-200 text-[10px] font-black uppercase tracking-widest ${exam ? 'opacity-40' : 'hover:border-sky-500'}">${ses.maxTier >= 3 ? 'Say it again' : ses.maxTier ? 'More specific' : 'Give me a nudge'}</button>
+      <button id="coachRetryBtn" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-black uppercase tracking-widest ${(!S.checkpoint || exam) ? 'opacity-40' : 'hover:border-slate-400'}">Back to last checkpoint</button>
+      <button id="coachMode" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-slate-400">${exam ? 'Switch to training' : 'Switch to exam'}</button>
+    </div>
+    <p class="text-[10px] text-slate-500 mt-2">${ses.hints} hint${ses.hints===1?'':'s'} · ${ses.retries} retr${ses.retries===1?'y':'ies'} this run. A run that used either is marked in your log and does not count toward an unassisted best.</p>`;
+}
+function paintCoach(){
+  let el = $('coachPanel');
+  const open = panelState().activePanel === 'coach';
+  if(!el){
+    if(!open) return;
+    el = document.createElement('div');
+    el.id = 'coachPanel';
+    el.className = 'fixed z-[70] left-2 right-2 bottom-2 md:left-auto md:right-4 md:bottom-24 md:w-[380px] bg-slate-950/95 border border-sky-900/70 rounded-xl p-3 shadow-2xl';
+    document.body.appendChild(el);
+  }
+  el.classList.toggle('hidden', !open);
+  if(!open) return;
+  el.innerHTML = coachPanelHTML();
+  $('coachClose').onclick = () => openCoach(false);
+  $('coachHint').onclick  = askHint;
+  $('coachRetryBtn').onclick = coachRetry;
+  $('coachMode').onclick  = () => setTrainingMode(trainingMode() === 'exam' ? 'training' : 'exam');
+}
+function paintCoachButton(){
+  const b = $('coachBtn'); if(!b) return;
+  b.classList.toggle('hidden', !coachAvailable());
+  b.setAttribute('aria-pressed', String(panelState().activePanel === 'coach'));
+}
+
+async function loadObjectiveRules(){
+  if(_objRules) return _objRules;
+  try{ _objRules = await (await fetch('objective-rules.json')).json(); }catch(_){ _objRules = {}; }
+  return _objRules;
+}
+async function loadTrainingHints(){
+  if(_trainHints) return _trainHints;
+  try{ _trainHints = (await (await fetch('training-hints.json')).json()).cases || {}; }catch(_){ _trainHints = {}; }
+  return _trainHints;
+}
 async function loadDxCatalog(){
   if(_dxCatalog) return _dxCatalog;
   try{
@@ -4689,8 +4906,16 @@ function showReadback(originalText, resolved, opts){
     $('rbNo').onclick=hideReadbackChip;
   }
   el.classList.remove('hidden');
+  // ONE THING FLOATS ABOVE THE DOCK AT A TIME. In the console layout the per-order
+  // feedback line and this chip are both absolutely positioned at bottom:100%, so the
+  // previous turn's feedback was painted on top of the question about this one — and
+  // "Yes, that's the order" was underneath it. Found by the Task 11 smoke test, which
+  // hit-tested the button instead of trusting that it was drawn.
+  const fb = $('orderFeedback'); if(fb) fb.classList.add('hidden');
 }
-function hideReadbackChip(){ const el=$('readbackChip'); if(el){ el.classList.add('hidden'); el.innerHTML=''; } _readback=null; }
+function hideReadbackChip(){ const el=$('readbackChip'); if(el){ el.classList.add('hidden'); el.innerHTML=''; } _readback=null;
+  // the feedback line gets its slot back
+  try{ if(typeof renderOrderFeedback === 'function') renderOrderFeedback(); }catch(_){ } }
 function confirmReadback(){
   if(!_readback) return;
   const {originalText, resolved, clearInput} = _readback;
@@ -4712,7 +4937,16 @@ function confirmReadback(){
   hideReadbackChip();
   const cmd = $('cmd'); if(clearInput && cmd){ cmd.value=''; cmd.style.height='auto'; }
   basketClear();   // the confirmed text already contains the chips — see send()
-  S.simMin += 1;
+  // NO CLARIFICATION PENALTY (Task 10). Confirming a readback used to cost a simulated
+  // minute, so a learner paid clinical time to resolve the PARSER'S uncertainty about
+  // words they had already chosen. Answering "yes, that is what I meant" is interface
+  // use, not patient care; the order itself still costs whatever the order costs.
+  //
+  // And it goes through the SAME boundary the Send path uses, so a clarified order gets a
+  // receipt and a visible status like every other order. It used to call progress()
+  // directly, which meant the one order the learner had already been asked about twice was
+  // the one order with nothing to show for it.
+  if(runCaps().dispatch === 'receipts-v1' && runCaps().pilot){ dispatchOrders(action, originalText); return; }
   progress(action, originalText);
 }
 function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
@@ -5132,6 +5366,8 @@ async function loadGoldCase(seed, opts){
   S.caseSeed={...seed};   // enables "save as vetted" and marks provenance
   S.messages=[{role:'assistant', content:seed.intro||'The patient is at the bedside.', speech:seed.speech}];
   S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
+  S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
+  startCoachSession();
   S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
   renderPlay();
@@ -5220,6 +5456,10 @@ let _lib=null;
 async function initLibrary(){
   if(location.protocol==='file:') return;
   try{
+    // The EBMedicine library is local-only and deliberately excluded from the public
+    // build, so on the public site this fetch could only ever 404. Asking anyway is a
+    // request every visitor pays for and a red line in their console.
+    if(PUBLIC_BUILD) return;
     if(!_lib){ const r=await fetch('library-manifest.json'); if(!r.ok) return; _lib=(await r.json()).items||[]; }
   }catch(_){ return; }
   const sec=$('libSection'); if(!sec||!_lib.length) return;
@@ -6285,7 +6525,7 @@ function renderPlay(){
            and every weight-based dose, so it goes first, before the clock. -->
       <span id="v_who" class="text-[10px] font-black uppercase tracking-widest text-amber-300/90"></span>
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Temp: <span id="v_temp" class="text-slate-300"></span></span>
-      <span id="v_clockChip" title="Sim time since arrival. Orders cost time — labs ~18 min, CT ~25, consults ~10. The bar drains toward the next change in the patient's condition." class="text-[13px] font-black uppercase tracking-widest px-3 py-1 rounded-md border border-emerald-800/60 bg-emerald-500/10 text-emerald-300 transition-colors">ER&nbsp;Clock <span id="v_clock" class="mono">T+0 min</span><span id="v_next" class="hidden"> · <span id="v_nextMin" class="mono"></span> to next event</span></span>
+      <span id="v_clockChip" title="Sim time since arrival. Orders cost time — labs ~18 min, CT ~25, consults ~10. The bar is simulation pacing: it drains toward the next authored change in this case, and is not a prognosis." class="text-[13px] font-black uppercase tracking-widest px-3 py-1 rounded-md border border-emerald-800/60 bg-emerald-500/10 text-emerald-300 transition-colors">ER&nbsp;Clock <span id="v_clock" class="mono">T+0 min</span><span id="v_next" class="hidden"> · <span id="v_nextMin" class="mono"></span> to next event</span></span>
       <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Rhythm: <span id="v_rhythm"></span></span>
       <button id="rhythmBtn" class="hidden ml-1 px-2 py-0.5 rounded-md border border-violet-500/50 bg-violet-950/60 text-violet-200 text-[9px] font-black uppercase tracking-widest hover:bg-violet-900/60 transition" title="Read the strip and call the rhythm (R)">Read rhythm \u25be</button>
     </div>
@@ -6349,6 +6589,7 @@ function renderPlay(){
           ${PUBLIC_BUILD ? '' : `<button id="micBtn" class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-400 transition" title="Dictate">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
           </button>`}
+          <button id="coachBtn" class="hidden px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Open the coach. In training mode simulation time pauses while it is open.">Coach</button>
           <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add free text to the basket without signing; keep adding orders when ready">+ Add</button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
           <button id="sendBtn" aria-label="Send selected orders and free text together" title="Send selected orders and free text together" class="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition">
@@ -6436,7 +6677,24 @@ function renderPlay(){
       }
     }
     cmd.value=''; cmd.style.height='auto';
-    basketClear(); progress(t, plan.label);
+    // ONE EXECUTION BOUNDARY, NOT TWO (Task 11). Until now dispatchOrders — and therefore
+    // the receipts that Task 7's per-order status line and Task 5's evidence are built
+    // from — was reached only while a code was running. Outside a code this went straight
+    // to progress(), so on an ordinary case no order had a receipt and no order had a
+    // visible status. That is the gap the built-artifact smoke test found.
+    //
+    // Turned on through the run's pinned capability and, per the plan, for the validated
+    // pilots first rather than everywhere at once. Every other case keeps exactly today's
+    // path, and a run started under the rollback keeps it too.
+    //
+    // plan.intents is NOT forwarded, deliberately. It is one entry per basket item and
+    // carries null for anything typed free-hand, while dispatchOrders filters falsy
+    // entries — so a basket signed together with typed text would arrive one order short.
+    // Letting dispatchOrders derive an intent per clause is the path a code case already
+    // takes; carrying known IDs through a mixed signature is its own change.
+    basketClear();
+    if(runCaps().dispatch === 'receipts-v1' && runCaps().pilot){ await dispatchOrders(t, plan.label); return; }
+    progress(t, plan.label);
   };
   _submitBasket=send;
   $('sendBtn').onclick=send;
@@ -6584,6 +6842,9 @@ function renderPlay(){
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); hideReadbackChip();
     commitDiagnosis(raw);
   };
+  // The coach button hides itself on every case that has no authored objectives, so it
+  // appears only where there is something real behind it.
+  if($('coachBtn')){ $('coachBtn').onclick = () => openCoach(); paintCoachButton(); }
   renderBasket();   // the play screen is rebuilt on every turn — repaint the basket with it
   renderOrderFeedback();
   // Both dock rows were just replaced, and renderOrderFeedback may have changed how tall
@@ -9110,7 +9371,14 @@ function saveCaseLog(score, missed, died, dx){
                diagnosis:S.diagnosis, score:score, simMin:Math.round(S.simMin),
                missed:missed.slice(0,6), id:S.goldId||null, dosing:dosing, died:!!died,
                unparsed:missedWords,
-               dxCalled:(dx&&dx.dxCalled)||null, dxFirstCorrect:!!(dx&&dx.dxFirstCorrect) };
+               dxCalled:(dx&&dx.dxCalled)||null, dxFirstCorrect:!!(dx&&dx.dxFirstCorrect),
+               // Task 10. `assisted` is narrow on purpose: choosing training mode is not
+               // assistance, taking a hint or a retry is. Someone should be able to
+               // practise with the net available and still earn the trophy by not using it.
+               assist: (window.TrainingCoach && S.coach) ? TrainingCoach.assistRecord(S.coach) : null,
+               // Which dispatch and which grading produced this score. Without it a log
+               // that spans a rollout is a pile of numbers that cannot be compared.
+               caps: runCaps() };
     // Signed in, this lands in that person's own rows and follows them to any device;
     // signed out it is the same 500-entry localStorage array as before. Either way the
     // case is written down locally first, so a network that is down cannot lose it.
@@ -9357,6 +9625,7 @@ ${S.mentor.report}`:''}`;
 function localISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString(); }
 async function loadKnowledge(){
   try{
+    if(PUBLIC_BUILD) return null;   // written by serve_app.py; there is no such file in dist
     const r=await fetch('progress/knowledge.json',{cache:'no-store'});
     if(r.ok){ S.knowledge=await r.json(); renderPerfStrip(); return; }
   }catch(_){ }
@@ -9581,6 +9850,12 @@ function openSettings(){
   $('instantToggle').checked=useInstant();
   paintInstantState();
   $('logRunsToggle').checked=S.logRuns;
+  $('legacyToggle').checked = legacyModeOn();
+  $('legacyToggle').onchange = e => {
+    // NEW RUNS ONLY. S.caps is not touched: an in-progress case must not change simulator
+    // half way through, and a saved run must never be reinterpreted under another version.
+    try{ if(e.target.checked) localStorage.setItem('ms_legacy','1'); else localStorage.removeItem('ms_legacy'); }catch(_){ }
+  };
   // A local build writes to your own disk — there is nothing to consent to.
   if(!PUBLIC_BUILD) $('logRunsToggle').closest('label').style.display='none';
   $('celebrateSel').value=celebrateMode();

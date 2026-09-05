@@ -1,0 +1,85 @@
+{
+ "_reviewed": false,
+ "_note": "Authored training metadata for the five Task 10 pilot cases. Three fields per objective. `phase` is one of the coach's five spoiler-free phases and is all a tier-1 hint ever shows. `category` is one of the coach's nine fixed categories and is all a tier-2 hint ever shows; it names a system or a kind of action, never a finding. `step` is the explicit next step and is shown only when a learner asks a third time. `priority` is the order a clinician would work the case, which no phase label can express — on the septic patient the cultures precede the antibiotics. `notWhen` names coach-supplied run flags (__pulse, __arrest, __rosc) under which a step is contraindicated, so the coach cannot tell someone to start compressions on a child who still has a pulse.",
+ "_review": "Every `step` line and every `priority` ordering is a clinical statement and needs Kim's review before this ships as taught content. The phases and categories are structural and are enforced against the module's own vocabulary by tests/training-coach.test.cjs.",
+ "cases": {
+  "core-septic-shock-uro": {
+   "objectives": {
+    "sepsis.cultures-and-lactate": { "phase": "investigate", "category": "laboratory", "priority": 1,
+      "step": "Send a lactate and both blood and urine cultures before the antibiotics go in." },
+    "sepsis.fluids": { "phase": "stabilize", "category": "circulation", "priority": 2,
+      "step": "A 30 mL/kg balanced crystalloid bolus." },
+    "sepsis.antibiotics": { "phase": "stabilize", "category": "medications", "priority": 3,
+      "step": "Broad-spectrum IV antibiotics, inside the first hour." },
+    "sepsis.source-control": { "phase": "investigate", "category": "imaging", "priority": 4,
+      "step": "Image for the source, and get urology to the phone." },
+    "sepsis.reassess-and-pressor": { "phase": "reassess", "category": "monitoring and reassessment", "priority": 5,
+      "step": "Reassess the perfusion after the fluid. If the MAP is still under 65, start noradrenaline." },
+    "sepsis.disposition": { "phase": "disposition", "category": "disposition", "priority": 6,
+      "step": "This patient needs an ICU bed." }
+   }
+  },
+  "resp-tension-ptx": {
+   "objectives": {
+    "ptx.needle": { "phase": "stabilize", "category": "procedures", "priority": 1,
+      "step": "Decompress the chest now, before any film." },
+    "ptx.oxygen": { "phase": "stabilize", "category": "airway and breathing", "priority": 2,
+      "step": "High-flow oxygen." },
+    "ptx.tube": { "phase": "stabilize", "category": "procedures", "priority": 3,
+      "step": "A tube thoracostomy, after the needle." },
+    "ptx.reassess": { "phase": "reassess", "category": "monitoring and reassessment", "priority": 4,
+      "step": "Reassess the perfusion and the oxygenation now the chest is decompressed." }
+   }
+  },
+  "resus-acls-pea-tension": {
+   "objectives": {
+    "pea.compressions": { "phase": "stabilize", "category": "circulation", "priority": 1,
+      "step": "High-quality compressions, from the start." },
+    "pea.epinephrine": { "phase": "stabilize", "category": "medications", "priority": 2,
+      "step": "Epinephrine 1 mg IV or IO, repeated every three to five minutes." },
+    "pea.airway": { "phase": "stabilize", "category": "airway and breathing", "priority": 3,
+      "step": "Ventilate, and confirm the airway with waveform capnography." },
+    "pea.decompress": { "phase": "stabilize", "category": "procedures", "priority": 4,
+      "step": "Decompress the chest on the side the line attempt went in." },
+    "pea.definitive-tube": { "phase": "investigate", "category": "procedures", "priority": 5,
+      "step": "A definitive chest tube now there is a pulse, and a film to confirm its position." },
+    "pea.post-arrest": { "phase": "disposition", "category": "disposition", "priority": 6,
+      "step": "ICU, with a 12-lead and temperature management." }
+   }
+  },
+  "eb-appendicitis": {
+   "objectives": {
+    "appy.supportive": { "phase": "stabilize", "category": "medications", "priority": 1,
+      "step": "Analgesia, IV fluids, and nil by mouth." },
+    "appy.labs": { "phase": "investigate", "category": "laboratory", "priority": 2,
+      "step": "Labs, and a pregnancy test in a woman of reproductive age." },
+    "appy.imaging": { "phase": "investigate", "category": "imaging", "priority": 3,
+      "step": "Imaging: ultrasound first in a child or in pregnancy, CT in an uncertain adult." },
+    "appy.antibiotics": { "phase": "stabilize", "category": "medications", "priority": 4,
+      "step": "Antibiotics." },
+    "appy.surgery": { "phase": "disposition", "category": "consultation", "priority": 5,
+      "step": "A surgical consultation for appendicectomy." }
+   }
+  },
+  "resus-pals-resp-arrest": {
+   "objectives": {
+    "pals.nebs": { "phase": "stabilize", "category": "medications", "priority": 1,
+      "step": "Continuous nebulised salbutamol with ipratropium, and high-flow oxygen." },
+    "pals.steroid-and-magnesium": { "phase": "stabilize", "category": "medications", "priority": 2,
+      "step": "A systemic steroid early, and magnesium sulfate." },
+    "pals.ventilation": { "phase": "stabilize", "category": "airway and breathing", "priority": 3,
+      "step": "Low rate, long expiratory time, and disconnect the circuit to let the chest deflate." },
+    "pals.decompress": { "phase": "stabilize", "category": "procedures", "priority": 4,
+      "step": "Needle decompression, then a finger thoracostomy or a chest tube." },
+    "pals.compressions": { "phase": "stabilize", "category": "circulation", "priority": 5, "notWhen": ["__pulse"],
+      "step": "Compressions, and the PEA algorithm, now the pulse is gone." },
+    "pals.epinephrine": { "phase": "stabilize", "category": "medications", "priority": 6, "notWhen": ["__pulse"],
+      "step": "Epinephrine 0.01 mg/kg, every three to five minutes." },
+    "pals.fluids": { "phase": "stabilize", "category": "circulation", "priority": 7,
+      "step": "A 20 mL/kg fluid bolus for the obstructive shock." },
+    "pals.picu": { "phase": "disposition", "category": "disposition", "priority": 8,
+      "step": "Paediatric intensive care once there is ROSC." }
+   }
+  }
+ }
+}

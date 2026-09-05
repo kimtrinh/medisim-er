@@ -1,0 +1,172 @@
+{
+  "_comment": "Stable objective IDs, evidence requirements and legacy-index mapping for the five pilot cases of Task 5. Authored 2026-09-04 by decomposing each case's OWN critical-action sentence — where the sentence names two things joined by 'and', that is two substeps and mode allOf; where it offers alternatives, anyOf. No clinical requirement has been added that the case did not already state.",
+  "_reviewed": false,
+  "_note": "AUTHORED, NOT CLINICIAN-REVIEWED. The judgement that needs Kim specifically is allOf versus anyOf: whether both halves of a sentence are genuinely required, or either will do. Guessing that wrong is how a partially-treated patient gets full marks. Recognition and avoidance objectives are marked legacyOnly and are NOT migrated — the plan keeps those heuristics on the legacy path.",
+  "_schema": 1,
+
+  "core-septic-shock-uro": {
+    "version": 1,
+    "objectives": [
+      { "id": "sepsis.cultures-and-lactate", "legacyIndex": 0, "mode": "allOf",
+        "label": "Lactate and blood + urine cultures before antibiotics",
+        "substeps": [
+          { "id": "lactate", "label": "a lactate", "match": "lactate" },
+          { "id": "blood-cultures", "label": "blood cultures", "match": "blood culture" },
+          { "id": "urine-culture", "label": "a urine culture", "match": "urine culture|urinalysis" } ] },
+      { "id": "sepsis.antibiotics", "legacyIndex": 1, "mode": "allOf",
+        "label": "Broad-spectrum IV antibiotics within the hour",
+        "substeps": [ { "id": "abx", "label": "IV antibiotics",
+          "match": "ceftriaxone|cefepime|piperacillin|meropenem|vancomycin|antibiotic" } ] },
+      { "id": "sepsis.fluids", "legacyIndex": 2, "mode": "allOf",
+        "label": "30 mL/kg balanced crystalloid",
+        "substeps": [ { "id": "bolus", "label": "a crystalloid bolus",
+          "match": "normal saline|lactated ringers|crystalloid|iv fluids|bolus" } ] },
+      { "id": "sepsis.reassess-and-pressor", "legacyIndex": 3, "mode": "allOf",
+        "after": "sepsis.fluids",
+        "label": "Reassess perfusion, then noradrenaline for MAP under 65 despite fluids",
+        "substeps": [
+          { "id": "reassess", "label": "reassess perfusion", "match": "reassess|re-evaluate|recheck" },
+          { "id": "pressor", "label": "norepinephrine", "match": "norepinephrine|noradrenaline|levophed" } ] },
+      { "id": "sepsis.source-control", "legacyIndex": 4, "mode": "allOf",
+        "label": "Imaging, and urology for the obstructing stone",
+        "substeps": [
+          { "id": "imaging", "label": "imaging", "match": "ct |computed tomography|ultrasound|renal" },
+          { "id": "urology", "label": "urology", "match": "urology|urologic" } ] },
+      { "id": "sepsis.recognise", "legacyIndex": 5, "legacyOnly": true,
+        "label": "Recognise septic shock", "substeps": [] },
+      { "id": "sepsis.disposition", "legacyIndex": 6, "mode": "allOf",
+        "label": "Admit to the ICU",
+        "substeps": [ { "id": "icu", "label": "ICU admission", "match": "icu|intensive care|critical care|admit" } ] }
+    ]
+  },
+
+  "resp-tension-ptx": {
+    "version": 1,
+    "objectives": [
+      { "id": "ptx.recognise", "legacyIndex": 0, "legacyOnly": true,
+        "label": "Recognise tension pneumothorax clinically", "substeps": [] },
+      { "id": "ptx.needle", "legacyIndex": 1, "mode": "allOf",
+        "label": "Immediate needle decompression",
+        "substeps": [ { "id": "needle", "label": "needle decompression",
+          "match": "needle decompression|needle thoracostomy|finger thoracostomy|decompress" } ] },
+      { "id": "ptx.tube", "legacyIndex": 2, "mode": "allOf",
+        "label": "Tube thoracostomy",
+        "substeps": [ { "id": "tube", "label": "a chest tube", "match": "chest tube|tube thoracostomy|chest drain" } ] },
+      { "id": "ptx.oxygen", "legacyIndex": 3, "mode": "allOf",
+        "label": "High-flow oxygen",
+        "substeps": [ { "id": "o2", "label": "high-flow oxygen", "match": "oxygen|non.?rebreather|nrb" } ] },
+      { "id": "ptx.film-after", "legacyIndex": 4, "legacyOnly": true,
+        "label": "Chest x-ray only after decompression", "substeps": [] },
+      { "id": "ptx.reassess", "legacyIndex": 5, "mode": "allOf", "after": "ptx.needle",
+        "label": "Reassess perfusion and oxygenation after decompression",
+        "substeps": [ { "id": "reassess", "label": "reassess", "match": "reassess|re-evaluate|recheck|repeat exam" } ] }
+    ]
+  },
+
+  "resus-acls-pea-tension": {
+    "version": 1,
+    "objectives": [
+      { "id": "pea.compressions", "legacyIndex": 0, "mode": "allOf",
+        "label": "High-quality compressions from the start",
+        "substeps": [ { "id": "cpr", "label": "compressions", "match": "cpr|compression" } ] },
+      { "id": "pea.epinephrine", "legacyIndex": 1, "mode": "allOf",
+        "label": "Epinephrine 1 mg IV/IO, repeated",
+        "substeps": [ { "id": "epi", "label": "epinephrine", "match": "epinephrine|adrenaline" } ] },
+      { "id": "pea.recognise", "legacyIndex": 2, "legacyOnly": true,
+        "label": "Recognise PEA and withhold defibrillation", "substeps": [] },
+      { "id": "pea.causes", "legacyIndex": 3, "legacyOnly": true,
+        "label": "Work the Hs and Ts and name the cause", "substeps": [] },
+      { "id": "pea.decompress", "legacyIndex": 4, "mode": "allOf",
+        "label": "Decompress the chest on the side of the line attempt",
+        "substeps": [ { "id": "decompress", "label": "needle or finger thoracostomy",
+          "match": "needle decompression|needle thoracostomy|finger thoracostomy|decompress" } ] },
+      { "id": "pea.airway", "legacyIndex": 5, "mode": "allOf",
+        "label": "Ventilate, and confirm with waveform capnography",
+        "substeps": [
+          { "id": "ventilate", "label": "ventilate or secure the airway", "match": "intubat|bag|bvm|supraglottic|airway|ventilat" },
+          { "id": "etco2", "label": "waveform capnography", "match": "capnograph|etco2|end.?tidal" } ] },
+      { "id": "pea.definitive-tube", "legacyIndex": 6, "mode": "allOf", "after": "pea.decompress",
+        "label": "Definitive chest tube once there is a pulse, confirmed on a film",
+        "substeps": [
+          { "id": "tube", "label": "a chest tube", "match": "chest tube|tube thoracostomy|chest drain" },
+          { "id": "film", "label": "a chest film", "match": "chest x.?ray|chest film|cxr|radiograph" } ] },
+      { "id": "pea.post-arrest", "legacyIndex": 7, "mode": "allOf",
+        "label": "ICU with a 12-lead and temperature management",
+        "substeps": [
+          { "id": "icu", "label": "ICU admission", "match": "icu|intensive care|admit" },
+          { "id": "ecg", "label": "a 12-lead ECG", "match": "12.?lead|electrocardiogram|ecg|ekg" } ] }
+    ]
+  },
+
+  "eb-appendicitis": {
+    "version": 1,
+    "objectives": [
+      { "id": "appy.recognise", "legacyIndex": 0, "legacyOnly": true,
+        "label": "Recognise the appendicitis pattern", "substeps": [] },
+      { "id": "appy.labs", "legacyIndex": 1, "mode": "allOf",
+        "label": "Labs, and a pregnancy test in a woman of reproductive age",
+        "substeps": [
+          { "id": "labs", "label": "labs", "match": "complete blood count|cbc|basic metabolic|bmp|cmp|lactate|crp" },
+          { "id": "preg", "label": "a pregnancy test", "match": "pregnancy|hcg|beta.?hcg" } ] },
+      { "id": "appy.imaging", "legacyIndex": 2, "mode": "anyOf",
+        "label": "Imaging chosen appropriately — ultrasound first in children and pregnancy, CT in uncertain adults",
+        "substeps": [
+          { "id": "us", "label": "an ultrasound", "match": "ultrasound|sonograph" },
+          { "id": "ct", "label": "a CT", "match": "ct |computed tomography" } ] },
+      { "id": "appy.supportive", "legacyIndex": 3, "mode": "allOf",
+        "label": "Analgesia, IV fluids, and nil by mouth",
+        "substeps": [
+          { "id": "analgesia", "label": "analgesia", "match": "morphine|fentanyl|ketorolac|analgesi|paracetamol|acetaminophen" },
+          { "id": "fluids", "label": "IV fluids", "match": "normal saline|lactated ringers|crystalloid|iv fluids|bolus" },
+          { "id": "npo", "label": "nil by mouth", "match": "npo|nil by mouth|nothing by mouth" } ] },
+      { "id": "appy.antibiotics", "legacyIndex": 4, "mode": "allOf",
+        "label": "Antibiotics",
+        "substeps": [ { "id": "abx", "label": "antibiotics",
+          "match": "ceftriaxone|cefepime|piperacillin|metronidazole|meropenem|antibiotic" } ] },
+      { "id": "appy.surgery", "legacyIndex": 5, "mode": "allOf",
+        "label": "Surgical consultation for appendicectomy",
+        "substeps": [ { "id": "surgery", "label": "a surgical consult", "match": "surgery|surgical|surgeon" } ] },
+      { "id": "appy.complicated", "legacyIndex": 6, "legacyOnly": true,
+        "label": "Recognise complicated disease", "substeps": [] }
+    ]
+  },
+
+  "resus-pals-resp-arrest": {
+    "version": 1,
+    "objectives": [
+      { "id": "pals.nebs", "legacyIndex": 0, "mode": "allOf",
+        "label": "Continuous nebulised salbutamol with ipratropium, and high-flow oxygen",
+        "substeps": [
+          { "id": "salbutamol", "label": "salbutamol", "match": "salbutamol|albuterol|duoneb|nebulis|nebuliz" },
+          { "id": "ipratropium", "label": "ipratropium", "match": "ipratropium|atrovent|duoneb" },
+          { "id": "oxygen", "label": "high-flow oxygen", "match": "oxygen|non.?rebreather|high.?flow" } ] },
+      { "id": "pals.steroid-and-magnesium", "legacyIndex": 1, "mode": "allOf",
+        "label": "A systemic steroid early, and magnesium sulfate",
+        "substeps": [
+          { "id": "steroid", "label": "a systemic steroid", "match": "methylprednisolone|prednis|dexamethasone|hydrocortisone|steroid" },
+          { "id": "magnesium", "label": "magnesium sulfate", "match": "magnesium" } ] },
+      { "id": "pals.ventilation", "legacyIndex": 2, "mode": "allOf",
+        "label": "Low rate with a long expiratory time, and disconnect to let the chest deflate",
+        "substeps": [ { "id": "vent", "label": "the ventilation strategy",
+          "match": "disconnect|expiratory|ventilat|bag|low rate" } ] },
+      { "id": "pals.compressions", "legacyIndex": 3, "mode": "allOf",
+        "label": "Compressions and the PEA algorithm on losing the pulse",
+        "substeps": [ { "id": "cpr", "label": "compressions", "match": "cpr|compression" } ] },
+      { "id": "pals.epinephrine", "legacyIndex": 4, "mode": "allOf",
+        "label": "Epinephrine 0.01 mg/kg every 3-5 minutes",
+        "substeps": [ { "id": "epi", "label": "epinephrine", "match": "epinephrine|adrenaline" } ] },
+      { "id": "pals.fluids", "legacyIndex": 5, "mode": "allOf",
+        "label": "A 20 mL/kg fluid bolus for obstructive shock",
+        "substeps": [ { "id": "bolus", "label": "a fluid bolus",
+          "match": "normal saline|lactated ringers|crystalloid|iv fluids|bolus" } ] },
+      { "id": "pals.decompress", "legacyIndex": 6, "mode": "allOf",
+        "label": "Needle decompression, then finger thoracostomy or a chest tube",
+        "substeps": [
+          { "id": "needle", "label": "needle decompression", "match": "needle decompression|needle thoracostomy|decompress" },
+          { "id": "definitive", "label": "finger thoracostomy or a chest tube", "match": "finger thoracostomy|chest tube|tube thoracostomy|chest drain" } ] },
+      { "id": "pals.picu", "legacyIndex": 7, "mode": "allOf",
+        "label": "Admit to paediatric intensive care after ROSC",
+        "substeps": [ { "id": "picu", "label": "PICU admission", "match": "picu|paediatric intensive|pediatric intensive|intensive care|icu|admit" } ] }
+    ]
+  }
+}

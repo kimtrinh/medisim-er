@@ -124421,6 +124421,10 @@
      "intent": "procedure",
      "match": {
       "any": [
+       "needle the second space",
+       "needle the second intercostal space",
+       "immediate decompression",
+       "needle the chest now",
        "needle decompression",
        "needle thoracostomy",
        "decompress the chest",
@@ -157735,6 +157739,13 @@
      "intent": "procedure",
      "match": {
       "any": [
+       "longer expiratory time",
+       "reduce the ventilation rate",
+       "bag slower",
+       "slow the bagging",
+       "take him off the bag",
+       "let the breath stack out",
+       "let the air out",
        "long expiratory time",
        "slow the rate",
        "disconnect the circuit",
@@ -158013,6 +158024,9 @@
      "intent": "disposition",
      "match": {
       "any": [
+       "paediatric intensive care",
+       "pediatric intensive care",
+       "picu admission",
        "admit to picu",
        "admit to the icu",
        "paediatric icu admission",
