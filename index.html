@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hfhi+i5e/8VEpDb5gNsFzy0qzGA0nPiHD8i9/nKrfSU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-9yoK+FrpA1eHTOVEVkQf5UzXcQSevP+zFl8K4zISKDc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2466,7 +2466,10 @@ ELAPSED ER TIME: ${Math.round(S.simMin)} minutes since arrival.
 CURRENT MONITOR VITALS (the patient is displaying THESE right now — they already reflect any deterioration since the last turn; make your updatedVitals continuous with them, not a jump back to an earlier value): HR ${Math.round(S.vitals.hr)}, BP ${Math.round(S.vitals.bpSystolic)}/${Math.round(S.vitals.bpDiastolic)}, SpO2 ${Math.round(S.vitals.o2)}%, RR ${Math.round(S.vitals.rr)}, Temp ${(+S.vitals.temp).toFixed(1)}°C, rhythm ${S.vitals.rhythm}.
 RECENT TRANSCRIPT (history — these events ALREADY HAPPENED; do not repeat or re-narrate them):
 ${transcript}
-DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}`;
+DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
+      const st = examStagingFor(action);   // see examOrder — the model's half, and only the model's
+      return st ? '\n' + st : '';
+    })()}`;
     // Hybrid routing: Instant serves packed cases (and everything when no model
     // engine exists); a keyed player on an un-packed case silently gets the API —
     // the toggle means "prefer instant", never "force worse play".
@@ -3909,6 +3912,11 @@ function enterCodeMode(script){
   if(!window.CodeEngine || !script) return;
   S.codeScript = script;
   S.code = CodeEngine.newState(script);
+  // Where the code sits on the ER clock, so a post-arrest order can be stamped with the
+  // time it was actually given rather than with the ROSC time. The code engine's own
+  // clock stops when the case ends (tick returns early), which is why the caller has to
+  // supply it — see actInner's `now`.
+  S.codeStartMin = S.simMin || 0;
   // A code is the one time the order area should be open and loud: the palette is now
   // the short ACLS list, and hunting for it behind a collapsed toggle costs seconds a
   // player does not have.
@@ -4232,7 +4240,8 @@ async function dispatchOrders(action, label, intents){
 // engine does not recognise it, so the caller falls through to the turn engine.
 function fireCodeOrder(text, label){
   const wasEnded = !!(S.code && S.code.ended);   // BEFORE the engine acts — see below
-  const r = CodeEngine.act(S.code, S.codeScript, text);
+  const r = CodeEngine.act(S.code, S.codeScript, text,
+    Math.max(0, ((S.simMin || 0) - (S.codeStartMin || 0)) * 60));
   if(!r || !r.handled) return false;
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
@@ -4480,12 +4489,29 @@ function codeShockOrder(sc, c){ return 'shock ' + codeShockJoules(sc, c) + ' jou
 // The script's own sync band leads; 100 J is the wide-regular default when a case
 // declares none (the engine accepts silently in that case, so the number is a label,
 // not a claim it will grade).
-function codeSyncJoules(sc){ return ((sc.shock||{}).sync||[])[0] || 100; }
+function codeSyncJoules(sc){ return codeSyncLadder(sc)[0]; }
 function codeSyncOrder(sc, j){ return 'synchronized cardioversion at ' + (j || codeSyncJoules(sc)) + ' joules'; }
 // The ladder this case allows, from its own range: the starting energy, then the rungs a
 // clinician would actually climb, never above the maximum the script permits.
+// A CHILD IS NEVER OFFERED AN ADULT ENERGY.
+//
+// The infant SVT case is 6 kg. Its own learning point says an adult setting of 120 J is
+// twenty times the starting dose — and the chip Kim clicked said "Sync cardiovert 100 J",
+// because no paediatric script declared a sync band and the default was 100. The engine
+// then accepted it in silence, because its range check only runs when a band exists.
+//
+// Both ladders now scale by weight whenever the script states its energies per kilogram.
 function codeSyncLadder(sc){
-  const range = (sc.shock || {}).sync || [];
+  const kg = ((sc.patient || {}).weightKg) || 70;
+  // The same paediatric band the engine grades against when a script declares none, so the
+  // chip and the grade can never disagree about what a child should get.
+  const sync = (sc.shock || {}).sync || (kg < 40 ? { perKg: [0.5, 2] } : null);
+  if(sync && sync.perKg){
+    const first = Math.round(sync.perKg[0] * kg), ceiling = Math.round(sync.perKg[1] * kg);
+    const rungs = [first, first * 2, first * 4].filter((j, i, a) => j <= ceiling && a.indexOf(j) === i);
+    return rungs.length ? rungs : [first];
+  }
+  const range = Array.isArray(sync) ? sync : [];
   const lo = range[0] || 100, hi = range[1] || lo;
   const rungs = [lo, 150, 200, 300, 360].filter((j, i, a) => j >= lo && j <= hi && a.indexOf(j) === i);
   return rungs.length ? rungs : [lo];
@@ -4493,6 +4519,14 @@ function codeSyncLadder(sc){
 // Same for defibrillation, so an escalating unsynchronised shock is reachable too.
 function codeShockLadder(sc, c){
   const e = ((sc.shock || {}).energy || {});
+  const kg = ((sc.patient || {}).weightKg) || 70;
+  if(e.perKg){
+    // The PALS ladder the engine already grades against: first shock, then double, then up
+    // to the script's own ceiling.
+    const first = Math.round(e.perKg[0] * kg), ceiling = Math.round(e.perKg[1] * kg);
+    const rungs = [first, first * 2, first * 4, ceiling].filter((j, i, a) => j <= ceiling && a.indexOf(j) === i);
+    return rungs.length ? rungs : [first];
+  }
   const range = (c && c.child ? e.child : e.adult) || e.adult || [];
   const lo = range[0] || 200, hi = range[1] || lo;
   const rungs = [lo, 200, 300, 360].filter((j, i, a) => j >= lo && j <= hi && a.indexOf(j) === i);
@@ -4598,6 +4632,15 @@ function nextLandmark(){
 }
 
 async function instantTurn(action){
+  // A BELT, BECAUSE THE STRAP IS INVISIBLE WHEN IT FAILS. Model stage directions must
+  // never reach the deterministic engine: it splits them into clauses and reports the
+  // fragments back to the player as orders it did not understand. examOrder keeps them out
+  // by construction, and this catches any future path that reintroduces them — loudly in
+  // the console, and stripped rather than parsed.
+  if(/In "speech"|voice (?:a |the )?(?:brief|patient)/i.test(String(action || ''))){
+    try{ console.warn('instantTurn: stripped model stage directions from an order —', action); }catch(_){ }
+    action = String(action).split(/\s*In "speech"/i)[0].trim();
+  }
   const packs = await loadOfflinePacks();
   const pack = (S.goldId && packs[S.goldId]) || S.generatedPack || null;
   if(!S.instantState) S.instantState={flags:{...(pack&&pack.startState||{})}, satisfied:[], stagesFired:[], dosing:0,
@@ -6107,8 +6150,31 @@ function paletteBodyHTML(){
   // palette has always contained the answers, and choosing among them is the test.
   let causes = '';
   if(inCode && S.codeScript && S.codeScript.causes){
+    // EVERY CAUSE THE CASE AUTHORED, not only the ones it requires. The required list is
+    // the answer key: offering just those two told the player which of the Hs and Ts
+    // mattered before they had worked it out, and left the others with no button at all.
+    // On the crush case that meant no tourniquet — its FIRST critical action, "stop the
+    // external bleeding first" — and on the blunt-trauma case no pelvic binder, which is
+    // CA2. A critical action with no control is unreachable by clicking.
+    //
+    // Offering the full authored set is also the smaller spoiler, for the same reason.
     const acts = S.codeScript.causes.actions || {};
-    const chips = (S.codeScript.causes.required || [])
+    // ...plus any authored cause the case makes a CRITICAL ACTION. Offering only the
+    // required list left the crush case with no tourniquet chip — its FIRST critical
+    // action, "stop the external bleeding first" — and the blunt-trauma case with no
+    // pelvic binder, which is CA2. A critical action with no control is unreachable by
+    // clicking, which is the bar Task 9 set.
+    //
+    // Tied to the checklist rather than offering every authored cause, because the NRP
+    // scripts list their whole MR SOPA ladder as causes and a twelve-button wall is not a
+    // palette. The required ones are always offered.
+    const caText = (S.criticalActions || []).join(' ').toLowerCase();
+    const wanted = new Set(S.codeScript.causes.required || []);
+    for(const [key, list] of Object.entries(acts)){
+      const a0 = String((list || [])[0] || '').toLowerCase();
+      if(a0 && caText.includes(a0)) wanted.add(key);
+    }
+    const chips = [...wanted]
       .map(c => (acts[c] || [])[0]).filter(Boolean)
       .map(a => `<button data-pal="${esc(a)}" data-lab="${esc(a)}" class="pal px-2 py-1 bg-slate-900/60 border border-amber-500/30 rounded-md text-[10px] text-amber-300/90 hover:text-amber-200 hover:border-amber-400/50 transition">${esc(a.charAt(0).toUpperCase()+a.slice(1))}</button>`);
     if(chips.length) causes = narrow
@@ -7095,7 +7161,8 @@ const ROOM_ACTIONS={
   examPick:[['Head, eyes & neck',null],['Chest — auscultate',null],['Abdomen',null],
         ['Arm & perfusion',null],['Pelvis',null],['Legs',null],['Flanks',null],['Log-roll — back',null]],
   monitor:[['Focused vitals view','__vitals__']],
-  defib:[['Place defib pads','Place defibrillator pads'],['Defibrillate 200 J','Defibrillate at 200 joules'],
+  defib:[['Place defib pads','Place defibrillator pads'],
+        ['Defibrillate', 'Defibrillate at 200 joules'],
         ['Synchronized cardioversion','Synchronized cardioversion at 100 joules'],['Transcutaneous pacing','Start transcutaneous pacing'],
         ['Pericardiocentesis','Perform pericardiocentesis']],
   // Access and bloodwork live here as well as on the arm: only the BEDSIDE view has an
@@ -7258,7 +7325,14 @@ function _roomMenuAway(e){
 }
 function roomMenu(ev, key){
   closeRoomMenu();
-  const items=ROOM_ACTIONS[key]; if(!items||!items.length) return;
+  let items=ROOM_ACTIONS[key]; if(!items||!items.length) return;
+  // The defibrillator trolley's energies are the case's, not the adult defaults. On the
+  // 6 kg infant this menu offered "Synchronized cardioversion at 100 joules" — twenty
+  // times the starting dose, in the words of that case's own learning point.
+  if(key==='defib' && S.codeScript) items = items.map(([lbl, ord]) =>
+      /^Defibrillate$/.test(lbl) ? [lbl + ' ' + codeShockJoules(S.codeScript, S.code) + ' J', codeShockOrder(S.codeScript, S.code)]
+    : /^Synchronized cardioversion$/.test(lbl) ? [lbl + ' ' + codeSyncJoules(S.codeScript) + ' J', codeSyncOrder(S.codeScript)]
+    : [lbl, ord]);
   const m=document.createElement('div');
   m.className='roomMenu fixed z-[75] min-w-[150px] max-w-[15rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
   m.style.left='0px'; m.style.top='0px';
@@ -7364,12 +7438,32 @@ const REGION_VOICE={
   pelvis:'In "speech", voice a brief patient reaction ONLY if the case warrants it (e.g. pelvic tenderness); otherwise the patient stays calm.',
   legs:'In "speech", voice a brief patient reaction ONLY if relevant (e.g. calf pain on palpation); otherwise the patient stays calm.'
 };
-// The text an exam click actually sends.
-function examOrder(reg){
-  const base = REGION_ORDERS[reg] || '';
-  if(useInstant()) return base;                     // the pack answers with its own findings
-  const detail = REGION_DETAIL[reg], voice = REGION_VOICE[reg];
-  return [detail || base, voice].filter(Boolean).join(' ');
+// THE ORDER IS THE ORDER. The staging never travels with it.
+//
+// This used to append REGION_DETAIL and REGION_VOICE — the model's stage directions —
+// unless useInstant() was true. But useInstant() is a SETTING, not a statement about which
+// engine will answer THIS turn: progress() decides that later with willUseInstant(), and
+// when a model rung dies it falls back to instantTurn(action) with the same text. So on
+// Kim's machine, where the cascade fails over mid-run, the deterministic engine received
+// the whole prompt and splitClauses cut it into fragments — "in speech", "voice brief
+// patient reaction only if relevant", "otherwise patient stays calm" — which the debrief
+// then listed back to her as orders the simulator did not understand. The app was blaming
+// the player for its own prompt. The comment at REGION_VOICE says this was fixed; it was
+// fixed for one path.
+//
+// Now it cannot happen by construction: the staging is never in the action at all. Only
+// the model's prompt gets it, added where the prompt is built — see examStagingFor.
+function examOrder(reg){ return REGION_ORDERS[reg] || ''; }
+// The half a model reads, looked up FROM the order text rather than carried alongside it,
+// so nothing has to thread an extra argument through queueClinicalAction and dispatchOrders.
+function examStagingFor(action){
+  const a = String(action || '');
+  for(const reg of Object.keys(REGION_ORDERS)){
+    const base = REGION_ORDERS[reg];
+    if(!base || !a.includes(base)) continue;
+    return [REGION_DETAIL[reg], REGION_VOICE[reg]].filter(Boolean).join(' ');
+  }
+  return '';
 }
 
 const MOUTH_CALM='M141 66 Q150 69 159 66', MOUTH_GRIMACE='M141 68 Q150 62 159 68', MOUTH_O='M150 65 m-6 0 a6 7 0 1 0 12 0 a6 7 0 1 0 -12 0';

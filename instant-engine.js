@@ -327,14 +327,45 @@ function expandConsultShorthand(clause){
   return consultShaped ? clause + ' infectious disease' : clause;
 }
 
+// A DOSE IS NOT AN ORDER OF ITS OWN.
+//
+// Kim's crush run typed "give bicarbonate one amp", "iv", "50 meq" and the debrief listed
+// "50 meq" twice as an order the simulator did not understand. Her commotio run signed the
+// chips "Defibrillate" and "4J/kg" together, and the energy — which is the whole point of
+// the critical action she was reaching for — never met its verb.
+//
+// A clause is dose-only when every token is a number or a dose word: a unit, a route, a
+// rate, an ampoule. Such a clause can never be an order, so it belongs to the clause
+// before it. With nothing before it, it is left alone and falls through as it always did.
+function isDoseOnly(clause){
+  const toks = String(clause || '').trim().split(/\s+/).filter(Boolean);
+  if(!toks.length) return false;
+  return toks.every(t => /^\d+(?:\.\d+)?$/.test(t) || DOSE_TOKEN_RE.test(t) || ROUTE_TOKEN_RE.test(t)
+                      || /^\d+(?:\.\d+)?(?:l|ml|cc|mg|mcg|g|meq|u|units?|j|joules?|kg)$/.test(t)
+                      || /^\d+(?:\.\d+)?\s*(?:j|joules?|mg|mcg|ml|units?|meq|g)\/kg$/.test(t)
+                      || /^\d+(?:\.\d+)?(?:j|joules?)?\/kg$/.test(t));
+}
+// Routes, energies and the little words that ride along with a dose. Joules are here
+// because an energy on its own line is the commonest half-order in the reports: the chip
+// pair "Defibrillate" and "4J/kg", and "use 200 j" typed after "cardiovert".
+const ROUTE_TOKEN_RE = /^(iv|io|im|po|sl|pr|sc|sq|neb|nebulised|nebulized|intranasal|in|ivp|ivpb|gtt|stat|now|slow|slowly|rapid|rapidly|j|joules?|amp|amps|ampoule|ampule|vial|one|two|three|four|half|a|an)$/;
+function foldDoseClauses(clauses){
+  const out = [];
+  for(const c of clauses){
+    if(out.length && isDoseOnly(c) && !isDoseOnly(out[out.length - 1])) out[out.length - 1] += ' ' + c;
+    else out.push(c);
+  }
+  return out;
+}
+
 function splitClauses(normText){
   let s = ' '+normText+' ';
   for(const re of AND_PROTECT) s = s.replace(re, m => m.replace(/ and /g,' & '));
-  return s.split(/\s*,\s*|[;\n]| and | then | plus | also /)
+  const parts = s.split(/\s*,\s*|[;\n]| and | then | plus | also /)
           .map(c => c.replace(/ & /g,' and ').trim())
           .map(c => c.replace(/^(and|then|plus|also)\s+/,''))   // ", and X" → "X"
-          .filter(c => c.length > 1)
-          .map(expandConsultShorthand);
+          .filter(c => c.length > 1);
+  return foldDoseClauses(parts).map(expandConsultShorthand);
 }
 
 function lev(a, b){
@@ -598,7 +629,15 @@ const MED_WORDS = ['aspirin','nitroglycerin','heparin','morphine','fentanyl','on
   // the not-understood dead end — on a library where 58 pack aliases mention it and one
   // of the six showcase cases IS a symptomatic bradycardia. The live-code engine knew
   // them (DRUG_ALIASES) so they worked mid-arrest and nowhere else.
-  'atropine','lidocaine'];
+  'atropine','lidocaine',
+  // ANTICOAGULANTS. Heparin was the only one the engine knew, so "lovenox", "enoxaparin",
+  // "apixaban" and "warfarin" all reached the not-understood dead end — and Kim spent five
+  // orders across two atrial-fibrillation runs trying to make the anticoagulation decision
+  // that case names as a critical action. Each checked against fuzzyHas tolerance so no
+  // pair collides.
+  'enoxaparin','apixaban','rivaroxaban','warfarin','dabigatran'];
+// Set form, for the readback: which words in a responder's alias list are drug names.
+const MED_WORD_SET = new Set(MED_WORDS);
 // A fluid without a volume is not an order the nurse can hang (rule 15's fluid twin
 // of MEDS_REQUIRING_DOSE). "bolus" alone credited the fluid critical action.
 const FLUIDS_REQUIRING_VOLUME = ['normal saline','lactated ringers','saline','ringers','crystalloid','plasmalyte','iv fluids','bolus'];
@@ -611,6 +650,36 @@ const VOLUME_PHRASE_RE = /\b\d+(?:\.\d+)?\s*(?:ml|cc|l|liters?|litres?)\s*(?:\/\
 // Swap the volume the pack author wrote for the one the doctor actually said. Only ever
 // touches a number that is already there: a line with no volume in it is left alone, so
 // authored prose that never promised a number cannot be mangled.
+// THE NURSE READS BACK THE DRUG THE DOCTOR NAMED.
+//
+// A responder that accepts several interchangeable agents — heparin or enoxaparin, any of
+// the four DOACs — has one authored line, and it names whichever the author wrote first.
+// Order rivaroxaban on the TIA case and the nurse said "Apixaban started". That is the
+// same "did it hear me?" doubt that made Kim type cardiovert four times in six minutes,
+// and it is a readback error rather than a content error: the case is right to accept all
+// four, and the sentence is right except for the noun.
+//
+// Substituting is the fix rather than rewriting ten packs' prose, because the prose is
+// correct clinical teaching and only the name needs to follow the order.
+function readbackDrug(text, clause, aliasList){
+  // Only aliases that ARE a drug name on their own. Scanning every word of every alias
+  // pulled in "bolus" from "heparin bolus and drip" and produced "Heparin heparin given".
+  const pool = new Set();
+  for(const a of (aliasList || [])){
+    const na = normalize(a);
+    if(na && !na.includes(' ') && MED_WORD_SET.has(na)) pool.add(na);
+  }
+  if(pool.size < 2) return text;
+  const ctoks = normalize(clause).split(' ');
+  const said = [...pool].find(d => ctoks.includes(d));
+  if(!said) return text;
+  const lower = String(text).toLowerCase();
+  const written = [...pool].find(d => d !== said && lower.includes(d));
+  if(!written) return text;
+  return String(text).replace(new RegExp(written, 'gi'),
+    m => (m[0] === m[0].toUpperCase() ? said.charAt(0).toUpperCase() + said.slice(1) : said));
+}
+
 function readbackVolume(text, clause){
   const said = VOLUME_PHRASE_RE.exec(String(clause || ''));
   if(!said) return text;
@@ -630,7 +699,16 @@ const PROCEDURE_WORDS = ['suction','suctioning','yankauer','yankauers','orophary
   'lumbar puncture','paracentesis','thoracentesis','cardiovert','cardioversion','defibrillate','shock',
   'pace','pacing','cpr','reduce','reduction','splint','suture','foley','ng tube','nasogastric',
   'io access','intraosseous','cricothyrotomy','pericardiocentesis','iv access','second iv',
-  'two large bore','large bore','hyperventilate','hyperventilation'];
+  'two large bore','large bore','hyperventilate','hyperventilation',
+  // GIVING BLOOD IS AN ORDER THE ENGINE HAD NO WORD FOR. 27 of the 172 packs answer a
+  // transfusion and several make it a critical action, but no engine table named it, so
+  // classifyIntent called it 'other' and the catalog builder — which mints entries FROM
+  // these tables, so that the catalog can never name an order the engine does not answer —
+  // generated nothing. Kim asked for blood four times in the Le Fort run and three times
+  // in the renal-trauma run, and every one came back as an order the sim did not
+  // understand. Two words, because they are two decisions: giving blood, and calling for
+  // the protocol that keeps giving it in a fixed ratio.
+  'blood transfusion','massive transfusion protocol'];
 
 // "get acute care surgery ON THE PHONE immediately" earned zero consult credit in a
 // necrotizing fasciitis playthrough: the bridging verbs stopped at consult/call/page.
@@ -1094,6 +1172,18 @@ const CATALOG_ALIAS_BLOCKLIST = new Set(['clear','shock','line','time','call','c
   // bolus IV" was being rewritten to "... iv access" and credited two packs for the
   // large-bore IVs it never asked for.
   'iv']);
+// AN AMPOULE IS A CONTAINER, NOT A DRUG.
+//
+// Kim's crush run typed "give bicarbonate one amp / iv / 50 meq" and the engine rewrote it
+// to "give bicarbonate one AMPICILLIN 50 meq", because ampicillin carried the alias
+// "amp iv" and the rewrite takes the longest phrase it can find. Every clinician who says
+// "one amp" means an ampoule, and the word arrives most often followed by exactly the
+// route that made this collide.
+//
+// Blocking the whole ALIAS by its first token, rather than adding "amp iv" to the list
+// above, is the difference between fixing this line and fixing the class: any alias that
+// opens with a unit of packaging is a unit, not a name.
+const AMPOULE_LEAD_RE = /^(amps?|ampoules?|ampules?|vials?)\b/;
 function catalogAliasList(catalog){
   if(catalog._aliasList) return catalog._aliasList;
   const list = [];
@@ -1102,6 +1192,7 @@ function catalogAliasList(catalog){
     for(const alias of (entry.aliases||[])){
       const na = normalize(alias);
       if(!na || na === entry.canonical || CATALOG_ALIAS_BLOCKLIST.has(na)) continue;
+      if(AMPOULE_LEAD_RE.test(na)) continue;   // see AMPOULE_LEAD_RE
       list.push({needle:' '+na+' ', canonical});
     }
   }
@@ -1125,6 +1216,60 @@ function catalogAliasList(catalog){
 // on ("amio 150", "fent 50mcg", "roc 1mg/kg") — only the second kind is a problem.
 const ALIAS_DOSE_TOKEN = /^(?:\d+(?:\.\d+)?(?:mg|mcg|g|gm|ml|l|cc|units?|u|meq|iu|%)?(?:\/(?:kg|hr?|min|day|dose))?|of)$/i;
 
+// A FRAGMENT THAT RESOLVES ONLY WHEN IT IS PUT BACK.
+//
+// splitClauses cuts on every comma, and "transfusion, massive" — which is how Kim wrote it
+// in the Le Fort run — became "transfusion" plus a stranded "massive" that the debrief
+// listed as an order the simulator did not understand.
+//
+// The test is not a list of stranded words. It is: this fragment resolves to nothing on
+// its own, and joining it to its neighbour resolves to something. That can only be asked
+// where the catalog is, which is why it lives here rather than in splitClauses, and it
+// tries both orders because a clinician writes the noun first and the qualifier after.
+function rejoinStrandedFragments(clauses, catalog){
+  if(!catalog || !catalog.length || clauses.length < 2) return clauses;
+  const idx = catalogPhraseIndex(catalog);
+  const phraseAt = (toks, i) => {
+    for(const cand of (idx[toks[i]] || []))
+      if(cand.toks.every((t, k) => toks[i + k] === t)) return cand.toks.length;
+    return 0;
+  };
+  const resolves = text => {
+    const toks = String(text).split(' ').filter(Boolean);
+    for(let i = 0; i < toks.length; i++) if(phraseAt(toks, i)) return true;
+    return false;
+  };
+  // The join is only worth making if a catalog phrase SPANS the seam. Testing whether the
+  // joined string resolves at all is not the same thing and is almost always true — the
+  // neighbour usually resolves on its own — which glued "order a cbc" to "get a kidny
+  // ultrasound" the first time this was written.
+  const spans = (a, b) => {
+    const at = a.split(' ').filter(Boolean), bt = b.split(' ').filter(Boolean);
+    const toks = at.concat(bt);
+    for(let i = 0; i < at.length; i++){
+      const len = phraseAt(toks, i);
+      if(len && i + len > at.length) return true;   // starts in a, reaches into b
+    }
+    return false;
+  };
+  const out = [];
+  for(const c of clauses){
+    const prev = out.length ? out[out.length - 1] : null;
+    if(prev && !resolves(c)){
+      if(spans(prev, c)){ out[out.length - 1] = prev + ' ' + c; continue; }
+      // ...and a qualifier a clinician wrote after its noun ("transfusion, massive")
+      // belongs in front of it. Only ever when a catalog phrase spans the seam that way,
+      // which is what stops this reordering two orders that merely sit next to each other.
+      if(spans(c, prev)){ out[out.length - 1] = c + ' ' + prev; continue; }
+    }
+    // DELIBERATELY BACKWARD ONLY. A forward join — attaching a stranded opening word to
+    // the clause after it — was tried and glued genuinely separate orders together. The
+    // reports only ever strand a qualifier beside its noun.
+    out.push(c);
+  }
+  return out;
+}
+
 function catalogPhraseIndex(catalog){
   if(catalog._phraseIndex) return catalog._phraseIndex;
   const idx = Object.create(null);
@@ -1139,6 +1284,7 @@ function catalogPhraseIndex(catalog){
     for(const alias of (entry.aliases||[])){
       const na = normalize(alias);
       if(!na || na === canonical || CATALOG_ALIAS_BLOCKLIST.has(na)) continue;
+      if(AMPOULE_LEAD_RE.test(na)) continue;   // see AMPOULE_LEAD_RE — "amp iv" is not ampicillin
       if((' '+na+' ').includes(' '+canonical+' ')) continue;
       // NAME + DOSE aliases are deliberately left out of the index. Matching one swallows
       // the number — the canonical it maps to carries no dose — so "give amio 150" became
@@ -1231,7 +1377,7 @@ function resolveOrders(action, catalog){
   // happens to contain a verb like "check" mustn't be misclassified as an
   // exam order before the catalog ever gets a chance to recognize it).
   const normText = applyCatalogAliases(normalize(action), catalog);
-  const clauses = splitClauses(normText);
+  const clauses = rejoinStrandedFragments(splitClauses(normText), catalog);
   const clauseList = clauses.length ? clauses : [normText];
   return clauseList.map(clause => {
     const intent = classifyIntent(clause);
@@ -1901,13 +2047,22 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       // _narrative (not narrative) is what runTurn folds into the visible line — and it
       // pre-empts the default "Done — the team moves on it.", which would otherwise
       // stamp acceptance over the correction.
-      if(!de){ fb._unparsed = true; fb._narrative = line; }
+      //
+      // A DEAD-END REPLY NEEDS THAT TOO. It was set only for the not-understood line, so a
+      // tracheostomy was CORRECTED in the nurse's bubble — "that's theatre and time we
+      // don't have; the bedside rescue is a cricothyrotomy" — while the transcript, which
+      // is what the player reads, said "Done — the team moves on it." on the case whose
+      // critical action is the front-of-neck airway. Spoken and written disagreed about
+      // whether the procedure happened.
+      fb._narrative = line;
+      if(!de) fb._unparsed = true;
     }
   } else {
     const de = deadEndReply(clause, state && state.turnCount);
     const line = de || notUnderstoodReply(rawClause || clause, state && state.turnCount);
     fb.speech.push({speaker:'nurse', text: line});
-    if(!de){ fb._unparsed = true; fb._narrative = line; }   // see the note at the twin site above
+    fb._narrative = line;                                   // see the note at the twin site above
+    if(!de) fb._unparsed = true;
   }
   return fb;
 }
@@ -2378,6 +2533,47 @@ function codeSummaryPrefix(pack, opts){
   }
   return parts.length ? parts.join(' ') + ' ' : '';
 }
+// WHAT THE CODE ACTUALLY SHOWS, WHEN THE AUTHORED TEXT CONTRADICTS IT.
+//
+// Kim's PEA/tension run: the code record says "Treated: tensionPtx", the checklist ticks
+// "Decompress the chest", and the summary said "The tension pneumothorax was never
+// decompressed, so no amount of epinephrine or compression could fill a heart the
+// mediastinum was squeezing". She DID decompress it — at 13:12, after the rhythm had
+// degraded to asystole at 10:00 and the ROSC row could no longer fire. The static text was
+// written for the run where nobody decompresses, and it is the wrong story for hers.
+//
+// The blunt-trauma case hedges instead: "a tension pneumothorax OR an unbound bleeding
+// pelvis was left untreated". The engine knows which — the pelvis was never bound.
+//
+// Both are answered from the state rather than from a paragraph written before anyone
+// played. deniesCredited already guards the outcomePoor branch; this is the death branch,
+// which had no guard at all.
+function codeDeathSentence(pack, opts){
+  const code = opts && opts.code; if(!code) return '';
+  const sc = (pack && pack.codeScript) || {};
+  const causes = sc.causes || {};
+  const required = causes.required || [];
+  if(!required.length) return '';
+  const nameOf = k => String(((causes.actions || {})[k] || [])[0] || k);
+  const fmtS = x => { const n = Math.round(x || 0); return Math.floor(n/60) + ':' + String(n%60).padStart(2,'0'); };
+  const treated = new Set(code.causesTreated || []);
+  const untreated = required.filter(k => !treated.has(k));
+  if(untreated.length)
+    return 'The ' + untreated.map(nameOf).join(' and the ') + ' never happened, and that is what the arrest needed.';
+  // Everything the case required WAS done, so the story is when. A cause treated after the
+  // rhythm has degraded past the script's rescue is a different lesson from one never
+  // treated, and telling the second when the first happened is how a debrief loses trust.
+  const evs = code.events || [];
+  const lastCause = evs.filter(e => e.kind === 'cause').slice(-1)[0];
+  const degrade = evs.find(e => e.kind === 'degrade' || e.kind === 'crash');
+  if(lastCause && degrade && lastCause.t > degrade.t)
+    return 'The cause was treated at ' + fmtS(lastCause.t) + ', but the rhythm had already changed at '
+      + fmtS(degrade.t) + ' — by then there was nothing left for it to save.';
+  if(lastCause)
+    return 'The cause was treated at ' + fmtS(lastCause.t) + ', and the arrest did not turn.';
+  return '';
+}
+
 function buildDebrief(pack, state, opts, outcome){
   const CA = opts.criticalActions || [];
   const total = CA.length || 1;
@@ -2462,7 +2658,13 @@ function buildDebrief(pack, state, opts, outcome){
   let outcomeText, summaryText;
   if(outcome === 'death'){
     outcomeText = 'The patient died in the ED.';
-    summaryText = dbf.badOutcome || 'Case complete.';
+    // The authored line is kept unless the code's own record contradicts it — see
+    // codeDeathSentence. Nothing else in this branch had a guard, so a static paragraph
+    // could deny an action the checklist on the same page had just ticked.
+    const derived = codeDeathSentence(pack, opts);
+    const denies = derived && dbf.badOutcome && /\b(never|not|no |left untreated|un(bound|treated))\b/i.test(dbf.badOutcome)
+      && (opts.code && (opts.code.causesTreated || []).length > 0);
+    summaryText = (denies ? derived : (dbf.badOutcome || derived || 'Case complete.'));
   // A deterioration stage firing is not the same as a badly-run case: stages fire on a
   // clock, so a player who was briefly behind and then did everything right still trips
   // one. Two playtesters met EVERY critical action, scored 80-90, and were told their
@@ -2665,7 +2867,8 @@ function runTurn(pack, state, action, opts){
   // verb of the full line keeps that context. Communication that IS the disposition
   // ("call for admission", "call the cath lab") is excluded.
   const discussingAction = DISCUSS_RE.test(rawNorm) && !DISCUSS_IS_DISPO_RE.test(rawNorm);
-  const rawClauses = splitClauses(rawNorm);
+  // ...and a fragment the comma stranded is put back before anything grades it.
+  const rawClauses = rejoinStrandedFragments(splitClauses(rawNorm), opts && opts.catalog);
   const clauseList = rawClauses.length ? rawClauses : [rawNorm];
   setDxVocab(opts.dxCatalog);
   const hasCatalog = !!(opts.catalog && opts.catalog.length);
@@ -2983,8 +3186,13 @@ function runTurn(pack, state, action, opts){
           if(Array.isArray(r0.speech)){
             // For a fluid order, echo the doctor's own volume back at them.
             const fluid = r0.intent === 'med' && FLUIDS_REQUIRING_VOLUME.some(m => fuzzyHas(ctoks, m));
-            out.speech.push(...(fluid
-              ? r0.speech.map(sp => Object.assign({}, sp, { text: readbackVolume(sp.text, rawClause || clause) }))
+            const aliases = (r0.intent === 'med') ? ((r0.match && r0.match.any) || []) : null;
+            out.speech.push(...(fluid || aliases
+              ? r0.speech.map(sp => {
+                  let txt = fluid ? readbackVolume(sp.text, rawClause || clause) : sp.text;
+                  if(aliases) txt = readbackDrug(txt, clause, aliases);   // see readbackDrug
+                  return Object.assign({}, sp, { text: txt });
+                })
               : r0.speech));
           }
           // An authored narrative paragraph is delivered ONCE — the epiglottitis OR
@@ -3553,6 +3761,9 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
   fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders,
+  rejoinStrandedFragments,
+  DOSE_TOKEN_RE, isDoseOnly, foldDoseClauses,   // a dose belongs to the order before it
+  CATALOG_ALIAS_BLOCKLIST, AMPOULE_LEAD_RE,
   isOrderFragment };   // one definition of "not understood", shared with the app
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.InstantEngine;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -2234,7 +2234,6 @@
         "d50",
         "d25",
         "d10",
-        "amp of d50",
         "push d50",
         "give dextrose",
         "dextrose 50",
@@ -2243,7 +2242,6 @@
         "d10w",
         "d25w",
         "sugar push",
-        "amp of sugar",
         "push glucose",
         "d5w",
         "dextrose water",
@@ -3632,7 +3630,6 @@
         "cacl",
         "cagluc",
         "cal gluc",
-        "amp of calcium",
         "calcium chloride amp",
         "give calcium",
         "calcium for hyperkalemia",
@@ -3662,7 +3659,6 @@
       "canonical": "bicarbonate",
       "aliases": [
         "nahco3",
-        "amp of bicarb",
         "bicarb amp",
         "push bicarb",
         "sodium bicarbonate drip",
@@ -3981,9 +3977,7 @@
       "aliases": [
         "principen",
         "give ampicillin",
-        "amp iv",
         "ampicillin 2g iv",
-        "amp/sulbactam",
         "start ampicillin",
         "ampicillin for sepsis",
         "unasyn"
@@ -4215,6 +4209,58 @@
         }
       ],
       "sentence": "Give {name} {dose}."
+    },
+    {
+      "id": "med-enoxaparin",
+      "label": "Enoxaparin",
+      "category": "med",
+      "canonical": "enoxaparin",
+      "aliases": [
+        "lovenox",
+        "clexane",
+        "lmwh",
+        "low molecular weight heparin",
+        "therapeutic lovenox",
+        "prophylactic lovenox"
+      ]
+    },
+    {
+      "id": "med-apixaban",
+      "label": "Apixaban",
+      "category": "med",
+      "canonical": "apixaban",
+      "aliases": [
+        "eliquis",
+        "doac",
+        "noac"
+      ]
+    },
+    {
+      "id": "med-rivaroxaban",
+      "label": "Rivaroxaban",
+      "category": "med",
+      "canonical": "rivaroxaban",
+      "aliases": [
+        "xarelto"
+      ]
+    },
+    {
+      "id": "med-warfarin",
+      "label": "Warfarin",
+      "category": "med",
+      "canonical": "warfarin",
+      "aliases": [
+        "coumadin"
+      ]
+    },
+    {
+      "id": "med-dabigatran",
+      "label": "Dabigatran",
+      "category": "med",
+      "canonical": "dabigatran",
+      "aliases": [
+        "pradaxa"
+      ]
     },
     {
       "id": "procedure-suction",
@@ -5220,6 +5266,50 @@
       ]
     },
     {
+      "id": "procedure-blood-transfusion",
+      "label": "Blood Transfusion",
+      "category": "procedure",
+      "canonical": "blood transfusion",
+      "aliases": [
+        "transfuse",
+        "transfusion",
+        "give blood",
+        "transfuse blood",
+        "blood products",
+        "packed red cells",
+        "packed red blood cells",
+        "prbc",
+        "prbcs",
+        "units of blood",
+        "two units",
+        "type specific blood",
+        "o negative",
+        "o neg",
+        "uncrossmatched blood",
+        "emergency release blood"
+      ]
+    },
+    {
+      "id": "procedure-massive-transfusion-protocol",
+      "label": "Massive Transfusion Protocol",
+      "category": "procedure",
+      "canonical": "massive transfusion protocol",
+      "aliases": [
+        "mtp",
+        "massive transfusion",
+        "activate mtp",
+        "activate the massive transfusion protocol",
+        "massive transfusion protocol",
+        "trauma transfusion protocol",
+        "balanced transfusion",
+        "one to one to one",
+        "1 1 1 transfusion",
+        "code crimson",
+        "massive haemorrhage protocol",
+        "massive hemorrhage protocol"
+      ]
+    },
+    {
       "id": "consult-pediatrics",
       "label": "Pediatrics",
       "category": "consult",
@@ -5375,7 +5465,6 @@
         "burn unit consult",
         "consult burn surgery",
         "burn specialist eval",
-        "transfer to burn center",
         "burn attending consult",
         "need burns to see this",
         "get the burn docs down here",
@@ -5475,7 +5564,6 @@
         "get medicine to admit",
         "hospitalist consult",
         "page the hospitalist",
-        "admit to hospitalist",
         "medicine admit consult",
         "call im hospitalist",
         "get hospitalist on board",
@@ -6285,6 +6373,162 @@
         "cool to 36",
         "cooling blanket",
         "cooling pads"
+      ]
+    },
+    {
+      "id": "assessment-anticoagulation-decision",
+      "label": "Anticoagulation decision",
+      "category": "assessment",
+      "canonical": "anticoagulation decision",
+      "aliases": [
+        "chadsvasc",
+        "cha2ds2 vasc",
+        "chads vasc",
+        "chads2",
+        "calculate chadsvasc",
+        "anticoagulation decision",
+        "need for anticoagulation",
+        "does he need anticoagulation",
+        "does she need anticoagulation",
+        "start anticoagulation",
+        "anticoagulate",
+        "stroke risk score",
+        "has bled score"
+      ]
+    },
+    {
+      "id": "disposition-admit-to-the-icu",
+      "label": "Admit to the ICU",
+      "category": "disposition",
+      "canonical": "admit to the icu",
+      "aliases": [
+        "icu admission",
+        "admit to icu",
+        "intensive care",
+        "admit to intensive care",
+        "icu bed",
+        "critical care bed",
+        "admit to critical care",
+        "picu admission",
+        "admit to the picu",
+        "admit to picu"
+      ]
+    },
+    {
+      "id": "disposition-admit-to-a-monitored-bed",
+      "label": "Admit to a monitored bed",
+      "category": "disposition",
+      "canonical": "admit to a monitored bed",
+      "aliases": [
+        "monitored bed",
+        "telemetry bed",
+        "admit to telemetry",
+        "tele bed",
+        "stepdown bed",
+        "admit to stepdown",
+        "admit to ccu",
+        "coronary care",
+        "cardiac monitoring bed",
+        "admit to a cardiac bed"
+      ]
+    },
+    {
+      "id": "disposition-admit-to-the-ward",
+      "label": "Admit to the ward",
+      "category": "disposition",
+      "canonical": "admit to the ward",
+      "aliases": [
+        "admit the patient",
+        "admit him",
+        "admit her",
+        "admit them",
+        "needs admission",
+        "admit to the floor",
+        "floor bed",
+        "admit to medicine",
+        "medicine admission",
+        "hospital admission",
+        "admit to peds",
+        "admit to the ward"
+      ]
+    },
+    {
+      "id": "disposition-admit-to-observation",
+      "label": "Admit to observation",
+      "category": "disposition",
+      "canonical": "admit to observation",
+      "aliases": [
+        "obs unit",
+        "admit to obs",
+        "observation unit",
+        "short stay",
+        "clinical decision unit"
+      ]
+    },
+    {
+      "id": "disposition-discharge-home",
+      "label": "Discharge home",
+      "category": "disposition",
+      "canonical": "discharge home",
+      "aliases": [
+        "send her home",
+        "send him home",
+        "send them home",
+        "home with follow up",
+        "discharge with return precautions",
+        "discharge the patient",
+        "let him go home",
+        "let her go home",
+        "safe for discharge"
+      ]
+    },
+    {
+      "id": "disposition-transfer-to-another-facility",
+      "label": "Transfer",
+      "category": "disposition",
+      "canonical": "transfer to another facility",
+      "aliases": [
+        "transfer out",
+        "ship him",
+        "ship her",
+        "tertiary centre",
+        "tertiary center",
+        "transfer to a trauma centre",
+        "transfer to a trauma center",
+        "transfer to a burn centre",
+        "transfer to a burn center"
+      ]
+    },
+    {
+      "id": "disposition-to-the-operating-room",
+      "label": "To the operating room",
+      "category": "disposition",
+      "canonical": "to the operating room",
+      "aliases": [
+        "operating room",
+        "to the or",
+        "to theatre",
+        "to theater",
+        "emergency laparotomy",
+        "take him to the or",
+        "take her to the or",
+        "straight to theatre",
+        "needs the or"
+      ]
+    },
+    {
+      "id": "disposition-activate-the-cath-lab",
+      "label": "Activate the cath lab",
+      "category": "disposition",
+      "canonical": "activate the cath lab",
+      "aliases": [
+        "cath lab",
+        "activate cath lab",
+        "pci",
+        "primary pci",
+        "to the cath lab",
+        "cardiac catheterisation",
+        "cardiac catheterization"
       ]
     },
     {

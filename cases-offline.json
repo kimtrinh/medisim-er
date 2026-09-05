@@ -17425,7 +17425,8 @@
        "text": "Post-shock twelve-lead\u2019s printing \u2014 she\u2019s at 96 and holding. Strip\u2019s in the notes."
       }
      ],
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 3
     },
     {
      "intent": "imaging",
@@ -146127,7 +146128,8 @@
        "text": "Twelve-lead\u2019s printing \u2014 she\u2019s picked up her own rate, 56 now."
       }
      ],
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 0
     },
     {
      "intent": "imaging",
@@ -146168,7 +146170,8 @@
        "text": "Twelve-lead with the pacer running \u2014 she\u2019s at 72 and every spike is catching."
       }
      ],
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 0
     },
     {
      "intent": "imaging",
@@ -146982,7 +146985,8 @@
        "text": "Twelve-lead after the shock \u2014 he\u2019s at 92 now. Printing you a copy."
       }
      ],
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 0
     },
     {
      "intent": "imaging",
@@ -147840,7 +147844,8 @@
      "setState": {
       "ecgDone": true
      },
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 0
     },
     {
      "intent": "imaging",
@@ -156659,7 +156664,8 @@
        "text": "Second twelve-lead on the baby \u2014 she\u2019s down to about 160 and the R-R is varying now."
       }
      ],
-     "minutes": 1
+     "minutes": 1,
+     "satisfies": 1
     },
     {
      "intent": "imaging",
@@ -157123,6 +157129,12 @@
     },
     "shock": {
      "energy": {
+      "perKg": [
+       0.5,
+       2
+      ]
+     },
+     "sync": {
       "perKg": [
        0.5,
        2

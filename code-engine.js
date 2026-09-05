@@ -15,6 +15,11 @@ const CYCLE_SEC = 120;          // one CPR cycle between rhythm checks
 const STATUS_SEC = 90;          // how often the nurse calls the time while a pulse remains
 const SHOCKABLE = new Set(['VF', 'pVT', 'torsades']);
 const PULSELESS = new Set(['VF', 'pVT', 'torsades', 'PEA', 'asystole']);
+// The rhythms a synchronized shock is FOR. Everything else with a pulse — sinus, a
+// bradycardia, complete heart block, a paced rhythm — has nothing to cardiovert, and
+// sinus tachycardia is the one it is most dangerous to try, because the rate is the
+// compensation and not the disease.
+const CARDIOVERTABLE = new Set(['SVT', 'AF', 'VT', 'aflutter']);
 
 function newState(script){
   const st = script.start || {};
@@ -421,11 +426,15 @@ function achieveRosc(state, script, via){
   state.hr = p.hr || 110; state.bpSys = p.bpSys || 95; state.bpDia = p.bpDia || Math.round((p.bpSys || 95) * 0.6);
   state.spo2 = p.spo2 || 94; state.rr = p.rr || 14; state.etco2 = 38; state.cpr = false;
   state.ended = 'rosc';
+  // The moment the arrest ended, kept separately from state.t. Post-arrest orders now
+  // advance the clock (see actInner), so reading state.t at summary time would report a
+  // ROSC two hours after it happened.
+  state.endedT = state.t;
   return [ev(state, 'rosc', 'We have a pulse — ' + rhythmName(state.rhythm) + ', pressure ' + state.bpSys + '.', { via })];
 }
 
 function die(state, why){
-  state.ended = 'death'; state.phase = 'dead'; state.pulse = false;
+  state.ended = 'death'; state.endedT = state.t; state.phase = 'dead'; state.pulse = false;
   state.rhythm = 'asystole'; state.hr = 0; state.bpSys = 0; state.bpDia = 0; state.spo2 = 0; state.etco2 = 0;
   return [ev(state, 'death', why || 'No return of spontaneous circulation.')];
 }
@@ -450,12 +459,33 @@ const DRUG_ALIASES = {
   adenosine:   ['adenosine', 'adenocard'],
   atropine:    ['atropine'],
   tranexamic:  ['tranexamic acid', 'txa'],
-  dextrose:    ['dextrose', 'd50', 'd10', 'glucose'],
+  dextrose:    ['dextrose', 'd50', 'd10'],
   surfactant:  ['surfactant']
 };
 
+// A GLUCOSE CHECK IS A MEASUREMENT, NOT A DRUG.
+//
+// 'glucose' was an alias of dextrose, so "Fingerstick Glucose" and "check a bedside
+// glucose" each pushed dextrose into the code record and then penalised it for having no
+// weight-based dose — twice, in a 6 kg infant, in Kim's own run, and again on the
+// commotio case.
+//
+// The engine's job here is to get OUT OF THE WAY. Checking the sugar is one of the Hs;
+// ten of the eighteen live-code packs already answer it with a value their author wrote
+// and three of them credit a critical action for it, while no code script credits
+// dextrose at all. So an unclaimed glucose order falls through to the turn engine, which
+// answers it from the pack — rather than the code engine inventing a number it was never
+// given, which it is not allowed to do.
+//
+// The verb decides. "Give glucose" is still sugar; "check a glucose" is a fingerstick;
+// bare "glucose" is a lab order, which is what a pack answers.
+const GLUCOSE_CHECK_RE = /\b(?:fingerstick|finger stick|point of care|poc|bedside|check|checking|recheck|measure|send|draw|obtain|get)\b[^.;]{0,24}\bglucose\b|\bglucose\b[^.;]{0,16}\b(?:check|level|stick)\b|\bdextrostick\b/;
+const GLUCOSE_GIVE_RE = /\b(?:give|giving|push|pushing|administer|hang|run|start|amp of)\b[^.;]{0,24}\bglucose\b|\bglucose\b\s+\d/;
+
 function findDrug(text){
   const s = norm(text);
+  if(GLUCOSE_GIVE_RE.test(s)) return 'dextrose';
+  if(GLUCOSE_CHECK_RE.test(s)) return null;
   for(const name of Object.keys(DRUG_ALIASES))
     for(const a of DRUG_ALIASES[name])
       if(new RegExp('\\b' + a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(s)) return name;
@@ -536,7 +566,15 @@ function giveDrug(state, script, name, text){
     note = (note ? note + ' ' : '') + 'That is a cardiac-arrest dose at a patient with a pulse — ' +
       'push-dose epinephrine is 10-20 mcg, or run an infusion.';
   }
-  if(name === 'epinephrine' && state.lastEpiT != null){
+  // ARREST RULES ARE FOR THE ARREST. Kim's crush case names treating the hyperkalaemia as
+  // a critical action; she gave bicarbonate after ROSC and it was flagged four times with
+  // the case's own note, which actually ENDORSES it ("Adjunct for a hyperkalaemic arrest").
+  // The engine has no post-arrest drug rules, so applying the arrest ones is applying the
+  // wrong rule — worse than applying none. The checks that are about the PATIENT rather
+  // than the phase (a missing weight-based dose, an arrest dose at a perfusing patient, a
+  // route, a drug wrong for the rhythm) still apply throughout.
+  const inArrest = !state.ended;
+  if(inArrest && name === 'epinephrine' && state.lastEpiT != null){
     const gap = state.t - state.lastEpiT, win = rule.everySec || [180, 300];
     if(gap < win[0]){ ok = false; note = (note ? note + ' ' : '') + 'Only ' + Math.round(gap) + ' s since the last dose — epinephrine goes every ' + (win[0]/60) + '-' + (win[1]/60) + ' minutes.'; }
   }
@@ -546,12 +584,12 @@ function giveDrug(state, script, name, text){
   // Routine bicarbonate in arrest is not recommended (AHA 2025): it is for hyperkalaemia,
   // a sodium-channel-blocker overdose or a known severe metabolic acidosis. A script
   // that wants it says `indicated: true`; otherwise the dose is delivered and flagged.
-  if(name === 'bicarbonate' && !rule.indicated){ ok = false;
+  if(inArrest && name === 'bicarbonate' && !rule.indicated){ ok = false;
     note = (note ? note + ' ' : '') + (rule.note || 'Bicarbonate is not part of routine arrest care — it is for hyperkalaemia, a sodium-channel-blocker overdose or a known severe acidosis.'); }
   if(rule.wrongFor && rule.wrongFor.indexOf(state.rhythm) !== -1){ ok = false;
     note = (note ? note + ' ' : '') + (rule.wrongForNote ||
       (capitalize(name) + ' is the wrong drug for ' + rhythmName(state.rhythm) + '.')); }
-  if(name === 'amiodarone' && state.rhythm === 'asystole'){ ok = false;
+  if(inArrest && name === 'amiodarone' && state.rhythm === 'asystole'){ ok = false;
     note = (note ? note + ' ' : '') + 'Amiodarone is for a shockable rhythm; this is asystole.'; }
   if(name === 'magnesium' && state.rhythm === 'torsades') ok = true;
   if(rule.route && route && rule.route.indexOf(route) === -1){ ok = false;
@@ -645,9 +683,9 @@ const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actual
 // Matched on the same shapes the performing branches use, so a phrase that would have
 // reached one of those three branches is the phrase that gets refused here.
 const POST_ROSC_REFUSE = [
-  [/\b(defibrillat\w*|defib|shock|clear and shock|zap|dsed)\b/, 'He has a pulse, doctor — no shock.'],
+  [/\b(defibrillat\w*|defib|shock|clear and shock|zap|dsed)\b/, 'There is a pulse, doctor — no shock.'],
   [/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bcompressions\b|\bhands on the chest\b/,
-   'He has a pulse and a pressure — no compressions.'],
+   'There is a pulse and a pressure — no compressions.'],
 ];
 function postRoscAllows(s){
   // A stop/hold order is always allowed through: it is an instruction to the team about
@@ -658,7 +696,7 @@ function postRoscAllows(s){
 }
 function postRoscRefusal(state, s){
   for(const [re, text] of POST_ROSC_REFUSE) if(re.test(s)) return ev(state, 'withheld', text);
-  return ev(state, 'withheld', 'He has a pulse, doctor.');
+  return ev(state, 'withheld', 'There is a pulse, doctor.');
 }
 function codeStopIsTreatment(script, s){
   const hit = matchCause(script, s);
@@ -668,7 +706,14 @@ function codeStopIsTreatment(script, s){
 }
 const CODE_HOLD_ACTION_RE = /^\s*(?:hold|holding|stop|stopping|pause|pausing)\s+(?:the\s+)?(cpr|compressions|chest compressions|pacing|pacer|bagging|ventilation|ventilations)\b/i;
 
-function actInner(state, script, text){
+function actInner(state, script, text, now){
+  // EVERYTHING AFTER ROSC USED TO CARRY THE ROSC TIMESTAMP.
+  //
+  // tick() returns early once the case has ended, so state.t stops. Kim's crush report
+  // shows four bicarbonates, two IV lines and a chest tube all at 12:00, given across the
+  // next 110 minutes of her run; the opioid reports show the same at 4:00. The caller
+  // knows the real clock — fireCodeOrder passes it — and only ever moves it forward.
+  if(state.ended && typeof now === 'number' && isFinite(now) && now > state.t) state.t = now;
   // THE ENGINE DOES NOT RETIRE AT ROSC.
   //
   // This was a blanket `if(state.ended) return {handled:false}`, and achieveRosc sets
@@ -692,10 +737,19 @@ function actInner(state, script, text){
   // cardioversion, without one it is a shock — the same rule the two branches below
   // already encode. The unit is required, so "give 200 mg" and "sats 200" cannot reach
   // this, and the clause must be nothing BUT the energy.
-  if(/^(?:use |give |deliver |do |try |go to |charge to |at )?\d{2,3}\s*(?:j|joules?)$/.test(s)){
+  // ...and so is a weight-based one. Kim's commotio run signed "Defibrillate" and "4J/kg"
+  // as one basket, and 4 J/kg for a 24 kg child — the second-shock energy her own critical
+  // action asks for — reached no branch at all and was lost.
+  if(/^(?:use |give |deliver |do |try |go to |charge to |at )?\d+(?:\.\d+)?\s*(?:j|joules?)\s*\/\s*kg$/.test(s)){
+    s = (state.pulse ? 'synchronized cardioversion at ' : 'defibrillate at ') + s.replace(/^[a-z ]*/, '');
+  } else if(/^(?:use |give |deliver |do |try |go to |charge to |at )?\d{2,3}\s*(?:j|joules?)$/.test(s)){
     s = (state.pulse ? 'synchronized cardioversion at ' : 'defibrillate at ') + s.replace(/^\D+/, '');
   }
-  if(state.ended === 'rosc' && !postRoscAllows(s)) return { handled: true, events: [postRoscRefusal(state, s)] };
+  // ...and so does a patient the case converted to 'stable'. Only 'rosc' was gated, so
+  // after Kim's cardioversion an unsynchronized shock still reached deliverShock and was
+  // logged as a delivered-but-flagged shock at a perfusing patient.
+  if(state.ended && state.ended !== 'death' && !postRoscAllows(s))
+    return { handled: true, events: [postRoscRefusal(state, s)] };
   // The nurse asks questions ("do you want another epi?") and a doctor answers them
   // with a word. "yes" used to fall through to the turn engine and do nothing — a
   // playtested run typed it twice and lost both turns. A bare yes/no is only ever an
@@ -835,8 +889,31 @@ function actInner(state, script, text){
     // script's own sync band (50-100 J narrow regular, 120-200 J for AF, 0.5-1 J/kg in
     // a child) — it used to accept any number in silence. `sync:true` keeps it out of
     // the defibrillation ladder, which escalates on a different rule entirely.
-    const e = (script.shock && script.shock.sync) || null;
+    // NOTHING TO CARDIOVERT IS A REFUSAL, NOT A FLAGGED SHOCK.
+    //
+    // Kim's atrial-fibrillation run converted at 4:06 and her next three orders —
+    // "Cardiovert", "cardiovert", "use 200 j" — each DELIVERED a synchronized shock into
+    // a sinus rhythm at 92 and each earned the same penalty line, printed three times,
+    // for a code that was otherwise run well. A record of a shock that should never have
+    // been delivered is worse than no record: it is in the code sheet, in the debrief and
+    // in the quality score, and the learner is charged for a repeated click the simulator
+    // should have caught.
+    //
+    // A pulseless rhythm is deliberately NOT refused here: there, electricity is the right
+    // idea and only the modality is wrong, so the shock is delivered and flagged and the
+    // note teaches the difference. With a pulse and no tachyarrhythmia there is nothing to
+    // fix, and the machine should not charge.
+    if(state.pulse && !CARDIOVERTABLE.has(state.rhythm))
+      return { handled: true, events: [ev(state, 'withheld',
+        'There is a pulse and ' + rhythmName(state.rhythm) + ' at ' + state.hr +
+        ' — nothing to cardiovert, doctor.')] };
     const kg = weightOf(script);
+    // A CHILD WITH NO AUTHORED SYNC BAND IS STILL A CHILD. The range check only ran when
+    // the script declared one, and not one paediatric script did — so 100 J into a 6 kg
+    // infant, twenty times the starting dose in that case's own learning point, was
+    // accepted in silence. PALS synchronized cardioversion is 0.5-1 J/kg escalating to
+    // 2 J/kg; the band below is that, and it is a clinical statement for review.
+    const e = (script.shock && script.shock.sync) || (kg < 40 ? { perKg: [0.5, 2] } : null);
     const joules = shockEnergy(text, script) || (e ? (e.perKg ? Math.round(e.perKg[0] * kg) : e[0]) : 100);
     let ok = true, note = '';
     if(e){
@@ -848,8 +925,8 @@ function actInner(state, script, text){
     if(!state.pulse){ ok = false;
       note = (note ? note + ' ' : '') + 'There is no pulse to synchronize to — a pulseless rhythm needs unsynchronized defibrillation.'; }
     else if(state.hr > 0 && state.hr < 100){ ok = false;
-      note = (note ? note + ' ' : '') + 'There is no tachyarrhythmia to cardiovert — at ' + state.hr +
-        ' this rhythm needs atropine or pacing, not synchronized electricity.'; }
+      note = (note ? note + ' ' : '') + 'The rate is ' + state.hr +
+        ' — this is not a rate-related emergency, so there is nothing cardioversion can fix.'; }
     const rec = { t: state.t, joules: joules, sync: true, rhythmBefore: state.rhythm, rhythmAfter: state.rhythm, ok, note };
     state.shocks.push(rec);
     state.flags.cardioversion = true;
@@ -919,9 +996,18 @@ function summary(state, script){
   }
   // Name the problems. "1 energy/dose problem(s)" told a player nothing about what it
   // was; the notes the engine wrote at the time are the teaching.
-  const problems = [].concat(state.shocks.filter(x => !x.ok), state.drugs.filter(d => !d.ok));
+  // Only what happened DURING the arrest, and each problem named once. Kim's crush
+  // debrief printed the identical bicarbonate sentence four times and her AF debrief
+  // printed the identical cardioversion sentence three times; a wall of the same sentence
+  // teaches nothing and reads as the simulator shouting.
+  const endedAt = state.endedT != null ? state.endedT : Infinity;
+  const arrestEra = x => x.t == null || x.t <= endedAt;
+  const problems = [].concat(state.shocks.filter(x => !x.ok && arrestEra(x)),
+                             state.drugs.filter(d => !d.ok && arrestEra(d)));
   const bad = problems.length;
-  const named = problems.map(x => (x.name ? capitalize(x.name) : (x.sync ? 'Synchronized shock' : 'Shock')) + (x.t != null ? ' at ' + fmt(x.t) : '') + ': ' + (x.note || 'flagged'));
+  const seenNote = new Set();
+  const named = problems.map(x => (x.name ? capitalize(x.name) : (x.sync ? 'Synchronized shock' : 'Shock')) + (x.t != null ? ' at ' + fmt(x.t) : '') + ': ' + (x.note || 'flagged'))
+    .filter(line => { const key = line.replace(/ at \d+:\d+:/, ':'); if(seenNote.has(key)) return false; seenNote.add(key); return true; });
   m.push({ name: 'doseAccuracy', value: bad, ok: bad === 0,
     detail: bad === 0 ? 'Energies and doses all correct' : named.join(' '),
     teach: bad === 0 ? '' : 'Every energy and every drug has a reason and a dose — in children weight-based, in adults fixed — and a drug without an indication costs time and can do harm.' });
@@ -937,8 +1023,9 @@ function summary(state, script){
     const defibs = state.shocks.filter(x => !x.sync).length;
     const anti = state.drugs.some(d => d.name === 'amiodarone' || d.name === 'lidocaine');
     const late = shockable && defibs >= 4 && !anti;
-    m.push({ name: 'timeToRosc', value: state.t, ok: !late,
-      detail: 'ROSC at ' + fmt(state.t) + ' after ' + defibs + ' shock' + (defibs === 1 ? '' : 's')
+    const roscAt = state.endedT != null ? state.endedT : state.t;
+    m.push({ name: 'timeToRosc', value: roscAt, ok: !late,
+      detail: 'ROSC at ' + fmt(roscAt) + ' after ' + defibs + ' shock' + (defibs === 1 ? '' : 's')
         + (late ? ' — converted late, with no antiarrhythmic given' : ''),
       teach: late ? 'VF that persists after three shocks is refractory: amiodarone 300 mg (or lidocaine 1-1.5 mg/kg) after the third shock is what shortens a code like this one.' : '' });
   }
@@ -1019,7 +1106,7 @@ function creditKeysFor(state, script, text, before){
   return keys;
 }
 
-function act(state, script, text){
+function act(state, script, text, now){
   // A correct call reveals the rhythm from here on. Done in act() rather than as an
   // actInner branch on purpose: actInner would CLAIM the order, and the Call it chips
   // have to keep falling through to the turn engine, where naming the rhythm is what
@@ -1029,7 +1116,7 @@ function act(state, script, text){
     airway: state.airway, capnography: state.capnography, ivAccess: state.ivAccess,
     io: state.io, causes: state.causesTreated.length,
     pacing: !!state.flags.pacing, vagal: !!state.flags.vagal };
-  const out = actInner(state, script, text);
+  const out = actInner(state, script, text, now);
   if(!out || !out.handled) return out || { handled: false };
   const map = (script && script.credits) || {};
   const credits = [];
@@ -1044,7 +1131,7 @@ function act(state, script, text){
 }
 
 root.CodeEngine = { newState, tick, act, actInner, creditKeysFor, summary, rhythmName, fmt,
-  CYCLE_SEC, STATUS_SEC, spokenTime, parseDose, SHOCKABLE, PULSELESS, DRUG_ALIASES,
+  CYCLE_SEC, STATUS_SEC, spokenTime, parseDose, SHOCKABLE, PULSELESS, CARDIOVERTABLE, DRUG_ALIASES,
   // Exported so the app can apply the same rule to the 155 cases that have no code script.
   // Reading the strip is the exercise in an atrial fibrillation case too.
   callsRhythm, RHYTHM_CALLS };
