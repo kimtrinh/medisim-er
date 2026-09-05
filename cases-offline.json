@@ -147613,7 +147613,7 @@
      "speech": [
       {
        "speaker": "nurse",
-       "text": "Narrow QRS, dead regular at 188, no P waves I can see \u2014 there's a little notch at the end of the QRS in V1. I'll leave the strip running for the push."
+       "text": "Twelve-lead\u2019s in your hand \u2014 she's at 188. I'll leave the strip running for the push."
       }
      ],
      "setState": {
@@ -147621,6 +147621,50 @@
      },
      "minutes": 1,
      "satisfies": 0
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "converted"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "get an ecg",
+       "rhythm strip",
+       "post conversion ecg",
+       "repeat the ecg",
+       "another ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead Electrocardiogram",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "12-lead ECG normal sinus rhythm rate 78 unremarkable ekg after conversion"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Second twelve-lead\u2019s printing. She's at 78 now and it hasn't wavered since it broke."
+      }
+     ],
+     "setState": {
+      "ecgDone": true
+     },
+     "minutes": 1
     },
     {
      "intent": "imaging",

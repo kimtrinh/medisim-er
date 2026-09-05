@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-5JhlyDEHyhq6WLu6ImHLHf7Grzdws3JhibyeqUJQ/xI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hfhi+i5e/8VEpDb5gNsFzy0qzGA0nPiHD8i9/nKrfSU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -1951,22 +1951,37 @@ function mediaEntry(query, type, allowGeneric){
   if(!best) return null;
   const e=best.e;
   return {url:e.file, page:e.page, credit:e.credit, license:e.license,
-          licenseUrl:e.license_url, label:e.label, key:best.key, source:'local'};
+          licenseUrl:e.license_url, label:e.label, key:best.key, source:'local', score:bestScore};
 }
 
+// BOTH LIBRARIES ARE ONE POOL, RANKED TOGETHER. This used to try the local library first
+// and consult the remote one only if the local found NOTHING — so a weak local match beat
+// a strong remote one, and on an ECG that means the wrong rhythm on the screen. Measured
+// across the corpus's 118 ECG queries: the AF-with-RVR case, both SVT cases and every
+// hyperkalaemia case were being shown a sinus-tachycardia tracing, because the local
+// sinus-tach entry scored one keyword and short-circuited the specific image that existed
+// remotely. A learner reading that strip sees P waves and calls sinus tachycardia — the
+// simulator contradicting itself on the one thing it asked them to interpret.
+//
+// Score is the number of the entry's keywords the query mentions, so a query naming a
+// specific finding outranks one that merely shares a word. Local wins ties: it is
+// pixel-vetted and served from the same origin.
 function curatedImage(query, type, allowGeneric){
-  const local = mediaEntry(query, type, allowGeneric);
-  if(local) return local;
   const q=String(query||'').toLowerCase();
   const want=String(type||'').toLowerCase();
+  const local = mediaEntry(query, type, allowGeneric);
+  let remote = null, remoteScore = 0;
   for(const k in IMG_LIBRARY){
     if(want && k.split('_')[0]!==want) continue;
     const e=IMG_LIBRARY[k];
     if(e.generic && !allowGeneric) continue;
-    if(e.kw.some(w=>kwHit(q, w)<0)) continue;                    // query rules this finding out
-    if(e.kw.some(w=>kwHit(q, w)>0)) return {url:e.url, page:e.page, credit:e.credit, license:e.license, source:'curated'};
+    let n=0, vetoed=false;
+    for(const w of e.kw){ const h=kwHit(q, w); if(h<0){ vetoed=true; break; } n+=h; }
+    if(vetoed || !n) continue;                                   // query rules it out, or never mentions it
+    if(n>remoteScore){ remoteScore=n; remote={url:e.url, page:e.page, credit:e.credit, license:e.license, source:'curated', key:k, score:n}; }
   }
-  return null;
+  if(local && remote) return (remote.score > (local.score||1)) ? remote : local;
+  return local || remote;
 }
 // A live result must PLAUSIBLY be the ordered modality — the Commons search
 // otherwise returns topical garbage (a "normal portable chest x-ray" query
