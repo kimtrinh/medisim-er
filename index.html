@@ -374,6 +374,15 @@
   body.cinema.console #readbackChip{position:absolute;left:.5rem;right:.5rem;bottom:100%;margin-bottom:.4rem;
     max-height:4.5rem;overflow-y:auto;border-radius:10px;padding:.3rem .5rem;
     background:rgba(2,6,23,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  /* ...and they start where the left order column ends. #clSections — the RE-EVALUATE /
+     HISTORY / EXAM / ORDERS cluster — sits at left:1% width:19.5% of the room, and these
+     two floated a full-width line straight across it, so the status of the order you just
+     signed was interleaved with the section headers. Measured at 1280x720: 17,568 px² of
+     overlap, on this build and on the one before it. The dock's usable width starts where
+     the left column ends, which is the same rule the room already follows — orders on the
+     left, everything else beside them. */
+  body.cinema.console #orderFeedback,
+  body.cinema.console #readbackChip{left:calc(var(--rl) + var(--rw) * .205 + .5rem)}
   /* ...and they stop where an open drawer starts. Found by the Task 11 smoke test on the
      built artifact: with RESULTS open, the readback chip still spanned the full dock, so
      "Yes, that's the order" — the only way to confirm an order the parser was unsure of —
