@@ -1135,7 +1135,8 @@
    "paced",
    "pacemaker",
    "pacing spike",
-   "capture"
+   "electrical capture",
+   "capture rate"
   ],
   "label": "ECG \u2014 paced rhythm",
   "license": "CC BY-SA 3.0",

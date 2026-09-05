@@ -17376,6 +17376,59 @@
     },
     {
      "intent": "imaging",
+     "when": {
+      "requires": [
+       "converted"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "get an ecg",
+       "rhythm strip",
+       "cardiogram",
+       "repeat ecg",
+       "post-conversion ecg",
+       "get another 12-lead",
+       "ecg now",
+       "repeat 12-lead",
+       "new ecg",
+       "check ecg",
+       "do an ecg",
+       "recheck ecg",
+       "follow up ecg",
+       "post-cardioversion ecg",
+       "repeat the ecg",
+       "another ecg",
+       "post conversion ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead ECG",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "post-conversion 12-lead ECG sinus rhythm rate 96"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Post-shock twelve-lead\u2019s printing \u2014 she\u2019s at 96 and holding. Strip\u2019s in the notes."
+      }
+     ],
+     "minutes": 1
+    },
+    {
+     "intent": "imaging",
      "match": {
       "any": [
        "chest x-ray",
@@ -146037,6 +146090,88 @@
     },
     {
      "intent": "imaging",
+     "when": {
+      "requires": [
+       "converted"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "get an ecg",
+       "rhythm strip",
+       "repeat the ecg",
+       "another ecg",
+       "post conversion ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead Electrocardiogram",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "12-lead ECG sinus bradycardia rate 56"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Twelve-lead\u2019s printing \u2014 she\u2019s picked up her own rate, 56 now."
+      }
+     ],
+     "minutes": 1
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "paced"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "get an ecg",
+       "rhythm strip",
+       "repeat the ecg",
+       "another ecg",
+       "post conversion ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead Electrocardiogram",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "12-lead ECG ventricular paced rhythm pacing spikes with capture rate 72"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Twelve-lead with the pacer running \u2014 she\u2019s at 72 and every spike is catching."
+      }
+     ],
+     "minutes": 1
+    },
+    {
+     "intent": "imaging",
      "match": {
       "any": [
        "chest x-ray",
@@ -146807,6 +146942,47 @@
      },
      "minutes": 1,
      "satisfies": 0
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "converted"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "get an ecg",
+       "rhythm strip",
+       "repeat the ecg",
+       "post conversion ecg",
+       "another ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead Electrocardiogram",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "post-cardioversion 12-lead ECG sinus rhythm rate 92"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Twelve-lead after the shock \u2014 he\u2019s at 92 now. Printing you a copy."
+      }
+     ],
+     "minutes": 1
     },
     {
      "intent": "imaging",
@@ -156441,6 +156617,49 @@
       }
      ],
      "satisfies": 1
+    },
+    {
+     "intent": "imaging",
+     "when": {
+      "requires": [
+       "converted"
+      ]
+     },
+     "match": {
+      "any": [
+       "ecg",
+       "ekg",
+       "12 lead",
+       "twelve lead",
+       "electrocardiogram",
+       "rhythm strip",
+       "get an ecg",
+       "continuous strip",
+       "print a strip",
+       "repeat the ecg",
+       "another ecg",
+       "post conversion ecg",
+       "ecg after conversion",
+       "12 lead after conversion"
+      ]
+     },
+     "diagnosticReports": [
+      {
+       "title": "12-Lead ECG",
+       "body": "",
+       "image": {
+        "type": "ekg",
+        "query": "infant 12-lead ECG sinus tachycardia rate 158 after conversion"
+       }
+      }
+     ],
+     "speech": [
+      {
+       "speaker": "nurse",
+       "text": "Second twelve-lead on the baby \u2014 she\u2019s down to about 160 and the R-R is varying now."
+      }
+     ],
+     "minutes": 1
     },
     {
      "intent": "imaging",
