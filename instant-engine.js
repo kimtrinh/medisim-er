@@ -811,6 +811,60 @@ const DISCUSS_IS_DISPO_RE = /\b(for|arrange|arranging|request(?:ing)?)\s+(?:an?\
 // neurology — "...want your input on timing of anticoag and whether to admit to
 // stroke svc" — and the engine matched "admit", closed the case mid-question, then
 // scored him down for never addressing the thing he was asking about.
+// Care given somewhere else, before this encounter. An administration or investigation
+// verb has to be present as well as the time marker: "the pressure is already low" is a
+// finding, not a report of treatment.
+// IS THIS DOSE THE DRUG'S OWN DOSE, OR A DIFFERENT NUMBER ENTIRELY?
+//
+// "epinephrine 1 gram iv" credited the correct dose in the Task 1 negatives — a
+// thousandfold error read as right. The check below invents no clinical threshold: it
+// compares the ordered amount against the doses THIS APP ALREADY PUBLISHES for that entry,
+// which a clinician authored and reviewed. Only an order off by more than tenfold from
+// every one of them is questioned, so ordinary variation (300 mcg where the table says
+// 0.3 mg) never trips it — those are the same amount and convert equal.
+//
+// It does not refuse and it does not correct. It says the order needs clarifying, because
+// the alternative is crediting a dose nobody meant.
+// ONLY WITHIN ONE DIMENSION. Measured the hard way: comparing every unit on one scale
+// blocked "continuous duoneb 15L" (that is the oxygen FLOW driving the nebuliser) and
+// "calcium gluconate 10mL" (a volume) against doses authored in milligrams. A volume is
+// not a mass and the two cannot be compared at all — when the dimensions differ this says
+// nothing rather than guessing.
+const DOSE_UNITS = {
+  mcg:{dim:'mass', base:0.001}, ug:{dim:'mass', base:0.001}, mg:{dim:'mass', base:1},
+  g:{dim:'mass', base:1000}, gm:{dim:'mass', base:1000}, gram:{dim:'mass', base:1000},
+  grams:{dim:'mass', base:1000},
+  ml:{dim:'volume', base:1}, cc:{dim:'volume', base:1}, l:{dim:'volume', base:1000},
+  liter:{dim:'volume', base:1000}, liters:{dim:'volume', base:1000},
+  unit:{dim:'activity', base:1}, units:{dim:'activity', base:1}, u:{dim:'activity', base:1},
+  meq:{dim:'meq', base:1},
+};
+function doseMagnitude(text){
+  const m = /(\d+(?:\.\d+)?)\s*(mcg|ug|mg|gm?|grams?|units?|u|meq|ml|cc|liters?|l)\b/i.exec(String(text || ''));
+  if(!m) return null;
+  const unit = m[2].toLowerCase();
+  const spec = DOSE_UNITS[unit];
+  if(!spec) return null;
+  const base = spec.base;
+  // Per-kg and rate orders are a different kind of number; leave them alone. Written with
+  // the WORD too — "10 ml per kg" is a weight-based dose exactly as "10 ml/kg" is, and
+  // reading it as an absolute 10 mL made it look a hundredfold too small: the compound
+  // check caught "give a cautious 10 ml per kg fluid bolus" losing its credit.
+  if(/\/\s*(kg|hr?|min|day|dose)\b/i.test(String(text))) return null;
+  if(/\bper\s+(kg|kilo|kilogram|hour|hr|min|minute|day|dose)\b/i.test(String(text))) return null;
+  return { value: parseFloat(m[1]) * base, unit, dim: spec.dim };
+}
+function doseLooksWrong(entry, clauseText){
+  if(!entry || !Array.isArray(entry.doses) || !entry.doses.length) return false;
+  const got = doseMagnitude(clauseText);
+  if(!got) return false;
+  const authored = entry.doses.map(d => doseMagnitude(d.text || d.label))
+                              .filter(a => a && a.dim === got.dim);
+  if(!authored.length) return false;   // nothing comparable — say nothing
+  const lo = Math.min(...authored.map(a => a.value)), hi = Math.max(...authored.map(a => a.value));
+  return got.value > hi * 10 || got.value < lo / 10;
+}
+const PRIOR_CARE_RE = /\b(?:already\s+(?:had|got|gave|given|did|done|received|been\s+given|started)|has\s+already\s+(?:had|received)|have\s+already\s+(?:had|received)|was\s+(?:given|started)|were\s+(?:given|started))\b|\b(?:the\s+)?(?:medics?|paramedics?|ems|crew|ambulance|referring\s+(?:hospital|team|doctor)|outside\s+hospital|gp|family\s+doctor)\b[^.;]{0,40}?\b(?:gave|given|started|did|ran|put\s+in|administered)\b|\b(?:prior\s+to\s+arrival|before\s+(?:he|she|they)\s+(?:arrived|came|got\s+here)|en\s+route|on\s+the\s+way\s+in)\b/i;
 const DELIBERATE_RE = /\b(whether (to|we|i|he|she|they)|should (i|we|he|she|they)|do you (think|recommend|want|feel)|would you|your (input|thoughts|advice|take|call|opinion)|input on|thoughts on|advice on|opinion on|wondering (if|whether)|not sure (if|whether)|torn between|deciding (whether|if|between))\b/;
 // A clause that OPENS interrogatively is a question, whatever keywords it holds:
 // "any NICU time?" in a birth history dispositioned a BRUE at turn two, and
@@ -1202,19 +1256,41 @@ function resolveOrders(action, catalog){
     // unexplained, and was capped at medium — so the app's own fluid order tripped the
     // nurse's readback while a bare "bolus" sailed through.
     let exactAlias = null, exact = null, exactLeft = Infinity;
+    const tied = [];
     for(const e of candidates){
       const na = catalogExactHit(e, clause);
       if(!na) continue;
       const lo = unexplainedTokens(clause, na);
+      tied.push({ id: e.id, alias: na, leftover: lo });
       if(lo < exactLeft || (lo === exactLeft && na.length > (exactAlias||'').length)){
         exact = e; exactAlias = na; exactLeft = lo;
       }
-      if(!exactLeft) break;
+    }
+    // A DEAD HEAT MUST NOT BE SETTLED BY ARRAY POSITION. Where two entries cover the clause
+    // equally well with an alias of the same length, the winner used to be whichever the
+    // catalog happened to list first — so a rebuild that reordered entries could silently
+    // change what an order means. Broken by catalog ID instead: arbitrary, but stable and
+    // independent of file order.
+    //
+    // Measured before adding a forced confirmation here: exactly 3 of 776 corpus clauses
+    // tie at all, and all three are COMPOUND orders ("esr crp" is two labs), not ambiguous
+    // ones. Making those ask which the learner meant would add a step to multi-lab orders
+    // to solve a problem the data does not show. The candidates are recorded on the row so
+    // the UI can offer the choice where it is genuinely useful; the resolver does not
+    // invent the friction.
+    const peers = tied.filter(t => t.leftover === exactLeft && t.alias.length === (exactAlias||'').length);
+    if(peers.length > 1){
+      peers.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+      exact = candidates.find(e => e.id === peers[0].id) || exact;
+      exactAlias = peers[0].alias;
     }
     if(exact){
       const leftover = exactLeft;
       const tier = leftover >= 2 ? 'medium' : 'high';
-      return {clause, intent, tier, leftover, suggestion:{id:exact.id, label:exact.label, canonical:exact.canonical}};
+      const row = {clause, intent, tier, leftover,
+                   suggestion:{id:exact.id, label:exact.label, canonical:exact.canonical}};
+      if(peers.length > 1) row.candidates = peers.map(p => p.id);
+      return row;
     }
     const best = bestCatalogMatch(candidates, toks);
     if(best) return {clause, intent, tier:'medium', suggestion:{id:best.id, label:best.label, canonical:best.canonical}};
@@ -1235,12 +1311,39 @@ function inspectOrders(pack, action, catalog){
 }
 
 // ---------- Value generation for generic (fallback) labs ----------
-function genValue(row){
-  if(row.fixed !== undefined) return row.fixed;
-  const v = row.lo + Math.random()*(row.hi - row.lo);
-  return v.toFixed(row.dp);
+// A GENERIC LAB VALUE IS ILLUSTRATIVE, BUT IT MUST NOT BE DIFFERENT EVERY TIME YOU LOOK.
+//
+// This was Math.random(), so the same case replayed twice produced different chemistry and
+// nothing about a run could be reproduced — including, awkwardly, a bug report. The value
+// is now a pure function of the run's seed, the test's name and the time it was drawn, so:
+// the same test at the same moment always gives the same number; a repeat later in the
+// case legitimately gives a different one; and ordering unrelated orders differently
+// cannot re-roll a sample that was already taken, because nothing about the sequence is in
+// the key. Authored values still win — this is only the filler.
+// The two inputs a replay has to reproduce: which run this is, and when the sample was
+// taken. Both are already inputs to the run, so a replay of the same actions in the same
+// order reproduces them without anything extra being stored.
+function sampleKey(state){
+  if(!state) return null;
+  const at = typeof state.simMinNow === 'number' ? state.simMinNow : (state.turnCount || 0);
+  return (state.runSeed || 'ms') + '|' + at;
 }
-function panelRows(key){ return PANELS[key].map(r=>({name:r.name, value:String(genValue(r)), unit:r.unit, flag:''})); }
+function hash32(str){
+  let h = 0x811c9dc5;
+  for(let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function seededUnit(key){ return (hash32(String(key)) % 1000003) / 1000003; }
+function genValue(row, key){
+  if(row.fixed !== undefined) return row.fixed;
+  const u = key == null ? Math.random() : seededUnit(key);
+  return (row.lo + u * (row.hi - row.lo)).toFixed(row.dp);
+}
+function panelRows(key, seedBase){
+  return PANELS[key].map(r => ({ name: r.name,
+    value: String(genValue(r, seedBase == null ? null : seedBase + '|' + key + '|' + r.name)),
+    unit: r.unit, flag: '' }));
+}
 // Every panel and solo test a clause names, appended generically when the rows
 // already gathered don't cover them (used by both matched and fallback paths).
 function appendMissingLabs(clause, rawClause, out, state){
@@ -1251,7 +1354,7 @@ function appendMissingLabs(clause, rawClause, out, state){
   const seen = k => state && state.labsSeen && (state.labsSeen[k]);
   for(const key of Object.keys(PANELS)){
     if(!fuzzyHas(toks, key)) continue;
-    const rows = panelRows(key);
+    const rows = panelRows(key, sampleKey(state));
     if(rows.some(r => have.has(canonLabName(r.name)))) continue;
     out.labResults.push(...rows);
     rows.forEach(r => have.add(canonLabName(r.name)));
@@ -1570,7 +1673,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
           return fb;
         }
       }
-      if(p) fb.labResults.push(...panelRows(p));
+      if(p) fb.labResults.push(...panelRows(p, sampleKey(state)));
       else if(s === 'fingerstick glucose'){
         // Borrow the case's own glucose if it has one anywhere (e.g. inside its BMP),
         // so a bedside sugar always agrees with the chemistry the case will report.
@@ -2500,6 +2603,12 @@ function isOrderFragment(text){ return ORDER_FRAGMENT.test(String(text == null ?
 
 function runTurn(pack, state, action, opts){
   // Defensive init for fields added after the original state shape shipped.
+  // Recorded on the state so a replay can be handed the same one. A case with no seed
+  // still behaves deterministically; it simply shares its filler across runs.
+  if(state.runSeed == null) state.runSeed = String((opts && opts.seed != null) ? opts.seed : (pack && pack.id) || 'ms');
+  // The clock this turn happens at, so a sample's key does not depend on which function
+  // happens to be asking for it.
+  state.simMinNow = (opts && typeof opts.simMin === 'number') ? opts.simMin : (state.turnCount || 0);
   state.labsSeen = state.labsSeen || {};
   state.reportsSeen = state.reportsSeen || {};
   state.turnCount = (state.turnCount || 0) + 1;
@@ -2587,6 +2696,40 @@ function runTurn(pack, state, action, opts){
     const conditional = /^if\b/.test(rawClause)
       || /\b(i d|i would) (start|give|add|push|hang|reach for|consider)\b/.test(rawClause)
       || /\bthreshold for\b/.test(rawClause);
+    // ASKING ABOUT AN ORDER IS NOT PLACING IT. Measured by the Task 1 negatives before this
+    // existed: "should I decompress this chest" credited the decompression, "what would a
+    // lactate add here" credited the lactate, and "would she need norepinephrine if the
+    // pressure stays down" credited starting the pressor. The engine already recognised
+    // these shapes — DELIBERATE_RE and INTERROG_RE — but only used them to stop a clause
+    // ENDING the case, never to stop it acting.
+    // NOT the broad INTERROG_RE. That matches any clause opening with is/was/did/any, and
+    // "IS q1h awake" and "IS to 1000cc q2h" are incentive spirometry ORDERS whose
+    // abbreviation happens to be a leading "is" — measured: using it blocked both. A
+    // question about an action is a modal or an explicit deliberation, not any sentence
+    // that starts with an auxiliary.
+    const proposing = deliberating
+      || /^\s*(?:would|should|could|shall|do|does)\s+(?:i|we|you|he|she|they|it|this|that|the|his|her)\b/.test(rawClause)
+      // "what WOULD a lactate add" is a proposal; "what DOES the ECG show" is a request to
+      // read something already ordered, and treating it as a proposal deflected a
+      // playtested read request into "do you want that ordered?".
+      || /^\s*what\s+(?:would|about)\b/.test(rawClause)
+      || /^\s*(?:is|are)\s+(?:it|there|that|this)\s+(?:worth|any\s+point|indicated)\b/.test(rawClause);
+    // CARE REPORTED FROM ELSEWHERE IS HISTORY, NOT AN ORDER. "The referring hospital
+    // already gave ceftriaxone" credited giving antibiotics, and "her GP already did a
+    // pregnancy test last week" credited the pregnancy test. Handing a learner credit for
+    // someone else's treatment is worse than not understanding the sentence.
+    const reported = PRIOR_CARE_RE.test(rawClause);
+    // Which catalog entry this clause names, if any — needed to compare the stated dose
+    // with that entry's own authored doses.
+    const doseWrongHere = (() => {
+      if(!opts.catalog || !opts.catalog.length) return false;
+      try{
+        const row = resolveOrders(rawClause, opts.catalog)[0];
+        if(!row || !row.suggestion || row.tier !== 'high') return false;
+        const entry = opts.catalog.find(e => e.id === row.suggestion.id);
+        return doseLooksWrong(entry, rawClause);
+      }catch(_){ return false; }
+    })();
     const counseling = DISCUSS_RE.test(rawClause) && !DISCUSS_IS_DISPO_RE.test(rawClause);
     let matched = matchResponders(pack, rawClause, state.flags);
     const ctoks = normalize(rawClause).split(' ');
@@ -2683,6 +2826,12 @@ function runTurn(pack, state, action, opts){
         // withholding clause belongs to it; if its aliases are all positive ("vancomycin",
         // "give vanc"), then "holding vanc" is a mismatch and must not fire it.
         if((counseling || conditional) && (r0.intent === 'med' || r0.intent === 'procedure')){ guardSkipped = true; continue; }
+        // The same rule, for a question about an order or a report of one already given.
+        // Scoped to the ORDERING intents on purpose: asking IS the action for history and
+        // exam, so "did she have chest pain" must keep working exactly as it does.
+        if((proposing || reported) && ORDER_INTENTS.includes(r0.intent)){ guardSkipped = true; continue; }
+        // A dose nowhere near any this app publishes for the drug is not that drug's dose.
+        if(r0.intent === 'med' && doseWrongHere){ guardSkipped = true; continue; }
         // A responder whose results are ALL already on the chart, reached by a
         // clause with no re-order language, is a citation, not an order.
         const reorderVerb = /\b(recheck|repeat|redraw|send|draw|order|get|obtain|another|again|redo|stat)\b/.test(rawClause);
@@ -2887,6 +3036,18 @@ function runTurn(pack, state, action, opts){
         out.speech.push({speaker:'nurse', text:'Understood — holding that.'});
       if(conditional && !clauseApplied)
         out.speech.push({speaker:'nurse', text:'Got it — staged and standing by; that runs only if we cross the line you set.'});
+      // Answered, not silently ignored — and phrased as the question it is, so the learner
+      // can turn it into an order if that is what they meant.
+      // Answered where the clause reaches this point. A question the resolver cannot
+      // classify as an order at all exits earlier and still gets silence — that gap
+      // belongs with the review row in Task 7, which is where an unresolved clause is
+      // meant to become a visible row with Edit and Remove on it.
+      if(proposing && !clauseApplied && !withheld && !conditional && !counseling)
+        out.speech.push({speaker:'nurse', text:'Do you want that ordered? Say it as an order and I will do it.'});
+      if(doseWrongHere && !clauseApplied)
+        out.speech.push({speaker:'nurse', text:'That dose is a long way from anything we give this as — can you confirm the amount before I draw it up?'});
+      if(reported && !clauseApplied && !proposing)
+        out.speech.push({speaker:'nurse', text:'Noted as history — that was done before he got to us. Say it again as an order if you want it repeated here.'});
       // A hard gate (for example, information that cannot be obtained until a
       // prerequisite happens) leaves the order unperformed. Preserve that fact
       // in the decision trace so the UI can distinguish it from a generic but
@@ -2895,7 +3056,8 @@ function runTurn(pack, state, action, opts){
       // A clause whose every match was guard-skipped must still be ANSWERED —
       // the first hyperosmolar order of a herniation case vanished when the
       // pupil-exam guard ate its only match.
-      if(!clauseApplied && guardSkipped && !gateBlocked && !withheld && !conditional && !counseling){
+      if(!clauseApplied && guardSkipped && !gateBlocked && !withheld && !conditional && !counseling
+         && !proposing && !reported && !doseWrongHere){
         const fb2 = fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags);
         out.labResults.push(...fb2.labResults);
         out.diagnosticReports.push(...fb2.diagnosticReports);
@@ -2990,7 +3152,7 @@ function runTurn(pack, state, action, opts){
   if(wantRoutine){
     for(const key of ['complete blood count','basic metabolic panel']){
       const pr = matchResponders(pack, key, state.flags).find(r=>Array.isArray(r.labResults));
-      out.labResults.push(...(pr ? pr.labResults : panelRows(key)));
+      out.labResults.push(...(pr ? pr.labResults : panelRows(key, sampleKey(state))));
     }
     minutes = Math.max(minutes, MINUTES.lab);
   }

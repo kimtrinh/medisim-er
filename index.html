@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-9VqqC3/VrF3np+TbGJqAVFNAjrr/Tf8Hajrc2PkmN1A=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NHP3HVyrGIfjKDV/COnohMF4kEmHR8mvzVpWdXHDMQ8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -17,6 +17,8 @@
 <script src="game-layer.js"></script>
 <script src="runlog.js"></script>
 <script src="account.js"></script>
+<script src="order-intents.js"></script>
+<script src="order-dispatch.js"></script>
 <link rel="stylesheet" href="fonts-local.css">
 <style>
   @keyframes clocktick{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
@@ -73,10 +75,31 @@
      the Clinical Workspace — so results were unreachable on a phone. You could order a
      troponin and never read it. This opens that same element as a full-screen chart. */
   @media (max-width:767px){
-    body.chartOpen aside{ display:block !important; position:fixed; inset:0; width:auto;
-      z-index:55; overflow-y:auto; padding-bottom:5rem; background:#020617; }
+    /* NORMAL: the chart takes the lower part of the screen and the patient stays above it.
+       It used to be inset:0 — a full-screen sheet that replaced the room and the monitor
+       even when the chart was empty, so checking a result meant losing sight of the
+       patient. The room is the thing being protected here. */
+    /* Written against the ID, not the element: the cinema rules position #sideBar by id,
+       and an `aside` selector loses to them on specificity — measured, the sheet computed
+       to top:0 and covered the room anyway. */
+    body.chartOpen aside, body.chartOpen #sideBar{
+      display:block !important; position:fixed !important; left:0 !important; right:0 !important;
+      bottom:0 !important; top:auto !important; height:52vh !important; width:auto !important;
+      z-index:55; overflow-y:auto;
+      padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px));
+      background:#020617; border-top:1px solid #1e293b; border-radius:14px 14px 0 0; }
+    /* EXPANDED: full screen, but only because someone asked for it — reading a film wants
+       the whole display. The return control is #chartClose, which is always visible. */
+    body.chartOpen.panelExpanded aside, body.chartOpen.panelExpanded #sideBar{
+      top:0 !important; height:auto !important; border-radius:0; }
     body.chartOpen #chartClose{ display:flex; }
+    body.chartOpen #panelExpand{ display:flex; }
   }
+  #panelExpand{ display:none; }
+  /* The sheet's own bar. Hidden where the chart is a desktop drawer with its own close
+     rules; the console shows #chartClose through those instead. */
+  @media (min-width:768px){ #chartSheetBar{ display:none; } }
+  body.cinema.console #chartSheetBar{ display:flex; }
   #chartClose{ display:none; }
   /* ===================== CINEMA MODE =====================
      The room becomes the whole game surface and the app's REAL panels float over it
@@ -595,53 +618,52 @@
      Scoped to phone widths on purpose: the desktop console starts at 1200px and its
      density was measured against the bed, so none of this can reach it. */
   @media (max-width:767px){
-    /* NOT while a code is running. The ACLS palette is force-open then, and the screen is
-       shared with the transcript, whose floor (120px, ui.test) is Kim's own guard against
-       losing the nurse's words — every version of this block took it to 96px. During a
-       code the phone keeps the density it was tuned to; the moment the code ends the
-       larger type comes back. :has() is how the sheet asks "is there a code on screen".
+    /* This used to be scoped away from running codes, to protect a PIXEL FLOOR under the
+       transcript. Task 8 replaces that floor with the invariant it was standing in for —
+       the learner must always be able to REACH readable team messages — so the type can be
+       legible during a code too, which is when it is hardest to read and matters most.
     /* Nothing on a phone is smaller than 12px, and running text is 14px. The uppercase
        micro-labels keep their letter-spacing — they are legible at 12 in a way they are
        not at 9. */
-    body.cinema:not(:has(#palette.acls)) .pal, body.cinema:not(:has(#palette.acls)) .oset, body.cinema:not(:has(#palette.acls)) [data-pal],
-    body.cinema:not(:has(#palette.acls)) .secHead, body.cinema:not(:has(#palette.acls)) #gearTray > button,
-    body.cinema:not(:has(#palette.acls)) .cinTab, body.cinema:not(:has(#palette.acls)) [data-pview]{font-size:12px !important}
-    body.cinema:not(:has(#palette.acls)) #ticker, body.cinema:not(:has(#palette.acls)) #chat, body.cinema:not(:has(#palette.acls)) #orderFeedback,
-    body.cinema:not(:has(#palette.acls)) #cmd, body.cinema:not(:has(#palette.acls)) #basketTray{font-size:14px !important;line-height:1.45}
-    body.cinema:not(:has(#palette.acls)) .roomBubble{font-size:13px !important;line-height:1.4}
+    body.cinema .pal, body.cinema .oset, body.cinema [data-pal],
+    body.cinema .secHead, body.cinema #gearTray > button,
+    body.cinema .cinTab, body.cinema [data-pview]{font-size:12px !important}
+    body.cinema #ticker, body.cinema #chat, body.cinema #orderFeedback,
+    body.cinema #cmd, body.cinema #basketTray{font-size:14px !important;line-height:1.45}
+    body.cinema .roomBubble{font-size:13px !important;line-height:1.4}
     /* The monitor strip's own labels are deliberately NOT raised. Growing them pushed the
        strip down onto the transcript, which has a measured floor (ui.test: 120px with a
        code running) — it fell to 96px, and losing the nurse's words to read the word
        "bpm" more comfortably is the wrong trade. These labels sit beside numbers that are
        already large, and the number is what you read from across the bay.
        The transcript gets the reclaimed pixels instead. */
-    body.cinema:not(:has(#palette.acls)) #chat{min-height:8.25rem}
+    body.cinema #chat{min-height:8.25rem}
     /* A thumb wants 44px, and the chip rows cannot have it. Under a code the palette is
        force-open and shares the screen with the transcript, which has a measured floor of
        its own (ui.test: 250px at rest, 120px with a code running). At 44 the transcript
        fell to 96px; at 40 it was still short. 36 is what the two constraints leave, and a
        36px row of 12px text is a large improvement on a 17px row of 9px text. The
        controls that are not in that contest keep the full 44 below. */
-    body.cinema:not(:has(#palette.acls)) .pal, body.cinema:not(:has(#palette.acls)) .oset, body.cinema:not(:has(#palette.acls)) .secHead{min-height:36px}
+    body.cinema .pal, body.cinema .oset, body.cinema .secHead{min-height:36px}
     /* The running-code palette is the one row that cannot have this. It is force-open
        during a code, it shares a 375px screen with the transcript, and the transcript's
        floor (120px with a code running) is Kim's own guard against losing the nurse's
        words. Grown to 36px/12px it took the transcript to 96px. These chips are already
        the widest targets on the screen and sit in a row of their own; the compromise is
        11px and 32px tall, against the 10px and 17px they were. */
-    body.cinema:not(:has(#palette.acls)) #palette.acls .pal{font-size:11px !important;min-height:32px}
+    body.cinema #palette.acls .pal{font-size:11px !important;min-height:32px}
     /* NOT a blanket 44 on the command row: ui.test measures a floor under the transcript
        (250px at 375x812) and growing every control in that row spent the transcript's
        height to buy it — 243px, and 96px once a code is running. The controls you reach
        for get 44; the row that shares its space with the transcript keeps its size. */
-    body.cinema:not(:has(#palette.acls)) [data-sec], body.cinema:not(:has(#palette.acls)) #chartBtn, body.cinema:not(:has(#palette.acls)) #sendBtn{min-height:44px}
+    body.cinema [data-sec], body.cinema #chartBtn, body.cinema #sendBtn{min-height:44px}
     /* A row that scrolls sideways says so. Measured: one action row overflowed its box by
        1136px with nothing on screen to suggest there was more of it. */
-    body.cinema:not(:has(#palette.acls)) .secBody, body.cinema:not(:has(#palette.acls)) #palette, body.cinema:not(:has(#palette.acls)) #qaRow, body.cinema:not(:has(#palette.acls)) #basketTray{
+    body.cinema .secBody, body.cinema #palette, body.cinema #qaRow, body.cinema #basketTray{
       -webkit-overflow-scrolling:touch;
       mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent);
       -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent)}
-    body.cinema:not(:has(#palette.acls)) .secBody:after, body.cinema:not(:has(#palette.acls)) #palette:after{
+    body.cinema .secBody:after, body.cinema #palette:after{
       content:'\203a';position:sticky;right:2px;align-self:center;
       color:#5eead4;font-weight:900;font-size:15px;opacity:.75;pointer-events:none}
   }
@@ -772,6 +794,31 @@
        slide every one of them off its mark, while a narrower box scales the whole
        scene and keeps them aligned. */
     body.cinema #roomBox{width:min(100%, calc(26vh * var(--ra,1.791)));margin:0 auto}
+    /* THE ROOM GIVES WAY, IT DOES NOT DISAPPEAR. With the chart open the patient and the
+       monitor must both stay above it, and measured at 375x667 the monitor already ends at
+       62% of the screen — so something has to shrink or the sheet is a letterbox. The room
+       yields, and it yields by WIDTH: capping its height instead would break every overlay
+       on it, all of which are positioned in per-cent of this box (see the phone rule this
+       mirrors). */
+    body.cinema.chartOpen #roomBox{width:min(100%, calc(15vh * var(--ra,1.791)))}
+    /* A LANDSCAPE PHONE IS 375px TALL. 52vh of that is 195px of chart, which is too little
+       to read a panel in — measured. The room is already small there, so it yields further
+       and the sheet takes more; the patient and the monitor still have to stay visible,
+       which the workspace test checks at this exact size. */
+    @media (max-height:480px){
+      body.cinema.chartOpen #roomBox{width:min(100%, calc(11vh * var(--ra,1.791)))}
+      /* 45vh, not more. Measured at 667x375: the header takes 49px, the room 42 once it
+         has yielded, and the monitor 76 with its waveform folded — 167px — so the sheet
+         can have at most 208 without covering the numbers. 45vh is 169px, which shows
+         four or five rows; the expand control gives the whole screen for reading a film.
+         The alternative was a taller sheet over the vitals, and vitals win. */
+      body.chartOpen aside, body.chartOpen #sideBar{height:45vh !important}
+      /* Room + a full monitor + a readable chart do not fit in 375px of height; measured,
+         something has to give. The monitor's WAVEFORM is its tall part and its NUMBERS are
+         what you read, so with the chart open on a short screen the trace folds away and
+         the numbers stay. Closing the chart brings it back. */
+      body.cinema.chartOpen #ecgBox{display:none}
+    }
     /* 4px of the header's own padding, on the one screen size that is counting them.
        Phones only: an upright tablet has the height and keeps the header it had. */
     body.cinema header{padding:.3rem .75rem}
@@ -2206,7 +2253,7 @@ async function generateCase(userContent, hint, label){
       learningPoints: normList(c.learningPoints), patient: c.patient||{}, vitals: {...S.vitals},
       intro: c.intro||'', speech: c.speech||[] };
     S.messages = [{role:'assistant', content:c.intro||'The patient is at the bedside.', speech:c.speech}];
-    S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play';
+    S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
     renderPlay();
     openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
     narrate(c.speech, c.intro);
@@ -2397,7 +2444,15 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}`;
       .map(c => c.text);
     // Surface this while the player can still change course. A generic fallback may
     // look clinically responsive but cannot satisfy a case-specific checklist item.
+    // The trace's view, which is what a caller with no receipts gets. dispatchOrders
+    // REPLACES this with the receipt-derived statuses the moment they exist — doing it
+    // here would read the PREVIOUS signature's receipts, because they are written after
+    // this turn returns.
     S.orderFeedback = orderFeedbackFromTrace(r._trace);
+    // The dispatcher needs to know what happened to each clause it sent, to write one
+    // receipt per attempted action. Kept on S rather than returned, because progress() is
+    // called from several places that do not want a value.
+    S.lastTrace = r._trace || null;
     S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined});
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(action+' '+(r.narrative||''));                      // hook equipment the orders placed
@@ -2407,9 +2462,22 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}`;
     snapVitalsToTurn();   // monitor + telemetry respond THE INSTANT the order lands, in sync with the spoken result — not 10+s behind it
     // repeat:true rows/cards (instant engine re-orders) REPLACE their originals
     // instead of stacking duplicates in the workspace; everything else appends.
+    // A REPEAT IS A NEW RESULT, NOT A CORRECTION OF THE OLD ONE.
+    //
+    // This used to overwrite the earlier row: S.labs[i] = l. For a lactate, a potassium or
+    // a haemoglobin the TREND is the clinical point — 7.1 falling to 4.2 is the answer to
+    // whether the resuscitation is working — and overwriting threw exactly that away,
+    // leaving a chart that could not show what a repeat was ordered to find out.
+    //
+    // Every draw is kept, stamped with when it was taken and which order produced it, so a
+    // result can be pointed at from its notification and read in sequence.
     if(Array.isArray(r.labResults)) r.labResults.forEach(l=>{
-      const i = l.repeat ? S.labs.findIndex(x=>x.name===l.name) : -1;
-      if(i>=0) S.labs[i]=l; else S.labs.push(l);
+      S.labs.push(Object.assign({}, l, {
+        id: 'lab-' + (S.labs.length + 1) + '-' + String(l.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        at: S.simMin,
+        actionId: (S.lastReceipts && S.lastReceipts[0] && S.lastReceipts[0].actionId) || null,
+        seen: false,
+      }));
     });
     if(Array.isArray(r.diagnosticReports)){
       r.diagnosticReports.forEach(rep=>{
@@ -3193,6 +3261,72 @@ function monitorHemodynamics(v, code){
     sys:pulseless?0:Math.round(v.bpSystolic),
     dia:pulseless?0:Math.round(v.bpDiastolic)};
 }
+// WHAT THE PATIENT IS, NOT WHAT THE LAST TURN ENGINE SAID.
+//
+// This chip read S.trend, which is set to 'stable' when a case loads and only ever changed
+// by the TURN engine's vitalTrend. During a live code the CODE engine owns the patient and
+// the turn engine is not producing one — so the chip sat there reading a green STABLE
+// beside a pulseless patient with a blood pressure of 0/0. A status that contradicts the
+// numbers beside it is worse than no status.
+//
+// The code state is authoritative whenever there is one. Where there is not, the trend is
+// still shown but LABELLED as a trend, so it cannot be read as a statement that the
+// patient is clinically stable.
+// One seed per run, set wherever a case starts. Generic illustrative lab values are drawn
+// from it rather than from Math.random, so a run can be replayed — including by someone
+// reporting a bug — and produce the same chemistry.
+// ONE PANEL STATE, so two panels can never both believe they are open.
+//
+// Task 8 of the reliability plan. Orders, Results and History share the lower half of a
+// phone; opening one closes the others, and which one is open survives a re-render of the
+// play screen rather than being rebuilt from whichever class happened to survive.
+// `coach` is reserved for Task 10 and is disabled until then.
+const PANELS_LOWER = ['orders', 'results', 'history', 'coach'];
+function panelState(){
+  if(!S.panel) S.panel = { activePanel: null, expanded: false, unreadResultIds: [] };
+  return S.panel;
+}
+function setPanel(name){
+  const st = panelState();
+  const next = (name && PANELS_LOWER.includes(name) && name !== 'coach') ? name : null;
+  st.activePanel = (st.activePanel === next) ? null : next;   // tapping the open one closes it
+  if(st.activePanel !== 'results') st.expanded = false;       // expansion belongs to what is open
+  applyPanel();
+}
+function togglePanelExpanded(){
+  const st = panelState();
+  if(!st.activePanel) return;
+  st.expanded = !st.expanded;
+  applyPanel();
+}
+// The single writer of the panel classes — ON PHONES. The desktop console keeps the
+// arrangement Kim chose (orders left, results right) and its own drawer rules, which the
+// plan is explicit about preserving; taking those over from here closed the chart that
+// starts open, hid the drawer's close button and broke the CLEAR toggle's restore. This
+// state is still tracked everywhere, so the phone and the desktop agree about what is
+// open — it is only the class-writing that is scoped.
+function applyPanel(){
+  const st = panelState(), b = document.body.classList;
+  if(innerWidth >= 768){ b.remove('chartOpen', 'panelExpanded'); return; }
+  b.toggle('feedOpen',     st.activePanel === 'history');
+  b.toggle('resultsOpen',  st.activePanel === 'results');
+  b.toggle('chartOpen',    st.activePanel === 'results');
+  b.toggle('panelExpanded', !!st.expanded);
+  if(typeof paintLabsRail === 'function') paintLabsRail();
+  if(typeof paintCast === 'function') paintCast();
+}
+function newRunSeed(){
+  try{ return (crypto.getRandomValues(new Uint32Array(1))[0] >>> 0).toString(36); }
+  catch(_){ return Date.now().toString(36); }
+}
+function acuityChip(){
+  const c = S.code;
+  if(c && !c.ended)          return { text: c.pulse ? 'PULSE' : 'NO PULSE', bad: !c.pulse };
+  if(c && c.ended === 'rosc')  return { text: 'ROSC', bad: false };
+  if(c && c.ended === 'death') return { text: 'DECEASED', bad: true };
+  const t = String(S.trend || 'stable');
+  return { text: 'TREND ' + t.toUpperCase(), bad: t === 'worsening' || t === 'critical' };
+}
 function paintVitals(){
   const v=S.shown; if(!$('v_hr')) return;
   paintWho();          // who the numbers below belong to — age first, before the clock
@@ -3288,8 +3422,9 @@ function paintVitals(){
   $('v_rhythm').className='text-[10px] font-black uppercase tracking-widest mono '+(hideRhythm?'text-slate-500':(hrCrit?'text-red-500':'text-emerald-500'));
   const trendEl=$('v_trend');
   if(trendEl){
-    const bad=S.trend==='worsening'||S.trend==='critical';
-    trendEl.textContent=S.trend.toUpperCase();
+    const acuity=acuityChip();
+    const bad=acuity.bad;
+    trendEl.textContent=acuity.text;
     // KEEP the positioning classes. This assignment replaces the whole className, and
     // the markup's "absolute bottom-1.5 right-2" used to go with it — so the TREND chip
     // dropped out of its corner and into the telemetry box's flex column, where it took
@@ -3891,26 +4026,103 @@ function endCode(kind){
 // pairs ("vanc and zosyn") whole.
 //
 // Clock: code orders still cost nothing, and whatever is left runs as a single turn.
-async function dispatchOrders(action, label){
-  const clauses = InstantEngine.splitClauses(InstantEngine.normalize(action));
-  if(clauses.length < 2 || !codeAnswers()){
-    // Nothing to split, or no code to split for: the original single-order path, so a
-    // one-order line behaves exactly as it always did.
-    if(codeAnswers() && fireCodeOrder(action, label)) return true;
-    await progress(action, label);
-    return false;
-  }
-  const rest = [];
-  let tookAny = false;
-  for(const c of clauses){
-    // Each clause carries its own label into the timeline — the order log should read
-    // "intubate" then "cooling measure", not the signed-basket label twice.
-    if(fireCodeOrder(c)) tookAny = true; else rest.push(c);
-  }
-  // The turn engine's share goes as ONE turn, under the basket's own label so the
-  // debrief's ORDERS YOU ENTERED still shows one row per signature for that part.
-  if(rest.length) await progress(rest.join('; '), rest.length === clauses.length ? label : undefined);
-  return tookAny;
+// ONE WAY AN ORDER GETS EXECUTED, AND A RECEIPT FOR EVERY ATTEMPT.
+//
+// Task 4 of the reliability plan. The split-and-offer logic is unchanged in what it DOES —
+// the code engine still gets first refusal action by action, and everything it does not
+// claim still goes to the turn engine as one turn, because splitting that into a turn each
+// would change how much simulated time a signature costs. What is new is that every
+// attempt now leaves a receipt, written by the same call that changed the state.
+//
+// `intents` comes from basketPlan when the learner signed a basket (Task 2). Anything
+// without one — a room menu, a chip not yet bound, a bare string from an older call site —
+// goes through the compatibility adapter below and is TAGGED as such, so an unmigrated
+// action is visible as unmigrated rather than silently indistinguishable.
+let _dispatchInFlight = false;
+const _batches = (typeof OrderDispatch !== 'undefined') ? OrderDispatch.freezer() : null;
+async function dispatchOrders(action, label, intents){
+  // A DOUBLE-TAP ON SIGN PERFORMS ONCE. progress() guards itself with S.loading, but a
+  // code-engine order does not go through progress at all, so a second tap could fire a
+  // second shock. The whole batch is frozen instead.
+  if(_dispatchInFlight) return false;
+  _dispatchInFlight = true;
+  try{
+    const OI = (typeof OrderIntents !== 'undefined') ? OrderIntents : null;
+    const OD = (typeof OrderDispatch !== 'undefined') ? OrderDispatch : null;
+    const clauses = InstantEngine.splitClauses(InstantEngine.normalize(action));
+    // One intent per thing the learner asked for. A signed basket supplies them; anything
+    // else is adapted from its clauses and marked source 'text'.
+    let list = Array.isArray(intents) ? intents.filter(Boolean) : [];
+    if(!list.length && OI)
+      // A ONE-ORDER LINE IS UNTOUCHED. splitClauses returns NORMALIZED clauses, so
+      // adapting a single-clause line from them would hand the turn engine lowercased,
+      // rewritten text instead of what the learner actually typed — and that text is what
+      // the transcript shows and what hearRhythmCall reads. Below two clauses there is
+      // nothing to split, so the raw line is carried through exactly as it always was.
+      list = (clauses.length < 2)
+        ? [OI.fromText(action, null, label || action)]
+        : clauses.map(c => OI.fromText(c, null, c));
+    if(!OD || !list.length){
+      // No boundary available (the script failed to load) — the original path, unchanged.
+      if(codeAnswers() && fireCodeOrder(action, label)) return true;
+      await progress(action, label);
+      return false;
+    }
+    let tookAny = false;
+    const res = await OD.run(list, {
+      codeAnswers: () => codeAnswers(),
+      // The code engine claims an action by its ORDER TEXT, as it always has. A known ID
+      // is never re-fuzzy-matched here; it is passed through with its own wording.
+      tryCode: intent => {
+        const took = fireCodeOrder(intent.orderText || intent.rawText,
+                                   list.length === 1 ? (label || intent.label) : intent.label);
+        if(!took) return null;
+        tookAny = true;
+        return { ok: true, evidence: ['code:' + (intent.actionId || intent.rawText)] };
+      },
+      // Everything else, as ONE turn, then read back per action from that turn's trace.
+      runNarrative: async (forTurn) => {
+        const text = forTurn.map(i => i.orderText || i.rawText).join('; ');
+        const before = S.simMin;
+        await progress(text, forTurn.length === list.length ? label : undefined);
+        const cl = ((S.lastTrace && S.lastTrace.clauses) || []);
+        const perAction = {};
+        for(const intent of forTurn){
+          const want = InstantEngine.normalize(intent.orderText || intent.rawText);
+          const row = cl.find(c => want && (c.text === want || want.includes(c.text) || c.text.includes(want)));
+          perAction[intent.actionId] = !row ? { status: 'unsupported', reasonCode: 'no-clause' }
+            : row.unparsed   ? { status: 'unsupported', reasonCode: 'not-understood' }
+            : row.gateBlocked ? { status: 'blocked', reasonCode: 'prerequisite-unmet' }
+            : { status: 'performed',
+                objectiveIds: Array.isArray(row.satisfies) ? row.satisfies.map(String) : [],
+                evidence: ['clause:' + row.text] };
+        }
+        return { perAction, simTime: Math.max(0, S.simMin - before) };
+      },
+    });
+    if(_batches) _batches.freeze(res.batchId);
+    // Kept for Task 7 to render and Task 5 to grade from. Bounded so a long case cannot
+    // grow this without limit.
+    S.receipts = (S.receipts || []).concat(res.receipts).slice(-300);
+    // Opted-in run records only. This adds nothing to what is uploaded and turns nothing
+    // on: RUNLOG is already gated on the same consent everywhere else it is called.
+    // The receipts for THIS signature, for the feedback line to render from (Task 7) and
+    // for the debrief to grade from later. Published regardless of logging consent — this
+    // is local state the learner is about to read, not telemetry. Nothing is uploaded.
+    S.lastReceipts = res.receipts;
+    // Two different things, and they get two different rules. The line above is LOCAL
+    // state the learner is about to read on their own screen — never gated, never sent.
+    // This is the copy that would ride along on a shared run record, and it is gated on
+    // the same consent as everything else that could ever leave the machine. Nothing is
+    // uploaded here either way; Task 11 wires the record itself.
+    try{ if(loggingOn()) S.runReceipts = (S.runReceipts || []).concat(res.receipts).slice(-300); }catch(_){ }
+    // …and the line the learner reads is those statuses, not a second derivation of them.
+    if(res.receipts.length){
+      S.orderFeedback = orderFeedbackFromReceipts(res.receipts);
+      if(typeof renderOrderFeedback === 'function') renderOrderFeedback();
+    }
+    return tookAny;
+  } finally { _dispatchInFlight = false; }
 }
 // One code order: applied synchronously, credited, drawn. Returns false when the code
 // engine does not recognise it, so the caller falls through to the turn engine.
@@ -3978,6 +4190,14 @@ const TALLY_KIND = {
 function paintCodeTally(){
   paintOrderLog();   // both books are kept in step
   paintLabsRail();
+  // The panel that was open stays open across a re-render — it is state, not markup.
+  if(typeof applyPanel === 'function') applyPanel();
+  const _px = $('panelExpand');
+  if(_px && !_px._wired){ _px._wired = true; _px.onclick = () => {
+    togglePanelExpanded();
+    _px.setAttribute('aria-pressed', String(!!panelState().expanded));
+    _px.title = panelState().expanded ? 'Shrink the chart so the patient is visible' : 'Expand the chart to the full screen';
+  }; }
   const box = $('codeTally'); if(!box) return;
   const c = S.code;
   if(!c){ box.classList.add('hidden'); box.innerHTML=''; _tallyN = -1; return; }
@@ -4294,7 +4514,7 @@ async function instantTurn(action){
      // block was the only place a miss was ever mentioned. Building the trace sends
      // nothing anywhere: shipping it to the collector is separately gated by loggingOn()
      // at the RUNLOG.turn call below.
-     trend: S.trend, trace: true,
+     trend: S.trend, trace: true, seed: S.runSeed,
      // Carry the code through every later turn: the case usually ENDS on a disposition
      // long after ROSC, and that is where buildDebrief runs. Without this the timeline
      // and the code-quality score would exist only for a code that ended in death.
@@ -4644,7 +4864,10 @@ function takeDose(i){
   const text = cmd.value;
   const prefix = text.slice(0, text.length - currentFragment(text).length).replace(/[,;\s]+$/,'').trim();
   if(prefix) basketAdd(prefix, prefix, true);
-  basketAdd(entry.label + ' ' + doseChipLabel(d), composeOrder(entry, d));
+  const OI1 = root_OrderIntents();
+  const composed = composeOrder(entry, d);
+  basketAdd(entry.label + ' ' + doseChipLabel(d), composed, false,
+            OI1 ? OI1.fromCatalog(entry, d, composed, entry.label + ' ' + doseChipLabel(d)) : undefined);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead(); cmd.focus(); syncBasketInput(); measureDock();
 }
@@ -4697,7 +4920,9 @@ function basketTypeahead(i){
   // the nurse has to come back and ask about, so ask now, with the usual one already
   // highlighted and Enter away.
   if(entry.doses && entry.doses.length && renderDosePicker(entry)) return;
-  basketAdd(entry.label, entry.label);
+  const OI0 = root_OrderIntents();
+  basketAdd(entry.label, entry.label, false,
+            OI0 ? OI0.fromCatalog(entry, null, entry.label, entry.label) : undefined);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
   cmd.focus();
@@ -4906,7 +5131,7 @@ async function loadGoldCase(seed, opts){
   S.patient=seed.patient||{}; S.patientVoice=patientVoiceFor(S.patient);
   S.caseSeed={...seed};   // enables "save as vetted" and marks provenance
   S.messages=[{role:'assistant', content:seed.intro||'The patient is at the bedside.', speech:seed.speech}];
-  S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play';
+  S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
   S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
   renderPlay();
@@ -5241,7 +5466,9 @@ function wirePalChips(root){
 // The handover, back on screen. No turn is taken and no order is sent — this is reading
 // The transcript, and only the transcript: see setResults() for why they are exclusive.
 function openFeed(){
-  document.body.classList.remove('resultsOpen');
+  const st = panelState();
+  st.activePanel = 'history'; st.expanded = false;
+  document.body.classList.remove('resultsOpen', 'chartOpen', 'panelExpanded');
   document.body.classList.add('feedOpen');
   if(typeof paintLabsRail === 'function') paintLabsRail();
 }
@@ -5782,6 +6009,9 @@ function basketNote(msg){
 // Trailing periods come off every order before joining: 'Order a CBC.' + 'Order a BMP.'
 // must read 'Order a CBC; Order a BMP', not 'Order a CBC.; Order a BMP.'.
 function basketText(t){ return String(t==null?'':t).trim().replace(/\s*\.\s*$/,''); }
+// order-intents.js is a separate classic script; if it ever fails to load, every call
+// site here degrades to the behaviour it had before intents existed rather than throwing.
+function root_OrderIntents(){ return (typeof OrderIntents !== 'undefined') ? OrderIntents : null; }
 // What signing produces, from the chips plus whatever is still sitting in the command
 // box. The ONE place that composition lives, so the Send button, the Enter key and the
 // Sign button can never disagree. Returns null when there is nothing to send.
@@ -5792,6 +6022,10 @@ function basketPlan(items, typed){
   if(t && !list.some(o=>o.text.toLowerCase()===t.toLowerCase())) list.push({label:t, text:t});
   if(!list.length) return null;
   return {
+    // The identities, in the same order as the clauses they produced. Task 4 gives each
+    // one a receipt; until then this is carried and unused, which is deliberate — the
+    // plan asks for one bounded change at a time.
+    intents: list.map(o => o.intent || null),
     // '; ' is a clause separator the engine already splits on, so a signed basket is
     // ONE turn costing the slowest order's minutes — not the sum. That is the point.
     action: list.map(o=>o.text).join('; '),
@@ -5807,7 +6041,11 @@ function basketPlan(items, typed){
 // "I think this is; stemi", and splitClauses cut it in two. The frame committed an
 // empty diagnosis and "stemi" was filed as not understood.
 const FRAME_ONLY_RE = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is|dx|diagnosis|impression)\b\s*:?\s*$/i;
-function basketAdd(label, text, quiet){
+// `intent` is optional and additive: a control that knows which catalog entry it is
+// passes one, and the basket carries that identity through to signing instead of letting
+// the sentence be parsed again downstream. Everything that does not pass one behaves
+// exactly as before, through the adapter in order-intents.js.
+function basketAdd(label, text, quiet, intent){
   const t=basketText(text); if(!t) return false;
   if(FRAME_ONLY_RE.test(t)){
     // Send them where the thought belongs instead of queueing half a sentence.
@@ -5819,9 +6057,17 @@ function basketAdd(label, text, quiet){
   // raised for a different, now-stale, signature.
   hideReadbackChip();
   if(!Array.isArray(S.basket)) S.basket=[];
-  const i=S.basket.findIndex(o=>o.text.toLowerCase()===t.toLowerCase());
+  // DEDUPE BY ACTION, NOT BY SENTENCE. Two wordings of the same order at the same dose are
+  // one order; the same drug at two doses is two, and collapsing those would silently
+  // discard a deliberate second instruction. Falls back to the old text comparison for
+  // anything that carries no intent, so unbound controls are unaffected.
+  const OI = root_OrderIntents();
+  const here = intent || (OI ? OI.fromText(t, null, label||t) : null);
+  const i = (OI && here && here.catalogId)
+    ? S.basket.findIndex(o => o.intent && OI.sameAction(o.intent, here))
+    : S.basket.findIndex(o=>o.text.toLowerCase()===t.toLowerCase());
   if(i>=0){ _bskFlash=i; if(!quiet){ basketNote('Already in the basket'); renderBasket(); basketReveal(); } return false; }
-  S.basket.push({label:(label||t), text:t});
+  S.basket.push({label:(label||t), text:t, intent:here||undefined});
   if(!quiet){ _bskFlash=-1; renderBasket(); basketReveal(); }
   return true;
 }
@@ -5887,6 +6133,33 @@ function syncBasketInput(){
 // The catalog answers "can I execute this?" while the pack answers "can this
 // earn a case objective?". Show the distinction immediately after the turn — not
 // only in the debrief, where it is too late to correct course.
+// STATUS COMES FROM THE RECEIPT. Task 7 of the reliability plan: the operational status a
+// learner reads must be the one the dispatcher recorded when it executed the order, not a
+// second opinion derived independently from the trace. Two derivations of "what happened"
+// can disagree, and when they do the learner has no way to tell which is true.
+//
+// Falls back to the trace for any caller that ran without receipts, so nothing that
+// predates Task 4 loses its feedback line.
+const RECEIPT_NOTE = {
+  performed:   'Performed.',
+  pending:     'Ordered — waiting on the result.',
+  blocked:     'Not performed yet — a prerequisite is still required.',
+  // Operational only. Whether an objective was met belongs in the debrief: a per-order
+  // credit light turns the checklist into a hot/cold answer detector during the case.
+  unsupported: 'Not understood — nothing was done.',
+  failed:      'Something went wrong performing this — it was not done.',
+};
+const RECEIPT_KIND = { performed:'performed', pending:'performed', blocked:'blocked',
+                       unsupported:'unparsed', failed:'unparsed' };
+function orderFeedbackFromReceipts(receipts){
+  return (receipts || []).map(r => ({
+    text: r.interpretedLabel || r.rawText,
+    kind: RECEIPT_KIND[r.status] || 'performed',
+    note: RECEIPT_NOTE[r.status] || 'Performed.',
+    // credit is the debrief's to explain, not a hot/cold detector during the run
+    receiptId: r.actionId, status: r.status, reasonCode: r.reasonCode || null,
+  }));
+}
 function orderFeedbackFromTrace(trace){
   return ((trace&&trace.clauses)||[])
     .filter(c=>c&&c.text&&!InstantEngine.isOrderFragment(c.text))
@@ -6045,7 +6318,7 @@ function renderPlay(){
              row, which is exactly what it did while it was left in the scroll. -->
         <div id="obToggleRow" class="flex items-center gap-2 mb-2">
           <button id="obToggle" class="text-[10px] font-black uppercase tracking-widest ${_orderMin?'text-emerald-400':'text-slate-600'} hover:text-emerald-300 transition">${_orderMin?'Orders & quick actions ▾':'Hide quick actions ▴'}</button>
-          <button id="chartBtn" class="md:hidden ml-auto px-3 py-1.5 bg-emerald-600/20 border border-emerald-600/50 rounded-lg text-[10px] font-black uppercase tracking-widest text-emerald-300">Chart<span id="chartCount" class="ml-1 text-emerald-200"></span></button>
+          <button id="historyBtn" class="md:hidden ml-auto px-3 py-1.5 bg-slate-700/40 border border-slate-600 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-200" style="min-height:44px" title="Open the transcript — what the team has said">History</button><button id="chartBtn" class="md:hidden ml-1 px-3 py-1.5 bg-emerald-600/20 border border-emerald-600/50 rounded-lg text-[11px] font-black uppercase tracking-widest text-emerald-300" style="min-height:44px">Chart<span id="chartCount" class="ml-1 text-emerald-200"></span></button>
         </div>
         <div id="qaRow" class="${(_orderMin||codeActive())?'hidden ':''}flex flex-wrap gap-2 mb-3">
           ${QUICK.map((q,i)=>`<button data-q="${i}" class="qa px-3 py-1.5 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition">${q[0]}</button>`).join('')}
@@ -6085,7 +6358,12 @@ function renderPlay(){
       </div>
     </div>
     <aside id="sideBar" class="hidden md:block w-[340px] xl:w-[480px] overflow-y-auto p-5 space-y-6 bg-slate-950/60 shrink-0">
-      <button id="chartClose" class="md:hidden sticky top-0 z-10 w-full items-center justify-center gap-2 py-2 mb-1 rounded-lg bg-slate-800/90 border border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-200 backdrop-blur">✕ Close chart</button>
+      <div id="chartSheetBar" class="sticky top-0 z-10 flex gap-1 mb-1">
+        <button id="chartClose" class="flex-1 items-center justify-center gap-2 py-3 rounded-lg bg-slate-800/90 border border-slate-700 text-xs font-black uppercase tracking-widest text-slate-200 backdrop-blur" style="min-height:44px">✕ Close chart</button>
+        <!-- Full screen is an explicit choice, for reading a film. The chart otherwise
+             keeps the patient in view above it. -->
+        <button id="panelExpand" aria-pressed="false" title="Expand the chart to the full screen" class="items-center justify-center px-4 rounded-lg bg-slate-800/90 border border-slate-700 text-xs font-black uppercase tracking-widest text-slate-200 backdrop-blur" style="min-height:44px">⤢</button>
+      </div>
       <div id="patientPanel"></div>
       <!-- The code record. Empty and hidden outside a code; paintCodeStrip fills it. -->
       <div id="codeTally" class="hidden"></div>
@@ -6231,9 +6509,25 @@ function renderPlay(){
   });
   // Phone chart toggle. renderPlay() rebuilds this markup every turn, so the body class
   // is the source of truth and these handlers are re-attached alongside the others.
-  const setChart=open=>{ document.body.classList.toggle('chartOpen', open);
+  // Through the panel state, not around it. Toggling the class directly left the state
+  // saying "nothing is open" while the class said otherwise, and the next applyPanel()
+  // closed the chart the learner had just tapped open.
+  const setChart=open=>{
+    const st=panelState();
+    st.activePanel = open ? 'results' : (st.activePanel === 'results' ? null : st.activePanel);
+    if(!open) st.expanded = false;
+    applyPanel();
     if(open){ const a=$('sideBar'); if(a) a.scrollTop=0; } };
   if($('chartBtn')) $('chartBtn').onclick=()=>setChart(!document.body.classList.contains('chartOpen'));
+  // The other half of the phone's lower workspace. Measured at 667x375 before it existed:
+  // the transcript was squeezed under the command box and NOTHING on screen opened it —
+  // the rail and the ticker are both display:none at that height, so what the team said
+  // was unreachable. One panel at a time, through the same panel state as the chart.
+  if($('historyBtn')) $('historyBtn').onclick=()=>{
+    if(panelState().activePanel === 'history'){ document.body.classList.remove('feedOpen');
+      panelState().activePanel = null; applyPanel(); }
+    else openFeed();
+  };
   // One close button, two shapes of chart: the full-screen sheet on a phone and the
   // console's right-hand drawer. It was wired only to the sheet, so on the desktop it was
   // visible, sitting at the top of the open drawer, and did nothing.
@@ -7567,7 +7861,10 @@ function cinemaMetrics(){
     document.body.classList.toggle('console', wantConsole);
     // A chart you left open is open when you come back — into the room, into the next
     // case, and after a resize dropped you out of console mode and back into it.
-    if(wantConsole && _resultsPref()) document.body.classList.add('resultsOpen');
+    // Through the panel state, or applyPanel() closes it again on the next render: the
+    // state said "nothing open" while the class said otherwise, and the state wins.
+    if(wantConsole && _resultsPref()){ panelState().activePanel = 'results';
+      document.body.classList.add('resultsOpen'); }
     paintConsole();
     paintLabsRail();
   }
@@ -7716,8 +8013,13 @@ function _resultsPref(){ try{ return localStorage.getItem('ms_results') !== '0';
 // either now closes the other, so there is one thing to read and the patient is still
 // visible beside it.
 function setResults(open){
+  const st = panelState();
+  st.activePanel = open ? 'results' : (st.activePanel === 'results' ? null : st.activePanel);
+  if(!open) st.expanded = false;
   if(open) document.body.classList.remove('feedOpen');
   document.body.classList.toggle('resultsOpen', !!open);
+  document.body.classList.toggle('chartOpen', !!open && innerWidth < 768);
+  document.body.classList.toggle('panelExpanded', !!st.expanded);
   try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
   paintLabsRail();
 }
@@ -8418,7 +8720,31 @@ function renderWorkspace(){
       const cap=esc(e.label+' — '+[e.credit,e.license].filter(Boolean).join(' · '));
       return `<div class="p-2 bg-slate-900/40 rounded-xl border border-slate-800"><img src="${esc(e.url)}" loading="lazy" alt="${esc(e.label)}" role="button" tabindex="0" data-img="${esc(e.url)}" data-cap="${cap}" data-key="${esc(e.key)}" class="w-full rounded-lg cursor-zoom-in bg-black"/><p class="text-[10px] text-slate-400 mt-1">${esc(e.label)}</p></div>`;
     }).join('')}</div>`); }
-  if(S.labs.length){ h+=section('Laboratory','yellow', `<div class="bg-slate-900/40 rounded-xl divide-y divide-slate-800/50">${S.labs.map(l=>`<div class="flex justify-between px-3 py-2"><span class="text-xs text-slate-300">${esc(l.name)}</span><span class="text-xs font-bold ${l.flag?'text-red-500':'text-emerald-500'}">${esc(String(l.value))} <span class="text-[9px] text-slate-600 uppercase">${esc(l.unit||'')}</span></span></div>`).join('')}</div>`); }
+  if(S.labs.length){
+    // One row per test, newest value first, with every earlier draw kept beside it and
+    // timestamped. Units and flags ride on each draw, so a trend cannot lose the unit it
+    // was measured in.
+    const byName = new Map();
+    for(const l of S.labs){ const k = String(l.name);
+      if(!byName.has(k)) byName.set(k, []); byName.get(k).push(l); }
+    const rows = [...byName.values()].map(draws => {
+      const latest = draws[draws.length - 1];
+      const prior = draws.slice(0, -1).reverse();
+      const trend = prior.length
+        ? `<div class="text-[9px] text-slate-500 mt-0.5">was ${prior.map(p =>
+            esc(String(p.value)) + (p.unit ? ' ' + esc(p.unit) : '') + ' at T+' + Math.round(p.at || 0)
+          ).join(' · ')}</div>` : '';
+      return `<div class="px-3 py-2" data-result="${esc(latest.id||'')}">
+        <div class="flex justify-between items-baseline">
+          <span class="text-xs text-slate-300">${esc(latest.name)}${draws.length > 1
+            ? `<span class="ml-1 text-[9px] text-slate-500">×${draws.length}</span>` : ''}</span>
+          <span class="text-xs font-bold ${latest.flag?'text-red-500':'text-emerald-500'}">${esc(String(latest.value))}
+            <span class="text-[9px] text-slate-600 uppercase">${esc(latest.unit||'')}</span>
+            <span class="ml-1 text-[9px] text-slate-600">T+${Math.round(latest.at||0)}</span></span>
+        </div>${trend}</div>`;
+    }).join('');
+    h += section('Laboratory','yellow', `<div class="bg-slate-900/40 rounded-xl divide-y divide-slate-800/50">${rows}</div>`);
+  }
   paintChartCount();
   ws.innerHTML = h || `<p class="text-xs text-slate-600">Order labs, imaging, or an exam to populate the chart.</p>`;
   ws.querySelectorAll('[data-img]').forEach(im=>{
