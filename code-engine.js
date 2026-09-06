@@ -586,7 +586,10 @@ function giveDrug(state, script, name, text){
   // that wants it says `indicated: true`; otherwise the dose is delivered and flagged.
   if(inArrest && name === 'bicarbonate' && !rule.indicated){ ok = false;
     note = (note ? note + ' ' : '') + (rule.note || 'Bicarbonate is not part of routine arrest care — it is for hyperkalaemia, a sodium-channel-blocker overdose or a known severe acidosis.'); }
-  if(rule.wrongFor && rule.wrongFor.indexOf(state.rhythm) !== -1){ ok = false;
+  // Read once and used twice — here to flag the dose, and below to stop it converting the
+  // rhythm it is wrong for. Two copies of the condition could be edited apart.
+  const wrongForRhythm = !!(rule.wrongFor && rule.wrongFor.indexOf(state.rhythm) !== -1);
+  if(wrongForRhythm){ ok = false;
     note = (note ? note + ' ' : '') + (rule.wrongForNote ||
       (capitalize(name) + ' is the wrong drug for ' + rhythmName(state.rhythm) + '.')); }
   if(inArrest && name === 'amiodarone' && state.rhythm === 'asystole'){ ok = false;
@@ -601,9 +604,25 @@ function giveDrug(state, script, name, text){
   if(name === 'amiodarone') state.amioDoses += 1;
   state.flags[name] = true;
 
-  const out = [ev(state, 'drug', capitalize(name) + (dose.mg != null ? ' ' + round2(dose.mg) + ' mg' : '') + ' is in.', { ok, name })];
-  out.push(...checkConversion(state, script, name));
+  const out = [ev(state, 'drug', capitalize(name) + spokenDose(dose) + ' is in.', { ok, name })];
+  // A DOSE THAT IS WRONG FOR THIS RHYTHM DOES NOT CONVERT IT. The record already says
+  // ok:false; letting the conversion rule fire regardless taught that adenosine converts
+  // atrial fibrillation — the one thing the script's own wrongForNote says it cannot do.
+  if(!wrongForRhythm) out.push(...checkConversion(state, script, name));
   return out;
+}
+
+// SAY THE DOSE THE WAY IT WAS ORDERED. An amp of D50 is 25 g; reading it back as
+// "Dextrose 25000 mg is in" makes a correct order sound like a decimal error at the one
+// moment nobody has time to do the arithmetic. Milliequivalents are what bicarbonate is
+// ordered in at the bedside, so they are read back that way too. The record still stores
+// milligrams — only the sentence changes.
+function spokenDose(dose){
+  if(!dose) return '';
+  if(dose.mEq != null) return ' ' + round2(dose.mEq) + ' mEq';
+  if(dose.mg == null) return '';
+  if(dose.mg >= 1000) return ' ' + round2(dose.mg / 1000) + ' g';
+  return ' ' + round2(dose.mg) + ' mg';
 }
 
 function round2(x){ return Math.round(x * 100) / 100; }
@@ -651,7 +670,15 @@ function epiOrderFor(script){
 // decompression" and "no chest tube" each marked the tension pneumothorax treated,
 // credited the critical action, and unlocked the ROSC path. The learner is told they
 // did the one thing they explicitly refused to do.
-const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+on\b)|holding|hold off|holding off|stop|stopping|discontinue|discontinuing|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
+// HOLDING PRESSURE IS AN ORDER, NOT A REFUSAL. "Hold direct pressure" is how the
+// haemorrhage-control order is said out loud in a trauma bay, and the withhold guard read
+// the leading verb and answered "Holding off on that, doctor" — the sim declining the one
+// thing the player had just asked for. Only "hold pressure" exactly was safe, because the
+// blunt-trauma pack happens to author that phrase; "hold direct pressure", "hold firm
+// pressure", "holding manual pressure" were all refusals. "Hold off pressure" is still a
+// refusal: the exemption needs the word pressure to follow the verb (through an article
+// and an adjective, not through "off").
+const CODE_WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+(?:on\b|(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure\b))|holding(?!\s+(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure\b)|hold off|holding off|stop|stopping|discontinue|discontinuing|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
 // "hold cpr" / "hold compressions" / "hold the pacer" are instructions to the team, not
 // refusals — the engine has explicit branches for them and they must reach those.
 // "stop" and "discontinue" were missing from the list above, which made the most

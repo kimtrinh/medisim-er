@@ -43,7 +43,17 @@ function makeReceipt(o){
     engine: o.engine || null,              // instant | code | null when nothing ran
     status: STATUS.includes(o.status) ? o.status : 'failed',
     reasonCode: o.reasonCode || null,      // stable and machine-readable; copy lives in the UI
+    // THE ENGINE'S OWN SENTENCE, when it gave one. reasonCode says 'flagged' for at least six
+    // different rules ("Amiodarone is for a shockable rhythm", "Only 40 s since the last dose"),
+    // and a note written from the code alone had to guess one of them — it guessed "the dose or
+    // energy was outside the band" and told a learner who pushed amiodarone into asystole the
+    // wrong thing. Never composed here: it is copied from the record the engine wrote.
+    reasonText: o.reasonText || null,
     simTime: typeof o.simTime === 'number' ? o.simTime : 0,
+    // WHY this receipt says what it says, as `<source>:<text>` strings — `clause:massive
+    // transfusion` (the trace row the status was read from), `shock:…`, `withheld:…`. The
+    // prefix names which record to go and look at when a receipt is disputed; without it a
+    // bare string is unattributable and the reader cannot tell an engine row from a refusal.
     evidence: Array.isArray(o.evidence) ? o.evidence : [],
     resultIds: Array.isArray(o.resultIds) ? o.resultIds : [],
     objectiveIds: Array.isArray(o.objectiveIds) ? o.objectiveIds : [],
@@ -100,11 +110,12 @@ async function run(intents, adapters, opts){
         continue;
       }
     }
+    // ok:false with reasonCode 'refused' is a refusal; ok:true with 'flagged' happened and is marked.
     if(claimed){
       receipts.push(makeReceipt({ actionId: intent.actionId, batchId, catalogId: intent.catalogId,
         rawText: intent.rawText, interpretedLabel: intent.label, engine: 'code',
         status: claimed.ok === false ? 'blocked' : 'performed',
-        reasonCode: claimed.reasonCode || null,
+        reasonCode: claimed.reasonCode || null, reasonText: claimed.reasonText || null,
         evidence: claimed.evidence || [], objectiveIds: claimed.objectiveIds || [],
         simTime: 0 }));   // a code order costs no clock: the ticker owns time during a code
     }else{

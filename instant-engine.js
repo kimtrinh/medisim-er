@@ -638,6 +638,96 @@ const MED_WORDS = ['aspirin','nitroglycerin','heparin','morphine','fentanyl','on
   'enoxaparin','apixaban','rivaroxaban','warfarin','dabigatran'];
 // Set form, for the readback: which words in a responder's alias list are drug names.
 const MED_WORD_SET = new Set(MED_WORDS);
+
+// WHICH drugs were given, not just how many. `state.medCount` says a medication
+// happened; the debrief also has to answer "was THIS drug given?", because an
+// objective phrased "Avoid verapamil" was being credited to the player who had just
+// pushed verapamil. Two ways in, because neither alone is enough:
+//   - the engine's own drug vocabulary (MED_WORDS), which catches the dose-less order
+//     ("give aspirin");
+//   - the "<name> <dose>" shape, which catches the drugs the vocabulary has never heard
+//     of — verapamil is not in MED_WORDS, and verapamil is exactly the drug the one
+//     infant-SVT objective tells the player to avoid.
+// The stop-set is the words that sit in front of a number without being a drug. "give"
+// is the dangerous one: "give 2 liters of saline" would otherwise record "give", and
+// "Do not give aspirin until haemorrhage is excluded" names it. Generic electricity
+// words ("shock") are left out too — a synchronised shock and an unsynchronised one are
+// the same token, and denying credit for the correct one is worse than the imprecision.
+// Captures the word AND whatever unit follows the number, because the unit is what
+// separates a dose from a measurement — see ONLY A DRUG CAN SPEND AN AVOIDANCE below.
+const MED_DOSE_NAME_RE = /([a-z][a-z-]{4,})\s+(?:\d+(?:\.\d+)?|\.\d+)\s*([a-z]+)?/gi;
+const MED_DOSE_NOT_A_DRUG = new Set(['give','given','giving','start','starting','begin','order','ordering',
+  'administer','administering','repeat','repeating','another','additional','about','around','maybe','total',
+  'please','hang','hanging','running','infuse','infusing','draw','check','recheck','send','place','placing',
+  'apply','shock','shocks','cardiovert','defibrillate','joules','wants','needs','after','under','over','times']);
+// ONLY A DRUG CAN SPEND AN AVOIDANCE.
+//
+// The stop-set above is a list of words, and the hole it leaves is structural: the shape
+// records WHATEVER word sits in front of a number, and twenty of the library's seventy-seven
+// abstention objectives name a word that is not a drug. Played, on correct play:
+// "keep her pressure 90 or above with fluids" recorded "pressure", and cv-tamponade's
+// "Avoid positive-pressure ventilation" — an objective that player had honoured — was struck
+// off the debrief. "give a volume 250 ml bolus" did the same to peds-myocarditis's
+// "Avoid large-volume ... boluses". No stop-set closes that: `temperature`, `sedation`,
+// `imaging`, `transfusion`, `class`, `opioid` are all one phrasing away from the same loss.
+//
+// So a "<name> <dose>" hit now has to prove it names a MEDICATION. Two proofs, either enough:
+//   - the number carries a MEDICATION dose unit (mg, mcg, meq, units...). "verapamil 2.5 mg
+//     IV" is a drug order because of the mg; "pressure 90 or above" is a blood-pressure
+//     target because there is no unit at all, and "volume 250 ml" is a volume, not a dose;
+//   - the order catalog holds the word as a med, canonical or alias — the app's own drug list,
+//     which grows without this function needing to know.
+// The unit proof is the one that keeps verapamil, and it has to: verapamil is NOT in
+// order-catalog.json. The catalog's ninety med entries are minted from MED_WORDS by
+// lib/catalog-extract.cjs, MED_WORDS has never held verapamil, and verapamil is exactly the
+// drug the one infant-SVT objective tells the player to avoid — a catalog-only gate would
+// have handed that credit straight back to the player who pushed it.
+const MED_DOSE_UNIT_RE = /^(mg|mgs|milligrams?|mcg|ug|micrograms?|g|gram|grams|meq|mmol|unit|units|iu)$/;
+// Memoized on the catalog array, the way catalogAliasList is — and with the same caveat:
+// treat `catalog` as immutable once passed in.
+function catalogMedNames(catalog){
+  if(!catalog || !catalog.length) return null;
+  if(catalog._medNames) return catalog._medNames;
+  const exact = new Set(), leading = new Set();
+  for(const entry of (catalog || [])){
+    if(!entry || entry.category !== 'med') continue;
+    const canon = normalize(entry.canonical);
+    if(canon){
+      exact.add(canon);
+      // A multi-word canonical ("normal saline") is also named by its first word.
+      const first = canon.split(' ')[0];
+      if(first && first !== canon) leading.add(first);
+    }
+    for(const alias of (entry.aliases || [])){ const na = normalize(alias); if(na) exact.add(na); }
+  }
+  catalog._medNames = { exact, leading };
+  return catalog._medNames;
+}
+function namesAMedication(word, unit, catalog){
+  if(unit && MED_DOSE_UNIT_RE.test(unit)) return true;
+  const names = catalogMedNames(catalog);
+  if(!names) return false;
+  return names.exact.has(word) || names.leading.has(word);
+}
+// A run can only hold so many distinct drug names before the list stops being a record and
+// starts being noise — and the list is scanned once per abstention objective per debrief.
+// Sixty-four is past any real resuscitation and bounds a pasted wall of text.
+const MEDS_GIVEN_CAP = 64;
+function recordMedGiven(state, clause, catalog){
+  const text = String(clause || '');
+  const words = text.split(' ').filter(Boolean);
+  state.medsGiven = state.medsGiven || [];
+  const add = w => { if(w && state.medsGiven.length < MEDS_GIVEN_CAP && state.medsGiven.indexOf(w) === -1) state.medsGiven.push(w); };
+  for(const w of MED_WORDS) if(fuzzyHas(words, w)) add(w);
+  // matchAll, not .exec on the shared /g object: exec leaves lastIndex on a module-level
+  // regex, so any early exit mid-loop would make the NEXT order start scanning mid-string
+  // and silently drop the drug at its front.
+  for(const m of text.matchAll(MED_DOSE_NAME_RE)){
+    const w = m[1].toLowerCase();
+    if(MED_DOSE_NOT_A_DRUG.has(w)) continue;
+    if(namesAMedication(w, (m[2] || '').toLowerCase(), catalog)) add(w);
+  }
+}
 // A fluid without a volume is not an order the nurse can hang (rule 15's fluid twin
 // of MEDS_REQUIRING_DOSE). "bolus" alone credited the fluid critical action.
 const FLUIDS_REQUIRING_VOLUME = ['normal saline','lactated ringers','saline','ringers','crystalloid','plasmalyte','iv fluids','bolus'];
@@ -829,6 +919,28 @@ const DRUG_LEVEL_TESTS = ['acetaminophen','salicylate','ethanol','digoxin','lith
 // Electrolytes are the same trap in the other direction: "mag 2g IV" in a TCA
 // overdose returned "LAB Magnesium: 2.0 mg/dL" and the drug was never given.
       DUAL_GIVE_MEASURE = ['magnesium','potassium','calcium','phosphorus','phosphate','sodium bicarbonate'];
+// A STATED AMOUNT IS TREATMENT. ADMINISTERED_RE carried its own unit list, and it lacked
+// "gm" and "grams" — so Kim's "2gm mag stat" read as a magnesium LEVEL and the torsades case
+// drew a chemistry panel instead of giving the drug. A second, hand-retyped copy of the dose
+// units is how the two lists disagreed, so there is now ONE list of them: AMOUNT_UNITS below
+// is shared verbatim with DOSE_TOKEN_RE (the fold that attaches a dose to the order before
+// it). The two regexes are NOT the same test. An amount is only a unit of quantity; the fold
+// additionally accepts the connective and timing words that surround a dose ("per", "over",
+// "at", "of", "and", "hours", "min", "bolus", "wide open", "q6h") — words an amount must NOT
+// accept, because "2 over" and "5 per" state no quantity at all.
+const AMOUNT_UNITS = 'l|ml|cc|liters?|litres?|mg|mcg|g|gm|grams?|meq|units?|iu|amps?|ampoules?|ampules?|vials?|(mg|mcg|ml|units?|meq|g)\\/(kg|hr?|min|day|dose)(\\/(hr?|min|day))?';
+// Read in the two shapes a dose is typed: "2gm" / "20meq" (unit glued to the number) and
+// "2 g" / "0.5 mg/kg" (unit after it).
+const AMOUNT_UNIT_RE = new RegExp('^(' + AMOUNT_UNITS + ')$');
+function statesAmount(text){
+  const toks = String(text || '').toLowerCase().split(/\s+/);
+  for(let i = 0; i < toks.length; i++){
+    const m = /^(\d+(?:\.\d+)?)([a-z%\/]*)$/.exec(toks[i]);
+    if(!m) continue;
+    if(m[2] ? AMOUNT_UNIT_RE.test(m[2]) : AMOUNT_UNIT_RE.test(toks[i + 1] || '')) return true;
+  }
+  return WORD_DOSE_RE.test(String(text || ''));
+}
 const ADMINISTERED_RE = /\b\d+\s*(mg|mcg|g|units?|ml|l|mg\/kg|mcg\/kg|meq)\b|\b(po|iv|im|pr|sl|sc|subq|ng|neb|inh|gtt|drip|bolus|replete|repletion)\b|\b(give|giving|administer|push|hang|start|started|dose|redose|amps?|ampules?)\b/i;
 // ---------- Route awareness ----------
 // Some orders are the SAME DRUG by a route that does or does not work. Oral
@@ -856,6 +968,17 @@ function clauseRoutes(text){
   const t = String(text || '');
   return Object.keys(ROUTE_PATTERNS).filter(k => ROUTE_PATTERNS[k].test(t));
 }
+// THE SALT NAMES THE DRUG. "magnesium sulfate", "calcium chloride", "KCl", "MgSO4" are
+// formulations — nobody draws a "magnesium sulfate level" — and with no dose typed beside
+// them findSolo saw no administration evidence, called them levels, and under the intent
+// gate the drug responder was then removed: the torsades case drew a nine-row chemistry
+// panel and the magnesium was never given. Read from the raw clause: the catalog rewrite has
+// already turned "mgso4" into the bare canonical by the time `clause` arrives.
+// The anion list is the whole list of salts this vocabulary can name, not the four that turned
+// up first: nobody draws a "potassium phosphate level", a "magnesium citrate level" or a
+// "calcium carbonate level" either. Measured before widening it, all three — and "k acetate" —
+// resolved to LAB entries at tier high, so ordering the salt offered a blood draw.
+const SALT_FORM_RE = /\b(?:magnesium|potassium|calcium|mag|k|ca)\s*(?:sulfate|sulphate|chloride|gluconate|phosphate|citrate|carbonate|acetate)\b|\b(?:mgso4|kcl|cacl2?)\b/;
 function findSolo(clause, rawClause){
   const toks = clause.split(' ');
   // A comma-list item "mg" is magnesium; the token can't expand globally because
@@ -872,7 +995,8 @@ function findSolo(clause, rawClause){
     if(!fuzzyHas(toks,key)) continue;
     // A drug that is also an assay: only a lab when the player asked for the measurement.
     if((DRUG_LEVEL_TESTS.includes(key) || DUAL_GIVE_MEASURE.includes(key))
-       && !wantsLevel && (ADMINISTERED_RE.test(evidence) || homeMedContext)) continue;
+       && !wantsLevel && (ADMINISTERED_RE.test(evidence) || statesAmount(evidence)
+                          || SALT_FORM_RE.test(evidence) || homeMedContext)) continue;
     return key;
   }
   return null;
@@ -948,7 +1072,12 @@ const DELIBERATE_RE = /\b(whether (to|we|i|he|she|they)|should (i|we|he|she|they
 // "any NICU time?" in a birth history dispositioned a BRUE at turn two, and
 // "when exactly did the cold START" confirmed a phantom medication.
 const INTERROG_RE = /^\s*(any|has|have|had|did|does|do|was|were|is|are|what|when|where|how|why|who|which|can|could|will|would|tell me about)\b/;
-function classifyIntent(clause){
+// `rawClause` is the clause as the player typed it (normalized, but BEFORE the catalog
+// rewrote its aliases to canonical names). Only findSolo reads it, and only as evidence of
+// administration: "mgso4" is rewritten to the bare "magnesium" before this is called, and the
+// bare name alone is a level. Every existing single-argument caller is unchanged — findSolo
+// falls back to `clause` when no raw text is handed down.
+function classifyIntent(clause, rawClause){
   const toks = clause.split(' ');
   const discussing = (DISCUSS_RE.test(clause) && !DISCUSS_IS_DISPO_RE.test(clause))
                      || DELIBERATE_RE.test(clause) || INTERROG_RE.test(clause);
@@ -960,7 +1089,7 @@ function classifyIntent(clause){
   // it would fire inside other words. The anchored frame regex carries it instead.
   if(ASSESS_WORDS.some(w=>clause.includes(w)) || ASSESS_FRAME_RE.test(clause)) return 'assessment';
   if(findImaging(clause) || clauseModality(clause)) return 'imaging';   // bare "ct scan" is still an imaging order
-  if(findPanel(clause) || findSolo(clause) || /\blabs\b|\bbloodwork\b|\blab work\b/.test(clause)) return 'lab';
+  if(findPanel(clause) || findSolo(clause, rawClause) || /\blabs\b|\bbloodwork\b|\blab work\b/.test(clause)) return 'lab';
   if(MED_WORDS.some(w=>fuzzyHas(toks,w)) &&
      /\b(drip|infusion|gtt|bolus|iv|im|po|pr|sl|sc|neb|mcg|mg|meq|units?|mg\/kg|mcg\/kg)\b/.test(clause))
     return 'med';
@@ -989,10 +1118,53 @@ function classifyIntent(clause){
 // Which pack-responder intents may answer a clause of a given intent. An exam
 // responder must never steal an imaging order (root cause of the CT-order bug:
 // exam aliases like "abdomen" matched "ct abdomen" and suppressed the CT).
+//
+// EVERY PAIR BELOW WAS MEASURED, NOT GUESSED. classifyIntent's taxonomy is not the taxonomy
+// pack authors used for `responder.intent`, and the first version of this gate was exact-match
+// plus med<->procedure: turning it on refused 45 of the five validation packs' OWN authored
+// phrases (tests/strict-gate-sweep.test.cjs prints the table). A pair is added here only when
+// that sweep names it, with the phrase that required it — the gate is allowed to take away a
+// WRONG answer, never the answer the pack author wrote for the words the learner typed.
+//
+// lab<->med IS DELIBERATELY ABSENT, in both directions. That pair is the whole defect this gate
+// exists to prevent: it is what let a magnesium LEVEL fire the magnesium DRUG responder and a
+// magnesium DOSE draw a chemistry panel. If a pack ever authors a phrase that needs it, the
+// sweep reports the phrase and the CONTENT is fixed, not this table.
 const INTENT_COMPAT = {
-  imaging:['imaging'], exam:['exam'], lab:['lab'], consult:['consult'],
-  med:['med','procedure'], procedure:['procedure','med'],
-  disposition:['disposition'], assessment:['assessment','consult'], history:['history']
+  imaging:['imaging'],
+  // exam -> procedure: "pelvic binder"/"bind the pelvis"/"decompress the chest" all classify
+  //   exam (no procedure word; "pelvic" and "chest" are exam regions) and blunt-multi answers
+  //   them with procedure responders — objectives 1 and 2, the two that case exists to teach.
+  // exam -> assessment: "assess perfusion"/"check for sepsis" (an EXAM_VERB in front of a
+  //   reasoning question) are answered by unstable-tachy's assessment responders.
+  // exam -> consult: "general surgery"/"pelvic fixation" carry an exam region and are
+  //   blunt-multi's consult responders.
+  exam:['exam','procedure','assessment','consult'],
+  lab:['lab'],
+  // consult -> exam: "neuro exam" normalizes to "neurology exam", which reads as a consult
+  //   (service name + a consult phrase); blunt-multi answers it with the neuro EXAM responder.
+  consult:['consult','exam'],
+  // med -> assessment: "no adenosine"/"why not adenosine"/"hold the diltiazem" name a drug, so
+  //   the clause is a med; unstable-tachy answers the reasoning behind withholding it with an
+  //   assessment responder (objective 4).
+  // med -> disposition: "start anticoagulation" is a giving-verb med clause and unstable-tachy
+  //   authored it on the anticoagulation-DECISION responder (objective 6).
+  med:['med','procedure','assessment','disposition'],
+  // procedure -> assessment: "signs of shock" hits a PROCEDURE_WORD ("shock") and is
+  //   unstable-tachy's instability assessment (objective 1).
+  procedure:['procedure','med','assessment'],
+  // disposition -> consult: "take him to the cath lab" (VF objective 6) and "trauma icu"
+  //   (blunt-multi objective 7) are dispositions the pack answers as consults.
+  disposition:['disposition','consult'],
+  assessment:['assessment','consult'],
+  // history -> procedure: "bag valve mask"/"reseat the mask"/"laryngeal mask" classify history
+  //   (a HISTORY_TOPIC alias, no giving verb) and are the NRP case's airway procedures.
+  // history -> assessment: "what caused this"/"alcohol" are unstable-tachy's cause-hunting
+  //   assessment (objective 5) — and it is also what restores "has her motor score changed" on
+  //   blunt-multi, whose row named history -> exam as well. `exam` is NOT listed here: removing
+  //   it leaves the sweep clean, so it was never load-bearing, and a widening no measurement
+  //   asks for is just a hole in the gate.
+  history:['history','assessment','procedure']
 };
 // Detect the imaging modality a clause is asking for (post-normalize tokens).
 function clauseModality(clause){
@@ -1098,6 +1270,13 @@ function whenSatisfied(r, flags){
   if(Array.isArray(w.absent)   && !w.absent.every(k => !f[k])) return false;
   return true;
 }
+// The bedside sugar, in the words people use for it. Bare "glucose" is deliberately NOT
+// here — that one may fairly be answered by a chemistry panel; "fingerstick glucose" may not.
+const POC_GLUCOSE_RE = /\b(?:fingerstick|finger stick|point of care|poc|bedside|capillary|accucheck|accu chek|glucometer|dextrostick)\b[^.;]{0,20}\b(?:glucose|sugar)\b|\b(?:glucose|sugar)\b[^.;]{0,16}\b(?:fingerstick|glucometer|at the bedside)\b/;
+
+const isBedsideSugar = r => (r.labResults || []).length <= 2
+  && (r.labResults || []).some(l => /glucose|sugar/i.test(l.name || ''));
+
 function matchResponders(pack, clause, flags){
   if(!pack || !Array.isArray(pack.responders)) return [];
   const norm = normalize(clause), toks = norm.split(' ');
@@ -1122,6 +1301,22 @@ function matchResponders(pack, clause, flags){
   // non-imaging order → everything that matches EXCEPT imaging-study responders
   // (so "give X" / "examine Y" / "ask Z" never surfaces a stray CT).
   const hits = scored.filter(keep).filter(h => !responderHasImaging(h.r)).map(h=>h.r);
+
+  // A BEDSIDE SUGAR IS NOT A CHEMISTRY PANEL.
+  //
+  // Eight packs carry a bare "glucose" alias on their metabolic-panel responder, so
+  // "fingerstick glucose" drew the whole panel and the nurse read back the worst row on it:
+  // Kim asked a 4-month-old's sugar and was told the bicarbonate was 16. Blocking the alias
+  // in those eight packs would fix those eight; the rule is what fixes the class.
+  //
+  // Only a BEDSIDE sugar may answer a bedside sugar: one number, now. A seven-row panel
+  // that happens to carry a glucose is a different test with a different turnaround, and it
+  // hands over six results nobody ordered. When no responder answers at the bedside the
+  // clause falls through to the fingerstick path, which borrows the case's own glucose where
+  // it has one — so the two never disagree — and otherwise gives a normal bedside value: a
+  // sugar you can act on, which is the whole point of a fingerstick.
+  if(POC_GLUCOSE_RE.test(norm))
+    return hits.filter(r => r.intent !== 'lab' || isBedsideSugar(r));
 
   // CONSULT bridging: "consult ob emergently" must reach a responder whose
   // aliases say "gyn consult"/"call ob" — the verb and spelling differ but the
@@ -1344,7 +1539,11 @@ const CLAUSE_FILLER = new Set(['a','an','the','of','to','for','on','in','at','wi
 // MUCH of the matched thing, never WHAT. The app's own chip "Give a 1 liter normal
 // saline bolus" left {liter, bolus} unexplained, capped at medium, and tripped
 // the readback gate on every send.
-const DOSE_TOKEN_RE = /^(l|ml|cc|liters?|litres?|mg|mcg|g|gm|grams?|meq|units?|iu|kg|kilos?|kilograms?|%|percent|hours?|hrs?|h|min|mins|minutes?|sec|secs|seconds?|bolus|boluses|amps?|ampoules?|ampules?|vials?|pushe?s?|drips?|gtt|infusions?|per|over|at|of|and|wide|open|rate|q\d*h?|(mg|mcg|ml|units?|meq|g)\/(kg|hr?|min|day|dose)(\/(hr?|min|day))?)$/;
+// The units come from AMOUNT_UNITS — the one list, shared with AMOUNT_UNIT_RE above — plus the
+// connective and timing words that only the fold may swallow. Reordering the alternatives is
+// safe: the pattern is anchored end to end and only ever used with .test(), so which branch
+// wins cannot change what matches.
+const DOSE_TOKEN_RE = new RegExp('^(' + AMOUNT_UNITS + '|kg|kilos?|kilograms?|%|percent|hours?|hrs?|h|min|mins|minutes?|sec|secs|seconds?|bolus|boluses|pushe?s?|drips?|gtt|infusions?|per|over|at|of|and|wide|open|rate|q\\d*h?)$');
 function unexplainedTokens(clause, aliasText){
   const covered = new Set(String(aliasText||'').split(' ').filter(Boolean));
   return clause.split(' ').filter(t => t && !covered.has(t) && !CLAUSE_FILLER.has(t)
@@ -1376,13 +1575,69 @@ function resolveOrders(action, catalog){
   // clause classifies by its CANONICAL wording (e.g. a slang phrase that
   // happens to contain a verb like "check" mustn't be misclassified as an
   // exam order before the catalog ever gets a chance to recognize it).
-  const normText = applyCatalogAliases(normalize(action), catalog);
+  const rawNorm = normalize(action);
+  const normText = applyCatalogAliases(rawNorm, catalog);
   const clauses = rejoinStrandedFragments(splitClauses(normText), catalog);
   const clauseList = clauses.length ? clauses : [normText];
-  return clauseList.map(clause => {
-    const intent = classifyIntent(clause);
+  // ...and the SAME split of the text before the rewrite, so each clause can still be judged
+  // on the words the player typed. The rewrite turns "mgso4" into the canonical "magnesium",
+  // and a bare canonical is a level: "mgso4" resolved to Magnesium (level) and the composer
+  // offered the learner a blood draw where they had ordered the salt. The rewrite can merge
+  // or split words, so the raw clauses are only trusted when the two splits still line up
+  // one-to-one; otherwise the canonical clause is its own evidence, exactly as before.
+  const rawSplit = rejoinStrandedFragments(splitClauses(rawNorm), catalog);
+  const rawList = rawSplit.length ? rawSplit : [rawNorm];
+  const rawAligned = rawList.length === clauseList.length;
+  return clauseList.map((clause, i) => {
+    const rawClause = rawAligned ? rawList[i] : clause;
+    const intent = classifyIntent(clause, rawClause);
     if(!ORDER_INTENTS.includes(intent)) return {clause, intent, tier:'skip', suggestion:null};
     if(!catalog || !catalog.length) return {clause, intent, tier:'none', suggestion:null};
+    // A NAME THAT IS BOTH A DRUG AND A TEST, ON ITS OWN, IS A QUESTION. "mag" resolved to the
+    // level at tier high because the lab entry happened to win the tie; giving the drug on the
+    // same word would be the unsafe direction. Neither is guessed: the row goes to the readback
+    // with both candidates, and the learner says which.
+    //
+    // ONLY when the learner typed nothing but the name. The catalog rewrite EATS the measurement
+    // word before this test runs — "mg level", "ca level", "check ca", "ionized ca" and "ca2+" all
+    // arrive here as the bare canonical — so an explicit level order was dragged back into the
+    // readback and asked which of two things it meant, when the learner had already said. The
+    // pre-rewrite wording is the evidence: `rawClause === clause` means nothing was eaten, which
+    // is exactly the case where the name stands alone. (An earlier comment here claimed a
+    // measurement word "never reaches this". It always did; that was the bug.)
+    //
+    // WHAT THIS GUARD ACTUALLY TESTS is whether the catalog REWROTE the clause — not whether the
+    // learner added a measurement word. Measured: "mag" and "k" ask because they normalize to
+    // themselves and the catalog holds them as aliases of both a lab and a med row. "ca" does NOT
+    // ask, and the reason is not that calcium is unambiguous — med-calcium's canonical is
+    // literally "calcium", so resolveOrders('calcium') DOES ask. "ca" escapes only because
+    // normalize() leaves it as "ca" while the catalog rewrite turns it into "calcium", so
+    // rawClause !== clause and this line is never reached.
+    //
+    // The consequence, stated plainly: an abbreviation that lives ONLY in the catalog's aliases
+    // and not in normalize()'s own table can never ask, however dual-use the thing it names is.
+    // Whether "ca" ought to ask is Kim's call about content, not something this guard decides;
+    // it is written down here so the next reader is not told a comfortable story about it.
+    if(intent === 'lab' && rawClause === clause && DUAL_GIVE_MEASURE.some(w => clause === w)){
+      // Membership by canonical OR ALIAS, not canonical alone. The med row for the bicarbonate
+      // pair is canonicalised "bicarbonate" while normalize() expands the typed "bicarb" to
+      // "sodium bicarbonate", so an exact-canonical test could only ever find the lab row and
+      // the pair never asked. Aliases are normalized before comparing because `clause` is.
+      const names = e => [e.canonical, ...(e.aliases || [])].map(a => normalize(String(a || '')));
+      const both = catalog.filter(e => (e.category === 'lab' || e.category === 'med') && names(e).includes(clause));
+      if(both.length > 1){
+        // both.length > 1 does not promise which categories are present; a catalog that ever
+        // carried two MED rows for one salt would crash the composer on lab.id here.
+        const lab = both.find(e => e.category === 'lab') || both[0];
+        // `leftover: 0` is the truth — the clause IS the name, nothing is unaccounted for — and
+        // that truth is why the app's case-match bump (send(): "medium + the pack knows this
+        // word" -> high, unless leftover >= 2) promoted this row straight back to high and the
+        // learner never saw the question. `ask` says the quiet part explicitly: this row is
+        // undecided BY DESIGN, and no downstream confidence rule may decide it.
+        return {clause, intent, tier:'medium', leftover: 0, ask: true, candidates: both.map(e => e.id).sort(),
+                suggestion:{id:lab.id, label:lab.label + ' (level)', canonical:lab.canonical}};
+      }
+    }
     // Scope candidates to the clause's own classified intent. ORDER_INTENTS
     // names are IDENTICAL to catalog categories ('lab','imaging','med',
     // 'procedure','consult'), so this is a free, exact filter. Without it,
@@ -1705,7 +1960,15 @@ const NURSING_ACTIONS = [
   {re:/nasal cannula|blow by|face ?mask|liters? (of )?oxygen|oxygen at \d|supplemental oxygen/, text:'Oxygen\'s on — watching the sat.', o2:3},
 ];
 function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
-  let intent = classifyIntent(clause);
+  // THE RAW WORDING RIDES ALONG HERE TOO. This called classifyIntent with one argument while
+  // findSolo three lines down was already being handed `rawClause` — so the fallback classified
+  // a clause the rest of the engine had already classified differently, and disagreed with it.
+  // A salt reaches here with no panel and no solo test behind it: on the VF case "cacl2"
+  // classified `lab` (the rewrite has turned it into the bare "calcium", and a bare name is a
+  // level), no assay matched, and the junk-name branch below invented a lab row reading
+  // "calcium = Within normal limits" — a result the learner never ordered, for a drug that was
+  // never given, while runTurn's own trace row for the same clause said `med`.
+  let intent = classifyIntent(clause, rawClause);
   // classifyIntent reads the canonical clause, which is right — "draw bottles" is only a
   // lab because the catalog rewrites it to "blood cultures". But that same rewrite reduces
   // "acetaminophen 650 po" to "acetaminophen", so an administration reads as a lab and the
@@ -2165,7 +2428,15 @@ function unmetGateHint(pack, requires, flags){
 const PREP_RE = /\b(kit|tray|cart|ready|readied|prepare|prepared|prep|open|opened|set up|setup|standby|stand by|backup|back up|available|nearby|bedside|on hand|in case|if needed|just in case|to hand)\b/;
 // "ok scrap the hemabate — miso 800 per rectum" replayed the drug's asthma warning and
 // re-applied its vitals: a leading interjection hid the cancellation from the anchor.
-const WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+on\b)|holding|hold off|holding off|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|stop(?:ping)?(?!\s+(?:the\s+)?(?:bleed|blood|hemorrhag|seiz|vomit))|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
+// HOLDING PRESSURE IS AN ORDER, NOT A REFUSAL. "Hold direct pressure" is how the
+// haemorrhage-control order is said out loud in a trauma bay, and the withhold guard read
+// the leading verb and answered "Holding off on that, doctor" — the sim declining the one
+// thing the player had just asked for. Only "hold pressure" exactly was safe, because the
+// blunt-trauma pack happens to author that phrase; "hold direct pressure", "hold firm
+// pressure", "holding manual pressure" were all refusals. "Hold off pressure" is still a
+// refusal: the exemption needs the word pressure to follow the verb (through an article
+// and an adjective, not through "off").
+const WITHHOLD_RE = /^\s*(?:(?:ok(?:ay)?|fine|alright|right|yeah|yes|actually|wait|no wait)[\s,-]+)*(no|not|hold(?!\s+(?:on\b|(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure\b))|holding(?!\s+(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure\b)|hold off|holding off|withhold|withholding|avoid|avoiding|defer|deferring|skip|skipping|omit|omitting|scrap|scratch|cancel|stop(?:ping)?(?!\s+(?:the\s+)?(?:bleed|blood|hemorrhag|seiz|vomit))|don'?t|dont|do not|without|refrain from|no need for|not giving|never mind|forget)\b/i;
 // A "recognition" critical action grades diagnostic reasoning ("Recognize
 // septic shock", "Consider LGV if severe proctocolitis"). The pack credits it
 // when the player SAYS it, which is the right primary path — committing to an
@@ -2594,6 +2865,34 @@ function buildDebrief(pack, state, opts, outcome){
   const abstained = CA.map((a,i)=>{
     if(met.includes(i) || !ABSTAIN_RE.test(stripCond(a))) return null;
     const timeliness = /\b(delay|defer|await|awaiting|wait)\w*\b/i.test(a);
+    // A QUALIFIED ABSTENTION FORBIDS A MANNER, NOT A DRUG. "Avoid overly rapid IV potassium" is
+    // met by the player who gave potassium slowly; "avoid large-volume boluses" by the one who
+    // gave a cautious aliquot. Suppressing those punishes the treatment the objective asks for.
+    // Played: "potassium 40 meq iv over 4 hours" cost eb-hypokalemia's controlled-rate objective,
+    // and giving aspirin AFTER the CT cost neuro-lvo-stroke's "not until hemorrhage is excluded".
+    //
+    // HOW MUCH, HOW FAST, WHEN — never WHETHER. That line is the whole of this list, and it is
+    // narrower than it first looks. "Avoid ROUTINE prophylactic antibiotics" (eb-drowning),
+    // "avoid EMPIRIC AV-nodal blockers such as verapamil or diltiazem" (cv-wide-complex-
+    // tachycardia), "avoid nitroglycerin REFLEXIVELY used for CHF" (cv-acute-right-heart-failure)
+    // all read like qualifiers and are not: they qualify the INDICATION, and giving the drug in
+    // that case is precisely the error the objective exists to catch. Exempting them would hand
+    // the credit back to the player who made it. So routine/empiric/reflexively/unnecessary stay
+    // out, and every word below is one the library actually uses to qualify a manner or a time.
+    const qualified = /\b(overly|excessive(ly)?|aggressive(ly)?|rapid(ly)?|large[- ]volume|until|relying on)\b/i.test(a);
+    // THE HARMFUL THING WAS DONE: no credit for avoiding it. Only the leading segment
+    // counts — an objective often names the abstinence first and the right treatment
+    // after a semicolon ("Avoid intubation if possible; if unavoidable ... give
+    // bicarbonate"), and giving the drug on the far side of that semicolon is obedience,
+    // not the error. The timeliness family is exempt for the same reason: "Do not wait
+    // for the ANC result to give antibiotics" presupposes the antibiotics were given, and a
+    // qualified abstention for the reason above it.
+    if(!timeliness && !qualified){
+      const lead = String(a).split(';')[0];
+      const given = (state.medsGiven || []).some(w =>
+        new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','i').test(lead));
+      if(given) return null;
+    }
     return (!timeliness || provedByMgmt) ? i : null;
   }).filter(x=>x!==null);
   const recognized = provedByMgmt
@@ -2834,7 +3133,7 @@ function runTurn(pack, state, action, opts){
   // prerequisites that a LATER clause in the same line went on to satisfy.
   const pendingGates = [];
   let firedThisTurn = false;
-  const trace = opts.trace ? {raw:String(action), norm:'', clauses:[], satisfiedAfter:[], stagesFired:[]} : null;
+  const trace = opts.trace ? {schema: 2, raw:String(action), norm:'', clauses:[], satisfiedAfter:[], stagesFired:[]} : null;
   // Split on the player's OWN normalized wording and match pack responders on
   // it FIRST. Pack aliases are case-specific and authored richer than the
   // global catalog ("fluid bolus", "bedside echo", "epinephrine drip"), so
@@ -2891,7 +3190,7 @@ function runTurn(pack, state, action, opts){
     // confirmed the hold then pushed the epi in the same reply.
     const inherited = prevWithheld && !ORDERISH_RE.test(rawClause);
     const withheld = WITHHOLD_RE.test(rawClause) || inherited;
-    prevWithheld = withheld || /\b(hold(ing)?|withhold(ing)?)\b(?!\s+pressure)/.test(rawClause);
+    prevWithheld = withheld || /\b(hold(ing)?|withhold(ing)?)\b(?!\s+(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure\b)/.test(rawClause);
     const deliberating = DELIBERATE_RE.test(rawClause);
     // A contingency is staged, not executed: "IF her pressure fails I'd start
     // norepinephrine" was given to a normotensive patient; "my threshold for
@@ -2935,6 +3234,48 @@ function runTurn(pack, state, action, opts){
     })();
     const counseling = DISCUSS_RE.test(rawClause) && !DISCUSS_IS_DISPO_RE.test(rawClause);
     let matched = matchResponders(pack, rawClause, state.flags);
+    // ONE ORDER, ONE KIND OF ANSWER. INTENT_COMPAT has said since the CT-order bug which
+    // responder intents may answer a clause of a given intent — and it was exported, and never
+    // applied here. So a magnesium LEVEL fired the magnesium DRUG responder and credited the
+    // treatment objective, and a magnesium DOSE fired the chemistry-panel responder and
+    // credited "check electrolytes". Applied before the negation/withhold bookkeeping below,
+    // which indexes parallel arrays by position in `matched`.
+    //
+    // Only for runs that ask (opts.strictIntent — the validation cohort). The experimental
+    // library was authored against the unfiltered behaviour; it moves to the gate case by
+    // case, measured, not all at once.
+    // The text to classify is the text the responders were matched ON: the raw clause for the
+    // first pass, the canonical rewrite for the catalog re-match below. Classifying the raw
+    // clause for a match made on the canonical one would gate on wording the matcher discarded.
+    // Both texts arrive already normalized (rawClause comes out of normalize(action), canon is
+    // that clause with catalog aliases applied), and normalize is NOT idempotent — running it
+    // again turns "d dimer" into "d d dimer" — so it must not be re-run here.
+    //
+    // Returns the decision instead of accumulating it: each pass is a COMPLETE statement about
+    // its own list, and concatenating them double-counted every responder the first pass and
+    // the re-match both removed (68 of 382 traced rows in the review sweep listed the same
+    // responder twice, which reads in the trace as two separate refusals).
+    //
+    // THE RAW TEXT RIDES ALONG, ALWAYS. `text` says which WORDS the responders were matched on;
+    // `raw` is the evidence classifyIntent needs to tell a dose from a draw, and the two are not
+    // the same string on the catalog re-match — there `text` is the bare canonical, because the
+    // rewrite has already thrown away the salt and the dose ("mgso4" -> "magnesium", "mgso4 2gm
+    // iv" -> "magnesium"). Called with one argument, SALT_FORM_RE never saw "mgso4": measured on
+    // strict torsades, resolveOrders('mgso4') said med while runTurn('mgso4') said lab, gated the
+    // magnesium drug responder out, drew a nine-row chemistry panel and never credited the
+    // objective. Same clause, two answers — which is the one thing this gate exists to prevent.
+    const gateByIntent = (list, text, raw) => {
+      if(!opts.strictIntent || !list.length) return {kept: list, removed: []};
+      const ok = INTENT_COMPAT[classifyIntent(text, raw)];
+      if(!ok) return {kept: list, removed: []};  // 'other' / 'history': no rule authored, no gate
+      return {kept: list.filter(r => ok.includes(r.intent)),
+              removed: list.filter(r => !ok.includes(r.intent)).map(r => pack.responders.indexOf(r))};
+    };
+    const firstPass = gateByIntent(matched, rawClause, rawClause);
+    matched = firstPass.kept;
+    // Declared FROM the first pass, not before it: the old `let gated = []` initializer was dead
+    // -- every path overwrote it -- and a dead initializer reads as a third possible value.
+    let gated = firstPass.removed;
     const ctoks = normalize(rawClause).split(' ');
     // Earliest clause position of EACH matched alias, per responder. A responder
     // often aliases several drugs of a class (kayexalate AND lokelma live on one
@@ -2990,12 +3331,15 @@ function runTurn(pack, state, action, opts){
     if(!matched.length && hasCatalog){
       const canon = applyCatalogAliases(rawClause, opts.catalog);
       if(canon !== rawClause){
-        const m2 = matchResponders(pack, canon, state.flags);
-        if(m2.length){ matched = m2; viaCatalog = true; }
+        const g2 = gateByIntent(matchResponders(pack, canon, state.flags), canon, rawClause);
+        // `gated` is reset, not appended to, and only when the re-match actually REPLACES the
+        // matched list: the trace row must name the responders that were refused for the
+        // answer this clause ended up with, not for a list that was thrown away.
+        if(g2.kept.length){ matched = g2.kept; viaCatalog = true; gated = g2.removed; }
         clause = canon;               // canonical form for the match or the fallback
       }
     }
-    const intent = classifyIntent(clause);
+    const intent = classifyIntent(clause, rawClause);
     // An ASSESS frame followed by a thing is a diagnosis; followed by a plan it's
     // an order wearing a hedge ("I think we should give aspirin") — only the former
     // is a commitment. `clause` is already normalized (lowercased, articles
@@ -3011,8 +3355,16 @@ function runTurn(pack, state, action, opts){
     if(diagnosisClause) committed.push({ clause, matchedAssessment: false });
     // One trace row per clause. matchScore is a pure function of (responder, tokens),
     // so recomputing it here returns exactly the value matchResponders selected on.
-    const tc = trace ? {text:clause, matched:[], scores:[], viaCatalog,
-                        fallback:!matched.length, intent:classifyIntent(clause), satisfies:[]} : null;
+    const tc = trace ? {text:clause, matched:[], scores:[], viaCatalog, gated: gated.slice(),
+                        // EXPLICIT, ALWAYS. The app used to detect "does this trace carry the
+                        // flag" by whether ANY row had the key, and fell back to a guess when
+                        // none did — which is how "reassess patient" was called not understood.
+                        unparsed: false,
+                        // ONE definition of intent per clause. This row used to call
+                        // classifyIntent a THIRD time, with its own argument list, so the trace
+                        // could disagree with the gate that actually ran and with `intent` two
+                        // lines above it — a debugging surface that lied about the decision.
+                        fallback:!matched.length, intent, satisfies:[]} : null;
     if(tc){
       trace.clauses.push(tc);
       const toks = normalize(clause).split(' ');
@@ -3118,7 +3470,7 @@ function runTurn(pack, state, action, opts){
         // the skin-perfusion exam and stole the inotrope credit, which let a
         // death stage see its rescue as never given. Exam responders answer a
         // dosed line only when the clause itself is exam-shaped.
-        if(r0.intent === 'exam' && dosedMedInLine && classifyIntent(clause) !== 'exam'){ guardSkipped = true; continue; }
+        if(r0.intent === 'exam' && dosedMedInLine && intent !== 'exam'){ guardSkipped = true; continue; }
         // Deliberation window: content named after "whether" is an option being
         // weighed, not an order — "that decides whether radiology can attempt an
         // air enema" PERFORMED the enema.
@@ -3143,7 +3495,7 @@ function runTurn(pack, state, action, opts){
         if(r0.intent === 'assessment' && diagnosisClause
            && committed.length && committed[committed.length-1].clause === clause)
           committed[committed.length-1].matchedAssessment = true;
-        if(r0.intent === 'med' || r0.intent === 'procedure') state.medCount++;
+        if(r0.intent === 'med' || r0.intent === 'procedure'){ state.medCount++; if(!withheld) recordMedGiven(state, clause, opts.catalog); }
         if(r0.intent === 'consult'){
           state.consultPending = null;
           // The accepting consultant remembers being called — a pack-responder
@@ -3274,7 +3626,7 @@ function runTurn(pack, state, action, opts){
         out.dosingFlags.push(...fb2.dosingFlags);
         if(fb2._narrative) reevalNarr += (reevalNarr?' ':'') + fb2._narrative;
         anyApplied = true;
-        if(fb2.intent === 'med' || fb2.intent === 'procedure') state.medCount++;
+        if(fb2.intent === 'med' || fb2.intent === 'procedure'){ state.medCount++; if(!withheld) recordMedGiven(state, clause, opts.catalog); }
         minutes = Math.max(minutes, fb2._minutes || 3);
       }
       // A consult-shaped clause deserves a live consultant: when its matches are
@@ -3284,7 +3636,7 @@ function runTurn(pack, state, action, opts){
       // dedupe then ate — "call toxicology" returned pure filler).
       const freshConsult = matched.some(r => r.intent === 'consult'
         && (r.speech||[]).some(s => !state.spokenSeen[s.speaker + '|' + s.text]));
-      if(classifyIntent(clause) === 'consult' && !freshConsult){
+      if(intent === 'consult' && !freshConsult){
         const cfb = fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags);
         if(cfb.intent === 'consult') out.speech.push(...cfb.speech);
       }
@@ -3293,7 +3645,13 @@ function runTurn(pack, state, action, opts){
       // about HSV" matched the vesicle responder) or one multi-panel clause
       // out-ran the pack's coverage ("cbc bmp coags type and screen" returned
       // only CBC and BMP).
-      if(classifyIntent(clause) === 'lab') appendMissingLabs(clause, rawClause, out, state);
+      // ONE definition of intent per order, here too. These three re-derived it from the
+      // canonical clause ALONE, so they could contradict the gate that had already answered the
+      // clause: measured on strict torsades, "mgso4" was gated as a MED, gave the drug and
+      // credited the objective -- and then this line read the rewritten "magnesium" as a lab and
+      // appended a magnesium level to the same turn. Treatment and measurement in one answer is
+      // the exact thing the gate exists to prevent.
+      if(intent === 'lab') appendMissingLabs(clause, rawClause, out, state);
     } else {
       const fb = fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags);
       // Fallback mirror of the citation rule: "CK's almost 4 grand — start a
@@ -3316,7 +3674,7 @@ function runTurn(pack, state, action, opts){
       out.dosingFlags.push(...fb.dosingFlags);
       if(fb._narrative) reevalNarr += (reevalNarr?' ':'') + fb._narrative;
       anyApplied = true;
-      if(!withheld && (fb.intent === 'med' || fb.intent === 'procedure')) state.medCount++;
+      if(!withheld && (fb.intent === 'med' || fb.intent === 'procedure')){ state.medCount++; recordMedGiven(state, clause, opts.catalog); }
       // The player deserves to know what the sim never understood — an order that
       // drew only filler earned no effect and no credit, and until now that fact
       // was invisible. Collected here, surfaced in the debrief.
@@ -3653,6 +4011,15 @@ function runTurn(pack, state, action, opts){
         : repeatBetter
         ? `Repeat ${repeatRow.name} is better — ${repeatRow.value}${repeatRow.unit?' '+repeatRow.unit:''}.`
         : `Repeat ${repeatRow.name} is back — unchanged.`;
+    } else if(out.labResults.length <= 2 && out.labResults.every(l=>/glucose|sugar/i.test(l.name||''))){
+      // A BEDSIDE SUGAR IS SAID OUT LOUD, normal or not. Every other result may sit in the
+      // chart until someone reads it; a fingerstick exists to be heard in the room, and the
+      // nurse used to stay silent on a normal one — leaving "Lab results just posted to the
+      // chart" as the answer to "check her sugar".
+      const g = out.labResults[0], n = parseFloat(String(g.value).replace(/[^\d.]/g, ''));
+      const mmol = /mmol/i.test(g.unit || '');
+      const low = g.flag === 'L' || g.flag === 'CRITICAL' || (isFinite(n) && n < (mmol ? 4 : 70));
+      line = `Fingerstick's ${g.value}${low ? ' — that\u2019s low' : ''}.`;
     } else {
       const worst = out.labResults.find(l=>l.flag==='CRITICAL') || out.labResults.find(l=>l.flag);
       if(worst) line = `Labs are back — ${worst.name} is ${worst.value}${worst.unit?' '+worst.unit:''}.`;
@@ -3757,6 +4124,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   RECOGNIZE_RE, ABSTAIN_RE,   // eval harness scores only ACTIONABLE critical actions
 
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
+  statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,

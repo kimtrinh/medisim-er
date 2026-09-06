@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-9yoK+FrpA1eHTOVEVkQf5UzXcQSevP+zFl8K4zISKDc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-c59ebNte1LWHy5TktgOSv0Sj2Z+n0VbYZF3Pf5YMvmc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -66,9 +66,40 @@
   .rmCprContact{position:absolute;left:23%;top:91%;width:25%;height:4.5%;border-radius:999px;
     background:radial-gradient(ellipse,rgba(103,232,249,.7),rgba(14,116,144,.2) 48%,transparent 72%);
     animation:rmCprContact .545s cubic-bezier(.45,0,.55,1) infinite;will-change:transform,opacity}
+  /* Ventilation is deliberately slower than CPR. The mask stays planted while the
+     therapist and bag make one restrained squeeze every six seconds. */
+  @keyframes rmVentilate{
+    0%,100%{transform:translate3d(0,0,0) rotateZ(0)}
+    20%{transform:translate3d(-.55%,.3%,0) rotateZ(-.25deg) scaleX(.992)}
+    42%{transform:translate3d(0,0,0) rotateZ(0)}
+  }
+  @keyframes rmBagPulse{
+    0%,100%{opacity:.18;transform:scale(1)}
+    20%{opacity:.72;transform:scale(.86,1.05)}
+    42%{opacity:.18;transform:scale(1)}
+  }
+  .rmBvmRig{perspective:650px;perspective-origin:16% 80%}
+  .rmBvmClinician{width:100%;height:100%;object-fit:contain;display:block;transform-origin:16% 80%;
+    animation:rmVentilate 6s cubic-bezier(.45,0,.55,1) infinite;
+    filter:drop-shadow(0 5px 4px rgba(2,6,23,.58));will-change:transform}
+  .rmBvmBagPulse{position:absolute;left:24%;top:64%;width:47%;height:18%;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(103,232,249,.52),rgba(14,116,144,.12) 55%,transparent 74%);
+    transform-origin:center;animation:rmBagPulse 6s cubic-bezier(.45,0,.55,1) infinite;
+    mix-blend-mode:screen;will-change:transform,opacity}
+  @keyframes rmDefibReady{0%,100%{transform:translate3d(0,0,0) scaleX(-1)}50%{transform:translate3d(.5%,.35%,0) scaleX(-1)}}
+  @keyframes rmDefibPress{0%{transform:translate3d(0,0,0) scaleX(-1)}38%{transform:translate3d(1.3%,1%,0) scaleX(-1)}100%{transform:translate3d(0,0,0) scaleX(-1)}}
+  @keyframes rmShockPatient{0%{transform:translate3d(0,0,0)}30%{transform:translate3d(0,-.55%,0) scale(1.002)}100%{transform:translate3d(0,0,0)}}
+  .rmDefibNurse{width:100%;height:100%;object-fit:contain;display:block;transform-origin:50% 91%;
+    filter:drop-shadow(0 5px 4px rgba(2,6,23,.62));will-change:transform}
+  .rmDefibNurse--charging{animation:rmDefibReady .8s ease-in-out infinite}
+  .rmDefibNurse--shock{animation:rmDefibPress .55s cubic-bezier(.2,.8,.2,1) 1}
+  .rmShockPatient{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
+    animation:rmShockPatient .42s cubic-bezier(.2,.8,.2,1) 1;will-change:transform}
+  @media (max-width:767px){.rmActionLabel{display:none}}
   @media (prefers-reduced-motion:reduce){
-    .rmCprClinician,.rmCprContact{animation:none!important}
+    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient{animation:none!important}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
+    .rmBvmBagPulse{opacity:.32;transform:none}
   }
   /* Crash vignette breathing. Opacity is set inline per severity, so this animates a
      range around it rather than to a fixed value. */
@@ -883,6 +914,28 @@
       z-index:40;padding:.4rem .6rem;background:#020617;
       border-top:1px solid rgba(148,163,184,.18)}
     #orderBar > div.flex.items-end{bottom:0}
+    /* THE ORDER BOX GETS THE WHOLE WIDTH. Six controls shared one 375px row and, with Coach
+       showing, the box measured 58px — and the suggestion list, anchored to the box, 58px
+       with it: "Magne… / Magne…", the word that tells a level from a dose clipped off. A
+       z-index cannot fix a box that is too narrow to hold its own text. The box takes a
+       line of its own; the buttons take the next; measureDock() already reads the row's
+       real height, so the CHART/History row above rides up with it. */
+    #obInputRow{flex-wrap:wrap}
+    #obInputRow > div.relative{flex:1 0 100%}
+    #obInputRow > button{flex:1 1 auto;min-height:40px;padding-top:.5rem;padding-bottom:.5rem}
+    /* The list is as wide as the box, bounded to the screen, and scrolls inside itself. */
+    #typeahead{max-height:min(45vh, calc(100vh - 200px));overflow-y:auto}
+    #typeahead .ta-row, #typeahead .ta-dose{min-height:44px}
+    #typeahead .ta-row > span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* THE LIST HIDES THE ROW IT COVERS. Now that the list is the full width of the screen
+       it grows up over #obToggleRow, which is pinned at the same z-index — so CHART and
+       History sat UNDER a suggestion, and elementFromPoint at the CHART button's centre
+       came back a .ta-row. That is the failure described above the dock rules, in its
+       second form: the tap did not merely miss the chart, it basketed an order. While the
+       list is up that row is unusable anyway, so it goes invisible; visibility rather than
+       display, so the row keeps its height, --obToggleH stays put, and the dock does not
+       jump under the player's thumb as they type. */
+    body.taOpen #obToggleRow{visibility:hidden}
     #obToggleRow{bottom:var(--obInputH,58px);margin-bottom:0;padding-top:.1rem;padding-bottom:.1rem}
     /* py-3 around a one-line textarea is a desktop measurement; py-2 keeps the box a
        comfortable 44px touch target and hands 8px back to the story above it */
@@ -1356,10 +1409,25 @@ function legacyModeOn(){ try{ return localStorage.getItem('ms_legacy') === '1'; 
 // hints the coach needs, so only these get one.
 const PILOT_CASES = ['core-septic-shock-uro', 'resp-tension-ptx', 'resus-acls-pea-tension',
                      'eb-appendicitis', 'resus-pals-resp-arrest'];
+// THE FIVE. One case from each course, chosen by Kim on 2026-09-05, proven end to end
+// before anything else is: a shockable arrest, a synchronised cardioversion, a trauma with
+// no code, a child on weight-based doses, and a newborn. Everything else in the library is
+// EXPERIMENTAL until it has been through the same validation — the start screen and the
+// debrief both say so, and nothing is hidden or removed.
+const VALIDATION_CASES = ['resus-acls-vf', 'resus-acls-unstable-tachy', 'resus-atls-blunt-multi',
+                          'resus-pals-svt-infant', 'resus-nrp-apneic-term'];
+const isValidation = id => VALIDATION_CASES.includes(id || '');
 function capsForNewRun(caseId){
-  const base = legacyModeOn() ? LEGACY_CAPS : RUN_CAPS;
-  const pilot = PILOT_CASES.includes(caseId);
-  return { ...base, pilot, coach: (base.coach && pilot) ? base.coach : null };
+  const legacy = legacyModeOn();
+  const base = legacy ? LEGACY_CAPS : RUN_CAPS;
+  // Receipts for the pilots (authored coach hints) AND the five (validation). The coach
+  // still needs hints to exist — coachAvailable() checks — so the five get receipts and
+  // the strict engine without a coach button they cannot use.
+  const pilot = PILOT_CASES.includes(caseId) || isValidation(caseId);
+  return { ...base, pilot, coach: (base.coach && PILOT_CASES.includes(caseId)) ? base.coach : null,
+           // Which responders may answer which order (Task 2). Strict for the five, the
+           // behaviour the library was authored against for everything else.
+           matching: (!legacy && isValidation(caseId)) ? 'intent-gated-v1' : 'legacy-any-v1' };
 }
 // Read the run's OWN capabilities, never the current preference. Falls back to the modern
 // set for a run that started before this existed.
@@ -2312,7 +2380,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.gear = gearDefaults(); S.basket = []; _orderMin = true; _palOpen = false;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.basket = []; _orderMin = true; _palOpen = false;
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, goldId: null,
       title: S.caseLabel, diagnosis: S.diagnosis, criticalActions: S.criticalActions});
@@ -2509,13 +2577,13 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     // clause intent. The old filter excluded intent 'assessment', but an
     // unrecognised DRUG falls back as exactly that — so ordering lactulose in a
     // pack with no lactulose responder was dropped from this list and the player
-    // was never told the order did nothing. Older traces without the flag keep the
-    // previous heuristic.
+    // was never told the order did nothing.
+    // THE ENGINE'S OWN ANSWER, ON EVERY ROW. Since trace schema 2 each clause carries an
+    // explicit `unparsed` boolean; the guess that stood in when the key was absent labelled
+    // every generic answer — "reassess patient", "admit" — as not understood.
     const _clauses = ((r._trace && r._trace.clauses) || []);
-    const _hasFlag = _clauses.some(c => 'unparsed' in c);
     const _unmatched = _clauses
-      .filter(c => _hasFlag ? c.unparsed
-                            : (c.fallback && c.intent !== 'history' && c.intent !== 'assessment'))
+      .filter(c => c.unparsed === true)
       // Clause splitting strands connective fragments ("...and drip" -> "drip").
       // The engine owns this list — a local copy here was missing seven of its words, so
       // a stray "gtt" could be called out in the timeline and be absent from the debrief.
@@ -2528,14 +2596,10 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     // here would read the PREVIOUS signature's receipts, because they are written after
     // this turn returns.
     S.orderFeedback = orderFeedbackFromTrace(r._trace);
-    // The dispatcher needs to know what happened to each clause it sent, to write one
-    // receipt per attempted action. Kept on S rather than returned, because progress() is
-    // called from several places that do not want a value.
-    S.lastTrace = r._trace || null;
     S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined});
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(action+' '+(r.narrative||''));                      // hook equipment the orders placed
-    roomAutoState(action);                                           // …and the room props follow the orders too
+    roomAutoState(action, r._trace);                                 // …confirmed actions drive the room props too
     S.vitals = normVitals(r.updatedVitals); S.vBase={...S.vitals};   // re-anchor the drift bound to the model's authoritative values
     S.trend = ['stable','improving','worsening','critical'].includes(r.vitalTrend)?r.vitalTrend:'stable';
     snapVitalsToTurn();   // monitor + telemetry respond THE INSTANT the order lands, in sync with the spoken result — not 10+s behind it
@@ -2568,10 +2632,20 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     if(Array.isArray(r.physicalExam)) S.exam.unshift(...r.physicalExam);
     S.messages.push({role:'assistant', content:r.narrative||'…', rationale:r.clinicalRationale, speech:r.speech, doseFlags:Array.isArray(r.dosingFlags)?r.dosingFlags:[]});
     if(r.isCaseOver){
-      S.stage='debrief'; S.debrief = r.debrief||{}; renderDebrief(); narrate(r.speech, r.narrative);
+      S.stage='debrief'; S.debrief = r.debrief||{};
+      // Every source, unioned — including THIS turn's clauses, which no receipt covers yet
+      // because dispatchOrders appends its receipts only after progress() returns. On a case
+      // that ended on the signing turn, replacing the engine's list with the receipts dropped
+      // the whole last turn from the debrief.
+      S.debrief.unrecognizedOrders = unrecognizedForDebrief(S.debrief.unrecognizedOrders, _unmatched);
+      renderDebrief(); narrate(r.speech, r.narrative);
       if(S.deepModel && !S.usedInstant){ regenerateDebrief(); }   // richer debrief from the deep model, in the background (skip on instant turns — no API)
     }
     else { renderPlay(); narrate(r.speech, r.narrative); }
+    // The dispatcher reads THIS turn's trace off the return value, never off a field on S.
+    // Parking it on S let a second signature that resolved while this one was in flight
+    // overwrite it, and the receipts were then written from the wrong turn's clauses.
+    return r;
   }catch(e){
     if(e.name==='AbortError'){ S.messages.pop(); renderPlay(); }   // cancelled: drop the un-answered order
     else showError(e.message);
@@ -2597,7 +2671,16 @@ CRITICAL ACTIONS CHECKLIST: ${S.criticalActions.join('; ')}
 FULL TRANSCRIPT:
 ${transcript}`;
     const d = await callModelJSON([{role:'system',content:sys},{role:'user',content:usr}], {deep:true});
-    if(S.stage==='debrief' && d && typeof d==='object'){ S.debrief = d; renderDebrief(); }
+    // The deep model regrades the CLINICAL debrief; it never saw which orders the sim failed
+    // to parse. Replacing S.debrief wholesale dropped that list off the page the learner is
+    // already reading, so it is carried across from the same one definition.
+    if(S.stage==='debrief' && d && typeof d==='object'){
+      d.unrecognizedOrders = unrecognizedForDebrief(
+        (S.debrief && S.debrief.unrecognizedOrders) || d.unrecognizedOrders, null);
+      if(S.debrief && S.debrief.unrecognizedOrdersDropped != null && d.unrecognizedOrdersDropped == null)
+        d.unrecognizedOrdersDropped = S.debrief.unrecognizedOrdersDropped;
+      S.debrief = d; renderDebrief();
+    }
   }catch(_){ const e=$('debriefDeep'); if(e) e.innerHTML=''; }
 }
 
@@ -3832,10 +3915,11 @@ function goldTag(c){
 // is because there are limited options for treatment — if there are too many open options
 // the algorithm has too many points of failure and misunderstandings."
 //
-// So the library leads with the six cases that ARE the adult algorithm, in the order the
-// algorithm walks: shockable arrest, then the two non-shockable rhythms, then the
-// peri-arrest bradycardia and the two tachycardias. Each is a live-code case with a small,
-// closed set of right answers, which is exactly the property that makes them hold up.
+// So the library leads with the five cases being proven (VALIDATION_CASES), then the rest
+// of the adult algorithm, in the order the algorithm walks: shockable arrest, then the two
+// non-shockable rhythms, then the peri-arrest bradycardia and the two tachycardias. Each is
+// a live-code case with a small, closed set of right answers, which is exactly the property
+// that makes them hold up.
 // FEATURED is the one that has been played and reported on most, and it opens the page.
 const FEATURED_CASE = 'resus-acls-vf';
 const ACLS_ORDER = ['resus-acls-vf', 'resus-acls-pea-tension', 'resus-acls-asystole-opioid',
@@ -4150,6 +4234,53 @@ function endCode(kind){
 // action is visible as unmigrated rather than silently indistinguishable.
 let _dispatchInFlight = false;
 const _batches = (typeof OrderDispatch !== 'undefined') ? OrderDispatch.freezer() : null;
+// The status of one intent, from the trace rows it produced. An intent that split into
+// several clauses is understood if ANY of them was, blocked if any waits on a prerequisite,
+// and credited with the union of what its clauses credited. Pure, so it is tested alone.
+function statusFromRows(rows){
+  // Every branch returns an `evidence` array. A caller that reads `.evidence.length` on the
+  // one branch that omitted it crashed rather than reporting the empty case it was handed.
+  if(!rows || !rows.length) return { status: 'unsupported', reasonCode: 'no-clause', evidence: [] };
+  const evidence = rows.map(c => 'clause:' + c.text);
+  if(rows.every(c => c.unparsed === true)) return { status: 'unsupported', reasonCode: 'not-understood', evidence };
+  if(rows.some(c => c.gateBlocked)) return { status: 'blocked', reasonCode: 'prerequisite-unmet', evidence };
+  const objectiveIds = [].concat(...rows.map(c => Array.isArray(c.satisfies) ? c.satisfies.map(String) : []));
+  const generic = rows.every(c => c.fallback);
+  // THE HONEST MIXED CASE. Splitting a typed line (see splitTextIntents) means most orders
+  // now arrive one row at a time, but a catalog chip whose canonical text the engine splits
+  // can still own several rows — and when one of those rows was never understood, saying
+  // "Performed." for the whole order hides the half that did nothing at all.
+  const missed = rows.filter(c => c.unparsed === true).map(c => c.text);
+  return { status: 'performed',
+           reasonCode: missed.length ? 'partly-understood' : (generic ? 'generic-fallback' : null),
+           objectiveIds, evidence };
+}
+// Which trace rows belong to which intent. The engine splits the JOINED line, so the k-th
+// intent owns a known run of rows — but only if the spans were computed the way the engine
+// computes them. One intent owns the whole turn whatever the engine did to the text, because
+// progress() was handed that intent's text and nothing else. Pure, so it is tested alone.
+function rowsForIntents(clauses, spans){
+  if(spans.length === 1) return [clauses.slice()];
+  const total = spans.reduce((a, b) => a + b, 0);
+  if(clauses.length !== total) return null;      // a seam merged two intents: caller falls back
+  let at = 0;
+  return spans.map(n => clauses.slice(at, at += n));
+}
+// A TYPED LINE IS AS MANY ORDERS AS IT NAMES. A basket chip is one order and keeps the
+// identity the learner picked from the typeahead. Free text signed beside it can be three,
+// and one receipt covering all three reported "Performed." for "order a cbc and xyzzy the
+// frobnicator" — the half the sim never understood folded inside the half it did. A
+// catalog-bound intent is never split; a text intent is split the way the engine splits it.
+// Pure, so it is tested alone.
+function splitTextIntents(list, OI, catalog){
+  if(!OI) return list;
+  return [].concat(...list.map(i => {
+    if(i.catalogId) return [i];
+    const cs = InstantEngine.rejoinStrandedFragments(
+      InstantEngine.splitClauses(InstantEngine.normalize(i.rawText || i.orderText)), catalog);
+    return cs.length < 2 ? [i] : cs.map(c => OI.fromText(c, null, c));
+  }));
+}
 async function dispatchOrders(action, label, intents){
   // A DOUBLE-TAP ON SIGN PERFORMS ONCE. progress() guards itself with S.loading, but a
   // code-engine order does not go through progress at all, so a second tap could fire a
@@ -4163,6 +4294,12 @@ async function dispatchOrders(action, label, intents){
     // One intent per thing the learner asked for. A signed basket supplies them; anything
     // else is adapted from its clauses and marked source 'text'.
     let list = Array.isArray(intents) ? intents.filter(Boolean) : [];
+    // Free text signed from the basket arrives as ONE intent however many orders it names.
+    // Split it here, on the intents path, exactly the way the engine will split it — a
+    // catalog chip is left alone so it keeps the identity the learner picked. A
+    // single-clause line is returned untouched, so its raw wording still reaches the turn.
+    const catalogForSplit = await loadOrderCatalog();
+    list = splitTextIntents(list, OI, catalogForSplit);
     if(!list.length && OI)
       // A ONE-ORDER LINE IS UNTOUCHED. splitClauses returns NORMALIZED clauses, so
       // adapting a single-clause line from them would hand the turn engine lowercased,
@@ -4181,6 +4318,12 @@ async function dispatchOrders(action, label, intents){
       return false;
     }
     let tookAny = false;
+    // WHEN THE LEARNER SIGNED IT. A receipt's `simTime` is how much clock the turn COST —
+    // a delta, and flatly 0 for a code order, because during a code the ticker owns time.
+    // Printing that as "T+n min" would date every shock to minute zero and every lab to
+    // the length of the wait. The minute is read here, before the turn advances the clock,
+    // and stamped on the receipts below, so the debrief can say when the order was given.
+    const signedAtMin = S.simMin;
     const res = await OD.run(list, {
       codeAnswers: () => codeAnswers(),
       // The code engine claims an action by its ORDER TEXT, as it always has. A known ID
@@ -4190,29 +4333,42 @@ async function dispatchOrders(action, label, intents){
                                    list.length === 1 ? (label || intent.label) : intent.label);
         if(!took) return null;
         tookAny = true;
-        return { ok: true, evidence: ['code:' + (intent.actionId || intent.rawText)] };
+        return took;   // { ok, reasonCode, evidence, objectiveIds } — never fabricated here
       },
       // Everything else, as ONE turn, then read back per action from that turn's trace.
       runNarrative: async (forTurn) => {
+        // ONE CLAUSE LIST, MAPPED BY POSITION. Each intent is split exactly as the engine
+        // will split it, so the k-th intent owns a known run of trace rows. Binding by
+        // substring was how "cbc" claimed the row for "order a cbc and a cmp".
+        //
+        // The engine's own pipeline, not an approximation of it: normalize, split, and put a
+        // stranded fragment back beside its noun. That last step is why "transfusion, massive"
+        // arrives as ONE row reading "massive transfusion" — reordered — which no comparison
+        // against the text the learner typed can ever match. Without it the span said 2, the
+        // count check failed, the exact-text fallback found nothing, and an order that had
+        // just credited a critical action was reported as 'no-clause'.
+        const spans = forTurn.map(i => Math.max(1, InstantEngine.rejoinStrandedFragments(
+          InstantEngine.splitClauses(InstantEngine.normalize(i.orderText || i.rawText)), catalogForSplit).length));
         const text = forTurn.map(i => i.orderText || i.rawText).join('; ');
         const before = S.simMin;
-        await progress(text, forTurn.length === list.length ? label : undefined);
-        const cl = ((S.lastTrace && S.lastTrace.clauses) || []);
+        const r = await progress(text, forTurn.length === list.length ? label : undefined);
+        const cl = ((r && r._trace && r._trace.clauses) || []);
         const perAction = {};
-        for(const intent of forTurn){
+        const mapped = rowsForIntents(cl, spans);
+        for(let k = 0; k < forTurn.length; k++){
+          const intent = forTurn[k];
+          // Only when a seam still merged two intents: exact normalised text, never a
+          // substring, and 'no-clause' if nothing matches.
           const want = InstantEngine.normalize(intent.orderText || intent.rawText);
-          const row = cl.find(c => want && (c.text === want || want.includes(c.text) || c.text.includes(want)));
-          perAction[intent.actionId] = !row ? { status: 'unsupported', reasonCode: 'no-clause' }
-            : row.unparsed   ? { status: 'unsupported', reasonCode: 'not-understood' }
-            : row.gateBlocked ? { status: 'blocked', reasonCode: 'prerequisite-unmet' }
-            : { status: 'performed',
-                objectiveIds: Array.isArray(row.satisfies) ? row.satisfies.map(String) : [],
-                evidence: ['clause:' + row.text] };
+          perAction[intent.actionId] = statusFromRows(mapped ? mapped[k] : cl.filter(c => c.text === want));
         }
         return { perAction, simTime: Math.max(0, S.simMin - before) };
       },
     });
     if(_batches) _batches.freeze(res.batchId);
+    // The signing minute, on every receipt in the batch. Not inside makeReceipt: the
+    // boundary is handed adapters, not the app's clock, and it has no business reading one.
+    for(const r of (res.receipts || [])) r.simMin = signedAtMin;
     // Kept for Task 7 to render and Task 5 to grade from. Bounded so a long case cannot
     // grow this without limit.
     S.receipts = (S.receipts || []).concat(res.receipts).slice(-300);
@@ -4222,6 +4378,11 @@ async function dispatchOrders(action, label, intents){
     // for the debrief to grade from later. Published regardless of logging consent — this
     // is local state the learner is about to read, not telemetry. Nothing is uploaded.
     S.lastReceipts = res.receipts;
+    // THE TIMELINE ROW IS A TURN; A RECEIPT IS AN ORDER. progress() already stamps the row
+    // from the very `unparsed` flag this task unified, with the fragment filter applied, so
+    // rewriting it per order here could only ever subtract: a receipt covering several
+    // clauses erased the row's list with `undefined`, and the "not understood" half of a
+    // mixed order vanished from the timeline the learner reads. progress() owns the row.
     // Two different things, and they get two different rules. The line above is LOCAL
     // state the learner is about to read on their own screen — never gated, never sent.
     // This is the copy that would ride along on a shared run record, and it is gated on
@@ -4236,18 +4397,29 @@ async function dispatchOrders(action, label, intents){
     return tookAny;
   } finally { _dispatchInFlight = false; }
 }
-// One code order: applied synchronously, credited, drawn. Returns false when the code
-// engine does not recognise it, so the caller falls through to the turn engine.
+// One code order: applied synchronously, credited, drawn. Returns false when the code engine
+// does not recognise it, so the caller falls through to the turn engine — otherwise the
+// OUTCOME (see codeOutcome), which is truthy, so every `if(fireCodeOrder(...))` still reads.
 function fireCodeOrder(text, label){
   const wasEnded = !!(S.code && S.code.ended);   // BEFORE the engine acts — see below
+  // WHAT THE ENGINE DID, NOT WHETHER IT ANSWERED. handled:true covers "shock delivered",
+  // "shock refused — she has a pulse" and "delivered at a flagged energy" alike, and the
+  // receipt used to be written from that one bit, so a refusal was filed as performed.
+  const before = codeSnapshot(S.code);
   const r = CodeEngine.act(S.code, S.codeScript, text,
     Math.max(0, ((S.simMin || 0) - (S.codeStartMin || 0)) * 60));
   if(!r || !r.handled) return false;
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
+  const outcome = codeOutcome(before, S.code, r);
+  // A flagged shock or dose still happened, but it earns nothing (§31 of Round 6) — the
+  // engine already returns no credit for it; a refusal returns none either. Credit what the
+  // engine credited, which is nothing in both of those cases.
   codeCredit(r.credits);
   const roscHandoffDone = wasEnded;
-  if(/\b(shock|defib|cardiovert)/i.test(text)) roomDefib();
+  // Only a shock that actually went in flashes the trolley. A refusal ("she has a pulse")
+  // must not animate a defibrillation the team never delivered.
+  if(outcome.ok && /\b(shock|defib|cardiovert)/i.test(text)) roomDefib();
   onCodeEvents(r.events);
   // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
   // point — the code's state IS the monitor. After it, the turn engine owns them, so a
@@ -4259,7 +4431,52 @@ function fireCodeOrder(text, label){
   // appears on the same beat as the dashboard's CPR ON/OFF chip.
   paintRoom();
   renderChat();
-  return true;
+  return outcome;
+}
+// The code record as the receipt sees it, sampled either side of one act() call. The engine
+// builds its OWN `before` inside act() (code-engine.js) over a different field set, and the two
+// should become one snapshot when the engine next grows a field — two lists to remember is how
+// one of them ends up missing the field that matters.
+function codeSnapshot(code){
+  return { shocks: code.shocks.length, drugs: code.drugs.length, airway: code.airway, cpr: code.cpr,
+           access: !!(code.ivAccess || code.io), causes: code.causesTreated.length,
+           pacing: !!code.flags.pacing, vagal: !!code.flags.vagal, capno: !!code.capnography,
+           checks: code.checksDone || 0 };
+}
+// The receipt's view of one code order: (record before, record after, engine reply) →
+// { ok, reasonCode, reasonText, evidence, objectiveIds }. Pure, so it can be tested on its own.
+//   refused  — the engine spoke only to withhold, and nothing in the record changed
+//   flagged  — a shock or drug WAS recorded, and the engine marked it ok:false
+//   null     — performed as ordered
+//
+// BOTH HALVES OF THE REFUSAL GATE CARRY WEIGHT, but not equally. `every(withheld)` is the
+// working half: drop it and ordering compressions a second time reads REFUSED on the receipt
+// while the nurse says "Compressions running" — a repeat is a no-op, not a refusal, and there
+// is a test for that. `!changed` is a belt for a branch the engine does not have today: no
+// path both mutates the record and speaks only in withheld events. It stays because the field
+// list here is not the engine's, and the snapshot is already incomplete — `state.flags.ppv`
+// (set by "hold ventilations", event kind `airway`) is not sampled. When the engine grows a
+// branch that withholds while it writes, ppv is the shape of the field this will miss.
+function codeOutcome(before, code, r){
+  const events = r.events || [];
+  const lastShock = code.shocks.length > before.shocks ? code.shocks[code.shocks.length - 1] : null;
+  const lastDrug  = code.drugs.length  > before.drugs  ? code.drugs[code.drugs.length - 1]  : null;
+  const changed = !!(lastShock || lastDrug || code.airway !== before.airway || code.cpr !== before.cpr
+    || !!(code.ivAccess || code.io) !== before.access || code.causesTreated.length > before.causes
+    || !!code.flags.pacing !== before.pacing || !!code.flags.vagal !== before.vagal
+    || !!code.capnography !== before.capno || (code.checksDone || 0) > before.checks);
+  const evidence = events.map(e => e.kind + ':' + e.text);
+  const objectiveIds = (r.credits || []).map(String);
+  if(!changed && events.length && events.every(e => e.kind === 'withheld'))
+    return { ok: false, reasonCode: 'refused', evidence, objectiveIds: [] };
+  if((lastShock && lastShock.ok === false) || (lastDrug && lastDrug.ok === false))
+    // WHY IT WAS FLAGGED, IN THE ENGINE'S WORDS. The engine wrote its reason onto the record
+    // it just pushed; the receipt reads it back rather than naming a rule of its own. A
+    // learner who pushed amiodarone into asystole was being told the dose was out of band.
+    return { ok: true, reasonCode: 'flagged',
+             reasonText: (lastShock && lastShock.note) || (lastDrug && lastDrug.note) || '',
+             evidence, objectiveIds };
+  return { ok: true, reasonCode: null, evidence, objectiveIds };
 }
 
 // The code strip: the numbers a resuscitation lead keeps in their head, on the screen.
@@ -4575,21 +4792,39 @@ document.addEventListener('click', e => {
 });
 // The room's defibrillator prop: charge whine, then the flash, as the rhythm changes.
 function roomDefib(){
-  try{ const st = roomState(); st.defib='charging'; paintRoom(); defibCharge();
-    setTimeout(()=>{ st.defib='shock'; paintRoom(); defibShock();
-      setTimeout(()=>{ st.defib='pads'; paintRoom(); }, 700); }, 500);
-  }catch(_){ }
+  try{ startRoomDefibSequence(500); }catch(_){ }
 }
 
+// ONE DEFINITION, EVERY SOURCE. `unparsed === true` is the flag. The engine's own list carries
+// it across the run, deduped and capped; the receipts carry the learner's wording; and THIS
+// turn's clauses are in neither yet, because dispatchOrders appends its receipts after
+// progress() returns. Union, never a replacement: a replacement dropped an order the engine had
+// listed whenever it shared an intent with one that was understood, and on a case that ended on
+// the signing turn it dropped the whole last turn. Dedupe is by lowercased text, so the
+// learner's wording and the engine's clause can both appear for one order.
+function unrecognizedForDebrief(fromEngine, thisTurn){
+  const seen = new Set(), out = [];
+  const add = t => { const k = String(t || '').trim().toLowerCase();
+                     if(k && !seen.has(k)){ seen.add(k); out.push(String(t).trim()); } };
+  (fromEngine || []).forEach(add);
+  (S.receipts || []).filter(x => x.status === 'unsupported' && x.reasonCode === 'not-understood')
+                    .forEach(x => add(x.rawText));
+  (thisTurn || []).forEach(add);
+  return out;
+}
 // The debrief for a code that ended in the code engine rather than a pack responder.
 function buildCodeDebrief(outcome){
   const packs = _offline || {};
   const pack = (S.goldId && packs[S.goldId]) || null;
   try{
-    return InstantEngine.buildDebrief(pack, S.instantState || {flags:{},satisfied:[],stagesFired:[],dosing:0},
+    const d = InstantEngine.buildDebrief(pack, S.instantState || {flags:{},satisfied:[],stagesFired:[],dosing:0},
       {vitals:S.vitals, simMin:S.simMin, criticalActions:S.criticalActions,
        learningPoints:S.learningPoints, difficulty:S.difficulty,
        code:{metrics:CodeEngine.summary(S.code, S.codeScript), events:S.code.events}}, outcome);
+    // The engine's list and the receipts are two views of the same flag — union them rather
+    // than letting either one silently delete the other's entries.
+    d.unrecognizedOrders = unrecognizedForDebrief(d.unrecognizedOrders, null);
+    return d;
   }catch(e){ return {outcome:'The patient died in the ED.', score:0, summary:''}; }
 }
 
@@ -4662,6 +4897,10 @@ async function instantTurn(action){
      // nothing anywhere: shipping it to the collector is separately gated by loggingOn()
      // at the RUNLOG.turn call below.
      trend: S.trend, trace: true, seed: S.runSeed,
+     // Which matching this run asked for (Task 2 reads it). Pinned to the run's own caps,
+     // not the current preference, so a run that started before this shipped keeps behaving
+     // the way it did when the player started it.
+     strictIntent: runCaps().matching === 'intent-gated-v1',
      // Carry the code through every later turn: the case usually ENDS on a disposition
      // long after ROSC, and that is where buildDebrief runs. Without this the timeline
      // and the code-quality score would exist only for a code that ended in death.
@@ -5077,7 +5316,10 @@ function currentFragment(text){
   const parts = s.split(/,|;|\n|\band\b|\bthen\b|\bplus\b|\balso\b/i);
   return parts[parts.length-1].replace(/ & /gi,' and ').trimStart();
 }
-const CATEGORY_LABEL = {lab:'LAB', imaging:'IMG', med:'MED', procedure:'PROC', consult:'CONSULT', assessment:'DX'};
+// A WORD, NOT A TAG. "MED" and "LAB" at 9px told nobody anything on a phone; Kim: "Magnesium —
+// medication" and "Magnesium — blood test" must be distinguishable without another screen.
+const CATEGORY_LABEL = {lab:'lab test', imaging:'imaging', med:'medication', procedure:'procedure',
+                        consult:'consult', assessment:'diagnosis', disposition:'disposition'};
 let _taMatches=[], _taIdx=-1;
 // THE COMPOSER'S SECOND STAGE. Kim: "I want the orderset as deterministic as possible —
 // there are too many points of failure." Picking a drug used to basket its bare NAME and
@@ -5153,11 +5395,22 @@ function renderDosePicker(entry){
 }
 function paintDoseHighlight(){
   const el = $('typeahead'); if(!el) return;
+  let sel = null;
   el.querySelectorAll('[data-dose]').forEach(r => {
     const on = +r.dataset.dose === _taDoseIdx;
+    if(on) sel = r;
     r.className = 'ta-dose flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ' +
       (on ? 'bg-emerald-900/40 text-emerald-100' : 'text-slate-200 hover:bg-slate-800');
   });
+  scrollHighlightIntoView(sel);
+}
+// THE HIGHLIGHT HAS TO BE SOMEWHERE YOU CAN SEE IT. The phone list is capped and scrolls
+// inside itself, so on a query with eight matches the arrow keys walked the highlight
+// straight off the bottom of the box: the player pressed Down, saw nothing move, and
+// pressed Enter on a dose they had never read. 'nearest' scrolls only when the row is
+// actually outside — a highlight already on screen does not shove the list around.
+function scrollHighlightIntoView(sel){
+  if(sel && sel.scrollIntoView) sel.scrollIntoView({ block:'nearest' });
 }
 function takeDose(i){
   const cmd = $('cmd'); const entry = _taEntry, d = (_taDoses||[])[i];
@@ -5179,7 +5432,7 @@ function renderTypeahead(matches){
   el.innerHTML = matches.map((m,i)=>
     `<div data-ta="${i}" class="ta-row flex items-center justify-between gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
        <span>${esc(m.label)}</span>
-       <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 shrink-0">${CATEGORY_LABEL[m.category]||''}</span>
+       <span class="text-[11px] font-bold text-slate-400 shrink-0">${CATEGORY_LABEL[m.category]||''}</span>
      </div>`).join('');
   el.classList.remove('hidden');
   document.body.classList.add('taOpen');
@@ -5189,7 +5442,10 @@ function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hid
   document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; _taEntry=null; _taDoses=null; }
 function paintTaHighlight(){
   const el=$('typeahead'); if(!el) return;
-  el.querySelectorAll('.ta-row').forEach((row,i)=>row.classList.toggle('bg-slate-800', i===_taIdx));
+  let sel=null;
+  el.querySelectorAll('.ta-row').forEach((row,i)=>{ const on = i===_taIdx;
+    if(on) sel=row; row.classList.toggle('bg-slate-800', on); });
+  scrollHighlightIntoView(sel);
 }
 // Tab: inline completion, for someone building one long phrase ("cbc, cmp, lactate").
 function acceptTypeahead(i){
@@ -5287,19 +5543,27 @@ async function initGold(){
   if(useInstant()) await loadOfflinePacks();   // the row badge needs to know which cases have packs
   const ready = id => !!(_offline && _offline[id]);
   sec.classList.remove('hidden'); if($('goldCount')) $('goldCount').textContent=all.length;
-  // Every case carries a written pack, so a per-row "instant" badge would say the same
-  // thing 155 times. Only the two rows that differ get a chip: your own saved cases, and
-  // any case without a pack.
+  // Every non-user row now carries the experimental chip unless it is one of the five, and
+  // live-code cases carry their course tag beside it.
+  // One chip, one place to change its shape. Tone is the colour family; the title is the
+  // sentence a hover explains it with.
+  const chipHTML = (text, tone, title) =>
+    `<span class="text-[9px] font-black uppercase tracking-wider shrink-0 px-1.5 py-0.5 rounded border ${tone}"${title ? ` title="${esc(title)}"` : ''}>${esc(text)}</span>`;
   const rowHTML=(c, teaches)=>{
     const idx=all.indexOf(c);
     const tag = goldTag(c);
-    const chip = c._user ? '<span class="text-[9px] text-slate-500 uppercase tracking-wider shrink-0">yours</span>'
-      : tag ? `<span class="text-[9px] font-black uppercase tracking-wider shrink-0 px-1.5 py-0.5 rounded border border-rose-500/50 bg-rose-500/10 text-rose-300" title="Live code case — runs in real time">${tag}</span>`
-      : (useInstant() && _offline && !ready(c.id))
-        ? '<span class="text-[9px] text-slate-600 uppercase tracking-wider shrink-0" title="Plays with generic results; no written pack for this one">lite</span>'
-        : '';
+    const chips = [];
+    // Honest labelling: only the five have been proven end to end. Everything else — a
+    // written pack or not — is experimental, and says so.
+    if(!c._user && !isValidation(c.id))
+      chips.push(chipHTML('experimental', 'border-amber-500/40 bg-amber-500/10 text-amber-300',
+        (useInstant() && _offline && !ready(c.id))
+          ? 'Playable with generic results — no written pack, and the grading has not been verified'
+          : 'Playable, but the grading has not been verified yet'));
+    if(tag) chips.push(chipHTML(tag, 'border-rose-500/50 bg-rose-500/10 text-rose-300', 'Live code case — runs in real time'));
+    const chip = c._user ? '<span class="text-[9px] text-slate-500 uppercase tracking-wider shrink-0">yours</span>' : chips.join('');
     return `<button data-gold="${idx}" class="goldItem w-full text-left px-3 py-2.5 hover:bg-emerald-900/20 transition">
-      <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-emerald-300 truncate">${esc(c.title||c.diagnosis||'Case')}</span>${chip}</div>
+      <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-emerald-300 truncate">${esc(c.title||c.diagnosis||'Case')}</span><span class="flex gap-1 shrink-0">${chip}</span></div>
       <div class="text-[10px] truncate mt-0.5 ${teaches ? 'text-rose-300/70' : 'text-slate-500'}">${esc(teaches || c.chiefComplaint || '')}</div></button>`;
   };
   const paint=q=>{
@@ -5318,20 +5582,23 @@ async function initGold(){
     // system chip narrows it, one flat list reads better.
     let html;
     if(!q && !_goldCat){
-      // The algorithm first, in its own order — not alphabetical and not by system, because
-      // the point of the group is the sequence of decisions, not the organ.
-      const acls = ACLS_ORDER.map(id => hits.find(c => c.id === id)).filter(Boolean);
-      const rest = hits.filter(c => !isAcls(c));
+      // The five first, in Kim's order; then the rest of the adult algorithm; then everything
+      // else under the label it has earned so far.
+      const five = VALIDATION_CASES.map(id => hits.find(c => c.id === id)).filter(Boolean);
+      const acls = ACLS_ORDER.filter(id => !isValidation(id)).map(id => hits.find(c => c.id === id)).filter(Boolean);
+      const rest = hits.filter(c => !isValidation(c.id) && !isAcls(c));
       const groups={}; rest.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
       const head = (text, n, tone) =>
         `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest ${tone}">${esc(text)} <span class="text-slate-700">${n}</span></div>`;
-      html = (acls.length ? head('ACLS \u2014 the adult algorithm', acls.length, 'text-rose-300')
+      html = (five.length ? head('The five being proven \u2014 ' + five.map(goldTag).join(' \u00b7 '), five.length, 'text-emerald-300')
+              + five.map(c => rowHTML(c, ACLS_TEACHES[c.id])).join('') : '')
+        + (acls.length ? head('ACLS \u2014 the rest of the adult algorithm', acls.length, 'text-rose-300')
               + acls.map(c => rowHTML(c, ACLS_TEACHES[c.id])).join('') : '')
         // Everything else is honestly labelled. These cases are written and mechanically
-        // validated, but they have not had the play and the repair the six above have had,
-        // and saying so is better than letting a learner find out in the middle of one.
-        + (rest.length ? head('Beta \u2014 the rest of the library', rest.length, 'text-slate-500')
-             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-600 border-b border-slate-800/60">Written and mechanically validated, but far less played than the six above. Expect rougher edges.</p>'
+        // validated, but they have not been through the same proof as the five above, and
+        // saying so is better than letting a learner find out in the middle of one.
+        + (rest.length ? head('Experimental \u2014 the rest of the library', rest.length, 'text-amber-300')
+             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-500 border-b border-slate-800/60">Playable and mechanically checked, but the grading has not been verified the way the five above are being verified. A score here is a rough guide.</p>'
              + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
                  head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('')
            : '');
@@ -5424,7 +5691,7 @@ async function loadGoldCase(seed, opts){
   S.goldId = seed.id || null; S.instantState = null;   // fresh Instant-Mode pack + state for this case
   S.generatedPack = S.goldId ? null : InstantEngine.buildGeneratedPack(S.criticalActions,
     {catalog: await loadOrderCatalog()});
-  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.chartSeen=0;
+  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.receipts = []; S.lastReceipts = null; S.chartSeen=0;
   if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
     model: useInstant()?null:S.model, difficulty: S.difficulty, goldId: S.goldId,
     title: S.blind ? 'Blind case' : S.caseLabel, blind: S.blind,
@@ -5435,7 +5702,8 @@ async function loadGoldCase(seed, opts){
   S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
   S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
   startCoachSession();
-  S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
+  try{ resetRoomActionTimers(); }catch(_){ }
+  S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
@@ -6352,10 +6620,11 @@ function basketPlan(items, typed){
   if(t && !list.some(o=>o.text.toLowerCase()===t.toLowerCase())) list.push({label:t, text:t});
   if(!list.length) return null;
   return {
-    // The identities, in the same order as the clauses they produced. Task 4 gives each
-    // one a receipt; until then this is carried and unused, which is deliberate — the
-    // plan asks for one bounded change at a time.
-    intents: list.map(o => o.intent || null),
+    // The identities, in the same order as the clauses they produced, one per item.
+    // Every item has an identity. A typed line that was never bound gets a text intent here
+    // rather than a null — dispatchOrders filters falsy entries, and a null was how a basket
+    // signed with typed text arrived one order short.
+    intents: list.map(o => o.intent || (root_OrderIntents() ? root_OrderIntents().fromText(o.text, null, o.label) : null)),
     // '; ' is a clause separator the engine already splits on, so a signed basket is
     // ONE turn costing the slowest order's minutes — not the sum. That is the point.
     action: list.map(o=>o.text).join('; '),
@@ -6479,14 +6748,35 @@ const RECEIPT_NOTE = {
   unsupported: 'Not understood — nothing was done.',
   failed:      'Something went wrong performing this — it was not done.',
 };
+// The reason, when there is one, says more than the status. These are the three
+// distinctions Kim asked for: understood / performed / earned are different things.
+const REASON_NOTE = {
+  refused:            'Refused — the team said why. Nothing was done.',
+  // Deliberately says NOTHING clinical. The engine flags for at least six different rules, and
+  // this line only shows when the engine gave no sentence of its own — see reasonText below.
+  flagged:            'Performed, but flagged — the team recorded a problem with it. No credit.',
+  'generic-fallback': 'Done in general terms — this case has no specific answer for it, so it earns no objective.',
+  'not-understood':   'Not understood — nothing was done.',
+  // One order, several clauses, and the sim understood only some of them. Saying plain
+  // "Performed." here folded the half that did nothing inside the half that worked.
+  'partly-understood':'Done, but one part of this order was not understood — that part had no effect.',
+  'no-clause':        'Could not be matched to a result — report this.',
+};
+// `flagged` gets its own kind. It used to share `unmapped` with generic-fallback, which put
+// "performed, but this case has no specific answer for it" and "you did the wrong thing to the
+// patient" in the same amber row — the second is the one the learner has to notice.
+const REASON_KIND = { refused:'blocked', flagged:'flagged', 'generic-fallback':'unmapped',
+                      'partly-understood':'unmapped' };
 const RECEIPT_KIND = { performed:'performed', pending:'performed', blocked:'blocked',
                        unsupported:'unparsed', failed:'unparsed' };
 function orderFeedbackFromReceipts(receipts){
   return (receipts || []).map(r => ({
     text: r.interpretedLabel || r.rawText,
-    kind: RECEIPT_KIND[r.status] || 'performed',
-    note: RECEIPT_NOTE[r.status] || 'Performed.',
-    // credit is the debrief's to explain, not a hot/cold detector during the run
+    kind: REASON_KIND[r.reasonCode] || RECEIPT_KIND[r.status] || 'performed',
+    // The engine's own sentence when it wrote one, so the receipt names the rule the learner
+    // actually broke instead of the one this file happened to hardcode.
+    note: r.reasonText ? 'Performed, but flagged — ' + r.reasonText + ' No credit.'
+                       : (REASON_NOTE[r.reasonCode] || RECEIPT_NOTE[r.status] || 'Performed.'),
     receiptId: r.actionId, status: r.status, reasonCode: r.reasonCode || null,
   }));
 }
@@ -6507,8 +6797,11 @@ function renderOrderFeedback(){
   if(!rows.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
   const style={credited:'border-emerald-500/25 text-emerald-300', performed:'border-slate-700 text-slate-300',
                unmapped:'border-amber-500/35 text-amber-200', unparsed:'border-rose-500/40 text-rose-200',
-               blocked:'border-amber-500/35 text-amber-200'};
-  const mark={credited:'✓',performed:'•',unmapped:'!',unparsed:'!',blocked:'!'};
+               blocked:'border-amber-500/35 text-amber-200',
+               // Rose, like unparsed: a flagged order reached the patient and was wrong, which
+               // is the loudest thing on this list — amber reads as "did not count".
+               flagged:'border-rose-500/40 text-rose-200'};
+  const mark={credited:'✓',performed:'•',unmapped:'!',unparsed:'!',blocked:'!',flagged:'!'};
   el.innerHTML=`<div class="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 space-y-1.5">
     <div class="text-[9px] font-black uppercase tracking-widest text-slate-500">Latest order feedback</div>
     ${rows.map(r=>`<div class="flex gap-2 items-baseline text-[11px] ${style[r.kind]||style.performed}"><span class="font-black">${mark[r.kind]||'•'}</span><span class="mono text-slate-200">${esc(r.text)}</span><span class="text-slate-500">— ${esc(r.note)}</span></div>`).join('')}
@@ -6670,7 +6963,14 @@ function renderPlay(){
              which is the only thing that keeps the order input reachable there, and
              #obInputRow is what the dock measurement and the #obToggleRow pin above it
              are expressed against. It must also stay the sole direct child of #orderBar
-             carrying items-end. -->
+             carrying items-end.
+             Two more couplings the phone rules read off this markup:
+             the textarea's wrapper KEEPS class="relative" — "#obInputRow > div.relative"
+             is the selector that gives the order box a line of its own, and a wrapper
+             renamed to anything else puts the box back on the button row at 58px wide;
+             and in a suggestion row the label MUST stay the FIRST <span>, because
+             "#typeahead .ta-row > span:first-child" is what ellipsises a long drug name
+             instead of letting it push the category word off the screen. -->
         <div id="obInputRow" class="flex items-end gap-2">
           <div class="relative flex-1">
             <div id="typeahead" class="hidden absolute bottom-full left-0 right-0 mb-1.5 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl z-20"></div>
@@ -6734,7 +7034,7 @@ function renderPlay(){
     if(codeAnswers()){
       cmd.value=''; cmd.style.height='auto';
       basketClear();
-      await dispatchOrders(t, plan.label);
+      await dispatchOrders(t, plan.label, plan.intents);
       return;
     }
     const catalog = await loadOrderCatalog();
@@ -6757,7 +7057,13 @@ function renderPlay(){
           // The bump exists for pack-authored orders the global catalog lacks. It must
           // never rescue a clause the resolver capped for carrying unexplained words —
           // that cap is what stands between a garbled order and a wrong procedure.
-          if((r.tier==='medium'||r.tier==='none') && r.caseMatch && !(r.leftover >= 2)) r.tier='high';
+          // A ROW THAT ASKS IS NEVER BUMPED. The pack knowing the word is not the same as
+          // knowing which of two things the learner meant: a bare dual-use name ("mag", "k")
+          // ships leftover:0 — the clause IS the name, nothing unexplained — so the leftover
+          // cap could not hold it, caseMatch was true because the pack does answer magnesium,
+          // and the row went straight back to high. The readback never reached the learner and
+          // the app guessed the level, which is the whole defect the ask was added to fix.
+          if((r.tier==='medium'||r.tier==='none') && r.caseMatch && !(r.leftover >= 2) && !r.ask) r.tier='high';
         }
       }
       // The basket survives an unconfirmed readback — declining must not silently bin
@@ -6777,13 +7083,11 @@ function renderPlay(){
     // pilots first rather than everywhere at once. Every other case keeps exactly today's
     // path, and a run started under the rollback keeps it too.
     //
-    // plan.intents is NOT forwarded, deliberately. It is one entry per basket item and
-    // carries null for anything typed free-hand, while dispatchOrders filters falsy
-    // entries — so a basket signed together with typed text would arrive one order short.
-    // Letting dispatchOrders derive an intent per clause is the path a code case already
-    // takes; carrying known IDs through a mixed signature is its own change.
+    // plan.intents rides along: every item now carries an identity (basketPlan fills a text
+    // intent in for anything typed free-hand), so the catalog ID the learner picked from the
+    // typeahead survives signing instead of being re-derived from the joined clause text.
     basketClear();
-    if(runCaps().dispatch === 'receipts-v1' && runCaps().pilot){ await dispatchOrders(t, plan.label); return; }
+    if(runCaps().dispatch === 'receipts-v1' && runCaps().pilot){ await dispatchOrders(t, plan.label, plan.intents); return; }
     progress(t, plan.label);
   };
   _submitBasket=send;
@@ -8589,9 +8893,21 @@ document.addEventListener('keydown', e=>{
 // The props follow the orders, exactly like gearAutoHook does for the patient's
 // kit. Kept in S.room so the state survives walking to another position and
 // switching tabs (both rebuild the scene from scratch).
-function roomState(){ if(!S.room) S.room={defib:'idle', drip:false, cpr:false}; return S.room; }
+function roomState(){ if(!S.room) S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; return S.room; }
 function cprRunning(){
   return codeActive() ? !!(S.code && S.code.cpr) : !!roomState().cpr;
+}
+function ventilationRunning(){
+  return codeActive() ? !!(S.code && S.code.flags && S.code.flags.ppv) : !!roomState().ventilation;
+}
+// The current RT cutout is composed for an adult bed. Do not shrink that adult onto
+// a pediatric or neonatal patient: those families need their own reviewed artwork
+// and contact geometry. Unknown-age legacy cases remain eligible for the adult art.
+function adultBvmArtAllowed(){
+  const p=S.patient||{}, ageText=(String(p.ageBand||'')+' '+String(p.age||'')).toLowerCase();
+  if(/\b(newborn|neonat\w*|infant\w*|child|pediatric|paediatric|toddler|months?|weeks?|days?)\b/.test(ageText)) return false;
+  const years=parseFloat(String(p.age||''));
+  return !Number.isFinite(years) || years>=13;
 }
 // A generated clinician cutout rather than a new patient image. The stacked hands are
 // anchored to the current camera's chest polygon, so ROOM, FOOT and AIRWAY show the
@@ -8610,10 +8926,55 @@ function cprOverlayHTML(viewKey, chest){
   return `<div class="rmCprRig absolute" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
     <span class="rmCprContact"></span>
     <img class="rmCprClinician" src="media/game/cpr-clinician-cutout-v1.webp" alt="" draggable="false">
-    <div class="absolute right-0 top-[8%] whitespace-nowrap rounded-full border border-cyan-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-100 shadow-md">CPR · 110/min</div>
+    <div class="rmActionLabel absolute right-0 top-[8%] whitespace-nowrap rounded-full border border-cyan-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-100 shadow-md">CPR · 110/min</div>
   </div>`;
 }
+// The source mask contact is at 16%,80% of the generated 2:3 cutout. Anchor that
+// point to the face rather than positioning the therapist by eye in each camera.
+function bvmOverlayHTML(viewKey, head){
+  if(!head || !ventilationRunning() || !adultBvmArtAllowed()) return '';
+  const cfg={room:{w:18,dx:0,dy:.48},foot:{w:17,dx:0,dy:.48},airway:{w:18,dx:0,dy:.52}}[viewKey]||{w:18,dx:0,dy:.5};
+  const h=cfg.w*(100/56)*(3/2), cx=head.l+head.w/2+cfg.dx, cy=head.t+head.h*cfg.dy;
+  const left=cx-cfg.w*.16, top=cy-h*.80;
+  return `<div class="rmBvmRig absolute" style="z-index:2;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
+    <img class="rmBvmClinician" src="media/game/rt-bvm-cutout-v1.webp" alt="" draggable="false">
+    <span class="rmBvmBagPulse"></span>
+    <div class="rmActionLabel absolute right-0 top-[5%] whitespace-nowrap rounded-full border border-sky-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-sky-100 shadow-md">BVM · assisted</div>
+  </div>`;
+}
+function defibOperatorHTML(viewKey, defib, state){
+  if(!defib || (state!=='charging' && state!=='shock')) return '';
+  const cfg={room:{w:14},foot:{w:13},airway:{w:13}}[viewKey]||{w:14};
+  const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*.52, cy=defib.t+defib.h*.48;
+  // The source is mirrored: its fingertip becomes a 93% anchor, leaving the nurse
+  // visible to the LEFT of the cart even when the right-side results drawer is open.
+  const left=cx-cfg.w*.93, top=cy-h*.91;
+  const label=state==='charging'?'CHARGING · STAND CLEAR':'SHOCK DELIVERED';
+  return `<div class="absolute" style="z-index:4;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
+    <img class="rmDefibNurse rmDefibNurse--${state}" src="media/game/defib-nurse-cutout-v1.webp" alt="" draggable="false">
+    <div class="rmActionLabel absolute left-0 top-[4%] whitespace-nowrap rounded-full border border-amber-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">${label}</div>
+  </div>`;
+}
+// A duplicate of the current scene is clipped tightly around the patient's body and
+// moved only a few pixels for the discharge. The room and bed remain stationary.
+function shockPatientOverlayHTML(viewKey, sceneSrc, state){
+  if(state!=='shock' || !sceneSrc) return '';
+  const clip={
+    room:'polygon(30% 47%,66.5% 44%,67% 57%,58% 60%,42% 60%,29.5% 58%)',
+    foot:'polygon(46% 43%,54% 43%,61% 61%,66% 95%,34% 95%,39% 61%)',
+    airway:'polygon(44% 45%,57% 45%,66% 70%,59% 100%,41% 100%,35% 70%)'
+  }[viewKey];
+  return clip ? `<img class="rmShockPatient" src="${esc(sceneSrc)}" alt="" draggable="false" style="z-index:1;clip-path:${clip}">` : '';
+}
 let _defibSeq=[];
+function resetRoomActionTimers(){ _defibSeq.forEach(clearTimeout); _defibSeq=[]; }
+function startRoomDefibSequence(chargeMs){
+  resetRoomActionTimers();
+  const st=roomState(); st.defib='charging'; paintRoom(); defibCharge();
+  _defibSeq.push(setTimeout(()=>{ st.defib='shock'; paintRoom(); defibShock();
+    _defibSeq.push(setTimeout(()=>{ st.defib='pads'; paintRoom(); },700));
+  },chargeMs));
+}
 // ---- Defibrillator sound + discharge flash ----------------------------------
 // A real defib winds UP as the capacitor charges, then thumps. Rising sawtooth for
 // the whine, low sine + noise burst for the discharge. Respects the sound toggle.
@@ -8650,24 +9011,39 @@ function roomFlash(){
     setTimeout(()=>f.remove(), 520);
   });
 }
-function roomAutoState(text){
+function roomActionConfirmed(trace, actionRx){
+  if(!trace || !Array.isArray(trace.clauses)) return true;
+  const rows=trace.clauses.filter(c=>c && actionRx.test(String(c.text||'')));
+  return rows.some(c=>c.unparsed===false && !c.gateBlocked && !c.fallback);
+}
+function roomAutoState(text, trace){
   if(!text) return; const st=roomState();
-  if(/\b(defibrillat|cardiovert|cardioversion|unsynchronized shock|shock at \d)/i.test(text)){
+  const shockRx=/\b(defibrillat|cardiovert|cardioversion|unsynchronized shock|shock at \d)/i;
+  const padsRx=/\b(defib(rillator)? pads|place pads|pads (on|placed)|transcutaneous pacing|pacer pads)\b/i;
+  const dripRx=/\b(drip|infusion|gtt|norepinephrine|vasopressor|levophed|pressor)\b/i;
+  const stopVentRx=/\b(stop|hold|pause)\b.*\b(bagging|bvm|ventilat\w*|ppv)\b/i;
+  const ventRx=/\b(bagging|bvm|bag[- ]?mask|bag valve mask|manual(?:ly)? ventilat\w*|positive pressure|ppv)\b/i;
+  const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
+  const cprRx=/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i;
+  const accepted=rx=>roomActionConfirmed(trace,rx);
+  if(shockRx.test(text) && accepted(shockRx)){
     // charge → discharge flash → pads still on the chest. Timers are tracked so a
     // second shock ordered mid-sequence restarts it instead of racing the first.
-    _defibSeq.forEach(clearTimeout); _defibSeq=[];
-    st.defib='charging'; paintRoom(); defibCharge();
-    _defibSeq.push(setTimeout(()=>{ st.defib='shock'; paintRoom(); defibShock();
-      _defibSeq.push(setTimeout(()=>{ st.defib='pads'; paintRoom(); }, 700)); }, 1200));
-  } else if(/\b(defib(rillator)? pads|place pads|pads (on|placed)|transcutaneous pacing|pacer pads)\b/i.test(text)){
+    startRoomDefibSequence(1200);
+  } else if(padsRx.test(text) && accepted(padsRx)){
     st.defib='pads'; paintRoom();
   }
-  if(/\b(drip|infusion|gtt|norepinephrine|vasopressor|levophed|pressor)\b/i.test(text)){ st.drip=true; paintRoom(); }
+  if(dripRx.test(text) && accepted(dripRx)){ st.drip=true; paintRoom(); }
+  if(stopVentRx.test(text) && accepted(stopVentRx)){
+    st.ventilation=false; paintRoom();
+  } else if(ventRx.test(text) && accepted(ventRx)){
+    st.ventilation=true; paintRoom();
+  }
   // Ordinary (non-live-code) cases use the same visible action. Stop/hold wins over
   // the broad CPR match so "hold compressions" never flashes the rescuer back on.
-  if(/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i.test(text)){
+  if(stopCprRx.test(text) && accepted(stopCprRx)){
     st.cpr=false; paintRoom();
-  } else if(/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i.test(text)){
+  } else if(cprRx.test(text) && accepted(cprRx)){
     st.cpr=true; paintRoom();
   }
 }
@@ -8700,7 +9076,7 @@ function paintRoom(){
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room';
   const zones=ROOM_VIEWS[viewKey].zones;
   const d=zoneBox(zones,'defib'), iv=zoneBox(zones,'ivpole'),
-        aw=zoneBox(zones,'airway'), us=zoneBox(zones,'us'), chest=zoneBox(zones,'chest');
+        aw=zoneBox(zones,'airway'), us=zoneBox(zones,'us'), chest=zoneBox(zones,'chest'), head=zoneBox(zones,'head');
   // Two layers per piece of kit. A plain translucent wash was tested and rejected: an
   // amber one disappeared BOTH into the cream walls and into the red crash cart it was
   // meant to mark. `mix-blend-mode:screen` only ever lightens, so the equipment visibly
@@ -8760,7 +9136,19 @@ function paintRoom(){
     </div>`;
   }
   ov.innerHTML=h;
-  const actionFx=$('rmActionFx'); if(actionFx) actionFx.innerHTML=cprOverlayHTML(viewKey,chest);
+  const actionFx=$('rmActionFx');
+  if(actionFx){
+    const roomBox=$('roomBox'), scene=roomBox && roomBox.querySelector('img[data-view]');
+    const src=scene && scene.getAttribute('src');
+    // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
+    // on every update restarts CSS animation at frame zero and makes bagging stutter.
+    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,st.defib,src||''].join('|');
+    if(actionFx.dataset.fxKey!==fxKey){
+      actionFx.dataset.fxKey=fxKey;
+      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
+        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib);
+    }
+  }
   // A dead thumbnail must not leave a broken-image glyph on the cart — drop its bezel too.
   const im=ov.querySelector('img'); if(im) im.onerror=()=>{ (im.parentElement||im).remove(); };
 }
@@ -9333,6 +9721,85 @@ function dxSectionHTML(d){
       ${noteHTML}</div>`;
   }catch(_){ return ''; }
 }
+// WHEN THE ORDER WAS GIVEN, IN THE SAME UNITS THE REST OF THE RUN IS READ IN. Outside a code
+// the clock only ever lands on whole minutes, and "T+9 min" is what the timeline says. Inside
+// one the ticker advances it in fractions, and rounding those to whole minutes dates three
+// shocks and two doses of epinephrine to the same minute — the exact reading a resuscitation
+// debrief exists to correct. A fractional minute is printed m:ss, the shape THE CODE, MINUTE
+// BY MINUTE already uses, so the two records of the same code can be laid side by side.
+function evidenceWhen(simMin){
+  const m = Number(simMin) || 0;
+  if(Number.isInteger(m)) return 'T+' + m + ' min';
+  const secs = Math.round(m * 60);
+  return 'T+' + Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+}
+// WHICH ORDER MET WHICH OBJECTIVE, AS ROWS. Pure — the rules, the receipts and the debrief the
+// legacy path already produced go in, and the three things a learner reads off each line come
+// out: the tick, the objective, and what earned it. Kept apart from the markup so a test can
+// hold it to those three without a document.
+//
+// `simMin` is the minute the batch was signed, stamped in dispatchOrders — a receipt's own
+// `simTime` is the turn's cost, which is not a clock reading.
+function evidenceRows(rules, receipts, debrief){
+  const objs = (rules && rules.objectives) || [];
+  const list = receipts || [];
+  const graded = {};
+  for(const row of ObjectiveRules.evaluateCase(rules, list)) graded[row.id] = row;
+  // FIRST PERFORMED RECEIPT WINS, because that is the one the grader credited. `actionId` is
+  // stable across repeats, so a map built the obvious way keeps the LAST receipt: shock at
+  // T+2, shock again at T+9 and get refused, and the row cites the refusal as the evidence
+  // for an objective the T+2 shock met — a green tick over the word "blocked".
+  const byId = {};
+  for(const r of list) if(r && r.status === 'performed' && !(r.actionId in byId)) byId[r.actionId] = r;
+  const basisFor = (debrief && debrief.creditBasis) || {};
+  const legacyMet = (debrief && debrief.criticalActionsMet) || [];
+  return objs.map(o => {
+    const row = graded[o.id];
+    const ev = row ? [].concat(...row.substeps.map(s => s.evidence || [])).map(a => byId[a]).filter(Boolean) : [];
+    const basis = basisFor[o.legacyIndex] || '';
+    if(ev.length) return { label: o.label, met: !!(row && row.met), basis,
+      said: ev.map(x => `${x.rawText} (${evidenceWhen(x.simMin)})`).join(', ') };
+    // NO RECEIPT IS NOT THE SAME AS NOTHING DONE. An objective earned by NOT acting has no
+    // order to point at by definition; one credited from the diagnosis box, or from the shape
+    // of the whole resuscitation, never reaches a receipt either. Printing "no evidence"
+    // beside those green ticks tells a learner who got it right that the sim did not see it.
+    const credited = (o.legacyIndex in basisFor) || legacyMet.indexOf(o.label) >= 0;
+    if(!credited) return { label: o.label, met: !!(row && row.met), basis,
+      said: o.legacyOnly ? 'not credited by the checklist' : 'no evidence' };
+    return { label: o.label, met: true, basis,
+      said: basis === 'abstained' ? 'correctly avoided — nothing was ordered'
+          : basis === 'provedByMgmt' ? 'credited from your management'
+          : 'credited by the checklist (no order record for this kind of objective)' };
+  });
+}
+// The card itself. For a run with receipts and rules, each objective is shown with the receipt
+// that met it — the learner's own words and the minute — or with why there is no order to show.
+// Shadow only: the score above it is still the legacy tally; this is the record beside it.
+function evidenceHTML(){
+  const rules = _objRules && S.goldId && _objRules[S.goldId];
+  const receipts = S.receipts || [];
+  if(!rules || !window.ObjectiveRules || !receipts.length) return '';
+  const rows = evidenceRows(rules, receipts, S.debrief);
+  const line = r => {
+    // Escaped ONCE, at the point it is written into the document. The row is truncated by
+    // CSS, so the same text is the tooltip — and escaping it twice for the title is how a
+    // learner's apostrophe reads back as &#39; in the only place the full line is legible.
+    return `<div class="flex gap-2 items-baseline text-[11px] ${r.met ? 'text-emerald-300' : 'text-slate-400'}">
+      <span class="font-black">${r.met ? '✓' : '·'}</span><span class="flex-1">${esc(r.label)}</span>
+      <span class="mono text-slate-500 shrink-0 max-w-[50%] truncate" title="${esc(r.said)}">${esc(r.said)}</span></div>`;
+  };
+  // The amber warning belongs to the GENERATED five, which say `_reviewed: false` out loud.
+  // Kim's hand-authored pilots carry no such flag, and firing on a missing one told her that
+  // the rules she wrote herself came out of a generator.
+  const unreviewed = rules._reviewed === false;
+  const anyLegacyOnly = (rules.objectives || []).some(o => o.legacyOnly);
+  return `<div class="mt-4 rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3 space-y-1">
+    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Evidence — which of your orders met each objective</div>
+    ${rows.map(line).join('')}
+    ${anyLegacyOnly ? '<div class="text-[10px] text-slate-500 pt-1">Recognition and avoidance objectives are graded by the checklist above, not by an order record.</div>' : ''}
+    ${unreviewed ? '<div class="text-[10px] text-amber-300/80 pt-1">These rules are generated from the checklist and not yet clinically reviewed. Nothing here changes your score.</div>' : ''}
+  </div>`;
+}
 function renderDebrief(){
   const d=S.debrief||{}; const score=Math.round(d.score||0);
   // Widened past /died/ so an LLM debrief phrasing it as "expired" or "deceased" in
@@ -9363,6 +9830,7 @@ function renderDebrief(){
         ${S.blind ? `<div class="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-violet-500/15 border border-violet-500/30 text-[10px] font-black uppercase tracking-widest text-violet-300">🎲 Walked in blind</div>` : ''}
         <div class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 mb-2">Case Debrief — ${esc(S.diagnosis)} <span class="text-slate-700">·</span> T+${Math.round(S.simMin)} min</div>
         <div class="text-7xl font-black mono ${score>=80?'text-emerald-500':score>=60?'text-yellow-500':'text-red-500'}">${score}<span class="text-2xl text-slate-600">/100</span></div>
+        ${isValidation(S.goldId) ? '' : `<div class="mt-2 text-[11px] text-amber-300/90">Experimental case — the grading here has not been verified yet. The five proven cases are listed first on the start screen.</div>`}
         <div class="text-lg font-bold text-white mt-1">${esc(d.outcome||'Case complete')}</div>
         <div id="debriefDeep" class="text-[11px] mt-2 h-4"></div>
       </div>
@@ -9371,7 +9839,7 @@ function renderDebrief(){
         <div class="bg-slate-900/40 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
         ${met.map(a=>`<div class="flex gap-2 px-4 py-2.5 items-baseline"><span class="text-emerald-500 font-black">✓</span><span class="text-xs text-slate-300">${esc(a)}</span></div>`).join('')}
         ${missed.map(a=>`<div class="flex gap-2 px-4 py-2.5 items-baseline flex-wrap"><span class="text-red-500 font-black">✗</span><span class="text-xs text-red-300 flex-1">${esc(a)}</span>${loggingOn()?`<button class="msFlag shrink-0 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 transition" data-ca="${esc(a)}">I did this</button>`:''}</div>`).join('')}
-        </div></div>`:''}
+        </div>${evidenceHTML()}</div>`:''}
       ${d.codeQuality?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Code Quality — <span class="${d.codeQuality.points>=12?'text-emerald-400':d.codeQuality.points>=8?'text-yellow-400':'text-red-400'}">${d.codeQuality.points}/15</span></h3>
         <div class="bg-slate-900/40 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
         ${d.codeQuality.rows.map(r=>`<div class="px-4 py-2.5">
@@ -9690,11 +10158,24 @@ ${weakTopics.length?`Longitudinal weak/developing competencies: ${weakTopics.sli
 Create ONE new ER simulation case, on a DIFFERENT presentation than those cases where sensible, deliberately engineered so that succeeding requires performing the kinds of actions they keep missing and exercising the weak competencies above. Do not tell them the case is remedial and never name the targeted weaknesses in the intro.`,
 'Building a case that targets your weak spots…','Weakness drill');
 }
+// WHAT THE ORDER EARNED, IN WORDS. A receipt carries the objective's array position, and
+// "credits 0,1" is the one thing in the report a learner cannot read — the checklist those
+// numbers index is hidden during play and never printed here. So each index is resolved back
+// to its critical action and truncated; if a run has no checklist to resolve against, the
+// field is left off entirely rather than printing the numbers.
+function receiptCredits(r){
+  const labels = (r.objectiveIds || [])
+    .map(i => (S.criticalActions || [])[Number(i)])
+    .filter(Boolean)
+    .map(s => s.length > 60 ? s.slice(0, 60) + '…' : s);
+  return labels.length ? '  credits: ' + labels.join('; ') : '';
+}
 function downloadReport(d,score){
   const txt=`MEDISIM ER — CASE REPORT
 Diagnosis: ${S.diagnosis}
 Outcome: ${d.outcome||''}
 Score: ${score}/100
+Grading status: ${isValidation(S.goldId) ? 'validation cohort' : 'experimental — not yet verified'}
 ER time: T+${Math.round(S.simMin)} min
 
 SUMMARY
@@ -9702,6 +10183,9 @@ ${d.summary||''}
 
 ORDERS YOU ENTERED
 ${(S.timeline||[]).map(t=>`T+${String(Math.round(t.min)).padStart(3)} min  ${t.text}${t.unmatched&&t.unmatched.length?'   [NOT UNDERSTOOD: '+t.unmatched.join('; ')+']':''}`).join('\n')||'(none recorded)'}
+
+ORDER RECEIPTS
+${(S.receipts||[]).map(r=>`${evidenceWhen(r.simMin).padStart(9)}  ${r.rawText}  [${String(r.status||'').toUpperCase()}${r.reasonCode?': '+r.reasonCode:''}]${r.reasonText?'  '+r.reasonText:''}${receiptCredits(r)}`).join('\n')||'(no receipts — this run predates them or ran on the legacy path)'}
 
 ${Array.isArray(d.codeTimeline)&&d.codeTimeline.length?`THE CODE, MINUTE BY MINUTE
 ${d.codeTimeline.map(e=>e.at.padStart(5)+'  '+e.text).join('\n')}

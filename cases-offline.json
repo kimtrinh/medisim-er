@@ -46596,24 +46596,14 @@
        "urine drug screen",
        "co-ingestant panel",
        "toxicology screen",
-       "check glucose",
-       "bsl",
        "apap level",
        "tox screen",
        "uds",
        "paracetamol level",
        "drug screen",
-       "glucose level",
-       "check for other drugs",
-       "serum glucose"
+       "check for other drugs"
       ]
      },
-     "speech": [
-      {
-       "speaker": "nurse",
-       "text": "The requested medication was administered as ordered."
-      }
-     ],
      "labResults": [
       {
        "name": "Acetaminophen level",
