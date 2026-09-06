@@ -2624,6 +2624,69 @@ function diagnosisTokens(text, dx){
   for(const f of DX_SHORT_FORMS) if(f.when.test(head) && f.short.test(expanded)) expanded += ' ' + f.expands;
   return moTokens(expanded);
 }
+// WHAT THE CONSULTANT WANTS BEFORE THEY TAKE THE PATIENT. Kim, asked what should satisfy
+// them: "no consultant needs the right orders, results and diagnosis then." So this is not
+// a rubber stamp — it is the referral conversation. Pure: (gate, state, diagnosis) in, a
+// decision and the consultant's own sentence out, so it is tested on its own.
+//
+// It never grades the diagnosis on screen. A wrong one is treated exactly like none: the
+// consultant asks for one, in the same words. The case stays blind either way; an ACCEPTED
+// referral is the only thing that tells the doctor their read held up, which is the trade
+// Kim made deliberately.
+//
+// "Right" is matchesDiagnosis, the debrief's own definition, and nothing else — a second,
+// kinder definition living here would let the consultant accept a read the debrief then
+// grades wrong on the very next screen.
+function consultGateDecision(gate, state, diagnosis){
+  if(!gate) return null;
+  const done = (state && state.satisfied) || [];
+  const flags = (state && state.flags) || {};
+  const missing = (gate.needs || []).filter(nd => !done.includes(nd.action));
+  const stateMissing = (gate.needsState || []).filter(nd => !flags[nd.flag]);
+  const dxOk = ((state && state.assessments) || [])
+    .some(a => a && matchesDiagnosis(a.text || a.clause || '', diagnosis));
+  const needDx = !dxOk;
+  // A state the case has not reached — no ROSC, still in the arrhythmia — is a reason of
+  // its own, and carries its OWN authored sentence. Borrowing a need's words instead would
+  // have the consultant demand something the doctor had already done, and putting the flag
+  // NAME in their mouth would have them say "converted".
+  const blocked = missing.length || stateMissing.length;
+  if(!blocked && !needDx)
+    return { accept: true, missing: [], needDx: false,
+             credits: Number.isInteger(gate.admits) ? gate.admits : null,
+             line: gate.accepts };
+  // WHEN THE DIAGNOSIS IS THE ONLY THING LEFT, the refusal prefix is the wrong sentence.
+  // `refusePrefix` expects a list of things wanted ("…I want the pelvis bound and blood
+  // running"); `wantsDiagnosis` is a trailing imperative that was authored to follow one.
+  // Joined with nothing in between they read "…but first I want I need to know what you
+  // think this rhythm is." With no list, the ask stands on its own behind the service's
+  // name, which is how the call opens anyway.
+  if(!blocked && needDx && gate.wantsDiagnosis)
+    return { accept: false, missing: [], needDx: true, credits: null,
+             line: gate.service.charAt(0).toUpperCase() + gate.service.slice(1) + ' — '
+                   + String(gate.wantsDiagnosis).replace(/^\s*(?:and|plus|also)\s+/i, '').trim()
+                   + (/[.?!]$/.test(gate.wantsDiagnosis.trim()) ? '' : '.') };
+  const wants = stateMissing.map(nd => nd.wants).concat(missing.map(nd => nd.wants));
+  if(needDx && gate.wantsDiagnosis) wants.push(gate.wantsDiagnosis);
+  return { accept: false, missing, needDx,
+           credits: null,
+           line: gate.refusePrefix + ' ' + joinWants(wants) + '.' };
+}
+// "a, b and c" — the consultant is speaking, not printing a list. Each want is authored as
+// a sentence fragment and every gate's `wantsDiagnosis` begins "and", because it is the last
+// thing listed — so the join said the conjunction a second time. The infant's cardiologist
+// refused with "…not just what she is in now and and tell me what you are calling the
+// rhythm", and with the work all done and only the diagnosis left — the one refusal a player
+// who is doing well ever reads — it came out as "Before I take him I want and tell me what
+// you are calling this." Stripped here rather than in consult-gates.json so a sixth gate
+// authored the same way cannot bring it back: the join owns the conjunction, and the
+// fragments only carry the thing wanted.
+function joinWants(list){
+  const w = (list || []).map(s => String(s || '').replace(/^\s*(?:and|plus|also)\s+/i, '').trim())
+                        .filter(Boolean);
+  if(w.length <= 1) return w[0] || 'the picture';
+  return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1];
+}
 // Correct when at least two thirds of the head's significant tokens appear in what
 // the player typed. "Acute rheumatic fever" is three tokens, so "rheumatic fever"
 // passes and "fever" alone does not. Deliberately approximate: an authored alias
@@ -3369,6 +3432,83 @@ function runTurn(pack, state, action, opts){
       trace.clauses.push(tc);
       const toks = normalize(clause).split(' ');
       for(const r of matched){ tc.matched.push(pack.responders.indexOf(r)); tc.scores.push(matchScore(r, toks)); }
+    }
+    // THE CONSULT IS A REFERRAL, NOT A PHONE CALL. When this case has an authored gate and
+    // this clause calls that service, the gate answers instead of the pack's own consult
+    // responder — otherwise the consultant would speak twice, once accepting and once
+    // reciting their authored line.
+    //
+    // Acceptance ends the case through the same endedBy path a disposition uses. It is the
+    // ONLY thing here that ends it: "activate the cath lab" is a summons, and ending on one
+    // is the bug that once took Kim's patient upstairs on the turn the consultant asked for
+    // cooling, and then marked the cooling missed.
+    //
+    // WHICH CLAUSES COUNT AS THE CALL — measured, not assumed. `intent === 'consult'` alone
+    // is not enough: classifyIntent calls "activate the cath lab", "activate the trauma
+    // team", "call the surgeons", "get cardiology" and EVERY authored phrasing of
+    // neonatology 'other', because CONSULT_SERVICES carries no neonatology and a bare
+    // service name only reads as a consult when it is on that list — so the newborn's gate
+    // would never once have fired. A summons is therefore enough, decided by the same
+    // summonsOnly() rule that already separates "activate the cath lab" (a phone call) from
+    // "take him to the cath lab" (a departure); a departure keeps going to the disposition
+    // path untouched. `proposing`/`reported` are the engine's own guards for the ordering
+    // intents, and consult is one of them — "should we call cardiology" is a question.
+    const gate = opts.consultGate;
+    const namesGate = !!gate && (gate.aliases || []).some(a => fuzzyHas(clause.split(' '), normalize(a)));
+    if(namesGate && intent !== 'disposition' && !proposing && !reported
+       && (intent === 'consult' || summonsOnly(clause)
+           || (gate.aliases || []).some(a => clause === normalize(a)))){
+      const d = consultGateDecision(gate, state, opts.diagnosis);
+      out.speech.push({ speaker: 'consultant', text: d.line });
+      if(d.accept){
+        state.consultWaiting = null;
+        if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
+          state.satisfied.push(d.credits);
+        endedBy = endedBy || 'good';
+      } else {
+        state.consultWaiting = { service: gate.service, needDx: d.needDx, at: state.turnCount || 0 };
+      }
+      if(tc){ tc.consultGate = d.accept ? 'accepted' : 'waiting'; }
+      anyApplied = true;
+      continue;
+    }
+    // …and the moment a diagnosis lands while they are waiting, the referral is re-put to
+    // them on that same turn. Kim: "as soon as you enter the right diagnosis the consultant
+    // accepts the consult and admits, without me having to enter admit order."
+    //
+    // NOTHING IS FILED HERE. This clause is already on `committed` (a dozen lines up), and
+    // every committed clause is filed into state.assessments at the end of the turn with its
+    // minute and its correctness — pushing it again would list the working diagnosis twice
+    // on the debrief. So the gate is asked about a read-only VIEW of the state with this
+    // clause added: the same answer, nothing filed twice.
+    //
+    // And it does NOT `continue`. Naming the rhythm is this case's own critical action, and
+    // a turn that closed the consult and swallowed the pack's answer would end the case and
+    // then mark "call it SVT" missed — measured: without this the run lost credit for
+    // action 0. That is the cath-lab bug wearing different clothes.
+    if(gate && state.consultWaiting && diagnosisClause){
+      const view = Object.assign({}, state,
+        { assessments: ((state.assessments) || []).concat([{ text: clause }]) });
+      const d = consultGateDecision(gate, view, opts.diagnosis);
+      if(d.accept){
+        out.speech.push({ speaker: 'consultant', text: d.line });
+        state.consultWaiting = null;
+        if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
+          state.satisfied.push(d.credits);
+        endedBy = endedBy || 'good';
+        anyApplied = true;
+      } else {
+        // They still will not take the patient, but the diagnosis has landed — so the box
+        // must stop asking for it. Refresh rather than leave the old record standing: the
+        // pulse was still demanding a diagnosis the doctor had just given, because
+        // paintDxBox reads consultWaiting.needDx and nothing but acceptance ever rewrote it.
+        state.consultWaiting = { service: gate.service, needDx: d.needDx, at: state.turnCount || 0 };
+        // …but only ONE consultant answer per turn. A turn that both calls the service and
+        // names the condition already reached the summons path above, which spoke; adding
+        // this line would have the trauma lead read her list back twice in a row.
+        if(!(out.speech || []).some(s => s.speaker === 'consultant'))
+          out.speech.push({ speaker: 'consultant', text: d.line });
+      }
     }
     if(matched.length){
       let clauseApplied = false, guardSkipped = false, gateBlocked = false;
@@ -4127,6 +4267,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
+  consultGateDecision,   // the referral conversation, pure and testable on its own
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
   fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders,
   rejoinStrandedFragments,

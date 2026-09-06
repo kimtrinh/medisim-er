@@ -1,0 +1,85 @@
+{
+  "_reviewed": false,
+  "_note": "Who takes this patient, what they need to see before they will, and what they say. Every sentence here is a clinical claim drafted from the case's own critical actions and its own authored consult responder — nothing is generated, and nothing here has been reviewed. `needs[].action` indexes that case's criticalActions. `needsState[]` are engine flags (rosc, converted) with the consultant's own words for each. `admits` is inherited from the case's own consult responder's `satisfies`; where the case authored none, the gate credits nothing.",
+
+  "resus-acls-vf": {
+    "service": "cardiology",
+    "aliases": ["cardiology", "call cardiology", "cath lab", "activate the cath lab", "interventional cardiology", "stemi alert", "page cards", "emergent cath"],
+    "needsState": [
+      { "flag": "rosc", "wants": "a pulse — call me back when you have ROSC" }
+    ],
+    "needs": [
+      { "action": 4, "wants": "his airway secured and capnography on it" },
+      { "action": 7, "wants": "post-arrest care started — I am not taking him upstairs before he is being cooled" }
+    ],
+    "wantsDiagnosis": "and tell me what you are calling this",
+    "refusePrefix": "Cardiology. Before I take him I want",
+    "accepts": "Cardiology — agreed, that is an occlusion until proven otherwise. The lab is activated and we are taking him now. Good call.",
+    "admits": 6,
+    "note": "Accepting credits action 6, which its own cath-lab responder already credits. Action 6 also asks for a 12-lead, so accepting credits that half too — Kim to split the action or drop `admits` if that is too generous. The cooling requirement is deliberate: 'activate the cath lab' once ended this case on the turn the consultant asked for cooling, and the debrief then marked TTM missed."
+  },
+
+  "resus-acls-unstable-tachy": {
+    "service": "cardiology",
+    "aliases": ["cardiology", "call cardiology", "cardiology consult", "page cardiology", "electrophysiology", "cardiology opinion", "get cardiology", "anticoagulation advice"],
+    "needsState": [
+      { "flag": "converted", "wants": "him out of the arrhythmia — synchronised cardioversion before I take him" }
+    ],
+    "needs": [
+      { "action": 3, "wants": "the shock delivered in sync, after sedation if there is time" }
+    ],
+    "wantsDiagnosis": "and I need to know what you think this rhythm is",
+    "refusePrefix": "Cardiology. I will take him, but first I want",
+    "accepts": "Cardiology — agreed, atrial fibrillation with shock, cardioverted. Send him to the monitored unit and we will see him there. Tell me what you decided about anticoagulation when you write him up.",
+    "admits": null,
+    "note": "Credits nothing: this case's cardiology responder authors no `satisfies`, and its action 6 asks for the anticoagulation decision as well as the admission — accepting must not hand over a decision the player never made. Kim: add `satisfies` to the responder, or split action 6, if the admission should score here."
+  },
+
+  "resus-atls-blunt-multi": {
+    "service": "trauma surgery",
+    "aliases": ["trauma surgery", "call trauma", "activate the trauma team", "trauma team activation", "surgical consult", "call the surgeons", "general surgery"],
+    "needsState": [],
+    "needs": [
+      { "action": 0, "wants": "that thigh packed and pressure held" },
+      { "action": 1, "wants": "the chest decompressed — I am not moving her with a tension" },
+      { "action": 2, "wants": "the pelvis bound" },
+      { "action": 3, "wants": "blood running, not crystalloid, and the tranexamic acid in" }
+    ],
+    "wantsDiagnosis": "and give me your one-line summary of what she has",
+    "refusePrefix": "Trauma lead. She is not going anywhere until I have",
+    "accepts": "Trauma lead — chest decompressed, pelvis bound, blood running. That is a working resuscitation. We are taking her; neurosurgery and orthopaedics are coming with us.",
+    "admits": 7,
+    "note": "Accepting credits action 7, which each of this case's four surgical responders already credits. Action 7 also asks that she move to CT or theatre only once chest and pelvis are treated — which is exactly what the four needs above require, so the credit is earned rather than assumed."
+  },
+
+  "resus-pals-svt-infant": {
+    "service": "paediatric cardiology",
+    "aliases": ["cardiology", "paediatric cardiology", "pediatric cardiology", "call cardiology", "cardiology consult", "page cardiology", "electrophysiology"],
+    "needsState": [
+      { "flag": "converted", "wants": "her back in sinus — I am not taking her in SVT" }
+    ],
+    "needs": [
+      { "action": 1, "wants": "a twelve-lead — I need to see what she was in, not just what she is in now" }
+    ],
+    "wantsDiagnosis": "and tell me what you are calling the rhythm",
+    "refusePrefix": "Paediatric cardiology. Before we take her I want",
+    "accepts": "Paediatric cardiology — agreed, that is SVT and she is back in sinus. We will take her for an echo and a plan for the next episode. Send the strips up with her.",
+    "admits": 7,
+    "note": "Accepting credits action 7 — 'admit for cardiology review, an echocardiogram and a plan for the next episode' — which is purely a disposition and is what an accepted referral IS. This case's cardiology responder authors no `satisfies` today, so this is the one gate that adds a credit the pack did not carry; Kim to confirm."
+  },
+
+  "resus-nrp-apneic-term": {
+    "service": "neonatology",
+    "aliases": ["neonatology", "neonatal team", "call nicu", "nicu team", "page neonatology", "neonatal consult", "call the neonatologist"],
+    "needsState": [],
+    "needs": [
+      { "action": 1, "wants": "positive-pressure ventilation going" },
+      { "action": 7, "wants": "a heart rate you have rechecked, so I know which way he is going" }
+    ],
+    "wantsDiagnosis": "and tell me what you think happened to him",
+    "refusePrefix": "Neonatology. Before we take him I want",
+    "accepts": "Neonatology — agreed, perinatal asphyxia with secondary apnoea, responding to ventilation. We are taking him for post-resuscitation care. Keep bagging until we are at the cot side.",
+    "admits": null,
+    "note": "Credits nothing: this case's action 7 asks for 30-second reassessments as well as the handover, and accepting must not hand over the reassessments. The reassessment is instead one of the things neonatology asks for before they come. Kim: split action 7 if the handover should score on its own."
+  }
+}

@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-c59ebNte1LWHy5TktgOSv0Sj2Z+n0VbYZF3Pf5YMvmc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hUOCI/GJIggAphPDsSWYlznnh00Be41KW8T4PBRsYOo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -95,11 +95,37 @@
   .rmDefibNurse--shock{animation:rmDefibPress .55s cubic-bezier(.2,.8,.2,1) 1}
   .rmShockPatient{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
     animation:rmShockPatient .42s cubic-bezier(.2,.8,.2,1) 1;will-change:transform}
+  .resultCardNew{border-color:rgba(52,211,153,.62)!important;box-shadow:0 0 0 1px rgba(52,211,153,.18),0 12px 30px -24px rgba(52,211,153,.95)}
+  .chartNew{animation:chartNew 1.15s ease-in-out infinite}
+  @keyframes chartNew{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 0 4px rgba(52,211,153,.25)}}
+  .resultCardFocus{animation:resultFocus 1.8s ease-out 1}
+  @keyframes resultFocus{0%,35%{box-shadow:0 0 0 3px rgba(52,211,153,.82),0 0 32px rgba(52,211,153,.35)}100%{box-shadow:0 0 0 1px rgba(52,211,153,.08)}}
+  /* Comfortable text is deliberately a user choice: the default compact density is
+     still useful on small laptops, while this mode makes the simulator readable at a
+     glance without relying on browser zoom (which can hide fixed controls). */
+  body.comfortableText{font-size:17px}
+  body.comfortableText .text-\[8px\],body.comfortableText .text-\[9px\],body.comfortableText .text-\[10px\]{font-size:12px!important;line-height:1.45!important;letter-spacing:.08em!important}
+  body.comfortableText .text-\[11px\]{font-size:13px!important;line-height:1.5!important}
+  body.comfortableText #chat,body.comfortableText #ws,body.comfortableText #orderFeedback{line-height:1.55}
+  body.comfortableText #sideBar,body.comfortableText #orderBar{background-color:rgba(2,6,23,.96)!important}
   @media (max-width:767px){.rmActionLabel{display:none}}
+  @media (max-width:767px){
+    /* Dose and energy choices are decisions, not tooltips. A bottom sheet provides
+       full-width targets that cannot open under the fixed phone composer. */
+    .mobileActionSheet{left:8px!important;right:8px!important;top:auto!important;
+      bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important;width:auto!important;
+      max-height:min(70vh,34rem);overflow-y:auto;border-radius:20px!important;z-index:90!important}
+    .mobileActionSheet button[data-j],.mobileActionSheet button[data-di]{min-height:48px;padding:.75rem 1rem;font-size:15px}
+    #typeahead.dosePicker{position:fixed!important;left:8px!important;right:8px!important;top:auto!important;
+      bottom:calc(var(--obInputH,60px) + var(--obToggleH,52px) + env(safe-area-inset-bottom,0px) + 10px)!important;
+      max-height:55vh;overflow-y:auto;border-radius:20px;z-index:91}
+    #typeahead.dosePicker .ta-dose{min-height:48px;font-size:15px;padding:.75rem 1rem}
+  }
   @media (prefers-reduced-motion:reduce){
     .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient{animation:none!important}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
     .rmBvmBagPulse{opacity:.32;transform:none}
+    .chartNew{animation:none}
   }
   /* Crash vignette breathing. Opacity is set inline per severity, so this animates a
      range around it rather than to a fixed value. */
@@ -532,6 +558,18 @@
   @media (min-width:768px){
     #dxBox.dxReady{display:flex;min-width:min(340px,26vw);max-width:30rem}
   }
+  /* The consultant asked what this is and is holding the line. A border pulse rather than a
+     colour change: the box is already violet, and a violet that merely brightens is not a
+     signal you catch out of the corner of your eye in a resus bay. */
+  @keyframes dxWait{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.55)}50%{box-shadow:0 0 0 6px rgba(167,139,250,0)}}
+  #dxBox.dxWaiting input{animation:dxWait 1.6s ease-out infinite;border-color:#a78bfa}
+  /* …and the SAME pulse on the Dx button, because below 768px the rule above has nothing to
+     paint: #dxBox is display:none there, so on a phone the consultant refused and not one
+     pixel on screen said what they were waiting for. #dxBtn is the phone's diagnosis path
+     and it is in the pinned order row, always on screen, so it carries the wait instead. */
+  #dxBtn.dxWaiting{animation:dxWait 1.6s ease-out infinite;border-color:#a78bfa;color:#ddd6fe}
+  @media (prefers-reduced-motion: reduce){
+    #dxBox.dxWaiting input, #dxBtn.dxWaiting{animation:none;border-color:#a78bfa} }
   /* ===================== CINEMA ON A PHONE =====================
      Below md the floating HUD has nowhere to float: four panels squeezed over a 375px
      photo, a 79px patient card, a 34px command box. So on a phone the room is NOT a
@@ -1131,6 +1169,12 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       <input id="soundToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Monitor sounds (beep &amp; alarms)</span>
     </label>
+    <label class="flex items-start gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-800 bg-slate-950/35">
+      <input id="comfortableTextToggle" type="checkbox" class="w-4 h-4 mt-0.5 accent-emerald-500" />
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Comfortable text
+        <span class="block text-[11px] normal-case tracking-normal font-normal text-slate-500 mt-0.5">Larger labels, roomier line spacing, and more solid panels. Recommended on phones or when the room is busy.</span>
+      </span>
+    </label>
     <div class="pt-3 mt-1 border-t border-slate-800">
         <div class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 mb-2">Voice</div>
         <div class="flex items-center gap-2 mb-2">
@@ -1271,6 +1315,7 @@ const S = {
   model: localStorage.getItem('ms_model') || '',
   deepModel: localStorage.getItem('ms_deepModel') || '',
   sound: localStorage.getItem('ms_sound') !== '0',
+  comfortableText: localStorage.getItem('ms_comfortableText') === '1',
   hdVoices: localStorage.getItem('ms_hdVoices') !== '0',
   temperature: parseFloat(localStorage.getItem('ms_temp') || '0.7'),
   tts: localStorage.getItem('ms_tts') !== '0',
@@ -1293,6 +1338,7 @@ const S = {
   criticalActions:[], simMin:0, caseLabel:'', timeline:[],
   basket:[],   // unsigned orders accumulated Epic-style, signed as one turn
   orderFeedback:[], // latest Instant-mode clause results; makes credit gaps visible immediately
+  chartSeen:0, resultFocusCount:0, resultsNewOnly:false,
 
   logRuns: localStorage.getItem('ms_logRuns') === '1',   // explicit opt-in; public build only
   // Start each case inside the sim room. Defaults on; walking out of the room turns it
@@ -1302,6 +1348,7 @@ const S = {
   instant: localStorage.getItem('ms_instant')==='1', instantState:null, goldId:null, generatedPack:null, usedInstant:false,
   loading:false, loadHint:''
 };
+document.body.classList.toggle('comfortableText', S.comfortableText);
 
 // One-time migration to the 3-tier credential model: keys used to live only in the
 // generic active-engine slot (ms_apiKey), so a configured Gemini/Claude key is copied
@@ -2380,7 +2427,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.basket = []; _orderMin = true; _palOpen = false;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false;
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, goldId: null,
       title: S.caseLabel, diagnosis: S.diagnosis, criticalActions: S.criticalActions});
@@ -2516,9 +2563,8 @@ async function progress(action, label){
   S.abort = new AbortController();
   setLoading(true);
   try{
-    const transcript = S.messages.slice(-11,-1)
-      .filter(m=>!(m.role==='assistant' && String(m.content).charAt(0)==='⚠'))  // never feed our own error banners back to the model
-      .map(m=>(m.role==='user'?'DOCTOR':'SIM')+': '+m.content).join('\n');
+    // never feed our own error banners — or a repeat — back to the model; see transcriptForModel
+    const transcript = transcriptForModel(S.messages.slice(-11,-1));
     // The transcript above is only the last ~10 messages. The debrief is produced by
     // THIS same call, so without a complete record an action taken early in a long case
     // has scrolled out of view by the time the model grades, and gets marked missed
@@ -2660,8 +2706,7 @@ function cancelTurn(){ if(S.abort){ S.abort.abort(); } }
 async function regenerateDebrief(){
   const el=$('debriefDeep'); if(el) el.innerHTML='<span class="text-emerald-500/70">Deep model is re-grading this case…</span>';
   try{
-    const transcript = S.messages.filter(m=>!(m.role==='assistant'&&String(m.content).charAt(0)==='⚠'))
-      .map(m=>(m.role==='user'?'DOCTOR':'SIM')+': '+m.content).join('\n');
+    const transcript = transcriptForModel(S.messages);
     const sys = `You are an expert emergency-medicine oral-board examiner writing a rigorous, evidence-based debrief of a completed simulated case. Respond with ONLY a JSON object of this shape:
 {"outcome":string,"score":number,"summary":string,"criticalEvents":[{"event":string,"feedback":string,"type":"positive"|"negative"|"neutral"}],"criticalActionsMet":[string],"criticalActionsMissed":[string],"missedOpportunities":[string],"learningPoints":[string]}
 Grade strictly against the hidden CRITICAL ACTIONS checklist and current best practice (EMCrit/LITFL/ALiEM/ABEM). Take each checklist item in turn and search the WHOLE transcript for anything that accomplishes it. CREDIT BY SUBSTANCE, NOT WORDING: the player will not phrase orders the way the checklist does, and an action counts if it achieves the item's clinical intent (a portable chest x-ray or an eFAST satisfies "obtain chest imaging"; a CT head satisfies "exclude intracranial hemorrhage"; ceftriaxone satisfies "empiric antibiotics"). Put an item in criticalActionsMissed ONLY IF NOTHING in the transcript accomplishes it — re-read once more before you do. Marking an item missed that the player actually performed is the worst error in a debrief. Every checklist item must appear in exactly one of the two arrays, and the score must be consistent with that tally. Be specific and actionable — cite what was done, what was missed, timeliness, and the key teaching points. Output JSON only.`;
@@ -4616,6 +4661,7 @@ function codeTallyRows(c){
 }
 function paintCodeStrip(){
   paintCodeTally();   // the record outlives the code itself — it stays up through ROSC
+  paintCareStrip();
   const el = $('codeStrip'); if(!el) return;
   if(!codeActive()){ el.classList.add('hidden'); el.innerHTML=''; return; }
   const c = S.code, sc = S.codeScript;
@@ -4758,18 +4804,22 @@ function energyMenu(ev, kind){
   const sync = kind === 'sync';
   const rungs = sync ? codeSyncLadder(sc) : codeShockLadder(sc, c);
   const m = document.createElement('div');
-  m.className = 'roomMenu fixed z-[75] min-w-[190px] rounded-xl border border-amber-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  const mobile = innerWidth < 768;
+  m.className = 'roomMenu fixed z-[75] min-w-[190px] rounded-xl border border-amber-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden' + (mobile?' mobileActionSheet':'');
   m.style.left = '0px'; m.style.top = '0px';
-  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-amber-400 border-b border-slate-800">' +
-      (sync ? 'Synchronised \u2014 how many joules?' : 'Defibrillate \u2014 how many joules?') + '</div>' +
+  m.innerHTML = '<div class="flex items-center gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-amber-400 border-b border-slate-800"><span class="flex-1">' +
+      (sync ? 'Synchronised \u2014 how many joules?' : 'Defibrillate \u2014 how many joules?') + '</span><button data-menu-close class="md:hidden min-h-[40px] px-3 rounded-lg border border-slate-700 text-slate-300">Close</button></div>' +
     rungs.map((j, i) => '<button data-j="' + j + '" class="block w-full text-left px-3 py-1.5 text-xs text-slate-200 hover:bg-amber-900/40">' +
       j + ' J' + (i === 0 ? ' \u00b7 start here' : '') + '</button>').join('');
   document.body.appendChild(m);
-  const pad = 6, w = m.offsetWidth, h = m.offsetHeight;
-  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
-    ? ev.currentTarget.getBoundingClientRect() : null;
-  m.style.left = Math.round(Math.max(pad, Math.min(box ? box.left : innerWidth/2, innerWidth - w - pad))) + 'px';
-  m.style.top  = Math.round(Math.max(pad, Math.min(box ? box.bottom + 4 : innerHeight/3, innerHeight - h - pad))) + 'px';
+  if(!mobile){
+    const pad = 6, w = m.offsetWidth, h = m.offsetHeight;
+    const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+      ? ev.currentTarget.getBoundingClientRect() : null;
+    m.style.left = Math.round(Math.max(pad, Math.min(box ? box.left : innerWidth/2, innerWidth - w - pad))) + 'px';
+    m.style.top  = Math.round(Math.max(pad, Math.min(box ? box.bottom + 4 : innerHeight/3, innerHeight - h - pad))) + 'px';
+  }
+  const close=m.querySelector('[data-menu-close]'); if(close) close.onclick=e=>{ e.stopPropagation(); closeRoomMenu(); };
   m.querySelectorAll('[data-j]').forEach(b => b.onclick = e => {
     e.stopPropagation();
     const j = +b.dataset.j;
@@ -4887,6 +4937,7 @@ async function instantTurn(action){
      // The condition vocabulary, so a bare "stemi" is read as a diagnosis rather than
      // filed as an order nobody understood.
      dxCatalog: await loadDxCatalog(),
+     consultGate: (await loadConsultGates())[S.goldId] || null,
      diagnosis: S.diagnosis,
      // trace: ALWAYS. Three things the player sees are built from it — the per-order
      // feedback card, the "not understood" mark in the timeline, and the same mark in the
@@ -5063,6 +5114,14 @@ async function loadDxCatalog(){
   }catch(_){ _dxCatalog = []; }   // offline or file missing: DX_EQUIV still carries the engine
   return _dxCatalog;
 }
+let _consultGates = null;
+// Who takes this patient, and what they want to see first. Absent or unfetchable = today's
+// behaviour everywhere, which is what every case outside the validated five gets.
+async function loadConsultGates(){
+  if(_consultGates) return _consultGates;
+  try{ _consultGates = await (await fetch('consult-gates.json')).json(); }catch(_){ _consultGates = {}; }
+  return _consultGates;
+}
 function focusDxBox(){
   const i = $('dxInput');
   if(i){ i.focus(); i.select(); return true; }
@@ -5088,12 +5147,35 @@ function dxCommitted(){
   return a.map(x => String(x.text || '').replace(/^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b\s*:?\s*/i, '').trim())
     .filter(Boolean);
 }
+// THE PHONE'S ONLY CUE. Same boolean, same sentence, on the button the phone actually
+// shows. The tooltip matters on a tablet and a desktop where a hover exists; on a phone the
+// pulse is the whole message, which is why it is the same pulse the box uses rather than a
+// second visual language for the same thing.
+const DX_BTN_TITLE = 'Commit the text as your working diagnosis';
+function paintDxWait(waitingFor){
+  const btn = $('dxBtn'); if(!btn) return;   // absent outside play, and between rebuilds
+  btn.classList.toggle('dxWaiting', !!waitingFor);
+  btn.title = waitingFor ? waitingFor.service + ' is waiting for your diagnosis…' : DX_BTN_TITLE;
+}
 function paintDxBox(){
   const host = $('dxBox'); if(!host) return;
-  if(S.stage !== 'play'){ host.classList.remove('dxReady'); host.innerHTML = ''; return; }
+  if(S.stage !== 'play'){
+    host.classList.remove('dxReady', 'dxWaiting'); host.innerHTML = ''; paintDxWait(null); return; }
   host.classList.add('dxReady');
   const said = dxCommitted();
   const current = said.length ? said[said.length - 1] : '';
+  // THE CONSULTANT IS WAITING FOR THIS. Kim: "when the consultant is unsure why you called,
+  // the diagnosis tab should flash and as soon as you enter the right diagnosis the
+  // consultant accepts." The class pulses the box; the words say who and why, because a
+  // pulse alone does not tell you what it wants.
+  const waitingFor = (S.instantState && S.instantState.consultWaiting) || null;
+  const waiting = !!(waitingFor && waitingFor.needDx);
+  host.classList.toggle('dxWaiting', waiting);
+  // #dxBtn lives in #obInputRow, inside the #main that renderPlay rebuilds every turn — so
+  // the class cannot be set once at wiring time. It survives because renderPlay calls
+  // paintDxBox() in its own wire pass, AFTER the rebuild: the button is always freshly in
+  // the DOM when this runs, and every turn repaints it.
+  paintDxWait(waiting ? waitingFor : null);
   // The committed diagnosis is NEVER graded on screen — the case is blind until the
   // debrief, and a tick here would give the answer away.
   host.innerHTML = `
@@ -5101,7 +5183,8 @@ function paintDxBox(){
     <div class="relative flex-1">
       <input id="dxInput" type="text" autocomplete="off" spellcheck="false"
         class="w-full px-3 py-2 rounded-xl bg-violet-950/40 border border-violet-800/70 text-xs text-violet-100 placeholder-violet-400/50 focus:outline-none focus:border-violet-500"
-        placeholder="${current ? 'Working dx: ' + esc(current) : 'Working diagnosis…'}"
+        placeholder="${waiting ? esc(waitingFor.service + ' is waiting for your diagnosis…')
+                     : (current ? 'Working dx: ' + esc(current) : 'Working diagnosis…')}"
         aria-label="Working diagnosis">
       <div id="dxTypeahead" class="hidden absolute left-0 right-0 top-full mt-1 z-[80] rounded-xl border border-violet-800 bg-slate-950/95 backdrop-blur shadow-2xl max-h-56 overflow-y-auto"></div>
     </div>
@@ -5378,9 +5461,10 @@ function renderDosePicker(entry){
   const def = entry.doses.findIndex(d => d.default);
   const typed = doseFromFragment(entry, currentFragment(($('cmd')||{}).value || ''));
   _taDoseIdx = typed >= 0 ? typed : (def >= 0 ? def : 0);
+  el.classList.add('dosePicker');
   el.innerHTML =
-    '<div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800">' +
-      esc(entry.label) + ' \u2014 how much?</div>' +
+    '<div class="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800">' +
+      '<span class="flex-1">' + esc(entry.label) + ' \u2014 how much?</span><button data-dose-close class="md:hidden min-h-[40px] px-3 rounded-lg border border-slate-700 text-slate-300">Close</button></div>' +
     entry.doses.map((d,i) =>
       '<div data-dose="' + i + '" class="ta-dose flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ' +
       (i === _taDoseIdx ? 'bg-emerald-900/40 text-emerald-100' : 'text-slate-200 hover:bg-slate-800') + '">' +
@@ -5391,6 +5475,7 @@ function renderDosePicker(entry){
   el.classList.remove('hidden');
   document.body.classList.add('taOpen');
   el.querySelectorAll('[data-dose]').forEach(r => r.onclick = () => takeDose(+r.dataset.dose));
+  const close=el.querySelector('[data-dose-close]'); if(close) close.onclick=()=>hideTypeahead();
   return true;
 }
 function paintDoseHighlight(){
@@ -5427,6 +5512,7 @@ function takeDose(i){
 }
 function renderTypeahead(matches){
   const el = $('typeahead'); if(!el) return;
+  el.classList.remove('dosePicker');
   _taMatches = matches; _taIdx = -1;
   if(!matches.length){ el.classList.add('hidden'); el.innerHTML=''; document.body.classList.remove('taOpen'); return; }
   el.innerHTML = matches.map((m,i)=>
@@ -5438,7 +5524,7 @@ function renderTypeahead(matches){
   document.body.classList.add('taOpen');
   el.querySelectorAll('.ta-row').forEach(row=>row.onclick=()=>basketTypeahead(+row.dataset.ta));
 }
-function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.innerHTML=''; }
+function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.classList.remove('dosePicker'); el.innerHTML=''; }
   document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; _taEntry=null; _taDoses=null; }
 function paintTaHighlight(){
   const el=$('typeahead'); if(!el) return;
@@ -5691,7 +5777,7 @@ async function loadGoldCase(seed, opts){
   S.goldId = seed.id || null; S.instantState = null;   // fresh Instant-Mode pack + state for this case
   S.generatedPack = S.goldId ? null : InstantEngine.buildGeneratedPack(S.criticalActions,
     {catalog: await loadOrderCatalog()});
-  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.receipts = []; S.lastReceipts = null; S.chartSeen=0;
+  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.receipts = []; S.lastReceipts = null; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false;
   if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
     model: useInstant()?null:S.model, difficulty: S.difficulty, goldId: S.goldId,
     title: S.blind ? 'Blind case' : S.caseLabel, blind: S.blind,
@@ -5981,18 +6067,22 @@ function chipDoseMenu(ev, entry, fallbackLab){
   closeRoomMenu();
   if(S.stage !== 'play' || S.loading) return false;
   const m = document.createElement('div');
-  m.className = 'roomMenu fixed z-[75] min-w-[210px] rounded-xl border border-emerald-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  const mobile = innerWidth < 768;
+  m.className = 'roomMenu fixed z-[75] min-w-[210px] rounded-xl border border-emerald-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden' + (mobile?' mobileActionSheet':'');
   m.style.left='0px'; m.style.top='0px';
-  m.innerHTML = '<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800">' +
-      esc(entry.label) + ' \u2014 how much?</div>' +
+  m.innerHTML = '<div class="flex items-center gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800"><span class="flex-1">' +
+      esc(entry.label) + ' \u2014 how much?</span><button data-menu-close class="md:hidden min-h-[40px] px-3 rounded-lg border border-slate-700 text-slate-300">Close</button></div>' +
     entry.doses.map((d,i) => '<button data-di="' + i + '" class="block w-full text-left px-3 py-1.5 text-xs ' +
       (d.default ? 'text-emerald-200 font-bold' : 'text-slate-200') + ' hover:bg-emerald-900/40">' +
       esc(doseChipLabel(d)) + (d.default ? ' \u00b7 usual' : '') + '</button>').join('');
   document.body.appendChild(m);
-  const pad=6, w=m.offsetWidth, h=m.offsetHeight;
-  const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect ? ev.currentTarget.getBoundingClientRect() : null;
-  m.style.left = Math.round(Math.max(pad, Math.min(box?box.left:innerWidth/2, innerWidth-w-pad))) + 'px';
-  m.style.top  = Math.round(Math.max(pad, Math.min(box?box.bottom+4:innerHeight/3, innerHeight-h-pad))) + 'px';
+  if(!mobile){
+    const pad=6, w=m.offsetWidth, h=m.offsetHeight;
+    const box = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect ? ev.currentTarget.getBoundingClientRect() : null;
+    m.style.left = Math.round(Math.max(pad, Math.min(box?box.left:innerWidth/2, innerWidth-w-pad))) + 'px';
+    m.style.top  = Math.round(Math.max(pad, Math.min(box?box.bottom+4:innerHeight/3, innerHeight-h-pad))) + 'px';
+  }
+  const close=m.querySelector('[data-menu-close]'); if(close) close.onclick=e=>{ e.stopPropagation(); closeRoomMenu(); };
   m.querySelectorAll('[data-di]').forEach(btn => btn.onclick = e => {
     e.stopPropagation();
     const d = entry.doses[+btn.dataset.di];
@@ -6693,7 +6783,7 @@ function queueClinicalAction(label, text){
     return dispatchOrders(text, label||text);
   }
   const added=basketAdd(label||text, text, true);
-  basketNote(added ? 'Queued — sign when ready' : 'Already in the basket');
+  basketNote(added ? 'Queued — submit when ready' : 'Already in the basket');
   renderBasket(); basketReveal();
 }
 // Cinema mode scrolls #orderBar (max-height 56vh) and the expanded palette is taller
@@ -6724,10 +6814,11 @@ function syncBasketInput(){
   if(!sign) return;
   const plan=basketPlan(S.basket, cmd ? cmd.value : '');
   const n=plan ? plan.count : 0;
-  sign.textContent=S.loading ? 'Signing…' : `✓ Sign ${n} order${n===1?'':'s'}`;
+  sign.textContent=S.loading ? 'Submitting…' : `Submit ${n} order${n===1?'':'s'}`;
   if(hint) hint.textContent=cmd && cmd.value.trim()
-    ? 'Sign includes the selected orders and your free text.'
-    : 'Add free text below. Sign sends everything together.';
+    ? 'Submit includes the selected orders and your free text.'
+    : 'Add free text below. Submit sends everything together.';
+  const mainSubmit=$('sendBtnLabel'); if(mainSubmit) mainSubmit.textContent=n ? `Submit ${n}` : 'Submit';
 }
 // The catalog answers "can I execute this?" while the pack answers "can this
 // earn a case objective?". Show the distinction immediately after the turn — not
@@ -6791,6 +6882,27 @@ function orderFeedbackFromTrace(trace){
       return {text:c.text, kind:'performed', note:'Performed; this order is not itself a scored objective.'};
     });
 }
+function orderProblemPayload(row){
+  const receipts=(S.lastReceipts||[]).filter(r=>{
+    const a=String(r.interpretedLabel||r.rawText||'').toLowerCase();
+    return a===String((row&&row.text)||'').toLowerCase() || (row&&row.receiptId&&r.actionId===row.receiptId);
+  });
+  return {
+    schema:'medisim-order-problem-v1', createdAt:new Date().toISOString(),
+    case:{id:S.goldId||null,label:S.caseLabel||null,diagnosis:S.diagnosis||null,simMinute:S.simMin,runSeed:S.runSeed||null,capabilities:S.caps||null},
+    order:row||null, receipts,
+    recentTimeline:(S.timeline||[]).slice(-5),
+    engine:{instant:!!S.usedInstant,matching:(typeof runCaps==='function'?runCaps().matching:null)},
+    app:{url:location.href,userAgent:navigator.userAgent}
+  };
+}
+function downloadOrderProblem(row){
+  const payload=orderProblemPayload(row), blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a'), url=URL.createObjectURL(blob);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  a.href=url; a.download='medisim-order-problem-'+stamp+'.json'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function renderOrderFeedback(){
   const el=$('orderFeedback'); if(!el) return;
   const rows=S.orderFeedback||[];
@@ -6804,9 +6916,10 @@ function renderOrderFeedback(){
   const mark={credited:'✓',performed:'•',unmapped:'!',unparsed:'!',blocked:'!',flagged:'!'};
   el.innerHTML=`<div class="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 space-y-1.5">
     <div class="text-[9px] font-black uppercase tracking-widest text-slate-500">Latest order feedback</div>
-    ${rows.map(r=>`<div class="flex gap-2 items-baseline text-[11px] ${style[r.kind]||style.performed}"><span class="font-black">${mark[r.kind]||'•'}</span><span class="mono text-slate-200">${esc(r.text)}</span><span class="text-slate-500">— ${esc(r.note)}</span></div>`).join('')}
+    ${rows.map((r,i)=>`<div class="flex flex-wrap gap-x-2 gap-y-1 items-baseline text-[11px] ${style[r.kind]||style.performed}"><span class="font-black">${mark[r.kind]||'•'}</span><span class="mono text-slate-200">${esc(r.text)}</span><span class="text-slate-500 flex-1">— ${esc(r.note)}</span><button data-order-problem="${i}" class="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:border-amber-500/50 hover:text-amber-300">Report problem</button></div>`).join('')}
   </div>`;
   el.classList.remove('hidden');
+  el.querySelectorAll('[data-order-problem]').forEach(b=>b.onclick=()=>downloadOrderProblem(rows[+b.dataset.orderProblem]));
 }
 function renderBasket(){
   const el=$('basketTray'); if(!el) return;
@@ -6821,7 +6934,7 @@ function renderBasket(){
     <div class="flex items-center gap-2 px-3 py-1.5 border-b border-emerald-500/15 bg-emerald-500/[0.04]">
       <span class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Order basket</span>
       <span class="text-[10px] font-black mono px-1.5 rounded bg-emerald-500/15 border border-emerald-500/25 text-emerald-200">${n}</span>
-      <span class="text-[10px] font-black uppercase tracking-widest ${_bskNote?'text-amber-300':'text-slate-600'} ml-auto truncate">${esc(_bskNote||'Not signed yet')}</span>
+      <span class="text-[10px] font-black uppercase tracking-widest ${_bskNote?'text-amber-300':'text-slate-600'} ml-auto truncate">${esc(_bskNote||'Waiting to submit')}</span>
     </div>
     <div class="flex flex-wrap gap-1.5 px-3 py-2">
       ${list.map((o,i)=>`<span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg border text-[11px] transition ${i===_bskFlash?'bg-amber-500/15 border-amber-400/60 text-amber-200':'bg-slate-900/80 border-slate-700/70 text-slate-200'}">
@@ -6830,7 +6943,7 @@ function renderBasket(){
       </span>`).join('')}
     </div>
     <div class="flex flex-wrap items-center gap-2 px-3 pb-2.5">
-      <button id="bskSign" ${busy?'disabled':''} class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition ${busy?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40'}">${busy?'Signing…':`✓ Sign ${n} order${n===1?'':'s'}`}</button>
+      <button id="bskSign" ${busy?'disabled':''} class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition ${busy?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40'}">${busy?'Submitting…':`Submit ${n} order${n===1?'':'s'}`}</button>
       <button id="bskFreeText" class="min-h-[44px] px-2 py-2 rounded-lg text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/10">+ Add free-text order</button>
       <button id="bskClear" class="px-3 py-2 rounded-xl border border-slate-800 text-slate-500 hover:text-slate-200 hover:border-slate-600 text-[10px] font-black uppercase tracking-widest transition">Clear</button>
     </div>
@@ -6913,6 +7026,7 @@ function renderPlay(){
       <button id="rhythmBtn" class="hidden ml-1 px-2 py-0.5 rounded-md border border-violet-500/50 bg-violet-950/60 text-violet-200 text-[9px] font-black uppercase tracking-widest hover:bg-violet-900/60 transition" title="Read the strip and call the rhythm (R)">Read rhythm \u25be</button>
     </div>
     <div id="v_nextBar" class="max-w-[1500px] mx-auto mt-1.5 h-1 rounded bg-slate-800/80 overflow-hidden hidden"><div id="v_nextFill" class="h-full bg-emerald-500 transition-all" style="width:100%"></div></div>
+    <div id="careStrip" class="hidden max-w-[1500px] mx-auto mt-2"></div>
   </div>
   <!-- body -->
   <div id="playBody" class="flex-1 flex overflow-hidden">
@@ -6942,6 +7056,9 @@ function renderPlay(){
         <div id="obToggleRow" class="flex items-center gap-2 mb-2">
           <button id="obToggle" class="text-[10px] font-black uppercase tracking-widest ${_orderMin?'text-emerald-400':'text-slate-600'} hover:text-emerald-300 transition">${_orderMin?'Orders & quick actions ▾':'Hide quick actions ▴'}</button>
           <button id="historyBtn" class="md:hidden ml-auto px-3 py-1.5 bg-slate-700/40 border border-slate-600 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-200" style="min-height:44px" title="Open the transcript — what the team has said">History</button><button id="chartBtn" class="md:hidden ml-1 px-3 py-1.5 bg-emerald-600/20 border border-emerald-600/50 rounded-lg text-[11px] font-black uppercase tracking-widest text-emerald-300" style="min-height:44px">Chart<span id="chartCount" class="ml-1 text-emerald-200"></span></button>
+        </div>
+        <div id="orderModeHint" class="mb-2 rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold ${codeActive()?'border-rose-500/30 bg-rose-500/10 text-rose-200':'border-emerald-500/20 bg-emerald-500/[0.06] text-slate-400'}">
+          ${codeActive()?'⚡ Resuscitation controls act immediately. Typed orders submit together.':'Selected orders wait in the basket. Add as many as needed, then press Submit once.'}
         </div>
         <div id="qaRow" class="${(_orderMin||codeActive())?'hidden ':''}flex flex-wrap gap-2 mb-3">
           ${QUICK.map((q,i)=>`<button data-q="${i}" class="qa px-3 py-1.5 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition">${q[0]}</button>`).join('')}
@@ -6980,10 +7097,10 @@ function renderPlay(){
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
           </button>`}
           <button id="coachBtn" class="hidden px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Open the coach. In training mode simulation time pauses while it is open.">Coach</button>
-          <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add free text to the basket without signing; keep adding orders when ready">+ Add</button>
+          <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add this free text to the basket without submitting">+ Queue</button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
-          <button id="sendBtn" aria-label="Send selected orders and free text together" title="Send selected orders and free text together" class="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <button id="sendBtn" aria-label="Submit selected orders and free text together" title="Submit selected orders and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
+            <span id="sendBtnLabel">Submit</span>
           </button>
         </div>
       </div>
@@ -7361,6 +7478,33 @@ function castPresent(messages){
   out.consultant = recent.some(m=>spokeIn(m,'consultant'));
   return out;
 }
+// WHAT THIS PERSON HAS ALREADY TOLD YOU, oldest first. Kim: "There should be a way to ask
+// to repeat the history. From paramedic for example, find a way to get EMS report again."
+// Clicking a figure sends an ORDER today, which costs a turn and comes back as filler —
+// the engine records every line in state.spokenSeen and will not repeat one. So the repeat
+// is read straight out of the transcript instead: no engine, no clock, nothing to grade.
+//
+// `replay:true` messages are the repeats themselves and are skipped, or asking twice would
+// double the list. Pure function of message history, no DOM: unit-tested in
+// tests/say-again.test.cjs, which extracts this function's source straight out of this file.
+function spokenBy(messages, role){
+  const out = [];
+  for(const m of (Array.isArray(messages) ? messages : [])){
+    if(!m || m.role !== 'assistant' || m.replay) continue;
+    for(const s of (Array.isArray(m.speech) ? m.speech : []))
+      if(s && s.speaker === role && s.text) out.push(s.text);
+  }
+  return out;
+}
+// What the model is told happened. A repeat is not a turn: it carries no new content (only
+// "Nurse, again:") and, in the ten-message window at the turn call, would evict a real turn
+// to say nothing. The three callers (the turn prompt, the deep re-grade, the mentor) all
+// built this line themselves; they now share it, so a fourth kind of message that must not
+// be sent has one place to be excluded.
+function transcriptForModel(msgs){
+  return (msgs||[]).filter(m => !m.replay && !(m.role==='assistant' && String(m.content).charAt(0)==='⚠'))
+    .map(m => (m.role==='user'?'DOCTOR':'SIM')+': '+m.content).join('\n');
+}
 // x/y anchor each figure's BOTTOM CENTRE as a percentage of the scene box; h is height
 // as a percentage of scene height. 'patient' has no image (already in the photo) — its
 // spot only places the speech bubble, so it points at the head/face, not the feet.
@@ -7423,6 +7567,12 @@ const CAST_ACTIONS = {
   family:     'Ask the family for collateral details.',
   consultant: 'Following up with the consultant.',
 };
+// What the menu calls the person, and what it calls the ask-something-new action. The
+// action strings themselves are ORDERS and are sent verbatim, so they cannot double as
+// button text — "Ask the medics for the handover" reads as an instruction, not a choice.
+const CAST_TITLES = { nurse:'Nurse', medic:'Paramedic', family:'Family', consultant:'Consultant', patient:'Patient' };
+const CAST_LABELS = { nurse:'Vitals and a nursing update', medic:'Ask for the handover',
+                      family:'Ask for collateral', consultant:'Follow up with them' };
 // Where you can walk from inside the scene. Rendered as chips on the photo, because
 // invisible floor polygons are undiscoverable and the ROOM view has no free space for
 // them (the IV pole already owns the head end).
@@ -7440,7 +7590,7 @@ const US_ABD='Bedside abdominal ultrasound — right upper quadrant ultrasound v
 // through real cases-offline.json packs (see report) — every phrase resolves to a
 // real intent and a real responder, never the "not sure what you meant" shrug.
 const ROOM_ACTIONS={
-  head:[['Examine head & airway',null],['O2 by non-rebreather','Apply oxygen by non-rebreather mask'],
+  head:[['Say that again','__repeat:patient'],['Examine head & airway',null],['O2 by non-rebreather','Apply oxygen by non-rebreather mask'],
         ['Nasal cannula O2','Apply oxygen by nasal cannula'],['Intubate — RSI','Intubate — rapid sequence intubation'],
         ['Cricothyrotomy','Perform an emergency cricothyrotomy']],
   chest:[['Auscultate heart & lungs',null],['12-lead ECG','Obtain a 12-lead ECG'],
@@ -7522,8 +7672,17 @@ const DEST_WORDS = [[/cath lab|pci|catheterisation|catheterization/i, 'To the ca
 // patient without ever saying "cath lab", and guessing the ward from the service would be
 // the app answering a question it is asking. The quote goes up either way; the choice
 // stays the doctor's.
+//
+// Messages are scanned NEWEST first but each message's own speech OLDEST first, so the
+// answer is "the latest acceptance" only while one message holds one line. sayAgain
+// bundles EVERY line that person has said into a single message, oldest first — so on
+// resus-acls-vf (two accepting cardiology lines) one click of "Say that again" moved the
+// answer from ["Admit to the ICU", "ICU here — we'll take him once cardiology…"] to
+// [null, "Cardiology — …the lab is activated…"]: a stale quote and no "they are expecting
+// the patient" highlight at all. A repeat is not a new acceptance — see spokenBy.
 function dispositionAccepted(){
   for(const m of [...(S.messages || [])].reverse()){
+    if(m && m.replay) continue;
     for(const seg of (m.speech || [])){
       if(!seg || seg.speaker !== 'consultant') continue;
       const t = String(seg.text || '');
@@ -7629,7 +7788,19 @@ function _roomMenuAway(e){
 }
 function roomMenu(ev, key){
   closeRoomMenu();
-  let items=ROOM_ACTIONS[key]; if(!items||!items.length) return;
+  const items0=ROOM_ACTIONS[key]; if(!items0||!items0.length) return;
+  return roomMenuItems(ev, ZONE_TITLES[key]||key, items0, key);
+}
+// The same popover, with the items handed in. The cast figures have no zone in
+// ROOM_ACTIONS — the person you are talking to is not a piece of equipment — and their
+// menu is built per click from what that person has actually said.
+function roomMenuItems(ev, title, items0, key){
+  let items=items0;
+  // A repeat with nothing to repeat is a button that does nothing. castMenu already omits
+  // it; a zone's item list is static, so filter it at open time instead. Measured: on every
+  // arrest the airway menu opened with a dead "Say that again" above "Examine head & airway".
+  items = items.filter(([,ord]) => !(typeof ord === 'string' && ord.startsWith('__repeat:')
+                                     && !spokenBy(S.messages, ord.slice(9)).length));
   // The defibrillator trolley's energies are the case's, not the adult defaults. On the
   // 6 kg infant this menu offered "Synchronized cardioversion at 100 joules" — twenty
   // times the starting dose, in the words of that case's own learning point.
@@ -7640,7 +7811,7 @@ function roomMenu(ev, key){
   const m=document.createElement('div');
   m.className='roomMenu fixed z-[75] min-w-[150px] max-w-[15rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
   m.style.left='0px'; m.style.top='0px';
-  m.innerHTML=`<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">${esc(ZONE_TITLES[key]||key)}</div>`+
+  m.innerHTML=`<div class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">${esc(title)}</div>`+
     items.map((it,i)=>`<button data-mi="${i}" class="block w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">${esc(it[0])}</button>`).join('');
   document.body.appendChild(m);
   const pad=6, w=m.offsetWidth, h=m.offsetHeight;
@@ -7653,6 +7824,9 @@ function roomMenu(ev, key){
     const [lbl,ord]=items[+b.dataset.mi]; closeRoomMenu();
     if(S.loading) return;
     if(ord==='__vitals__') return openVitalsFocus();
+    // A LOCAL ITEM IS NOT AN ORDER. Same convention the palette already uses for
+    // __recap: anything starting "__" is handled here and never reaches an engine.
+    if(typeof ord==='string' && ord.startsWith('__repeat:')) return sayAgain(ord.slice(9));
     if(ord===null){
       const reg = key==='examPick' ? EXAM_PICK_REGION[+b.dataset.mi] : key;
       if(reg==='chest') auscultate();
@@ -8448,11 +8622,38 @@ function paintCast(){
   el.innerHTML=h;
   wireCast(el);
 }
+// A FIGURE IS A PERSON, NOT A BUTTON. Clicking one used to fire CAST_ACTIONS[role] as an
+// order: a turn spent, and — for the medic — usually filler, because the handover had
+// already been said once and the engine will not repeat a line. Kim asked for the EMS
+// report again and for the paramedic to show up again; both are here, and neither costs a
+// minute of the patient's time. Asking something NEW is still an order, on the same menu.
+function castMenu(ev, role){
+  const said = spokenBy(S.messages, role);
+  const items = [];
+  if(said.length) items.push(['Say that again', '__repeat:' + role]);
+  if(CAST_ACTIONS[role]) items.push([CAST_LABELS[role] || CAST_ACTIONS[role], CAST_ACTIONS[role]]);
+  if(!items.length) return;
+  roomMenuItems(ev, CAST_TITLES[role] || role, items);
+}
+// The lines back on screen, in their own voice, and the person back with them: the replay
+// pushes an assistant message, so castPresent — which reads the last two assistant turns —
+// finds the medic who had faded out and stands them up again to say it. `replay:true` keeps
+// spokenBy from re-reading its own output, and keeps the debrief's order log honest: this
+// is not something the doctor did.
+function sayAgain(role){
+  const said = spokenBy(S.messages, role);
+  if(!said.length) return;
+  const who = CAST_TITLES[role] || role;
+  S.messages.push({ role: 'assistant', replay: true,
+    content: who + ', again:',
+    speech: said.map(text => ({ speaker: role, text })) });
+  renderChat(); paintCast(); paintRoom();
+}
 function wireCast(el){
   el.querySelectorAll('[data-cast]').forEach(im=>{
     im.onerror=()=>castImgErr(im.dataset.cast, im);
     im.onclick=ev=>{ ev.stopPropagation(); if(S.loading) return; closeRoomMenu();
-      const action=CAST_ACTIONS[im.dataset.cast]; if(action) progress(action, action); };
+      castMenu(ev, im.dataset.cast); };
   });
   // Bubbles clear after 7s even with no new turn (an idle player shouldn't see a stale
   // line forever); a fresh call above already supersedes this on the next real turn.
@@ -8696,6 +8897,11 @@ function _resultsPref(){ try{ return localStorage.getItem('ms_results') !== '0';
 // either now closes the other, so there is one thing to read and the patient is still
 // visible beside it.
 function setResults(open){
+  if(open){
+    const total=chartTotal();
+    S.resultFocusCount=Math.max(0,total-(S.chartSeen||0));
+    S.resultsNewOnly=false;
+  }
   const st = panelState();
   st.activePanel = open ? 'results' : (st.activePanel === 'results' ? null : st.activePanel);
   if(!open) st.expanded = false;
@@ -8705,6 +8911,7 @@ function setResults(open){
   document.body.classList.toggle('panelExpanded', !!st.expanded);
   try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
   paintLabsRail();
+  if(open){ applyResultsView(); setTimeout(focusNewestResult,40); }
 }
 function toggleClearRoom(){
   if(!S.cinema) return;
@@ -8900,6 +9107,31 @@ function cprRunning(){
 function ventilationRunning(){
   return codeActive() ? !!(S.code && S.code.flags && S.code.flags.ppv) : !!roomState().ventilation;
 }
+function careInProgressItems(){
+  const st=roomState(), c=S.code||null, out=[];
+  if(cprRunning()) out.push({label:'CPR',tone:'emerald'});
+  if(ventilationRunning()){
+    const via=c&&c.airway ? String(c.airway).toUpperCase() : 'BVM';
+    out.push({label:'Ventilating · '+via,tone:'sky'});
+  }
+  if(c&&c.ivAccess) out.push({label:String(c.ivAccess).toUpperCase()+' access',tone:'emerald'});
+  else if(S.gear&&S.gear.iv) out.push({label:'IV access',tone:'emerald'});
+  if(st.drip) out.push({label:'Infusion running',tone:'amber'});
+  if(c&&c.capnography) out.push({label:'Capnography',tone:'sky'});
+  if(st.defib==='charging') out.push({label:'Defibrillator charging',tone:'rose'});
+  else if(st.defib==='shock') out.push({label:'Shock delivered',tone:'amber'});
+  else if(st.defib==='pads') out.push({label:'Defib pads connected',tone:'slate'});
+  return out;
+}
+function paintCareStrip(){
+  const el=$('careStrip'); if(!el) return;
+  const items=careInProgressItems();
+  if(!items.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
+  const tone={emerald:'border-emerald-500/35 bg-emerald-500/10 text-emerald-200',sky:'border-sky-500/35 bg-sky-500/10 text-sky-200',amber:'border-amber-500/35 bg-amber-500/10 text-amber-200',rose:'border-rose-500/45 bg-rose-500/15 text-rose-200',slate:'border-slate-700 bg-slate-900/80 text-slate-300'};
+  el.innerHTML='<div class="flex items-center gap-1.5 overflow-x-auto"><span class="shrink-0 text-[9px] font-black uppercase tracking-widest text-slate-500 mr-1">Care in progress</span>'+
+    items.map(x=>'<span class="shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold '+(tone[x.tone]||tone.slate)+'">'+esc(x.label)+'</span>').join('')+'</div>';
+  el.classList.remove('hidden');
+}
 // The current RT cutout is composed for an adult bed. Do not shrink that adult onto
 // a pediatric or neonatal patient: those families need their own reviewed artwork
 // and contact geometry. Unknown-age legacy cases remain eligible for the adult art.
@@ -8933,7 +9165,7 @@ function cprOverlayHTML(viewKey, chest){
 // point to the face rather than positioning the therapist by eye in each camera.
 function bvmOverlayHTML(viewKey, head){
   if(!head || !ventilationRunning() || !adultBvmArtAllowed()) return '';
-  const cfg={room:{w:18,dx:0,dy:.48},foot:{w:17,dx:0,dy:.48},airway:{w:18,dx:0,dy:.52}}[viewKey]||{w:18,dx:0,dy:.5};
+  const cfg={room:{w:15.5,dx:0,dy:.48},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5};
   const h=cfg.w*(100/56)*(3/2), cx=head.l+head.w/2+cfg.dx, cy=head.t+head.h*cfg.dy;
   const left=cx-cfg.w*.16, top=cy-h*.80;
   return `<div class="rmBvmRig absolute" style="z-index:2;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
@@ -8944,7 +9176,7 @@ function bvmOverlayHTML(viewKey, head){
 }
 function defibOperatorHTML(viewKey, defib, state){
   if(!defib || (state!=='charging' && state!=='shock')) return '';
-  const cfg={room:{w:14},foot:{w:13},airway:{w:13}}[viewKey]||{w:14};
+  const cfg={room:{w:12},foot:{w:11.5},airway:{w:11.5}}[viewKey]||{w:12};
   const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*.52, cy=defib.t+defib.h*.48;
   // The source is mirrored: its fingertip becomes a 93% anchor, leaving the nurse
   // visible to the LEFT of the cart even when the right-side results drawer is open.
@@ -9151,6 +9383,7 @@ function paintRoom(){
   }
   // A dead thumbnail must not leave a broken-image glyph on the cart — drop its bezel too.
   const im=ov.querySelector('img'); if(im) im.onerror=()=>{ (im.parentElement||im).remove(); };
+  paintCareStrip();
 }
 // Mirrors the header's live ECG/pleth canvases onto the wall-mounted monitor in the room
 // photo — no second waveform engine, just a blit each frame. Self-terminates once the
@@ -9409,7 +9642,9 @@ function chartOnScreen(){
 function paintChartCount(){
   const el=$('chartCount');
   const n=chartTotal();
-  if(el) el.textContent = n ? '· '+n : '';
+  const unseen=Math.max(0,n-(S.chartSeen||0));
+  if(el) el.textContent = unseen ? '· '+unseen+' new' : (n?'· '+n:'');
+  const btn=$('chartBtn'); if(btn) btn.classList.toggle('chartNew',unseen>0&&!chartOnScreen());
   paintLabsRail();
 }
 // THE LIGHT ON THE LABS TAB. Anything in the chart the player has not had in front of
@@ -9417,9 +9652,9 @@ function paintChartCount(){
 // rather than a flag so a SECOND result arriving while the drawer is shut lights it
 // again — which is exactly the moment a player wants to be told.
 function paintLabsRail(){
-  const tab = $('cinRight'); if(!tab) return;
   const n = chartTotal();
   if(chartOnScreen()) S.chartSeen = n;          // they are looking at it
+  const tab = $('cinRight'); if(!tab) return;
   const unseen = Math.max(0, n - (S.chartSeen || 0));
   tab.classList.toggle('hasNew', unseen > 0);
   tab.textContent = unseen > 0 ? 'RESULTS ' + unseen : 'RESULTS';
@@ -9427,6 +9662,31 @@ function paintLabsRail(){
     ? unseen + ' new result' + (unseen === 1 ? '' : 's') + ' waiting — open the results'
     : (document.body.classList.contains('resultsOpen') ? 'Hide the results' : 'Show the results');
   tab.setAttribute('aria-label', tab.title);
+}
+function applyResultsView(){
+  const ws=$('ws'); if(!ws) return;
+  const cards=[...ws.querySelectorAll('[data-result-card]')];
+  const n=Math.min(S.resultFocusCount||0,cards.length), firstNew=Math.max(0,cards.length-n);
+  cards.forEach((card,i)=>{
+    const fresh=n>0&&i>=firstNew;
+    card.classList.toggle('resultCardNew',fresh);
+    card.classList.toggle('hidden',!!S.resultsNewOnly&&!fresh);
+  });
+  const btn=$('resultFilterBtn');
+  if(btn){
+    btn.disabled=!n;
+    btn.textContent=S.resultsNewOnly?'Show all results':(n?'New results only · '+n:'No unread results');
+    btn.classList.toggle('opacity-50',!n);
+  }
+  const empty=$('resultFilterEmpty'); if(empty) empty.classList.toggle('hidden',!(S.resultsNewOnly&&!n));
+}
+function focusNewestResult(){
+  const ws=$('ws'); if(!ws) return;
+  const cards=[...ws.querySelectorAll('[data-result-card]:not(.hidden)')];
+  const card=cards[cards.length-1]; if(!card) return;
+  try{ card.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }catch(_){ }
+  card.classList.remove('resultCardFocus'); requestAnimationFrame(()=>card.classList.add('resultCardFocus'));
+  setTimeout(()=>card.classList.remove('resultCardFocus'),1900);
 }
 function renderWorkspace(){
   const ws=$('ws'); if(!ws) return;
@@ -9437,7 +9697,7 @@ function renderWorkspace(){
     const cap=derm ? esc((derm.label||'Skin finding')+' — '+[derm.credit, derm.license].filter(Boolean).join(' · '))
                    : (ex?esc((e.system||'Exam')+' — bedside close-up'):'');
     const imgHtml=ex?`<img src="${esc(ex)}" loading="lazy" alt="Clinical exam image: ${esc(e.system||'physical finding')}" role="button" tabindex="0" data-img="${esc(ex)}" data-cap="${cap}" data-key="${derm?esc(derm.key):''}" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black" />`:'';
-    return `<div class="p-3 bg-slate-900/40 rounded-xl border-l-2 border-blue-600"><span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${esc(e.system)}</span>${imgHtml}<p class="text-sm text-slate-200 mt-1">${esc(e.finding)}</p></div>`;
+    return `<div data-result-card class="p-3 bg-slate-900/40 rounded-xl border border-slate-800 border-l-2 border-l-blue-600"><span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${esc(e.system)}</span>${imgHtml}<p class="text-sm text-slate-200 mt-1">${esc(e.finding)}</p></div>`;
   }).join('')); }
   if(S.reports.length){ h+=section('Imaging & Studies','emerald', S.reports.map((r,i)=>{
     let attr='';
@@ -9479,13 +9739,13 @@ function renderWorkspace(){
     } else {
       bodyHtml = `<p class="text-sm text-slate-200 mt-1">${esc(r.body||'')}</p>`;   // consult note / procedure result / untyped
     }
-    return `<div class="p-3 bg-slate-900/40 rounded-xl border-l-2 border-emerald-600"><span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">${esc(r.title)}</span>${imgHtml}${bodyHtml}</div>`;
+    return `<div data-result-card class="p-3 bg-slate-900/40 rounded-xl border border-slate-800 border-l-2 border-l-emerald-600"><span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">${esc(r.title)}</span>${imgHtml}${bodyHtml}</div>`;
   }).join('')); }
   const equipmentVisuals=equipmentVisualsForTimeline();
   if(equipmentVisuals.length){ h+=section('Equipment & Procedures','cyan',
     `<div class="grid grid-cols-1 xl:grid-cols-2 gap-2">${equipmentVisuals.map(e=>{
       const cap=esc(e.label+' — '+[e.credit,e.license].filter(Boolean).join(' · '));
-      return `<div class="p-2 bg-slate-900/40 rounded-xl border border-slate-800"><img src="${esc(e.url)}" loading="lazy" alt="${esc(e.label)}" role="button" tabindex="0" data-img="${esc(e.url)}" data-cap="${cap}" data-key="${esc(e.key)}" class="w-full rounded-lg cursor-zoom-in bg-black"/><p class="text-[10px] text-slate-400 mt-1">${esc(e.label)}</p></div>`;
+      return `<div data-result-card class="p-2 bg-slate-900/40 rounded-xl border border-slate-800"><img src="${esc(e.url)}" loading="lazy" alt="${esc(e.label)}" role="button" tabindex="0" data-img="${esc(e.url)}" data-cap="${cap}" data-key="${esc(e.key)}" class="w-full rounded-lg cursor-zoom-in bg-black"/><p class="text-[10px] text-slate-400 mt-1">${esc(e.label)}</p></div>`;
     }).join('')}</div>`); }
   if(S.labs.length){
     // One row per test, newest value first, with every earlier draw kept beside it and
@@ -9501,7 +9761,7 @@ function renderWorkspace(){
         ? `<div class="text-[9px] text-slate-500 mt-0.5">was ${prior.map(p =>
             esc(String(p.value)) + (p.unit ? ' ' + esc(p.unit) : '') + ' at T+' + Math.round(p.at || 0)
           ).join(' · ')}</div>` : '';
-      return `<div class="px-3 py-2" data-result="${esc(latest.id||'')}">
+      return `<div data-result-card class="px-3 py-2 border border-transparent rounded-lg" data-result="${esc(latest.id||'')}">
         <div class="flex justify-between items-baseline">
           <span class="text-xs text-slate-300">${esc(latest.name)}${draws.length > 1
             ? `<span class="ml-1 text-[9px] text-slate-500">×${draws.length}</span>` : ''}</span>
@@ -9512,8 +9772,14 @@ function renderWorkspace(){
     }).join('');
     h += section('Laboratory','yellow', `<div class="bg-slate-900/40 rounded-xl divide-y divide-slate-800/50">${rows}</div>`);
   }
+  const newCount=Math.min(S.resultFocusCount||0,chartTotal());
+  if(h) h=`<div id="resultTools" class="sticky top-12 z-[8] mb-3 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/95 p-2 shadow-lg">
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Results</span>
+      <button id="resultFilterBtn" class="ml-auto min-h-[40px] rounded-lg border border-emerald-700/50 bg-emerald-500/10 px-3 text-[10px] font-black uppercase tracking-widest text-emerald-300">${newCount?'New results only · '+newCount:'No unread results'}</button>
+    </div><p id="resultFilterEmpty" class="hidden mb-3 rounded-xl border border-slate-800 p-3 text-xs text-slate-400">There are no unread results. Show all results to review the chart.</p>`+h;
   paintChartCount();
   ws.innerHTML = h || `<p class="text-xs text-slate-600">Order labs, imaging, or an exam to populate the chart.</p>`;
+  const filter=$('resultFilterBtn'); if(filter) filter.onclick=()=>{ S.resultsNewOnly=!S.resultsNewOnly; applyResultsView(); };
   ws.querySelectorAll('[data-img]').forEach(im=>{
     const open=()=>openFilmViewer(im.dataset.img, im.dataset.cap, im.dataset.key||'');
     im.onclick=open;
@@ -9528,6 +9794,7 @@ function renderWorkspace(){
     if(im.complete && im.naturalWidth===0) heal();
   });
   ws.querySelectorAll('[data-reveal]').forEach(b=>b.onclick=()=>{ const r=S.reports[+b.dataset.reveal]; if(r){ r.revealed=true; renderWorkspace(); } });
+  applyResultsView();
 }
 function section(title,color,inner){ return `<div class="space-y-2 mb-6"><div class="text-[10px] font-black uppercase tracking-widest text-${color}-500">${title}</div>${inner}</div>`; }
 
@@ -9800,6 +10067,21 @@ function evidenceHTML(){
     ${unreviewed ? '<div class="text-[10px] text-amber-300/80 pt-1">These rules are generated from the checklist and not yet clinically reviewed. Nothing here changes your score.</div>' : ''}
   </div>`;
 }
+function debriefQuickSummaryHTML(d,met,missed){
+  const ev=Array.isArray(d.criticalEvents)?d.criticalEvents:[];
+  const positive=ev.find(x=>x&&x.type==='positive');
+  const opportunities=normList(d.missedOpportunities);
+  const worked=(positive&&(positive.event||positive.feedback))||met[0]||'You completed the scenario and reached the debrief.';
+  const improve=missed[0]||opportunities[0]||'Repeat the same case and aim to make the key decisions earlier.';
+  const retry=missed.length ? 'On the next run, complete: '+missed[0]
+    : (opportunities.length?'On the next run, focus on: '+opportunities[0]:'Replay without hints and try to improve your time.');
+  const card=(label,text,tone)=>`<div class="rounded-xl border ${tone} bg-slate-900/65 p-4"><div class="text-[9px] font-black uppercase tracking-widest mb-1">${label}</div><p class="text-sm text-slate-200 leading-relaxed">${esc(text)}</p></div>`;
+  return `<section aria-label="Debrief quick summary" class="space-y-2"><h2 class="text-[10px] font-black uppercase tracking-[.24em] text-slate-500">Your next run</h2><div class="grid gap-2 md:grid-cols-3">
+    ${card('What worked',worked,'border-emerald-800/70 text-emerald-400')}
+    ${card('Improve',improve,'border-amber-800/70 text-amber-400')}
+    ${card('Retry goal',retry,'border-sky-800/70 text-sky-400')}
+  </div></section>`;
+}
 function renderDebrief(){
   const d=S.debrief||{}; const score=Math.round(d.score||0);
   // Widened past /died/ so an LLM debrief phrasing it as "expired" or "deceased" in
@@ -9807,6 +10089,11 @@ function renderDebrief(){
   // cosmetic miss, but confetti over a corpse is the failure mode we can't ship.
   const died=/died|death|deceased|expired|did not survive|succumbed/i.test(d.outcome||'');
   exitCinema();          // the case is over — hand the screen back to the debrief
+  // The consultant's pulse must not outlive the case. #dxBox is in the HEADER, outside the
+  // #main this debrief replaces, and nothing calls paintDxBox once the stage leaves play —
+  // so a case that ended on the referral left the box still pulsing behind the score.
+  const dxBoxEl = $('dxBox'); if(dxBoxEl) dxBoxEl.classList.remove('dxWaiting');
+  paintDxWait(null);     // the Dx button goes with #main, but not on every path here
   clearInterval(driftTimer); cancelAnimationFrame(ecgRAF); if(_ecgFit){ _ecgFit(); _ecgFit=null; } cancelAnimationFrame(patientRAF);
   const ev=Array.isArray(d.criticalEvents)?d.criticalEvents:[];
   const met=normList(d.criticalActionsMet), missed=normList(d.criticalActionsMissed);
@@ -9834,7 +10121,8 @@ function renderDebrief(){
         <div class="text-lg font-bold text-white mt-1">${esc(d.outcome||'Case complete')}</div>
         <div id="debriefDeep" class="text-[11px] mt-2 h-4"></div>
       </div>
-      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 leading-relaxed">${esc(d.summary||'')}</div>
+      ${debriefQuickSummaryHTML(d,met,missed)}
+      <details class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 leading-relaxed"><summary class="cursor-pointer font-bold text-slate-200">Full case summary</summary><p class="mt-3">${esc(d.summary||'')}</p></details>
       ${(met.length||missed.length)?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Critical Actions Checklist</h3>
         <div class="bg-slate-900/40 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
         ${met.map(a=>`<div class="flex gap-2 px-4 py-2.5 items-baseline"><span class="text-emerald-500 font-black">✓</span><span class="text-xs text-slate-300">${esc(a)}</span></div>`).join('')}
@@ -9847,13 +10135,13 @@ function renderDebrief(){
           ${r.teach?`<div class="text-[11px] text-slate-500 pl-5 mt-1 leading-relaxed">${esc(r.teach)}</div>`:''}
         </div>`).join('')}
         </div></div>`:''}
-      ${Array.isArray(d.codeTimeline)&&d.codeTimeline.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">The Code, Minute by Minute</h3>
+      ${Array.isArray(d.codeTimeline)&&d.codeTimeline.length?`<details class="space-y-2"><summary class="cursor-pointer text-[10px] font-black uppercase tracking-widest text-slate-500">The Code, Minute by Minute</summary>
         <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-4 space-y-1">
         ${d.codeTimeline.map(e=>`<div class="flex gap-3 text-xs items-baseline">
           <span class="mono text-slate-500 w-10 shrink-0 text-right">${esc(e.at)}</span>
           <span class="${e.kind==='rosc'?'text-emerald-300':e.kind==='death'||e.kind==='degrade'?'text-red-300':e.kind==='shock'?'text-amber-200':'text-slate-300'}">${esc(e.text)}</span>
         </div>`).join('')}
-        </div></div>`:''}
+        </div></details>`:''}
       ${ordersEnteredHTML()}
       ${Array.isArray(d.unrecognizedOrders)&&d.unrecognizedOrders.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-amber-500">Orders the sim did not understand</h3>
         <div class="bg-slate-900/40 border border-amber-900/40 rounded-xl p-4 space-y-1.5">
@@ -10262,8 +10550,7 @@ async function runMentor(){
   try{
     const d=S.debrief||{};
     const log=getCaseLog().slice(-10).map(e=>`${e.when} ${e.diagnosis} — ${e.score}/100${e.missed&&e.missed.length?' (missed: '+e.missed.join('; ')+')':''}`).join('\n');
-    const transcript=S.messages.filter(m=>!(m.role==='assistant'&&String(m.content).charAt(0)==='⚠'))
-      .map(m=>(m.role==='user'?'DOCTOR':'SIM')+': '+m.content).join('\n');
+    const transcript=transcriptForModel(S.messages);
     const usr=`TODAY: ${localISO().slice(0,10)}
 CASE JUST COMPLETED — TRUE DIAGNOSIS: ${S.diagnosis}
 SCORE: ${Math.round(d.score||0)}/100 · ER TIME: T+${Math.round(S.simMin)} min · OUTCOME: ${d.outcome||''}
@@ -10444,6 +10731,7 @@ function openSettings(){
   $('geminiKey').value=S.geminiKey; $('claudeKey').value=S.claudeKey; $('baseURL').value=S.localURL;
   $('model').value=S.model; $('deepModel').value=S.deepModel;
   $('temp').value=S.temperature; $('tempVal').textContent=S.temperature; $('soundToggle').checked=S.sound;
+  $('comfortableTextToggle').checked=S.comfortableText;
   $('hdVoicesToggle').checked=S.hdVoices;
   paintVoicePicker();
   if($('ttsURL')) $('ttsURL').value = S.ttsURL || '';
@@ -10550,6 +10838,12 @@ $('model').addEventListener('change',e=>{ S.model=e.target.value.trim(); localSt
 $('deepModel').addEventListener('change',e=>{ S.deepModel=e.target.value.trim(); localStorage.setItem('ms_deepModel',S.deepModel); });
 $('rpdLimit').addEventListener('change',e=>{ S.rpd=Math.max(1,parseInt(e.target.value,10)||20); localStorage.setItem('ms_rpd',String(S.rpd)); renderUsageStrip(); });
 $('soundToggle').addEventListener('change',e=>{ S.sound=e.target.checked; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(!S.sound) stopMonitorSound(); });
+$('comfortableTextToggle').addEventListener('change',e=>{
+  S.comfortableText=e.target.checked;
+  localStorage.setItem('ms_comfortableText',S.comfortableText?'1':'0');
+  document.body.classList.toggle('comfortableText',S.comfortableText);
+  if(S.stage==='play') measureDock();
+});
 $('logRunsToggle').addEventListener('change',e=>{ S.logRuns=e.target.checked; localStorage.setItem('ms_logRuns',S.logRuns?'1':'0'); });
 $('hdVoicesToggle').addEventListener('change',e=>{ S.hdVoices=e.target.checked; localStorage.setItem('ms_hdVoices',S.hdVoices?'1':'0'); });
 $('voicePick').addEventListener('change',e=>{
