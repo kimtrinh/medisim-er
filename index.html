@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hUOCI/GJIggAphPDsSWYlznnh00Be41KW8T4PBRsYOo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-4i4nTVQjJ8aNtTx9M1C+fl+JBJcKLrOdvRFjQhZkXyY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -2646,8 +2646,17 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(action+' '+(r.narrative||''));                      // hook equipment the orders placed
     roomAutoState(action, r._trace);                                 // …confirmed actions drive the room props too
-    S.vitals = normVitals(r.updatedVitals); S.vBase={...S.vitals};   // re-anchor the drift bound to the model's authoritative values
-    S.trend = ['stable','improving','worsening','critical'].includes(r.vitalTrend)?r.vitalTrend:'stable';
+    if(codeActive()) applyCodeVitals();
+    else { S.vitals = normVitals(r.updatedVitals); S.vBase={...S.vitals}; }
+    // …but during a LIVE CODE the code engine owns the trend, exactly as it owns the
+    // numbers above. A turn taken mid-code — a re-eval, a consult, an X-ray — comes back
+    // with the pack's own vitalTrend, which knows nothing about the needle decompression
+    // that just took her from 78 to 92, and it defaults to 'stable'. applyCodeVitals puts
+    // it back on the next one-second tick, but the ticker does not run in a hidden tab or
+    // while the coach is paused, so a stale 'stable' could sit on the acuity chip for as
+    // long as the player was reading a hint.
+    if(!codeActive())
+      S.trend = ['stable','improving','worsening','critical'].includes(r.vitalTrend)?r.vitalTrend:'stable';
     snapVitalsToTurn();   // monitor + telemetry respond THE INSTANT the order lands, in sync with the spoken result — not 10+s behind it
     // repeat:true rows/cards (instant engine re-orders) REPLACE their originals
     // instead of stacking duplicates in the workspace; everything else appends.
@@ -2784,8 +2793,77 @@ function blessAudio(){
 }
 window.addEventListener('pointerdown', blessAudio, true);
 window.addEventListener('keydown', blessAudio, true);
-function stopSpeak(){
+// ===================== A STATUS LINE WAITS FOR THE PERSON WHO IS SPEAKING =====================
+//
+// Kim, on the blunt-trauma run: "the case kept calling out the vital signs and I couldn't
+// hear the history by the paramedic, I couldn't hear the consultants, it kept being
+// interrupted by the vital signs… the vital signs cannot be called out and interrupt the
+// history, which is critical."
+//
+// speakSegments opens with stopSpeak() — "newer replies interrupt older ones" — which is
+// right for a person and wrong for a number. Every ninety-second callout cancelled the
+// handover mid-sentence. So speech now has two ranks. A STORY line (paramedic, patient,
+// family, consultant, the nurse answering an order) interrupts, exactly as before. A STATUS
+// line (the vital-sign callout, the two-minute rhythm prompt, a coaching hint) never does:
+// it is spoken into silence, and otherwise it waits. Only the newest set of numbers waits —
+// stale numbers are worse than no numbers — and a person speaking throws the queue away.
+let _pendingStatus = null, _storyInFlight = false, _statusWait = null, _statusSince = 0, _speechQueue = [];
+// A stranded callout is a monitor that has gone quiet. Every path that starts a story line
+// reports back when it ends (below), but a browser that never fires either handler must not
+// silence the nurse for the rest of the case — so the queue also checks back on its own.
+const STATUS_WAIT_MS = 15000;
+// And numbers that have waited a minute are not this patient's numbers any more. Reading
+// them out late is worse than not reading them: the next change fires its own callout.
+const STATUS_STALE_MS = 60000;
+// Is a person speaking RIGHT NOW? speechSynthesis.speaking alone is not enough: it drops to
+// false in the gap between two queued utterances, which is exactly where a callout used to
+// slip in and take the floor. _storyInFlight spans the whole batch.
+function speechBusy(){
+  if(_storyInFlight) return true;
+  try{ if(_audioEl && _audioEl.src && !_audioEl.paused && !_audioEl.ended) return true; }catch(_){ }
+  if('speechSynthesis' in window && (speechSynthesis.speaking || speechSynthesis.pending)) return true;
+  return false;
+}
+function queueStatus(segments){
+  if(!_pendingStatus) _statusSince = Date.now();   // the wait began with the FIRST set, not this one
+  _pendingStatus = segments;                       // the newest numbers replace the waiting ones
+  if(_statusWait) clearTimeout(_statusWait);
+  _statusWait = setTimeout(flushStatus, STATUS_WAIT_MS);
+}
+function clearStatusQueue(){
+  _pendingStatus = null;
+  if(_statusWait){ clearTimeout(_statusWait); _statusWait = null; }
+}
+function flushStatus(){
+  if(_statusWait){ clearTimeout(_statusWait); _statusWait = null; }
+  const q = _pendingStatus;
+  if(!q) return;
+  if(Date.now() - _statusSince > STATUS_STALE_MS){ clearStatusQueue(); return; }
+  if(speechBusy()){                                // still talking — keep waiting, never cut in
+    if(Date.now() - _statusSince > STATUS_STALE_MS){ clearStatusQueue(); return; }
+    _statusWait = setTimeout(flushStatus, STATUS_WAIT_MS);
+    return;
+  }
+  clearStatusQueue();
+  speakSegments(q, false, { priority: 'status' });
+}
+// WHO SAYS "FINISHED"? Nobody did. The Kokoro path set _audioEl.onended only to revoke a blob
+// URL, and browserSpeak queued N utterances with no completion handler at all — so there was
+// no moment at which a waiting callout could be released. Every backend now reports back
+// here, including when it fails. Only the call that started the line may report it done: a
+// superseded batch must not hand the floor to a line that has already been replaced.
+function storyDone(seq){
+  if(seq !== _ttsSeq) return;
+  _storyInFlight = false;
+  const next = _speechQueue.shift();
+  if(next){ speakSegments(next, false, { queued: true }); return; }
+  flushStatus();
+}
+function stopSpeak(opts){
+  if(!opts || !opts.preserveQueue) _speechQueue = [];
   _ttsSeq++;   // invalidate any in-flight synthesis or queued playback
+  _storyInFlight = false;
+  clearStatusQueue();   // a person is about to speak, and by the time they stop these numbers are old
   if('speechSynthesis' in window) speechSynthesis.cancel();
   try{ _audioEl.pause(); }catch(_){ }
   if(_curUrl){ URL.revokeObjectURL(_curUrl); _curUrl=null; }
@@ -2948,13 +3026,18 @@ const BROWSER_PITCH = { narrator:1, nurse:1.08, consultant:0.9, medic:0.96,
                         family:1.05, child:1.25, mentor:0.92, patient:1 };
 // One utterance PER SEGMENT, queued — speakers alternate instead of one voice reading the
 // whole turn as a single run-on line.
-function browserSpeak(segments){
-  if(!('speechSynthesis' in window)) return;
+// onDone fires when the LAST utterance of the batch ends — the only moment at which the
+// whole line is over. It has to fire on the empty and the failed batch too: a callout that
+// waited on a batch which never spoke would wait for the rest of the case.
+function browserSpeak(segments, onDone){
+  const done = typeof onDone === 'function' ? onDone : function(){ };
+  if(!('speechSynthesis' in window)){ done(); return; }
   const segs = Array.isArray(segments) ? segments
              : [{ role:'narrator', text:String(segments || '') }];
   const list = refreshVoices();
   const lang = (navigator && navigator.language) || 'en';
   const only = new Set(list.map(v => v.name)).size <= 1;
+  let last = null;
   for(const seg of segs){
     const text = String((seg && seg.text) || '').trim();
     if(!text) continue;
@@ -2966,7 +3049,11 @@ function browserSpeak(segments){
     // Only lean on pitch when the voices cannot do the work themselves.
     u.pitch = only ? (BROWSER_PITCH[role] || 1) : 1;
     speechSynthesis.speak(u);
+    last = u;
   }
+  if(!last){ done(); return; }
+  last.onend = done;
+  last.onerror = done;   // headless and locked-down browsers answer 'not-allowed' instead of speaking
 }
 // IS THE LOCAL CAST RUNNING? kokoro_tts_server.py has always exposed /health and the app
 // has never called it: the per-turn POST was fired blind and its failure swallowed, so a
@@ -3103,14 +3190,33 @@ function paintVoicePicker(){
 }
 // Speak an ordered [{speaker,text}] cast list. Prefers the local Kokoro server
 // (different voice per speaker, stitched into one clip); falls back to the
-// single browser voice if it's unreachable. Newer replies interrupt older ones.
-async function speakSegments(segments, force){
+// single browser voice if it's unreachable. Newer replies interrupt older ones —
+// unless opts.priority is 'status', in which case the line is the nurse's numbers and it
+// waits for whoever is speaking rather than cutting them off. See the queue above.
+async function speakSegments(segments, force, opts){
   if(!S.tts && !force) return;   // force = explicit Replay, plays even when muted
   const roleSegs = (segments||[])
     .map(s=>({ role: normalizeSpeaker(s.speaker), text: sanitizeSeg(s.text) }))
     .filter(s=>s.text);
   if(!roleSegs.length) return;
-  stopSpeak();
+  const status = !!(opts && opts.priority === 'status');
+  // A procedure receipt is not permission to cut off a paramedic or consultant.
+  // Explicit Stop/Replay still cancels; unsolicited replies wait in arrival order.
+  if(!status && !force && speechBusy()){
+    clearStatusQueue();
+    _speechQueue.push(segments);
+    return;
+  }
+  if(status){
+    // NOT stopSpeak(). This one call is what cut the paramedic off seventeen times.
+    // The original segments are queued, not roleSegs: they go back through this same
+    // mapping when they are finally spoken.
+    if(speechBusy()){ queueStatus(segments); return; }
+  } else {
+    stopSpeak({ preserveQueue: !force });
+    _storyInFlight = true;   // spans the whole batch, including the gaps between utterances
+  }
+  _storyInFlight = true; // also reserves the floor while status audio is synthesizing
   const seq = ++_ttsSeq;
   // 1) HD voices via Gemini TTS (needs API key) — most realistic, emotional delivery.
   // Free-tier TTS is only ~3 req/MIN & 10/day; after a 429, stop hammering it for
@@ -3122,7 +3228,7 @@ async function speakSegments(segments, force){
   // only accepts Google keys; never send anything else there.
   // Instant Mode spends no key anywhere, voices included — fall through to Kokoro/local.
   if(!useInstant() && S.geminiKey && S.hdVoices && /^AIza/.test(S.geminiKey) && !_ttsCooling){
-    try{ await gemSpeakSegments(roleSegs, seq); return; }
+    try{ await gemSpeakSegments(roleSegs, seq); storyDone(seq); return; }
     catch(_){ if(seq!==_ttsSeq) return; /* quota or network — fall back to Kokoro */ }
   }
   // 2) Local Kokoro cast
@@ -3139,17 +3245,21 @@ async function speakSegments(segments, force){
       });
       if(res.ok){
         const url = URL.createObjectURL(await res.blob());
-        if(seq!==_ttsSeq || !S.tts){ URL.revokeObjectURL(url); return; }  // superseded mid-synthesis
+        if(seq!==_ttsSeq || !S.tts){ URL.revokeObjectURL(url); storyDone(seq); return; }  // superseded mid-synthesis
         if(_curUrl) URL.revokeObjectURL(_curUrl);
         _curUrl=url; _audioEl.src=url; _audioEl.currentTime=0;
-        _audioEl.onended=()=>{ if(_curUrl===url){ URL.revokeObjectURL(url); _curUrl=null; } };
+        // The clip ending is the line ending — the only handler this path ever had was
+        // revoking the blob, so nothing downstream could know the speaker had stopped.
+        _audioEl.onended=()=>{ if(_curUrl===url){ URL.revokeObjectURL(url); _curUrl=null; } storyDone(seq); };
+        _audioEl.onerror=()=>storyDone(seq);
         try{ await _audioEl.play(); return; }
         catch(_){ /* autoplay still blocked → fall through to robot voice */ }
       }
     }catch(_){ /* server unreachable → fall through to browser voice */ }
   }
   // roleSegs, not segs: segs carry the Kokoro voice ids, roleSegs carry the speaker.
-  if(seq===_ttsSeq && S.tts) browserSpeak(roleSegs);
+  if(seq===_ttsSeq && S.tts){ browserSpeak(roleSegs, ()=>storyDone(seq)); return; }
+  storyDone(seq);   // nothing was spoken at all — release the floor rather than hold it
 }
 // Single-voice narrator line (used when no structured speech is available).
 function speak(text){ if(text) speakSegments([{speaker:'narrator', text:String(text)}]); }
@@ -4094,6 +4204,12 @@ function applyCodeVitals(){
   // holds. A pulseless patient showing "HR 20, BP 40/20" reads as a rhythm to treat.
   if(!c.pulse){ S.vitals.hr = c.hr; S.vitals.bpSystolic = c.bpSys; S.vitals.bpDiastolic = c.bpDia;
                 S.vitals.rr = c.rr; S.vitals.o2 = c.spo2; }
+  // WHICH WAY SHE IS GOING comes from the code engine too, for the same reason the
+  // numbers do. S.trend was only ever written by the turn engine's vitalTrend, which a
+  // code never asks for — so the nurse's re-eval read "Holding steady since the last
+  // set" through the whole of Kim's blunt-trauma run, including the ninety seconds after
+  // the needle decompression when the saturation went 78 → 92 on the monitor beside it.
+  S.trend = (typeof CodeEngine.trendOf === 'function') ? CodeEngine.trendOf(c) : S.trend;
   S.shown = {...S.vitals}; S.vBase = {...S.vitals};
   syncCodeFlags();
   paintVitals();
@@ -4126,9 +4242,16 @@ function syncCodeFlags(){
   const f = S.instantState.flags || (S.instantState.flags = {});
   const on = (...names) => { for(const n of names) if(n) f[n] = true; };
   const gave = n => (c.drugs || []).some(d => d.name === n);
-  // The engine's own flags are already keyed by drug name and by the cause keys a script
-  // declares (tensionPtx, exsanguination, hypoxia, longQT …), so mirror them verbatim
-  // first — that is the half that needs no translation.
+  // The engine's own flags are already keyed by drug name, by the cause keys a script
+  // declares (tensionPtx, exsanguination, hypoxia, longQT …) AND by the pack names that
+  // script declares for each cause in causes.flags, so mirror them verbatim first — that
+  // is the half that needs no translation. WHICH PACK NAME A CAUSE OPENS IS THE SCRIPT'S
+  // TO DECLARE, NOT THIS FUNCTION'S TO GUESS: a hand-written line here said
+  // tensionPtx → chestDecompressed and nothing about the pelvis or the blood, so in Kim's
+  // blunt-trauma run (2026-09-05) the nurse refused the CT and the ICU with "Chest, pelvis,
+  // blood — then a bed" after she had done all three. Adding pelvicBleed and hypovolemia to
+  // that list would only have moved the next gap one case along; the script now says it, and
+  // tests/one-vocabulary.test.cjs proves every pack gate is reachable.
   for(const k of Object.keys(c.flags || {})) if(c.flags[k]) on(k);
   // Then the names the packs use, which are not the engine's names.
   if(c.ended === 'rosc' || c.phase === 'rosc') on('rosc');
@@ -4148,7 +4271,6 @@ function syncCodeFlags(){
   if(c.ivAccess || c.io) on('access', 'ivAccess');
   if(c.io) on('ioAccess');
   if(c.capnography) on('capnography', 'etco2');
-  if(c.flags && c.flags.tensionPtx) on('decompressed', 'chestDecompressed');
   if(c.flags && c.flags.pacing) on('paced', 'pacingStarted');
   if((c.cprSecs || 0) > 0) on('cprStarted');
 }
@@ -4213,15 +4335,35 @@ function codeSay(lines){
   S.messages.push({role:'assistant', content:lines.map(l=>l.text).join(' '),
     speech:lines.map(l=>({speaker:'nurse', text:l.text}))});
 }
+// WHAT IS THE STORY, AND WHAT IS THE NURSE READING OFF THE MONITOR.
+//
+// Everything the engine emitted used to go through codeSay — an assistant message — and
+// through narrate, which interrupts. Kim's blunt-trauma transcript therefore held seventeen
+// copies of "sinus tachycardia at 140, pressure 84" wrapped around the paramedic's handover
+// and every consultant line: "I couldn't hear the history by the paramedic, I couldn't hear
+// the consultants." The vital-sign callout, the two-minute rhythm prompt and a coaching hint
+// are not people talking. They belong on the monitor, which already carries the numbers, and
+// on the one line above the command box. The Code Record is unaffected — it is built from the
+// engine's own event list, where Task 4 already decided which callouts were a change.
+const STATUS_KINDS = new Set(['statusCall', 'rhythmCheck', 'hint']);
+function speakStatus(lines){
+  if(!lines.length) return;
+  const t = $('ticker');
+  if(t) t.textContent = '▸ nurse: ' + lines.map(l => l.text).join(' ');
+  speakSegments(lines.map(l => ({ speaker: 'nurse', text: l.text })), false, { priority: 'status' });
+}
 function onCodeEvents(events){
   const evs = (events || []).filter(e => e && e.text);
+  const story = evs.filter(e => !STATUS_KINDS.has(e.kind));
+  const status = evs.filter(e => STATUS_KINDS.has(e.kind));
   if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
-  if(evs.length) codeSay(evs);
+  if(story.length) codeSay(story);
   for(const e of (events || [])){
     if(e.kind === 'rosc'){ endCode('rosc'); return; }
     if(e.kind === 'death'){ endCode('death'); return; }
   }
-  if(evs.length){ renderChat(); narrate(evs.map(e=>({speaker:'nurse', text:e.text}))); }
+  if(story.length){ renderChat(); narrate(story.map(e=>({speaker:'nurse', text:e.text}))); }
+  if(status.length) speakStatus(status);
 }
 
 // A code order credits critical actions the same way a responder does — see
@@ -4552,6 +4694,10 @@ const TALLY_KIND = {
   check:      ['Check',  'border-slate-600 bg-slate-800/70 text-slate-300'],
   rhythmCheck:['Cycle',  'border-slate-600 bg-slate-800/70 text-slate-400'],
   convert:    ['Rhythm', 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'],
+  // A treated cause giving something back is the most important thing on the record and
+  // it had no row at all: Kim's chest decompression appeared as "H / T — Needle
+  // decompression done" and nothing said the sats came up because of it.
+  recover:    ['Better', 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'],
   degrade:    ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
   crash:      ['Rhythm', 'border-amber-500/50 bg-amber-500/10 text-amber-300'],
   arrest:     ['Arrest', 'border-rose-500/60 bg-rose-500/15 text-rose-200'],
@@ -4948,6 +5094,7 @@ async function instantTurn(action){
      // nothing anywhere: shipping it to the collector is separately gated by loggingOn()
      // at the RUNLOG.turn call below.
      trend: S.trend, trace: true, seed: S.runSeed,
+     responseNote: codeActive() ? CodeEngine.responseNote(S.code) : '',
      // Which matching this run asked for (Task 2 reads it). Pinned to the run's own caps,
      // not the current preference, so a run that started before this shipped keeps behaving
      // the way it did when the player started it.
@@ -5455,6 +5602,43 @@ function doseFromFragment(entry, frag){
     return l && (f.includes(l) || f.includes(l.replace('ml/kg','mlkg')));
   });
 }
+// One body-level overlay escapes both the room HUD and the chart's stacking contexts.
+// The live node is moved, not copied: dose state, click handlers and basket identity stay intact.
+function positionOrderSuggestions(){
+  const el=$('typeahead'), cmd=$('cmd');
+  if(!el || !cmd || el.classList.contains('hidden')) return;
+  if(!$('settingsModal').classList.contains('hidden')){ hideTypeahead(); return; }
+  if(el.parentElement !== document.body){
+    el._orderHome = el.parentElement;
+    document.body.appendChild(el);
+  }
+  const v=window.visualViewport;
+  const left=v?v.offsetLeft:0, top=v?v.offsetTop:0;
+  const width=v?v.width:innerWidth, height=v?v.height:innerHeight;
+  const b=cmd.getBoundingClientRect(), gap=8;
+  const w=Math.min(Math.max(b.width, Math.min(width-16,360)),width-16);
+  const x=Math.max(left+gap,Math.min(b.left,left+width-w-gap));
+  const above=Math.max(0, b.top-top-gap*2), below=Math.max(0,top+height-b.bottom-gap*2);
+  const up=above>=Math.min(240,below);
+  const maxH=Math.max(44,Math.min(height*.5,up?above:below));
+  el.style.cssText='position:fixed;z-index:49;margin:0;right:auto;bottom:auto;overflow-y:auto;overscroll-behavior:contain;max-height:'+maxH+'px;width:'+w+'px;left:'+x+'px;';
+  el.style.top=(up?Math.max(top+gap,b.top-gap-Math.min(el.scrollHeight,maxH)):b.bottom+gap)+'px';
+  cmd.setAttribute('role','combobox'); cmd.setAttribute('aria-autocomplete','list');
+  cmd.setAttribute('aria-controls','typeahead'); cmd.setAttribute('aria-expanded','true');
+  el.setAttribute('role','listbox'); el.setAttribute('aria-label','Order suggestions');
+  el.querySelectorAll('[data-ta],[data-dose]').forEach((row,i)=>{
+    row.id='order-suggestion-'+i; row.setAttribute('role','option');
+    row.style.minHeight='44px'; row.style.whiteSpace='normal';
+  });
+}
+if(typeof window !== 'undefined'){
+  window.addEventListener('resize',positionOrderSuggestions);
+  window.addEventListener('scroll',positionOrderSuggestions,true);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',positionOrderSuggestions);
+    window.visualViewport.addEventListener('scroll',positionOrderSuggestions);
+  }
+}
 function renderDosePicker(entry){
   const el = $('typeahead'); if(!el || !entry || !entry.doses) return false;
   _taEntry = entry; _taDoses = entry.doses;
@@ -5474,6 +5658,7 @@ function renderDosePicker(entry){
     '<div class="px-3 py-1.5 text-[10px] text-slate-600 border-t border-slate-800">Enter takes the highlighted dose \u00b7 Esc goes back</div>';
   el.classList.remove('hidden');
   document.body.classList.add('taOpen');
+  positionOrderSuggestions();
   el.querySelectorAll('[data-dose]').forEach(r => r.onclick = () => takeDose(+r.dataset.dose));
   const close=el.querySelector('[data-dose-close]'); if(close) close.onclick=()=>hideTypeahead();
   return true;
@@ -5514,7 +5699,7 @@ function renderTypeahead(matches){
   const el = $('typeahead'); if(!el) return;
   el.classList.remove('dosePicker');
   _taMatches = matches; _taIdx = -1;
-  if(!matches.length){ el.classList.add('hidden'); el.innerHTML=''; document.body.classList.remove('taOpen'); return; }
+  if(!matches.length){ hideTypeahead(); return; }
   el.innerHTML = matches.map((m,i)=>
     `<div data-ta="${i}" class="ta-row flex items-center justify-between gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
        <span>${esc(m.label)}</span>
@@ -5522,15 +5707,22 @@ function renderTypeahead(matches){
      </div>`).join('');
   el.classList.remove('hidden');
   document.body.classList.add('taOpen');
+  positionOrderSuggestions();
   el.querySelectorAll('.ta-row').forEach(row=>row.onclick=()=>basketTypeahead(+row.dataset.ta));
 }
-function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.classList.remove('dosePicker'); el.innerHTML=''; }
+function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.classList.remove('dosePicker'); el.innerHTML='';
+  el.style.cssText='';
+  if(el._orderHome && el._orderHome.isConnected) el._orderHome.appendChild(el);
+  else if(el.parentElement===document.body) el.remove();
+  }
+  const cmd=$('cmd'); if(cmd){ cmd.setAttribute('aria-expanded','false'); cmd.removeAttribute('aria-activedescendant'); }
   document.body.classList.remove('taOpen'); _taMatches=[]; _taIdx=-1; _taEntry=null; _taDoses=null; }
 function paintTaHighlight(){
   const el=$('typeahead'); if(!el) return;
   let sel=null;
   el.querySelectorAll('.ta-row').forEach((row,i)=>{ const on = i===_taIdx;
-    if(on) sel=row; row.classList.toggle('bg-slate-800', on); });
+    if(on) sel=row; row.classList.toggle('bg-slate-800', on); row.setAttribute('aria-selected',String(on)); });
+  if(sel && $('cmd')) $('cmd').setAttribute('aria-activedescendant',sel.id);
   scrollHighlightIntoView(sel);
 }
 // Tab: inline completion, for someone building one long phrase ("cbc, cmp, lactate").
@@ -6975,6 +7167,7 @@ function renderBasket(){
 let _palOpen=false;   // keep the order-set palette open across turns once expanded
 let _orderMin = true;  // slim order bar: chips+palette tucked away until asked for; re-collapses each case
 function renderPlay(){
+  hideTypeahead();
   main.innerHTML=`
   <!-- monitor -->
   <!-- ids on the four play-screen regions (#monBar #chat #orderBar #sideBar): cinema
@@ -10727,6 +10920,7 @@ function closeSettings(){
 }
 $('closeSettings').onclick=closeSettings;
 function openSettings(){
+  hideTypeahead();
   _settingsReturnFocus=document.activeElement;
   $('geminiKey').value=S.geminiKey; $('claudeKey').value=S.claudeKey; $('baseURL').value=S.localURL;
   $('model').value=S.model; $('deepModel').value=S.deepModel;

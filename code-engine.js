@@ -12,7 +12,10 @@
 'use strict';
 
 const CYCLE_SEC = 120;          // one CPR cycle between rhythm checks
-const STATUS_SEC = 90;          // how often the nurse calls the time while a pulse remains
+const STATUS_SEC = 90;          // the soonest the nurse calls the time again while a pulse remains
+// …and the longest she will go without saying anything. A change-driven callout with no
+// floor makes a steady patient a silent one, which reads as the sim having stopped.
+const STATUS_MAX_SILENCE = 300;
 const SHOCKABLE = new Set(['VF', 'pVT', 'torsades']);
 const PULSELESS = new Set(['VF', 'pVT', 'torsades', 'PEA', 'asystole']);
 // The rhythms a synchronized shock is FOR. Everything else with a pulse — sinus, a
@@ -107,6 +110,11 @@ function tick(state, script, dt){
   }
   out.push(...runDegrade(state, script));
   out.push(...runCrash(state, script));
+  runRecover(state);
+  // A minute of numbers, kept so trendOf() can say which way she is going. Sixty entries
+  // at dt=6 is six minutes — enough for the one-minute lookback and nothing more.
+  (state.history = state.history || []).push({ t: state.t, hr: state.hr, bpSys: state.bpSys, spo2: state.spo2 });
+  if(state.history.length > 60) state.history.shift();
   out.push(...epiTiming(state, script));
   out.push(...runHints(state, script));
   updateEtco2(state);
@@ -125,9 +133,20 @@ function tick(state, script, dt){
     state.statusT = 0;
   } else if(!(script.patient && script.patient.neonate)){
     state.statusT = (state.statusT || 0) + step;
-    if(state.statusT >= STATUS_SEC){
-      state.statusT -= STATUS_SEC;
-      out.push(ev(state, 'statusCall', statusLine(state)));
+    // SAY IT WHEN IT CHANGES. On a timer alone the nurse called "sinus tachycardia at 140,
+    // pressure 84" seventeen times in twenty-three minutes of Kim's blunt-trauma run — and
+    // each one interrupted whoever was speaking, so she could hear neither the paramedic's
+    // handover nor the consultants. She calls the numbers when a number has moved, and once
+    // in a long silence so a steady patient is not a silent one.
+    const last = state.lastCall || null;
+    const moved = !last || last.rhythm !== state.rhythm || Math.abs(last.hr - state.hr) >= 8
+      || Math.abs(last.bpSys - state.bpSys) >= 8 || Math.abs(last.spo2 - state.spo2) >= 3;
+    const due = state.statusT >= STATUS_SEC;
+    const silent = (state.t - ((last && last.t) || 0)) >= STATUS_MAX_SILENCE;
+    if(due && (moved || silent)){
+      state.statusT = 0;
+      out.push(ev(state, 'statusCall', statusLine(state, last)));
+      state.lastCall = { t: state.t, rhythm: state.rhythm, hr: state.hr, bpSys: state.bpSys, spo2: state.spo2 };
     }
   }
   return out;
@@ -177,11 +196,19 @@ function runDegrade(state, script){
 function runCrash(state, script){
   const c = script.crash;
   if(!c || state.ended) return [];
-  if(c.halt && c.halt.some(k => hasAction(state, k))) return [];
+  const halted = c.halt && c.halt.some(k => hasAction(state, k));
   const out = [];
   for(const row of (c.path || [])){
+    // Guarded rows own their cause. The legacy global halt applies only to older,
+    // unguarded rows; a decompressed chest cannot turn off a pelvic bleeding row.
+    if(row.unless || row.unlessAll){
+      if(row.unless && row.unless.some(k => hasAction(state,k))) continue;
+      if(row.unlessAll && row.unlessAll.every(k => hasAction(state,k))) continue;
+    } else if(halted) continue;
     if(state.t < row.atSec || state.flags['_crash' + row.atSec]) continue;
     state.flags['_crash' + row.atSec] = true;
+    // A newly authored deterioration supersedes earlier recovery on these numbers.
+    state.ramps = (state.ramps || []).filter(r => row[r.k] == null && !row.arrest);
     if(row.hr != null) state.hr = row.hr;
     if(row.bpSys != null){ state.bpSys = row.bpSys; state.bpDia = Math.round(row.bpSys * 0.6); }
     if(row.spo2 != null) state.spo2 = row.spo2;
@@ -193,6 +220,57 @@ function runCrash(state, script){
     else if(row.text) out.push(ev(state, 'crash', row.text));
   }
   return out;
+}
+
+// A TREATED CAUSE RESTORES WHAT IT BROKE. runCrash slides the vitals down an authored
+// path until a halting action lands, and a halt only ever STOPPED the slide — nothing put
+// anything back. The one route to improvement was a `convert` row requiring every cause
+// at once, so a doctor who fixed three of four watched "sinus tachycardia at 140, pressure
+// 84" for twenty-three minutes after a decompression, a chest tube, blood and a binder.
+// Kim: "the oxygen saturation did not improve after those procedures… the pelvic binder did
+// not work either… massive transfusion did not seem to improve the vital signs."
+//
+// A `crash.recover` row is authored per cause, in the shape of a `crash.path` row, and its
+// numbers are TARGETS reached by a linear ramp over `overSec` — a decompressed chest does
+// not read 92% the same second. A row fires once, when its cause is first treated. Causes
+// still untreated keep their damage: a later crash row on one of them still applies.
+function startRecover(state, script, cause){
+  if(state.ended || !state.pulse) return [];
+  const rows = ((script.crash || {}).recover || []).filter(r => r.cause === cause);
+  const out = [];
+  for(const r of rows){
+    const key = '_recover:' + cause;
+    if(state.flags[key]) continue;
+    state.flags[key] = true;
+    if(!state.recoveryBaseline) state.recoveryBaseline = { t:state.t, hr:state.hr, bpSys:state.bpSys, spo2:state.spo2 };
+    const over = Math.max(6, r.overSec || 120);
+    state.ramps = state.ramps || [];
+    for(const k of ['hr', 'bpSys', 'spo2', 'rr'])
+      if(r[k] != null){
+        // These restoration rows describe recovery toward the authored baseline,
+        // not adverse effects. Do not pull an already better value backwards.
+        const direction = (k === 'hr' || k === 'rr') ? -1 : 1;
+        if((r[k] - state[k]) * direction <= 0) continue;
+        state.ramps.push({ k, from: state[k], to: r[k], direction, cause, t0: state.t, t1: state.t + over });
+      }
+    if(r.text) out.push(ev(state, 'recover', r.text, { cause }));
+  }
+  return out;
+}
+function runRecover(state){
+  if(state.ended || !state.pulse){ state.ramps = []; return; }
+  if(!state.ramps || !state.ramps.length) return;
+  const keep = [];
+  for(const rp of state.ramps){
+    const f = Math.min(1, Math.max(0, (state.t - rp.t0) / (rp.t1 - rp.t0)));
+    const v = Math.round(rp.from + (rp.to - rp.from) * f);
+    // A directional envelope composes simultaneous restoration without adding
+    // absolute targets, stacking duplicate benefit, or depending on insertion order.
+    state[rp.k] = rp.direction < 0 ? Math.min(state[rp.k], v) : Math.max(state[rp.k], v);
+    if(rp.k === 'bpSys') state.bpDia = Math.round(state.bpSys * 0.6);
+    if(f < 1) keep.push(rp);
+  }
+  state.ramps = keep;
 }
 
 // One nudge per dose, not one per second. The guard remembers WHICH dose it has
@@ -234,6 +312,7 @@ function epiTiming(state, script){
 // working, so it follows what is happening rather than the script: perfusion
 // while hands are on the chest, next to nothing when they come off.
 function updateEtco2(state){
+  if(state.ended === 'death'){ state.etco2 = 0; return; }
   if(state.pulse){ state.etco2 = Math.max(state.etco2, 35); return; }
   state.etco2 = state.cpr ? 12 : 6;
 }
@@ -420,6 +499,7 @@ function rhythmName(r){
 }
 
 function achieveRosc(state, script, via){
+  state.ramps = [];
   const p = script.postRosc || {};
   state.pulse = true; state.phase = 'rosc';
   setRhythm(state, p.rhythm || 'sinus-tachy');
@@ -434,6 +514,7 @@ function achieveRosc(state, script, via){
 }
 
 function die(state, why){
+  state.ramps = []; state.rr = 0; state.cpr = false;
   state.ended = 'death'; state.endedT = state.t; state.phase = 'dead'; state.pulse = false;
   state.rhythm = 'asystole'; state.hr = 0; state.bpSys = 0; state.bpDia = 0; state.spo2 = 0; state.etco2 = 0;
   return [ev(state, 'death', why || 'No return of spontaneous circulation.')];
@@ -864,7 +945,32 @@ function actInner(state, script, text, now){
     const hit = matchCause(script, s);
     if(hit){ if(state.causesTreated.indexOf(hit.cause) === -1) state.causesTreated.push(hit.cause);
       state.flags[hit.cause] = true;
+      // ...and the names the PACK's gates know that cause by. The script declares them, so
+      // there is one vocabulary for "done" instead of two. Kim's blunt-trauma run, 2026-09-05:
+      // she had decompressed the chest, bound the pelvis and transfused, and the nurse said
+      // "No unit will take her mid-resuscitation. Chest, pelvis, blood — then a bed" — because
+      // the engine had recorded pelvicBleed and hypovolemia while the ICU gate was asking for
+      // binderApplied and bloodGiven, and the app's hand-written bridge only knew about the
+      // chest. The pack's own responders set those flags, but during a code they never fire:
+      // this branch claims "pelvic binder" and "massive transfusion" before the turn engine
+      // ever sees them. tests/one-vocabulary.test.cjs sweeps every script for the next one.
+      for(const f of (((script.causes || {}).flags || {})[hit.cause] || [])) state.flags[f] = true;
       const out = [ev(state, 'cause', hit.phrase.charAt(0).toUpperCase() + hit.phrase.slice(1) + ' done.', { cause: hit.cause })];
+      // What the nurse says when it works. Two scripts authored `haltText` and nothing
+      // ever spoke it: "the sats are climbing and the trachea is back in the middle" was
+      // written for this exact moment and the learner got "Needle decompression done."
+      const rec = startRecover(state, script, hit.cause);
+      const halts = ((script.crash || {}).halt || []);
+      // Asked of the SCRIPT, not of this call. Replaying Kim's own orders caught it: the
+      // needle at 3:54 spoke the recover line and the chest tube at 5:18 — the same cause
+      // under a different phrase, so startRecover returns nothing the second time — then
+      // spoke haltText, and the nurse announced the rush of air twice for one chest.
+      const authored = ((script.crash || {}).recover || []).some(r => r.cause === hit.cause && r.text);
+      if(!authored && halts.includes(hit.cause) && script.crash.haltText && !state.flags['_haltSaid']){
+        state.flags['_haltSaid'] = true;
+        out.push(ev(state, 'recover', script.crash.haltText, { cause: hit.cause }));
+      }
+      out.push(...rec);
       out.push(...checkConversion(state, script, hit.cause));
       return { handled: true, events: out }; }
   }
@@ -1081,14 +1187,54 @@ function spokenTime(sec){
   return r === 0 ? mm : mm + ' ' + spoken(r);
 }
 
+// WHICH WAY SHE IS GOING, from the numbers — not a constant. The app's re-eval line read
+// "Holding steady since the last set" for the whole of a code because nothing ever derived
+// a trend from the engine. Compares now with a minute ago on the three numbers a nurse
+// would name; `critical` is the app's own threshold set.
+function trendOf(state){
+  const h = state.history || [];
+  const ago = h.filter(x => state.t - x.t >= 60).pop() || h[0];
+  const crit = state.spo2 < 88 || state.bpSys < 80 || state.hr > 150 || state.hr < 40 || !state.pulse;
+  if(!ago) return crit ? 'critical' : 'stable';
+  const better = (state.spo2 - ago.spo2) >= 3 || (state.bpSys - ago.bpSys) >= 8 || (ago.hr - state.hr) >= 8;
+  const worse  = (ago.spo2 - state.spo2) >= 3 || (ago.bpSys - state.bpSys) >= 8 || (state.hr - ago.hr) >= 8;
+  // DIRECTION BEATS SEVERITY while she is moving. A patient at 78% and still falling is
+  // both critical and worsening, and the app already knows the first: isCritical() ORs the
+  // raw thresholds (o2<88, bp<80, hr>150, hr<40) on its own, and 'worsening' is already
+  // flagged bad by acuityChip. What nothing could say was WHICH WAY she was going — so a
+  // moving number names the movement, and 'critical' is what a patient in trouble who is
+  // not moving is called.
+  if(worse) return 'worsening';
+  if(better) return 'improving';
+  return crit ? 'critical' : 'stable';
+}
+
+// A flat one-minute trend does not erase a sustained response to earlier treatment.
+// Report measured differences, not an invented claim that the patient is now safe.
+function responseNote(state){
+  const b=state && state.recoveryBaseline;
+  if(!b || !state.pulse || state.ended === 'death') return '';
+  const bits=[];
+  for(const [key,label,unit] of [['spo2','saturation','%'],['bpSys','systolic pressure',''],['hr','heart rate','']])
+    if(b[key] !== state[key]) bits.push(label+' '+b[key]+unit+' to '+state[key]+unit);
+  return bits.length ? 'Since treatment began at '+fmt(b.t)+': '+bits.join(', ')+'. Ongoing problems still need reassessment.' : '';
+}
+
 // What the monitor already shows, said out loud with the time attached. It reports
 // this moment and never asserts that a state persists — the player may have just
 // changed it, which is the whole reason they are being told the clock.
-function statusLine(state){
+// `last` is the numbers she called last time, or null the first time.
+function statusLine(state, last){
   let head = rhythmName(state.rhythm);
   if(state.hr > 0) head += ' at ' + state.hr;
   const bits = [head];
   if(state.bpSys > 0) bits.push('pressure ' + state.bpSys);
+  // THE SATURATION IS THE NEWS after a decompression, and this line never said it. Kim
+  // heard "sinus tachycardia at 140, pressure 84" while the sats she had just bought went
+  // 78 to 92 on the monitor next to her. Named when it has moved since the last callout,
+  // or when there has not been one — and left out otherwise, so the line stays short.
+  if(state.spo2 > 0 && (!last || Math.abs((last.spo2 || 0) - state.spo2) >= 3))
+    bits.push('sats ' + state.spo2);
   return capitalize(spokenTime(state.t)) + ' — ' + bits.join(', ') + '.';
 }
 
@@ -1157,8 +1303,9 @@ function act(state, script, text, now){
   return out;
 }
 
-root.CodeEngine = { newState, tick, act, actInner, creditKeysFor, summary, rhythmName, fmt,
-  CYCLE_SEC, STATUS_SEC, spokenTime, parseDose, SHOCKABLE, PULSELESS, CARDIOVERTABLE, DRUG_ALIASES,
+root.CodeEngine = { newState, tick, act, actInner, creditKeysFor, summary, rhythmName, fmt, trendOf, responseNote,
+  CYCLE_SEC, STATUS_SEC, STATUS_MAX_SILENCE, statusLine,
+  spokenTime, parseDose, SHOCKABLE, PULSELESS, CARDIOVERTABLE, DRUG_ALIASES,
   // Exported so the app can apply the same rule to the 155 cases that have no code script.
   // Reading the strip is the exercise in an atrial fibrillation case too.
   callsRhythm, RHYTHM_CALLS };

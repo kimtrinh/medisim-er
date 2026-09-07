@@ -2034,7 +2034,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
                              worsening:'Slipping — this set is worse than the last one.',
                              critical:'Not holding — this is getting critical.' })[(opts && opts.trend) || 'stable']
                           || 'Holding steady since the last set.';
-        const reevalLine = `${lead} — HR ${Math.round(v.hr||0)}, BP ${Math.round(v.bpSystolic||0)}/${Math.round(v.bpDiastolic||0)}, RR ${Math.round(v.rr||0)}, sat ${Math.round(v.o2||0)}%, temp ${(+(v.temp||37)).toFixed(1)}. ${trendLine}`;
+        const reevalLine = `${lead} — HR ${Math.round(v.hr||0)}, BP ${Math.round(v.bpSystolic||0)}/${Math.round(v.bpDiastolic||0)}, RR ${Math.round(v.rr||0)}, sat ${Math.round(v.o2||0)}%, temp ${(+(v.temp||37)).toFixed(1)}. ${trendLine}` + (opts && opts.responseNote ? ' '+opts.responseNote : '');
         fb.speech.push({speaker:'nurse', text:reevalLine});
         // The transcript renders `narrative`; `speech` is only voiced, and the room
         // bubble clips at 90 characters — which lands exactly on the trend sentence.
@@ -3005,7 +3005,7 @@ function buildDebrief(pack, state, opts, outcome){
   // printing outcomePoor for a stable patient would invent a deterioration that never
   // happened. So there are three states, and the middle one — patient fine, care
   // incomplete — is stated from the tally rather than borrowed from a narrative.
-  const deteriorated = state.stagesFired.length > 0;
+  const deteriorated = state.stagesFired.length > 0 || !!(opts.code && (opts.code.events||[]).some(e => ['crash','degrade','arrest'].includes(e.kind)));
   // Stated from the tally rather than borrowed from a narrative. Deterioration-aware:
   // the old wording asserted "stable condition" outright, so a run where a stage fired
   // but most of the checklist was met still described the patient as stable.
@@ -3245,6 +3245,10 @@ function runTurn(pack, state, action, opts){
   let anyApplied = false;
   let prevWithheld = false;
   const committed = [];   // {clause, matchedAssessment} per assessment clause this turn
+  // The clauses whose only answer was a refusal. "No unit will take her mid-resuscitation"
+  // and "dispositioned in stable condition" were said about the same order in the same turn
+  // of Kim's blunt-trauma run — see the disposition rule below.
+  const blockedClauses = new Set();
   for(const rawClause of clauseList){
     let clause = rawClause;
     // A withhold carries across an "and"-split when the stranded clause has no
@@ -3753,6 +3757,11 @@ function runTurn(pack, state, action, opts){
       // in the decision trace so the UI can distinguish it from a generic but
       // genuinely performed order.
       if(tc && gateBlocked && !clauseApplied) tc.gateBlocked = true;
+      // Recorded off the trace, not on it: the trace only exists when the caller asks for
+      // one, and whether the case ends cannot depend on whether anybody is watching. Keyed
+      // on rawClause, which is what clauseList holds — `clause` may have been rewritten
+      // through the catalog by now ("admit to the icu" becomes "admit to intensive care").
+      if(gateBlocked && !clauseApplied) blockedClauses.add(rawClause);
       // A clause whose every match was guard-skipped must still be ANSWERED —
       // the first hyperosmolar order of a herniation case vanished when the
       // pupil-exam guard ate its only match.
@@ -4057,9 +4066,16 @@ function runTurn(pack, state, action, opts){
       endedBy = st.ends;
     }
   });
-  // A disposition always ends the encounter (admit/ICU/OR/transfer/discharge hand off
-  // care) — even when a pack responder matched the clause but forgot `ends`.
-  if(!endedBy && !discussingAction && clauseList.some(c=>classifyIntent(c)==='disposition')) endedBy='good';
+  // A disposition ends the encounter (admit/ICU/OR/transfer/discharge hand off care) — even
+  // when a pack responder matched the clause but forgot `ends`. A REFUSED ONE DOES NOT.
+  // Kim's blunt trauma, 2026-09-05: the nurse said "No unit will take her mid-resuscitation.
+  // Chest, pelvis, blood — then a bed", and the case ended in the same turn, recorded as
+  // "dispositioned in stable condition" — two answers to one order, and the run was over on
+  // a bed nobody had given her. A clause whose only answer was a gate refusal is not a
+  // handover; the player fixes the prerequisite and asks again. Another clause in the same
+  // turn that DID hand off still ends it.
+  if(!endedBy && !discussingAction
+     && clauseList.some(c=>classifyIntent(c)==='disposition' && !blockedClauses.has(c))) endedBy='good';
   // A successful rescue restores a pulse: without a floor, an averted arrest left
   // the monitor reading asystole forever. The rescue responder's own vitals win
   // where authored; these fill only the gaps.

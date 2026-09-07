@@ -144885,6 +144885,12 @@
      "required": [
       "tensionPtx"
      ],
+     "flags": {
+      "tensionPtx": [
+       "decompressed",
+       "chestDecompressed"
+      ]
+     },
      "actions": {
       "tensionPtx": [
        "needle decompression",
@@ -150400,6 +150406,22 @@
        "rr": 0,
        "text": "He has lost his output \u2014 narrow complexes marching across the monitor and nothing to feel. Compressions started."
       }
+     ],
+     "recover": [
+      {
+       "cause": "exsanguination",
+       "bpSys": 100,
+       "hr": 118,
+       "overSec": 120,
+       "text": "Bleeding control applied. Watching the dressing and the pressure for the response."
+      },
+      {
+       "cause": "hypovolemia",
+       "bpSys": 104,
+       "hr": 110,
+       "overSec": 180,
+       "text": "First units in. Rechecking the pulse and pressure as the transfusion takes effect."
+      }
      ]
     },
     "convert": [
@@ -150502,6 +150524,15 @@
       "exsanguination",
       "hypovolemia"
      ],
+     "flags": {
+      "exsanguination": [
+       "externalControlled",
+       "hemorrhageControlled"
+      ],
+      "hypovolemia": [
+       "bloodGiven"
+      ]
+     },
      "actions": {
       "exsanguination": [
        "tourniquet",
@@ -152114,31 +152145,36 @@
        "spo2": 86,
        "rr": 36,
        "hr": 130,
-       "text": "Sats 86 and falling. Nothing on the left and the bag is getting stiffer."
+       "text": "Sats 86 and falling. Nothing on the left and the bag is getting stiffer.",
+       "unless": ["tensionPtx"]
       },
       {
        "atSec": 150,
        "hr": 134,
        "bpSys": 84,
-       "text": "84 systolic. The pelvis is opening up and her left flank is filling out."
+       "text": "84 systolic. The pelvis is opening up and her left flank is filling out.",
+       "unless": ["pelvicBleed", "hypovolemia"]
       },
       {
        "atSec": 210,
        "spo2": 78,
        "hr": 140,
-       "text": "78 percent. Trachea is pushed to the right and her neck veins are up."
+       "text": "78 percent. Trachea is pushed to the right and her neck veins are up.",
+       "unless": ["tensionPtx"]
       },
       {
        "atSec": 300,
        "hr": 146,
        "bpSys": 70,
-       "text": "70 systolic and the radial is thready \u2014 and a pressure like that is doing damage to her head, not just her kidneys."
+       "text": "70 systolic and the radial is thready \u2014 and a pressure like that is doing damage to her head, not just her kidneys.",
+       "unless": ["hypovolemia"]
       },
       {
        "atSec": 360,
        "spo2": 66,
        "rr": 44,
-       "text": "66 percent, she is cyanosed and I can barely move the bag at all."
+       "text": "66 percent, she is cyanosed and I can barely move the bag at all.",
+       "unless": ["tensionPtx"]
       },
       {
        "atSec": 450,
@@ -152147,7 +152183,37 @@
        "bpSys": 0,
        "spo2": 0,
        "rr": 0,
-       "text": "She has lost her output \u2014 organised complexes, no pulse. Compressions started."
+       "text": "She has lost her output \u2014 organised complexes, no pulse. Compressions started.",
+       "unlessAll": ["tensionPtx", "hypovolemia"]
+      }
+     ],
+     "recover": [
+      {
+       "cause": "tensionPtx",
+       "spo2": 92,
+       "rr": 30,
+       "overSec": 90,
+       "text": "Rush of air and the bag has gone soft. Watching the saturation for the response."
+      },
+      {
+       "cause": "hypovolemia",
+       "bpSys": 96,
+       "hr": 124,
+       "overSec": 180,
+       "text": "First units in. Following the pressure and heart rate as the transfusion takes effect."
+      },
+      {
+       "cause": "pelvicBleed",
+       "bpSys": 100,
+       "hr": 118,
+       "overSec": 240,
+       "text": "Binder applied. Rechecking the pressure and watching for ongoing bleeding."
+      },
+      {
+       "cause": "exsanguination",
+       "hr": 116,
+       "overSec": 120,
+       "text": "Thigh packed and the bleeding is controlled."
       }
      ]
     },
@@ -152273,6 +152339,22 @@
       "tensionPtx",
       "hypovolemia"
      ],
+     "flags": {
+      "tensionPtx": [
+       "decompressed",
+       "chestDecompressed"
+      ],
+      "pelvicBleed": [
+       "binderApplied"
+      ],
+      "hypovolemia": [
+       "bloodGiven"
+      ],
+      "exsanguination": [
+       "externalControlled",
+       "hemorrhageControlled"
+      ]
+     },
      "actions": {
       "tensionPtx": [
        "needle decompression",
@@ -153902,6 +153984,12 @@
       "tensionPtx",
       "hypovolemia"
      ],
+     "flags": {
+      "tensionPtx": [
+       "decompressed",
+       "chestDecompressed"
+      ]
+     },
      "actions": {
       "tensionPtx": [
        "finger thoracostomy",
@@ -158433,6 +158521,12 @@
       "airTrapping",
       "tensionPtx"
      ],
+     "flags": {
+      "tensionPtx": [
+       "decompressed",
+       "chestDecompressed"
+      ]
+     },
      "actions": {
       "airTrapping": [
        "long expiratory time",
