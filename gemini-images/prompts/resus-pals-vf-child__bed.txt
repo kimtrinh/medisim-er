@@ -1,0 +1,32 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A high-fidelity paediatric simulation manikin set up as a 7-year-old boy weighing 24 kg, in ventricular fibrillation after taking a batted baseball square on the chest.
+
+AGE: The manikin must be sized and proportioned for a SEVEN-YEAR-OLD — school-age body proportions, roughly 120 cm long, limbs long relative to the head. Not a toddler and not an infant.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- MOULAGE, THE CENTRAL FINDING: a round coin-shaped contusion about the diameter of a baseball over the left precordium, just left of the sternum at nipple level — bright red at the rim with a duskier purple centre, the fresh imprint of the ball strike.
+- A child's baseball jersey cut open up the front and folded back to either side so the chest is bare, with the number still readable on the folded-back panel, dirt ground into the left shoulder, and white uniform trousers with a grass stain at the hip still on.
+- The manikin's face is set to its neutral unresponsive expression, eyes closed.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No pads on the chest — he has not been shocked yet, and that is the point of the case.
+- No other injuries.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

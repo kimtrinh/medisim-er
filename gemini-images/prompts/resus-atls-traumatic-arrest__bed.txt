@@ -1,0 +1,36 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 30-year-old warehouse worker, 88 kg, pinned across the chest and left leg under a pallet press for eighteen minutes; he arrested the moment the weight came off. Pulseless in PEA.
+
+AGE: He is 30 and heavily built — a broad chest and thick arms.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- TRAUMATIC ASPHYXIA: dense pinpoint red petechiae covering the face, the eyelids, the ears, the front of the neck and the upper chest down to the level of the nipples, ending in a sharp line across the upper chest. Bright red subconjunctival haemorrhage filling the white of both eyes — his eyelids are partly open, so both are clearly visible. Above the line his face is deeply congested and dark red-purple; below it his skin is normal.
+- CRUSH MARK: a broad horizontal band of deep red-purple bruising across the lower chest and upper abdomen with a straight-edged linear machinery imprint running through it, the print of the press bed.
+- DEGLOVED LEFT THIGH: a large avulsion wound over the front and inner aspect of the left thigh — the near side of the body to the camera — a wide flap of skin peeled back off the muscle, exposed muscle and fat in the base, and dark venous blood running steadily out of it onto the trolley sheet, where a pool has collected under the leg and is soaking outward.
+- The whole left leg is visibly swollen and tense compared with the right, the skin tight and shiny over it.
+- Torn high-visibility orange workwear cut open up the front and folded back off the chest, with black hydraulic oil and warehouse grime smeared over the chest, the shoulders and both forearms.
+- His jaw is slack and his face is otherwise expressionless.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- NO tourniquet on the left leg — putting one on is a critical action for the learner.
+- No bilateral finger thoracostomy wounds, no chest drains and no pads — none of it has been done.
+- No rescuer's hands and nobody doing compressions.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

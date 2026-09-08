@@ -1,0 +1,33 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 44-year-old man in PEA arrest, an inpatient with severe pancreatitis, minutes after three failed attempts at a right subclavian central line.
+
+AGE: Make him 44, not late fifties: smooth the deep facial lines, darken the hair to mostly dark brown with only a little grey at the temples, and fill out the face.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- Below the right clavicle — the far side of his chest from the camera — a square patch of skin stained orange-brown with chlorhexidine antiseptic, with three fresh needle puncture marks in it, each with a small bead of dark blood at the entry point and a thin dried trickle running down over the pectoral skin.
+- The peeled-back corner of a clear sterile drape still stuck to the skin at the lateral edge of that patch.
+- The right chest wall sits slightly fuller and more expanded than the left, and the right side does not look as though it moves.
+- His face is slack, eyes closed, mouth open.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No central venous catheter, guidewire, introducer or dressing in place — all three attempts failed and nothing was left in.
+- No chest tube and no needle in the chest: the decompression has not been done yet.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

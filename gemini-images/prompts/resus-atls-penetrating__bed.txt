@@ -1,0 +1,35 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 24-year-old man stabbed once in the right groin twelve minutes ago, exsanguinating from a junctional arterial wound, awake and terrified and asking whether he is going to die.
+
+AGE: He is 24 — a lean young man, smooth-skinned, dark short hair.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- THE CENTRAL FINDING: a thick wad of gauze packed hard into his RIGHT groin, in the crease between the abdomen and the thigh — on the far side of his pelvis from the camera, along the upper contour of the hip in frame. The gauze is saturated bright arterial red and wet enough to shine, and a fresh red rivulet is escaping from its lateral edge and running down the outside of the right thigh.
+- A spreading pool of bright red blood on the trolley sheet beneath and below the right hip, running toward the foot of the bed, with a dark run-off dried down the side rail.
+- His jeans have been cut away from the waist down and the cut denim is pushed aside on the mattress; both trouser legs and both socks are soaked dark red from the thigh to below the knee.
+- Smears of blood on both hands and on the left forearm, where he has been holding the wound himself.
+- He is AWAKE and frightened: eyes wide open, eyebrows raised high, mouth open as if mid-sentence, head lifted very slightly off the mattress.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- NO tourniquet anywhere on the leg, and no windlass — putting one on high and tight is the learner's first critical action and it must not already be done.
+- No haemostatic packing visible in the wound itself beyond the surface gauze.
+- No other wounds: he was stabbed once, in the groin.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

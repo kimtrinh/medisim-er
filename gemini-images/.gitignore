@@ -1,0 +1,6 @@
+# Raw Gemini returns live here on your machine and are not committed: they are large
+# PNGs, there is a new set every time you re-roll a shot, and the version that matters
+# is the reviewed one that install.py writes to case-media/ (which IS committed, with
+# its provenance in case-media/manifest.json).
+downloads/*
+!downloads/.gitkeep
