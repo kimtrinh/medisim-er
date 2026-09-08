@@ -10,7 +10,7 @@
 (function(root){
 'use strict';
 
-const SCHEMA = 1;
+const SCHEMA = 2;
 const MAX_BYTES = 256 * 1024;      // matches both sinks' hard limit
 const OUTBOX_KEY = 'ms_runlog_outbox';
 const OUTBOX_MAX = 20;             // a full trace runs tens of KB; localStorage is a few MB
@@ -69,9 +69,10 @@ Recorder.prototype.start = function(meta, opts){
     engine: m.engine || null,
     model: m.model || null,
     difficulty: m.difficulty || null,
+    caps: m.caps || null,
     case: { goldId: m.goldId || null, title: /\.pdf$/i.test(m.title||'') ? 'uploaded educational PDF' : redactText(m.title), diagnosis: m.diagnosis || '',
             criticalActions: (m.criticalActions || []).slice() },
-    turns: [], debrief: null, flags: []
+    turns: [], debrief: null, flags: [], receipts: []
   };
   return this._run;
 };
@@ -108,6 +109,23 @@ Recorder.prototype.flag = function(caIndex, caText, note, myOrders){
               myOrders: (myOrders || []).map(redactText) };
   this._run.flags.push(f);
   return f;
+};
+
+// The per-order receipts the app already shows the learner — performed / done in general
+// terms / not understood / blocked — copied onto the record so the analyzer can inventory
+// them. Replaces, never appends: the app hands the whole list on every ship, and a re-ship
+// after a player flag must not double it. `objectiveIds` is the engine's name; `credits`
+// is the record's, so a reader of the file need not know the app's internals.
+Recorder.prototype.receipts = function(list){
+  if(!this._run) return null;
+  this._run.receipts = (list || []).slice(-300).map(r => ({
+    text: redactText(r.rawText || r.orderText || r.text || ''),
+    status: r.status || null,
+    reasonCode: r.reasonCode || null,
+    credits: Array.isArray(r.objectiveIds) ? r.objectiveIds.map(String) : [],
+    simMin: (r.simMin == null) ? null : Math.round(r.simMin)
+  }));
+  return this._run.receipts;
 };
 
 Recorder.prototype.finish = function(debrief){

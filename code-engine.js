@@ -44,7 +44,10 @@ function newState(script){
 }
 
 function ev(state, kind, text, extra){
-  const e = Object.assign({ t: state.t, kind, text: text || '' }, extra || {});
+  const e = Object.assign({ t: state.t, kind, text: text || '',
+    patient: { t:state.t, phase:state.phase, pulse:state.pulse, rhythm:state.rhythm,
+      hr:state.hr, bpSys:state.bpSys, bpDia:state.bpDia, spo2:state.spo2, rr:state.rr }
+  }, extra || {});
   state.events.push(e);
   return e;
 }
