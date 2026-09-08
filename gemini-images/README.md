@@ -26,8 +26,9 @@ pixels, with only the findings changed.
 case-shots.json        you edit this — the clinical findings, per case, per view
       │  build_plan.py — composes prompts, checks them against cases-gold.json
       ▼
-plan.json + prompts/   generated; prompts/ is also the paste-into-AI-Studio path
-      │  generate.py  — Gemini image edit, base photo + prompt
+plan.json + prompts/
+      │  mac_capture.py — walks the shots through the Gemini desktop app
+      │  generate.py    — or the same prompts through the API, if you have a key
       ▼
 downloads/             raw returns, on your machine only (git-ignored)
       │  ← YOU LOOK AT EVERY ONE
@@ -39,7 +40,55 @@ case-media/<case-id>/bed.jpg   +   case-media/manifest.json   ← the app reads 
 A case with no entry in `case-media/manifest.json` falls back to the demographic base
 photo exactly as before, so this is additive: nothing breaks if you generate nothing.
 
-## Setting up the Gemini side
+## Running it — the Gemini desktop app
+
+No API key, no daily quota, and you get to see each picture and argue with it before
+accepting it. The one snag is that the app saves files as
+`Gemini_Generated_Image_a4f9c2.png`, which says nothing about which case it belongs to,
+so `mac_capture.py` does the filing.
+
+```bash
+python3 gemini-images/build_plan.py                    # compose + check the prompts
+python3 gemini-images/mac_capture.py --course ATLS     # or --only resus-nrp, or all 17
+python3 gemini-images/install.py --dry-run
+python3 gemini-images/install.py
+```
+
+`mac_capture.py` takes one shot at a time: it puts the prompt on your clipboard, reveals
+the base photo in Finder so you can drag it in, and then — when you come back and press
+Enter — finds whatever new image landed in `~/Downloads` and files it under the right
+name with a provenance sidecar. Skip a shot with `s`, stop with `q`; re-run later and it
+picks up exactly where you left off.
+
+In the app, for each shot:
+
+1. **Start a new chat every time.** Gemini carries context between turns, and the
+   previous case's wounds turn up on the next patient.
+2. **Attach the base photo it names** (`patient/older-m.jpg` and so on) before pasting.
+   Without it you get a new person in a new room, and `install.py` will refuse it.
+3. Paste, send, download the result.
+
+Useful flags: `--watch-dir ~/Desktop` if you save somewhere else, `--move` to take the
+file out of Downloads rather than copy it, `--list` to see what is still outstanding.
+
+**Look at every picture before installing it.** These are pictures of injuries generated
+by a model; some will be wrong, some will be anatomically silly, and some will come back
+refused. Re-roll a bad one — in the app, just ask again in the same chat, then re-run
+`mac_capture.py --only <case-id> --force`. If it is wrong the same way twice, the fix is
+in `case-shots.json`, not in another re-roll.
+
+Two things the app does that the API does not:
+
+- **It refuses more.** Consumer Gemini is stricter about injury and blood than the API.
+  If a trauma shot is refused, say what it is for — a clinical reference photograph for
+  an ATLS-style training simulator — rather than rewording the wound.
+- **It may hand back a different shape.** `install.py` centre-crops and resizes to
+  1200x670, but a square regeneration that has genuinely reframed will trip the room
+  drift check and be refused, which is the right outcome.
+
+## Running it — the API instead
+
+If you would rather batch all 17 without babysitting:
 
 1. Get a key at <https://aistudio.google.com/apikey>. Free.
 2. `export GEMINI_API_KEY=AIza...`
@@ -49,33 +98,14 @@ photo exactly as before, so this is additive: nothing breaks if you generate not
    ```
    The default is `gemini-2.5-flash-image`. Pass `--model NAME` to use another.
 
-The free tier is metered per day. `generate.py` waits 6s between calls (`--pause`), and
-never regenerates a shot that already has a download unless you pass `--force`, so an
-interrupted run resumes instead of starting over.
-
-## Running it
-
 ```bash
-python3 gemini-images/build_plan.py                 # compose + check the prompts
-python3 gemini-images/generate.py --course ATLS     # or --only resus-nrp, or all 17
-                                                    # → look at gemini-images/downloads/
-python3 gemini-images/install.py --dry-run
-python3 gemini-images/install.py
+python3 gemini-images/generate.py --course ATLS
 ```
 
-Then open the app, start one of those cases, and look at the bedside panel.
-
-**Look at every picture before installing it.** These are pictures of injuries generated
-by a model; some will be wrong, some will be anatomically silly, and a couple will come
-back refused. Re-roll a bad one with `generate.py --only <case-id> --force`. If it is
-wrong the same way twice, the fix is in `case-shots.json`, not in another re-roll.
-
-### Driving it by hand instead
-
-`prompts/<case-id>__bed.txt` is the exact prompt. Open AI Studio, upload the base photo
-the prompt was written for (`plan.json` names it), paste the text, download the result
-into `downloads/` as `<case-id>__bed.png`, and run `install.py`. The pipeline does not
-care whether the bytes came from the API or from your browser.
+The free tier is metered per day. `generate.py` waits 6s between calls (`--pause`), and
+never regenerates a shot that already has a download unless you pass `--force`, so an
+interrupted run resumes instead of starting over. Everything downstream is identical —
+`install.py` does not care whether the bytes came from the API or from the app.
 
 ## What goes in a picture, and what must not
 
