@@ -1,0 +1,33 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 52-year-old woman who has just gone into another run of torsades in front of you — she stiffened, her eyes rolled back, and there is no pulse.
+
+AGE: Make her 52, not late sixties: soften the deepest lines, keep dark hair with grey coming through at the temples, a fuller face.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- Her head is extended back and turned slightly, her neck arched, her jaw clenched tight and her lips drawn back — mid-convulsion posture.
+- Blood-tinged pink saliva at the right corner of the mouth and a thin trail of it down onto the cheek and jaw, from a bitten tongue.
+- Both arms lie stiff and extended at her sides, hands part-clenched.
+- A small purple bruise around a cannula site on the back of the left hand, with a little dried blood at the puncture.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No pads and no defibrillator in frame.
+- No trauma wounds.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

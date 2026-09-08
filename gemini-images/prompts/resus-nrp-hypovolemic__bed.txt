@@ -1,0 +1,35 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A high-fidelity newborn simulation manikin set up as a term female newborn at 38 weeks, 3.1 kg, delivered by category-1 caesarean after a placental abruption — born white rather than blue, profoundly floppy, heart rate 40, pulses impalpable.
+
+AGE: The manikin must be sized and proportioned for a TERM NEWBORN of 3.1 kg — about 49 cm, newborn head-to-body proportions.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- SCENE: replace the blue stretcher mattress under the baby with the mattress of an infant radiant warmer — a firm padded white mattress on a flat tray, with the clear perspex side walls of the warmer rising at the left and right edges of frame and warm overhead light falling on the baby. Keep the baby in EXACTLY the same position, at exactly the same size, in exactly the same part of the frame.
+- PALLOR, THE CENTRAL FINDING: the skin is uniformly white — a flat, waxy, porcelain pallor with no pink anywhere, including the palms, the soles, the lips and the ears. This baby is WHITE, not blue: there must be no dusky or bluish tone anywhere on her.
+- UMBILICAL CORD: a cord stump at the umbilicus that is thin, flat and collapsed rather than full and turgid, pale rather than blue-white, with a white plastic cord clamp closed across the end.
+- FLOPPY POSTURE: arms and legs lie flat, extended and completely limp against the mattress, no flexion at any joint, hands open, head lolled to one side.
+- A caesarean birth: the head is round and unmoulded, the skin cleaner than a vaginal delivery, with thick creamy white vernix still over the back, the shoulders and in all the creases.
+- The manikin's face is slack, eyes closed, mouth slightly open.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No meconium staining and no blood on the baby.
+- No nappy, no mask, no ET tube and no umbilical catheter.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-RDQUbMQpynKUWGbNIRE5vy3XQaFpz6EhkEWR2GcPzzM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-+wDgWj9COPdehIvKEXHDTl9p7FVfNEhdPBdw0tXYMuA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -7675,9 +7675,42 @@ function sceneImgFor(view, base){
   if(!/^(room|foot|airway)$/.test(view) || !/^[a-z]+(-[a-z]+)?$/.test(base)) return null;
   return 'scenes/'+view+'-'+base+'.jpg';
 }
+// ---- CASE-SPECIFIC PATIENT PHOTOS ----
+// The six base photos are chosen by demographics alone, so every stabbing shares one
+// picture and a 76-year-old borrows a 50-year-old's face. A case that has had its own
+// photo generated (gemini-images/, installed into case-media/) overrides the base for
+// that case only: the stab wound is in the groin the brief actually names, the newborn
+// is on a warmer with a cord stump, the crush arrest has the crush mark on it.
+//
+// Same 1200x670 framing as the base it was edited from — install.py refuses anything
+// that reframed — so every ptRegion polygon and every device-overlay box still lines up.
+// A case with no entry, or a manifest that never loads, behaves exactly as before.
+let CASE_MEDIA = null;
+(async function loadCaseMedia(){
+  try{
+    const r = await fetch('case-media/manifest.json');
+    if(r.ok){ const j = await r.json(); if(j && j.cases && typeof j.cases==='object') CASE_MEDIA = j.cases; }
+  }catch(_){ }
+  if(CASE_MEDIA && $('patientPanel')) renderPatient();   // re-render if a case is already open
+})();
+// The photo this case has for this view ('bed', 'room', 'foot', 'airway'), or null.
+// Keyed on the gold seed id, so generated cases — which have no id — always fall back.
+function caseImgFor(view){
+  if(!CASE_MEDIA || !S.goldId || !view) return null;
+  const entry = CASE_MEDIA[S.goldId];
+  const shot = entry && entry[view];
+  return (shot && typeof shot.file === 'string') ? shot.file : null;
+}
 function roomImgFallback(img){
   const v=ROOM_VIEWS[img.dataset.view]; if(!v) return;
-  if(img.getAttribute('src')!==v.img){ img.onerror=null; img.src=v.img; }
+  // Same three steps as the bedside photo: a missing case scene drops to the
+  // demographic one, and only a missing demographic scene drops to the embedded
+  // original — otherwise a 404 on a case file would put the manikin room back on an
+  // adult case that has a perfectly good scene of its own.
+  const demographic = sceneImgFor(img.dataset.view, patientBaseFor(S.patient||{}));
+  const now = img.getAttribute('src');
+  if(demographic && now!==demographic && now!==v.img){ img.src=demographic; return; }
+  if(now!==v.img){ img.onerror=null; img.src=v.img; }
 }
 // ---- SIM ROOM CAST: who's present, where they stand, what clicking them says ----
 // See docs/superpowers/specs/2026-08-18-room-cast-design.md. Presence is DERIVED from
@@ -8430,6 +8463,12 @@ function renderPatient(){
     // overlays (CSS filter + tint for skin state, sweat droplets, breathing scale,
     // ECG pads) and the same clickable exam regions as polygons over the anatomy.
     const base = patientBaseFor(p);
+    // Three steps down, not two: this case's own photo if one has been generated, else
+    // the demographic base (or its trauma variant), else the manikin. The middle step
+    // is what the error handler below falls back to, so a case-media file that 404s on
+    // a stale checkout lands on the right body rather than dropping straight to a dummy.
+    const baseSrc = base==='manikin' ? PATIENT_IMG : (traumaVariantFor(base) || 'patient/'+base+'.jpg');
+    const photoSrc = caseImgFor('bed') || baseSrc;
     const overlayEntry = PATIENT_OVERLAYS[base] || PATIENT_OVERLAYS.manikin || {};
     const overlaysHTML = OVERLAY_DEVICES.map(([device,gearKey])=>{
       const d = overlayEntry[device];
@@ -8444,7 +8483,7 @@ function renderPatient(){
        <svg id="ptSvg" viewBox="0 0 720 421" class="w-full block">
          <rect width="720" height="421" fill="#eef1f4"/>
          <g id="pt_chest">
-           <image id="pt_photo" href="${base==='manikin' ? PATIENT_IMG : (traumaVariantFor(base) || 'patient/'+base+'.jpg')}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
+           <image id="pt_photo" href="${photoSrc}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
            <!-- Equipment overlays: patches cut from edits of this same base photo, so
                 the fit and lighting are pixel-exact. Feathered edges blend over the
                 original; a missing file simply never shows. Placement maps the source
@@ -8468,7 +8507,12 @@ function renderPatient(){
      <p class="text-[9px] text-slate-600 mt-1 text-right">${esc(PATIENT_IMG_CREDIT)}</p>`;
     host.querySelectorAll('[data-optional-overlay]').forEach(el=>el.addEventListener('error',()=>el.remove(),{once:true}));
     const ptPhoto=host.querySelector('#pt_photo');
-    if(ptPhoto) ptPhoto.addEventListener('error',()=>ptPhoto.setAttribute('href',PATIENT_IMG),{once:true});
+    if(ptPhoto) ptPhoto.addEventListener('error',function onPhotoError(){
+      const now = ptPhoto.getAttribute('href');
+      if(now !== baseSrc && baseSrc !== PATIENT_IMG){ ptPhoto.setAttribute('href', baseSrc); return; }  // keep listening: baseSrc may 404 too
+      ptPhoto.removeEventListener('error', onPhotoError);
+      ptPhoto.setAttribute('href', PATIENT_IMG);
+    });
     host.querySelectorAll('[data-region]').forEach(el=>{
       const label=ZONE_TITLES[el.dataset.region]||el.dataset.region||'Patient region';
       el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',label);
@@ -8640,7 +8684,7 @@ function renderRoom(host, who, viewToggle){
 // Mount-agnostic: used by the sidebar card AND the full-screen expand overlay.
 function buildRoomScene(mount){
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room', view=ROOM_VIEWS[viewKey], mb=view.monBox;
-  const sceneSrc=sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
+  const sceneSrc=caseImgFor(viewKey)||sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
   mount.innerHTML=`
    <div class="relative rounded-2xl border border-slate-800 overflow-hidden select-none" id="roomBox">
      <img src="${sceneSrc}" data-view="${viewKey}" class="w-full block pointer-events-none" alt="Emergency simulation room, ${esc(view.label||viewKey)} view">

@@ -1,0 +1,34 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 31-year-old woman in asystolic cardiac arrest, found unresponsive behind a bus shelter about fifteen minutes ago.
+
+AGE: She is 31 — a young adult face.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- In both antecubital fossae, a cluster of three or four fresh needle puncture marks with small dark dried blood spots around them.
+- Along the veins of both forearms, older injection scarring: flat brown-purple hyperpigmented track marks and small healed puncture scars following the line of the vein.
+- Replace the hospital gown with her own street clothes — a dark hooded sweatshirt pushed up above both elbows to expose the forearms, worn over a t-shirt.
+- She has been lying outside: her hair is damp and dishevelled, there is grey street grime on both hands and a smudge of it on the right cheek and jaw, and small pieces of grit and leaf litter caught in her hair.
+- Her face is slack — eyes closed, mouth slightly open, no expression.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No tourniquet, no syringe and no drug paraphernalia anywhere in frame.
+- No wounds other than the injection marks described.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

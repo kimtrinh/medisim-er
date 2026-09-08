@@ -1,0 +1,33 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 63-year-old man, 94 kg, in fast atrial fibrillation at 170 with a blood pressure of 78/52 and crushing central chest pressure.
+
+AGE: He is 63 and heavy-set: a fuller, rounder face, a thicker neck, a broad protuberant abdomen, more grey through the hair.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- His right hand is closed into a fist and pressed against the middle of his sternum — the classic clenched-fist gesture a patient makes when describing crushing chest pressure. The forearm rests across the upper abdomen.
+- He is AWAKE: eyes open, brow furrowed, mouth slightly open, jaw tight — the face of someone in real pain and frightened by it.
+- Replace the hospital gown with his own clothes: a grass-stained navy polo shirt unbuttoned and pulled fully open to both sides so the chest is bare for the electrodes, and khaki gardening trousers.
+- Fresh grass clippings stuck to both forearms and to the shirt, and a green grass smear on the left forearm. He was mowing the lawn when it started.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No pads on the chest — he has not been cardioverted yet.
+- No wounds and no blood.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

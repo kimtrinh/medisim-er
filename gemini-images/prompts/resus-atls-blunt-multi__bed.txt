@@ -1,0 +1,37 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 37-year-old woman, restrained driver of a car that hit another head-on at motorway speed, twenty minutes trapped in the rain before extrication. GCS 9, three life threats running at once.
+
+AGE: Make her 37, not fifty-something: smoother skin, fewer lines, dark hair without grey.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- SEATBELT SIGN: a broad diagonal band of red abrasion and fresh purple-red bruising running from the point of the RIGHT shoulder, across the front of the chest, down to the LEFT lower abdomen — the print of a three-point belt, with the woven webbing pattern grazed into the skin along it.
+- DEGLOVED RIGHT THIGH: a large open avulsion wound over the front and outer aspect of the right thigh, a broad flap of skin peeled downward off the muscle, exposed yellow subcutaneous fat and dark red muscle in the base, road grit and dirt through the wound, and dark blood oozing steadily from it and running down onto the trolley sheet where it has soaked into a spreading patch.
+- HEAD INJURY: a boggy swelling with a ragged three-centimetre laceration in the right temporal scalp, hair matted with clotted blood around it, and dried blood run down the right side of the face and onto the neck. Early purple bruising is coming up around the right eye.
+- A short laceration across the bridge of the nose and fine glass fragments and windscreen dust scattered over the face, the shoulders and the upper chest.
+- SHE IS SOAKED AND COLD: hair wet through and plastered to the scalp, water beaded on the skin of the chest and arms, clothing dark with rain. She was cut out of the car in the rain for twenty minutes.
+- Her clothing has been cut up the front and folded back off the torso — a wet, torn, muddy top and jeans cut down the leg.
+- Her face is unresponsive: eyes closed, features slack, head lolled slightly to one side.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- NO pelvic binder and no sheet tied round the pelvis — applying one at the greater trochanters is a critical action the learner has to take.
+- No cervical collar and no chest decompression site, needle or finger thoracostomy wound — none of that has been done yet.
+- No hospital gown.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.

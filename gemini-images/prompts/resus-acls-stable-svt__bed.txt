@@ -1,0 +1,31 @@
+A photographic edit of the supplied photograph. Return an edited photograph, not an illustration.
+
+SUBJECT: A 29-year-old woman in stable SVT at 190, blood pressure 112/74, talking in full sentences, warm and well perfused.
+
+AGE: She is 29.
+
+MAKE THESE CHANGES, AND ONLY THESE:
+- She looks WELL. This is the whole point of the picture: eyes open, calm, alert, making eye contact, a faint self-conscious half-smile, colour good, breathing easily, entirely comfortable on the trolley.
+- Her left hand rests flat and lightly on her upper chest — she can feel her heart going, but she is not distressed by it.
+- Replace the hospital gown with her own office clothes: a light blouse with the sleeves pushed up to the elbows and a work lanyard still around her neck, the blouse unbuttoned at the top so the ECG electrodes sit on the upper chest.
+
+HOLD THE FRAMING EXACTLY:
+- Do NOT move, rotate, resize or reposition the patient. The head stays at the right of frame, the feet at the left, the body in exactly the pixels it occupies now.
+- Do NOT change the camera position, the focal length, the crop, the zoom or the aspect ratio.
+- Do NOT change the room: the tiled wall, the anatomy poster, the glove boxes, the sharps bin, the IV pump, the trolley and its rails and mattress all stay exactly where they are.
+- Keep the existing ECG electrodes and leads, the blood-pressure cuff and the pulse-oximeter probe exactly where they are.
+- Change ONLY what the shot list below asks for. Everything else in the frame is unchanged.
+
+PHOTOGRAPHIC STYLE:
+- Clinical documentation photography, of the kind reproduced in an ATLS, PALS or NRP course manual: even, unremarkable emergency-department lighting, neutral white balance, everything in focus, shot to record findings rather than to dramatise them.
+- Injuries are rendered with sober medical-reference accuracy — correct colour, correct age of bruise, correct amount of blood for the wound described. Not horror, not stylised, not cinematic, no colour grading, no vignette.
+- No text, captions, labels, arrows, rulers, watermarks or logos anywhere in the image.
+
+MUST NOT APPEAR IN THIS PICTURE:
+- No distress, no pain, no pallor, no wounds, no blood. She must NOT look sick — the learner has to be able to tell this patient apart from the unstable one at a glance.
+- No oxygen mask, nasal cannula, endotracheal tube, chest tube, central venous catheter, defibrillator or pacing pads, and no cervical collar.
+- No bag-valve-mask, no laryngoscope, no syringes, and no rescuer's hands, arms or body anywhere in frame — nobody is touching the patient.
+- No chest compressions in progress.
+- No blue or dusky cyanosis, no grey shock pallor, and no sweat or diaphoresis on the skin.
+
+Return the image at the same 1200x670 landscape framing as the input.
