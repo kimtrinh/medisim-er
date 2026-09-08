@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-RDQUbMQpynKUWGbNIRE5vy3XQaFpz6EhkEWR2GcPzzM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-e9ffF7ZFxqQEwc4Ki/TRlrdrcLOkyUtTglK20GDrZ6k=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -7675,6 +7675,34 @@ function sceneImgFor(view, base){
   if(!/^(room|foot|airway)$/.test(view) || !/^[a-z]+(-[a-z]+)?$/.test(base)) return null;
   return 'scenes/'+view+'-'+base+'.jpg';
 }
+
+// High-value cases can override the generic age-band art with a reviewed image
+// authored for that exact patient and injury pattern. Keep this list deliberately
+// explicit: guessing from context here could leak the diagnosis or put a wound on
+// a distractor case. Bedside and room images are paired so switching views never
+// changes the patient's apparent age, sex or visible injuries.
+const CASE_VISUALS = {
+  'resus-atls-blunt-multi': {
+    patient:'patient-trauma/case-resus-atls-blunt-multi.jpg',
+    room:'scenes/room-case-resus-atls-blunt-multi.jpg'
+  },
+  'eb-severe-tbi': {
+    patient:'patient-trauma/case-eb-severe-tbi.jpg',
+    room:'scenes/room-case-eb-severe-tbi.jpg'
+  },
+  'resus-atls-penetrating': {
+    patient:'patient-trauma/case-resus-atls-penetrating.jpg',
+    room:'scenes/room-case-resus-atls-penetrating.jpg'
+  }
+};
+function casePatientImg(caseId){
+  const v = CASE_VISUALS[String(caseId||'')];
+  return v && v.patient || null;
+}
+function caseSceneImg(view, caseId){
+  const v = CASE_VISUALS[String(caseId||'')];
+  return view==='room' && v && v.room || null;
+}
 function roomImgFallback(img){
   const v=ROOM_VIEWS[img.dataset.view]; if(!v) return;
   if(img.getAttribute('src')!==v.img){ img.onerror=null; img.src=v.img; }
@@ -8444,7 +8472,7 @@ function renderPatient(){
        <svg id="ptSvg" viewBox="0 0 720 421" class="w-full block">
          <rect width="720" height="421" fill="#eef1f4"/>
          <g id="pt_chest">
-           <image id="pt_photo" href="${base==='manikin' ? PATIENT_IMG : (traumaVariantFor(base) || 'patient/'+base+'.jpg')}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
+           <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (traumaVariantFor(base) || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
            <!-- Equipment overlays: patches cut from edits of this same base photo, so
                 the fit and lighting are pixel-exact. Feathered edges blend over the
                 original; a missing file simply never shows. Placement maps the source
@@ -8640,7 +8668,7 @@ function renderRoom(host, who, viewToggle){
 // Mount-agnostic: used by the sidebar card AND the full-screen expand overlay.
 function buildRoomScene(mount){
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room', view=ROOM_VIEWS[viewKey], mb=view.monBox;
-  const sceneSrc=sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
+  const sceneSrc=caseSceneImg(viewKey, S.goldId)||sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
   mount.innerHTML=`
    <div class="relative rounded-2xl border border-slate-800 overflow-hidden select-none" id="roomBox">
      <img src="${sceneSrc}" data-view="${viewKey}" class="w-full block pointer-events-none" alt="Emergency simulation room, ${esc(view.label||viewKey)} view">
