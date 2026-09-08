@@ -859,6 +859,16 @@ const ADMISSION_RE = /\badmissions?\b/;
 // it open. Only the historical constructions are excluded, so a real disposition
 // that merely mentions a prior admission still ends the case.
 const PRIOR_ADMISSION_RE = /\b(?:on|at|since|during|from|prior|previous|last|recent|his|her|their|repeat|many|any|all|both|past|earlier|old)\s+(?:the\s+)?admissions?\b/;
+// A consultant who takes the patient. The case's own checklist says whether the consult
+// IS the admission ("Consult nephrology and admit for HUS monitoring"); a warning, an
+// avoidance or a later step ("watch for…", "after ROSC…") is not. The pairs this yields
+// are listed in tests/fixtures/consult-admits.json for Kim to read.
+const CONSULT_ADMIT_RE = /\b(admit|admits|admitted|admission|transfer|transferred)\b/i;
+const CONSULT_ADMIT_NOT_RE = /^\s*(watch|avoid|do not|don't|never|after |consider|defer|hold)/i;
+function consultAdmits(caText){
+  const t = String(caText || '');
+  return CONSULT_ADMIT_RE.test(t) && !CONSULT_ADMIT_NOT_RE.test(t);
+}
 const ASSESS_WORDS = ['i think','my diagnosis','this is likely','concern for','i suspect','my assessment','working diagnosis','i believe','working dx','most likely','this looks like','differential is'];
 // "I think we should give aspirin" is an order wearing a hedge; "I think this is
 // septic shock" is a diagnosis. Deciding on a flat verb list fails, because shock,
@@ -2261,9 +2271,9 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       `${svc.charAt(0).toUpperCase()+svc.slice(1)} here again — go ahead, what's changed?`,
       `Back on the line — talk to me. What do you need?`,
       `Still here. Give me the update.`];
-    fb.speech.push({speaker:'consultant', text: again
+    fb.speech.push({speaker:'consultant', text: (again
       ? callbackLines[((state && state.turnCount) || 0) % callbackLines.length]
-      : `This is ${svc}. I've looked at the chart — what's your assessment, and what specifically do you need from me?`});
+      : `This is ${svc}. I've looked at the chart — what's your assessment, and what specifically do you need from me?`), repeat: true});
     // Remember that the consultant asked: the next narrative/assessment clause is
     // their answer, and it must be acknowledged (playtest: three consultants asked
     // for an assessment and then ignored the player's full SBAR reply).
@@ -2278,7 +2288,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
         `Good summary — agreed with your read. We're on board; call me if anything changes.`,
         `That helps. Reasonable plan — we'll see the patient and get back to you with recommendations.`,
         `Understood. I agree with your assessment — go ahead, and keep us in the loop.`];
-      fb.speech.push({speaker:'consultant', text: lines[(state.turnCount || 0) % lines.length]});
+      fb.speech.push({speaker:'consultant', text: lines[(state.turnCount || 0) % lines.length], repeat: true});
       state.consultPending = null;
     } else if(intent === 'assessment'){
       // Echo the read back rather than brushing it off. The player's own words make
@@ -2489,14 +2499,73 @@ function moTokens(s){
 function diagnosisHead(dx){
   return String(dx || '').split(/[(,:/]| following | due to | from | with /i)[0].trim();
 }
-// The parts are the things the answer NAMES. Only a cause word introduces a second
-// nameable condition ("...cardiac arrest FROM acute coronary occlusion"); a parenthesis
-// or a comma introduces a qualifier, and splitting on those produced fragments like
-// "RSV)" and "EF ~20%)" that are not diagnoses anybody would say. Each piece is then
-// reduced to its own head, so the qualifiers fall away either way.
+// A colon at the TOP LEVEL — not one buried inside a parenthetical ("(O157:H7)", "(Jones
+// criteria: migratory polyarthritis…)") and reached before the first full stop, not after
+// one (peds-brue's "…(BRUE). The infant meets… criteria: age >60 days…" is a checklist of
+// why the case is LOW risk, not a list of what the patient has) — introduces a LIST of
+// named conditions ("Multisystem blunt injury: left tension pneumothorax, unstable pelvic
+// ring fracture with retroperitoneal bleeding, and moderate traumatic brain injury with a
+// GCS of 9"), and the trauma lead's one-line summary is any one of those (Kim,
+// 2026-09-07). Returns -1 (no list colon) rather than mistaking a nested or late one.
+function firstTopLevelColon(s){
+  let depth = 0;
+  for(let i = 0; i < s.length; i++){
+    const ch = s[i];
+    if(ch === '(') depth++;
+    else if(ch === ')') depth = Math.max(0, depth - 1);
+    else if(depth === 0 && ch === '.') return -1;
+    else if(depth === 0 && ch === ':') return i;
+  }
+  return -1;
+}
+// The list itself is split the same way — only at a comma or the standalone word "and"
+// that sits OUTSIDE any parenthetical — so a qualifying aside authored in parens
+// ("(lap-belt-only, no shoulder harness)") is never torn in two by its own internal comma.
+function splitTopLevelList(s){
+  const parts = []; let depth = 0, buf = '';
+  for(let i = 0; i < s.length; i++){
+    const ch = s[i];
+    if(ch === '('){ depth++; buf += ch; continue; }
+    if(ch === ')'){ depth = Math.max(0, depth - 1); buf += ch; continue; }
+    if(depth === 0 && ch === ','){ parts.push(buf); buf = ''; continue; }
+    if(depth === 0 && /^and\b/i.test(s.slice(i)) && (i === 0 || !/[a-z0-9]/i.test(s[i - 1] || ''))){
+      parts.push(buf); buf = ''; i += 2; continue;
+    }
+    buf += ch;
+  }
+  parts.push(buf);
+  return parts;
+}
+// The parts are the things the answer NAMES. A cause word introduces a second nameable
+// condition ("...cardiac arrest FROM acute coronary occlusion"); a top-level colon
+// introduces a list of them (see firstTopLevelColon above). A parenthesis or a "with" is
+// still a qualifier and still falls away in diagnosisHead, which runs on every piece
+// either way.
 function diagnosisParts(dx){
-  return String(dx || '').split(/ following | due to | from | secondary to | caused by /i)
-    .map(p => diagnosisHead(p)).filter(Boolean);
+  const s = String(dx || '');
+  const colon = firstTopLevelColon(s);
+  const head = colon >= 0 ? s.slice(0, colon) : s;
+  const list = colon >= 0 ? splitTopLevelList(s.slice(colon + 1)) : [];
+  return [head].concat(list)
+    .flatMap(p => p.split(/ following | due to | from | secondary to | caused by /i))
+    .map(p => diagnosisHead(p)).filter(Boolean)
+    // The head is the case's own name and is always kept — "Drowning" is a condition even
+    // though it reads like a participle. Only the tail pieces a split left behind are judged.
+    .filter((p, i) => i === 0 || namesACondition(p))
+    .filter((p, i, a) => a.findIndex(q => q.toLowerCase() === p.toLowerCase()) === i);
+}
+// A PART MUST NAME SOMETHING, NOT MERELY DESCRIBE IT. Splitting on a cause word and then
+// truncating at a comma left modifier fragments standing as diagnoses: "unrecognized"
+// (from "following unrecognized, untreated group A streptococcal pharyngitis") and
+// "an improperly positioned" (from "from an improperly positioned … restraint") were both
+// graded CORRECT if a player typed them — pre-existing, found while widening the colon
+// rule, and the dangerous direction: credit for a diagnosis nobody made. A phrase whose
+// every word is a participle or an adverb describes a condition without naming one. This
+// judges only the pieces AFTER the head: a head like "Drowning" is the case's own name.
+const MODIFIER_ONLY_RE = /(ed|ly|ing)$/i;
+function namesACondition(part){
+  const toks = String(part).toLowerCase().replace(/^(a|an|the)\s+/, '').split(/[\s-]+/).filter(Boolean);
+  return toks.length > 0 && !toks.every(t => MODIFIER_ONLY_RE.test(t));
 }
 // TERMS THAT NAME THE SAME THING.
 //
@@ -2643,9 +2712,16 @@ function consultGateDecision(gate, state, diagnosis){
   const flags = (state && state.flags) || {};
   const missing = (gate.needs || []).filter(nd => !done.includes(nd.action));
   const stateMissing = (gate.needsState || []).filter(nd => !flags[nd.flag]);
-  const dxOk = ((state && state.assessments) || [])
-    .some(a => a && matchesDiagnosis(a.text || a.clause || '', diagnosis));
-  const needDx = !dxOk;
+  // dxParts (optional, default 1): how many of the diagnosis's listed injuries the
+  // summary must name. Counted as DISTINCT parts named across every assessment on the
+  // chart — not one assessment that happens to match the whole thing at once — so the
+  // default (1) is exactly the old dxOk test: some assessment matches some part of dx.
+  const dxWanted = Number.isInteger(gate.dxParts) && gate.dxParts > 0 ? gate.dxParts : 1;
+  const named = new Set();
+  for(const a of ((state && state.assessments) || []))
+    for(const p of diagnosisParts(diagnosis))
+      if(a && matchesDiagnosis(a.text || a.clause || '', p)) named.add(p.toLowerCase());
+  const needDx = named.size < dxWanted;
   // A state the case has not reached — no ROSC, still in the arrhythmia — is a reason of
   // its own, and carries its OWN authored sentence. Borrowing a need's words instead would
   // have the consultant demand something the doctor had already done, and putting the flag
@@ -3463,7 +3539,7 @@ function runTurn(pack, state, action, opts){
        && (intent === 'consult' || summonsOnly(clause)
            || (gate.aliases || []).some(a => clause === normalize(a)))){
       const d = consultGateDecision(gate, state, opts.diagnosis);
-      out.speech.push({ speaker: 'consultant', text: d.line });
+      out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
       if(d.accept){
         state.consultWaiting = null;
         if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
@@ -3495,7 +3571,7 @@ function runTurn(pack, state, action, opts){
         { assessments: ((state.assessments) || []).concat([{ text: clause }]) });
       const d = consultGateDecision(gate, view, opts.diagnosis);
       if(d.accept){
-        out.speech.push({ speaker: 'consultant', text: d.line });
+        out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
         state.consultWaiting = null;
         if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
           state.satisfied.push(d.credits);
@@ -3511,7 +3587,7 @@ function runTurn(pack, state, action, opts){
         // names the condition already reached the summons path above, which spoke; adding
         // this line would have the trauma lead read her list back twice in a row.
         if(!(out.speech || []).some(s => s.speaker === 'consultant'))
-          out.speech.push({ speaker: 'consultant', text: d.line });
+          out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
       }
     }
     if(matched.length){
@@ -3722,6 +3798,14 @@ function runTurn(pack, state, action, opts){
         if(r0.vitals) Object.assign(targets, r0.vitals);
         if(r0.trend) trend = strongerTrend(trend, r0.trend);
         if(Number.isInteger(r0.satisfies) && !state.satisfied.includes(r0.satisfies)) state.satisfied.push(r0.satisfies);
+        // Kim: "when a consultant … agrees to admit the patient, the case should end."
+        // Not on a gated case — there the gate decides — and only when what was credited
+        // is the admission itself.
+        if(r0.intent === 'consult' && Number.isInteger(r0.satisfies) && !opts.consultGate
+           && consultAdmits((opts.criticalActions || [])[r0.satisfies])){
+          endedBy = endedBy || 'good';
+          if(tc) tc.consultAdmits = true;
+        }
         // Recorded unconditionally: a repeat order still evidences that THIS clause
         // reaches this critical action, which is exactly what the analyzer needs.
         if(tc && Number.isInteger(r0.satisfies)) tc.satisfies.push(r0.satisfies);
@@ -3967,8 +4051,10 @@ function runTurn(pack, state, action, opts){
   // lines word-for-word ("First two units of O-positive PRBCs are running" on the
   // disposition turn; the consultant's asthma warning after the drug was cancelled).
   // Patient lines are exempt — a patient repeating themselves is human, and the
-  // unanswered-history rotation depends on reuse.
-  out.speech = out.speech.filter(s => s.speaker === 'patient' || !state.spokenSeen[s.speaker + '|' + s.text]);
+  // unanswered-history rotation depends on reuse. A consultant answering the phone is not
+  // a replay: Kim called the trauma lead twice and the second call was silent because the
+  // refusal was word-identical. `repeat` marks lines a summons always earns.
+  out.speech = out.speech.filter(s => s.speaker === 'patient' || s.repeat || !state.spokenSeen[s.speaker + '|' + s.text]);
   // An intubated patient does not talk. The nurse's redirect appears only when
   // the player actually asked something (it fired as a non-sequitur at ROSC).
   if(state.intubated){
@@ -4284,6 +4370,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
   consultGateDecision,   // the referral conversation, pure and testable on its own
+  consultAdmits,   // does this checklist action's own text say the consult IS the admission
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
   fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders,
   rejoinStrandedFragments,

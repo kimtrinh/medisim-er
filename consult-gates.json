@@ -1,6 +1,6 @@
 {
   "_reviewed": false,
-  "_note": "Who takes this patient, what they need to see before they will, and what they say. Every sentence here is a clinical claim drafted from the case's own critical actions and its own authored consult responder — nothing is generated, and nothing here has been reviewed. `needs[].action` indexes that case's criticalActions. `needsState[]` are engine flags (rosc, converted) with the consultant's own words for each. `admits` is inherited from the case's own consult responder's `satisfies`; where the case authored none, the gate credits nothing.",
+  "_note": "Who takes this patient, what they need to see before they will, and what they say. Every sentence here is a clinical claim drafted from the case's own critical actions and its own authored consult responder — nothing is generated, and nothing here has been reviewed. `needs[].action` indexes that case's criticalActions. `needsState[]` are engine flags (rosc, converted) with the consultant's own words for each. `admits` is inherited from the case's own consult responder's `satisfies`; where the case authored none, the gate credits nothing. `dxParts` (optional, default 1): how many of the diagnosis's listed injuries the summary must name.",
 
   "resus-acls-vf": {
     "service": "cardiology",

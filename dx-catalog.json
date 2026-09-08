@@ -942,11 +942,6 @@
       "aliases": []
     },
     {
-      "canonical": "an improperly positioned",
-      "label": "An improperly positioned",
-      "aliases": []
-    },
-    {
       "canonical": "an initial oropharyngeal infection",
       "label": "An initial oropharyngeal infection",
       "aliases": []
@@ -2138,6 +2133,11 @@
     {
       "canonical": "bilaminar appearance",
       "label": "Bilaminar appearance",
+      "aliases": []
+    },
+    {
+      "canonical": "bilateral tension pneumothoraces",
+      "label": "Bilateral tension pneumothoraces",
       "aliases": []
     },
     {
@@ -6273,6 +6273,11 @@
       "aliases": []
     },
     {
+      "canonical": "exsanguinating limb haemorrhage",
+      "label": "Exsanguinating limb haemorrhage",
+      "aliases": []
+    },
+    {
       "canonical": "exsanguination",
       "label": "Exsanguination",
       "aliases": []
@@ -7998,6 +8003,11 @@
       "aliases": []
     },
     {
+      "canonical": "hyperkalaemia",
+      "label": "Hyperkalaemia",
+      "aliases": []
+    },
+    {
       "canonical": "hyperkalemia",
       "label": "Hyperkalemia",
       "aliases": []
@@ -8290,11 +8300,6 @@
     {
       "canonical": "impending shock",
       "label": "Impending shock",
-      "aliases": []
-    },
-    {
-      "canonical": "improperly",
-      "label": "Improperly",
       "aliases": []
     },
     {
@@ -8991,6 +8996,11 @@
       "aliases": []
     },
     {
+      "canonical": "l2 flexion distraction",
+      "label": "L2 flexion-distraction",
+      "aliases": []
+    },
+    {
       "canonical": "labs for risk stratification",
       "label": "Labs for risk stratification",
       "aliases": []
@@ -9078,6 +9088,11 @@
     {
       "canonical": "left sided neonatal",
       "label": "Left-sided neonatal",
+      "aliases": []
+    },
+    {
+      "canonical": "left tension pneumothorax",
+      "label": "Left tension pneumothorax",
       "aliases": []
     },
     {
@@ -10083,6 +10098,11 @@
     {
       "canonical": "moderate to severe withdrawal",
       "label": "Moderate to severe withdrawal",
+      "aliases": []
+    },
+    {
+      "canonical": "moderate traumatic brain injury",
+      "label": "Moderate traumatic brain injury",
       "aliases": []
     },
     {
@@ -18243,11 +18263,6 @@
     {
       "canonical": "unreassuring despite exam",
       "label": "Unreassuring despite exam",
-      "aliases": []
-    },
-    {
-      "canonical": "unrecognized",
-      "label": "Unrecognized",
       "aliases": []
     },
     {

@@ -9,7 +9,8 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-e9ffF7ZFxqQEwc4Ki/TRlrdrcLOkyUtTglK20GDrZ6k=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-x2kYaaT4tzccs7gmlmD7zWzIq4weelcWB6bRy+nl2/s=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
@@ -109,6 +110,7 @@
   body.comfortableText #chat,body.comfortableText #ws,body.comfortableText #orderFeedback{line-height:1.55}
   body.comfortableText #sideBar,body.comfortableText #orderBar{background-color:rgba(2,6,23,.96)!important}
   @media (max-width:767px){.rmActionLabel{display:none}}
+  @media (max-width:767px){#playViewSwitch{display:none!important}}
   @media (max-width:767px){
     /* Dose and energy choices are decisions, not tooltips. A bottom sheet provides
        full-width targets that cannot open under the fixed phone composer. */
@@ -192,6 +194,7 @@
   body.cinema #dxBox{overflow:visible}
   #dxTypeahead{box-shadow:0 24px 60px -20px rgba(0,0,0,.95)}
   body.cinema #cinemaCtl{display:flex}
+  body.cinema #playViewSwitch{display:none}
   /* The order bar becomes a floating HUD panel in cinema (see #orderBar rule below) —
      it never unmounts, so the big ENTER button would otherwise keep showing on top of
      the room you're already standing in. Swap it for the header's LEAVE control instead. */
@@ -971,16 +974,23 @@
     #typeahead{max-height:min(45vh, calc(100vh - 200px));overflow-y:auto}
     #typeahead .ta-row, #typeahead .ta-dose{min-height:44px}
     #typeahead .ta-row > span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    /* THE LIST HIDES THE ROW IT COVERS. Now that the list is the full width of the screen
-       it grows up over #obToggleRow, which is pinned at the same z-index — so CHART and
-       History sat UNDER a suggestion, and elementFromPoint at the CHART button's centre
-       came back a .ta-row. That is the failure described above the dock rules, in its
-       second form: the tap did not merely miss the chart, it basketed an order. While the
-       list is up that row is unusable anyway, so it goes invisible; visibility rather than
-       display, so the row keeps its height, --obToggleH stays put, and the dock does not
-       jump under the player's thumb as they type. */
-    body.taOpen #obToggleRow{visibility:hidden}
+    /* The list no longer covers the row: positionOrderSuggestions() gives the list enough
+       margin-bottom to clear #obToggleRow's own height on a stacked layout, so History and
+       Chart stay live and tappable while you type — Kim: "there should be a way to go back
+       to the main sim view because there's some orders there, like exam, history." The list
+       also gets its own sticky Close (see the .ta-head rules below and renderTypeahead) and
+       closes on a tap outside (see the document pointerdown listener). */
     #obToggleRow{bottom:var(--obInputH,58px);margin-bottom:0;padding-top:.1rem;padding-bottom:.1rem}
+    /* The full order set, as a bottom sheet: fixed above the dock, capped so it always
+       scrolls inside itself rather than running off the top of a short phone screen (it
+       used to render 1162px tall inside #playBody{overflow:hidden} and never scroll into
+       view at all). */
+    #palette.mobileSheet{position:fixed;left:8px;right:8px;top:auto;
+      bottom:calc(var(--obInputH,60px) + var(--obToggleH,52px) + env(safe-area-inset-bottom,0px) + 10px);
+      max-height:60vh;overflow-y:auto;z-index:91;border-radius:20px;
+      background:rgba(2,6,23,.97);border:1px solid #334155;padding:.5rem;margin-top:0}
+    #palette .pal-head{display:none}
+    #palette.mobileSheet .pal-head{display:flex}
     /* py-3 around a one-line textarea is a desktop measurement; py-2 keeps the box a
        comfortable 44px touch target and hands 8px back to the story above it */
     #obInputRow #cmd{padding-top:.5rem;padding-bottom:.5rem}
@@ -993,6 +1003,14 @@
     body.cinema #monMeta{margin-top:0}
     #v_nextBar{margin-top:0}
   }
+  /* A sticky header inside the order-typeahead list and the full-order-set sheet: a
+     label plus a Close button, so a phone (no Escape key) always has a way out. Not
+     scoped to the phone media query — the button itself is md:hidden (desktop still has
+     Esc, and the row costs nothing extra there). */
+  .ta-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:.35rem .6rem;background:#0f172a;border-bottom:1px solid rgba(148,163,184,.18);
+    font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#94a3b8;z-index:1}
+  .ta-head button{min-height:40px;padding:0 .75rem;border:1px solid #334155;border-radius:.5rem;color:#cbd5e1}
   @media (prefers-reduced-motion: reduce){ .cinTab{transition:none} }
   .ptRegion{fill:#5eead4;fill-opacity:0;cursor:pointer;transition:fill-opacity .15s}
   .ptRegion:hover{fill-opacity:.12}
@@ -1089,6 +1107,10 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
        sim room that also means it can never cover the patient. -->
   <div id="dxBox" class="flex-1 mx-4 items-center gap-2"></div>
   <div class="flex items-center gap-2">
+    <div id="playViewSwitch" class="hidden items-center rounded-xl border border-slate-800 bg-slate-900/70 p-1" aria-label="Simulation view">
+      <button id="viewRoomBtn" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition">Sim Room</button>
+      <button id="viewChartBtn" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition">Chart &amp; Orders</button>
+    </div>
     <!-- Cinema-mode chrome. Lives in the static header (not in #main, which progress()
          rebuilds on every order) and is revealed by body.cinema — see the CINEMA MODE
          block in the stylesheet. -->
@@ -1097,8 +1119,8 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
       <button id="cinClear" title="Hide the panels and see the whole room (H)" class="px-3 py-2.5 rounded-2xl border-2 bg-slate-900/70 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-500 hover:text-slate-100 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
         <span id="cinClearIcon" class="text-sm leading-none">👁</span> <span id="cinClearLab" class="hidden sm:inline">Clear</span>
       </button>
-      <button id="cinExit" title="Leave the sim room (Esc)" class="px-5 py-2.5 rounded-2xl border-2 bg-emerald-600/15 border-emerald-500/60 text-emerald-300 hover:bg-emerald-600/25 hover:border-emerald-400 hover:text-emerald-200 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
-        <span class="text-sm leading-none">✕</span> <span class="hidden sm:inline">Leave the Room</span><span class="sm:hidden">Leave</span>
+      <button id="cinExit" title="Open the chart, history, exam, medications, and orders (Esc)" class="px-5 py-2.5 rounded-2xl border-2 bg-emerald-600/15 border-emerald-500/60 text-emerald-300 hover:bg-emerald-600/25 hover:border-emerald-400 hover:text-emerald-200 text-xs font-black uppercase tracking-widest transition flex items-center gap-1.5">
+        <span class="text-sm leading-none">▤</span> <span class="hidden sm:inline">Chart &amp; Orders</span><span class="sm:hidden">Chart</span>
       </button>
     </div>
     <!-- WHO YOU ARE. Hidden entirely when no project is configured, so a build with the
@@ -2972,7 +2994,6 @@ if(typeof speechSynthesis !== 'undefined'){
   refreshVoices();
   try{ speechSynthesis.addEventListener('voiceschanged', () => {
     refreshVoices();
-    try{ if(typeof paintVoiceTip === 'function') paintVoiceTip(); }catch(_){ }
     try{ if(typeof paintVoicePicker === 'function' && $('voicePick')) paintVoicePicker(); }catch(_){ }
   }); }catch(_){ }
 }
@@ -3788,6 +3809,7 @@ function renderSetup(){
   hideTypeahead();
   S.stage='setup';
   exitCinema();          // the room belongs to a case in progress; never leave the stage over the menu
+  paintViewSwitch();
   // Computed once — the header chip below reads it three times — and only when the chip
   // can actually show, so an `off` celebrateMode doesn't pay for a log scan + XP replay.
   const gp=(celebrateMode()!=='off' && historyOwned())?gameProgress():null;
@@ -3824,25 +3846,24 @@ function renderSetup(){
       <p id="heroHint" class="text-center text-[11px] text-amber-400 mb-2 hidden"></p>
       <p class="text-[11px] text-slate-400 mb-5 text-center">A witnessed collapse, the clock running, every order a click away — no API key, no setup.
         <b class="text-slate-300">1</b> read the strip and call the rhythm&nbsp;· <b class="text-slate-300">2</b> shock, compress, drug&nbsp;· <b class="text-slate-300">3</b> commit a diagnosis with <b>Dx</b>&nbsp;· <b class="text-slate-300">4</b> send the patient with <b>Dispo</b>.</p>
-      <!-- BETTER VOICES, WHERE PEOPLE WILL SEE IT. Kim: "instead of burying [it in]
-           settings make it more obvious to get better voices." The one thing that fixes
-           robotic narration is a free download the operating system hides three menus
-           deep, and the app's explanation of it was itself buried eleven sections into
-           Settings. It is offered here instead — but ONLY on a machine that actually
-           needs it, so anyone who already has a good voice is never nagged. -->
       <div id="mergeOffer" class="hidden mb-5 p-4 rounded-2xl border border-emerald-700/50 bg-emerald-950/25"></div>
-      <div id="voiceTip" class="hidden mb-5"></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5" id="courseGrid">
+        <button data-course="ACLS" class="group rounded-2xl border border-rose-500/35 bg-gradient-to-br from-rose-500/15 to-slate-950 p-3 text-left hover:border-rose-400 hover:-translate-y-0.5 transition">
+          <span class="text-2xl">♥</span><span class="block mt-1 text-sm font-black text-rose-200">ACLS</span><span class="block text-[10px] text-slate-400">Adult resuscitation</span><span id="courseCount_ACLS" class="block mt-2 text-[9px] font-black uppercase tracking-widest text-rose-400">Browse cases →</span>
+        </button>
+        <button data-course="ATLS" class="group rounded-2xl border border-amber-500/35 bg-gradient-to-br from-amber-500/15 to-slate-950 p-3 text-left hover:border-amber-400 hover:-translate-y-0.5 transition">
+          <span class="text-2xl">✚</span><span class="block mt-1 text-sm font-black text-amber-200">ATLS</span><span class="block text-[10px] text-slate-400">Trauma resuscitation</span><span id="courseCount_ATLS" class="block mt-2 text-[9px] font-black uppercase tracking-widest text-amber-400">Browse cases →</span>
+        </button>
+        <button data-course="PALS" class="group rounded-2xl border border-sky-500/35 bg-gradient-to-br from-sky-500/15 to-slate-950 p-3 text-left hover:border-sky-400 hover:-translate-y-0.5 transition">
+          <span class="text-2xl">★</span><span class="block mt-1 text-sm font-black text-sky-200">PALS</span><span class="block text-[10px] text-slate-400">Pediatric emergencies</span><span id="courseCount_PALS" class="block mt-2 text-[9px] font-black uppercase tracking-widest text-sky-400">Browse cases →</span>
+        </button>
+        <button data-course="NRP" class="group rounded-2xl border border-violet-500/35 bg-gradient-to-br from-violet-500/15 to-slate-950 p-3 text-left hover:border-violet-400 hover:-translate-y-0.5 transition">
+          <span class="text-2xl">●</span><span class="block mt-1 text-sm font-black text-violet-200">NRP</span><span class="block text-[10px] text-slate-400">Newborn resuscitation</span><span id="courseCount_NRP" class="block mt-2 text-[9px] font-black uppercase tracking-widest text-violet-400">Browse cases →</span>
+        </button>
+      </div>
       <div class="bg-slate-900/50 border border-slate-800 rounded-3xl p-7">
-        <div class="mb-1">
-          <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Difficulty</label>
-          <div id="diffSel" class="flex gap-2 mt-2">
-            ${Object.entries(DIFFICULTY).map(([k,d])=>`<button data-diff="${k}" class="flex-1 px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition ${S.difficulty===k?'border-emerald-500/60 bg-emerald-500/15 text-emerald-300':'border-slate-800 bg-slate-900/40 text-slate-500 hover:text-slate-300'}">${d.label}</button>`).join('')}
-          </div>
-          <p class="text-[10px] text-slate-600 mt-1.5" id="diffHint">${esc(DIFFICULTY[S.difficulty].hint.split('.')[0])}.</p>
-        </div>
-
-        <div id="goldSection" class="mt-4 hidden">
-          <label class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Pre-authored cases (<span id="goldCount">0</span>)</label>
+        <div id="goldSection" class="hidden">
+          <label class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Simulation library (<span id="goldCount">0</span>)</label>
           <!-- Blind case was an 11px violet chip at the right edge of this header, below
                the fold and directly above a wall of category chips. It was reported as
                "missing" twice while being present and rendering correctly — which is a
@@ -3851,7 +3872,7 @@ function renderSetup(){
                in Instant Mode, so the prominence was exactly backwards. Now a full-width
                primary action directly under the label, where the eye already is. -->
           <button id="goldBlind" class="w-full mt-2 px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold transition flex items-center justify-center gap-2" title="Starts a random case without showing you the title">
-            <span>🎲</span><span>Walk in blind — random case</span>
+            <span>🎲</span><span>Walk in blind — random core case</span>
           </button>
           <p class="text-[10px] text-slate-500 mt-1.5 text-center">You get the patient, not the title. The diagnosis waits until the debrief.</p>
           <input id="goldSearch" placeholder="Search cases: colitis, DKA, sepsis…" class="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" />
@@ -3951,12 +3972,6 @@ function renderSetup(){
   if($('addKeyBtn')) $('addKeyBtn').onclick=openSettings;    // public BYOK key CTA → Settings
   if($('editKeyBtn')) $('editKeyBtn').onclick=openSettings;
   document.querySelectorAll('.ex').forEach(b=>b.onclick=()=>{ $('topic').value=b.textContent; });
-  document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{
-    S.difficulty=b.dataset.diff; localStorage.ms_difficulty=S.difficulty;
-    document.querySelectorAll('[data-diff]').forEach(x=>{ const on=x.dataset.diff===S.difficulty;
-      x.className='flex-1 px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition '+(on?'border-emerald-500/60 bg-emerald-500/15 text-emerald-300':'border-slate-800 bg-slate-900/40 text-slate-500 hover:text-slate-300'); });
-    if($('diffHint')) $('diffHint').textContent=DIFFICULTY[S.difficulty].hint.split('.')[0]+'.';
-  });
   // PDF upload + drag-and-drop
   const dz=$('dropZone'), pi=$('pdfInput');
   // Building a case from a PDF is an API call, so Instant Mode leaves the dropzone inert
@@ -4999,12 +5014,6 @@ function energyMenu(ev, kind){
     window.addEventListener('resize', _roomMenuAway);
   }, 0);
 }
-document.addEventListener('click', e => {
-  const hit = e.target && e.target.closest && e.target.closest('[data-energy]');
-  if(!hit) return;
-  e.stopPropagation();
-  energyMenu({ currentTarget: hit }, hit.dataset.energy);
-});
 // The room's defibrillator prop: charge whine, then the flash, as the rhythm changes.
 function roomDefib(){
   try{ startRoomDefibSequence(500); }catch(_){ }
@@ -5568,7 +5577,18 @@ function currentFragment(text){
 // A WORD, NOT A TAG. "MED" and "LAB" at 9px told nobody anything on a phone; Kim: "Magnesium —
 // medication" and "Magnesium — blood test" must be distinguishable without another screen.
 const CATEGORY_LABEL = {lab:'lab test', imaging:'imaging', med:'medication', procedure:'procedure',
-                        consult:'consult', assessment:'diagnosis', disposition:'disposition'};
+                        consult:'consult', assessment:'diagnosis', diagnosis:'diagnosis', disposition:'disposition'};
+// Kim: "if you type cardiology, it should actually say cardiology consult". The list, the
+// basket and the order all carry the suffix; the engine already reads "<service> consult"
+// (it is an alias on every consult entry), so nothing about matching moves.
+function displayLabel(entry){ return entry && entry.category === 'consult' ? entry.label + ' consult' : (entry ? entry.label : ''); }
+// The main composer searches orders AND diagnoses. Diagnosis suggestions carry an
+// explicit identity so selecting several of them queues several assessments beside the
+// orders, all signed in one turn, instead of sending each diagnosis immediately.
+function composerCatalog(){
+  const dx=(_dxCatalog||[]).map((d,i)=>({ ...d, id:'dx-'+(d.canonical||i), category:'diagnosis', isDiagnosis:true }));
+  return [...(_catalog||[]), ...dx];
+}
 let _taMatches=[], _taIdx=-1;
 // THE COMPOSER'S SECOND STAGE. Kim: "I want the orderset as deterministic as possible —
 // there are too many points of failure." Picking a drug used to basket its bare NAME and
@@ -5637,12 +5657,19 @@ function positionOrderSuggestions(){
   const b=cmd.getBoundingClientRect(), gap=8;
   const w=Math.min(Math.max(b.width, Math.min(width-16,360)),width-16);
   const x=Math.max(left+gap,Math.min(b.left,left+width-w-gap));
-  const above=Math.max(0, b.top-top-gap*2), below=Math.max(0,top+height-b.bottom-gap*2);
+  // THE LIST MUST CLEAR THE HISTORY/CHART ROW, not cover it (Kim: "there should be a way
+  // to go back … like exam, history"). On the stacked phone layout that row is fixed above
+  // the input, so the list is anchored to whichever of the two is higher on screen.
+  const _row=$('obToggleRow');
+  const _rowTop=(innerWidth<768 && _row && _row.getBoundingClientRect().width>0 && getComputedStyle(_row).display!=='none')
+    ? _row.getBoundingClientRect().top : Infinity;
+  const anchorTop=Math.min(b.top, _rowTop);
+  const above=Math.max(0, anchorTop-top-gap*2), below=Math.max(0,top+height-b.bottom-gap*2);
   const up=above>=Math.min(240,below);
   const maxH=Math.max(44,Math.min(height*.5,up?above:below));
   el.style.cssText='position:fixed;z-index:49;margin:0;right:auto;bottom:auto;overflow-y:auto;overscroll-behavior:contain;max-height:'+maxH+'px;width:'+w+'px;left:'+x+'px;';
   const visibleH=Math.min(el.scrollHeight,maxH);
-  const preferredY=up?b.top-gap-visibleH:b.bottom+gap;
+  const preferredY=up?anchorTop-gap-visibleH:b.bottom+gap;
   // A breakpoint/keyboard transition can leave the focused anchor outside the
   // visual viewport for a frame. Keep its menu on screen even during that frame.
   el.style.top=Math.max(top+gap,Math.min(preferredY,top+height-visibleH-gap))+'px';
@@ -5723,16 +5750,28 @@ function renderTypeahead(matches){
   el.classList.remove('dosePicker');
   _taMatches = matches; _taIdx = -1;
   if(!matches.length){ hideTypeahead(); return; }
-  el.innerHTML = matches.map((m,i)=>
-    `<div data-ta="${i}" class="ta-row flex items-center justify-between gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
-       <span>${esc(m.label)}</span>
-       <span class="text-[11px] font-bold text-slate-400 shrink-0">${CATEGORY_LABEL[m.category]||''}</span>
+  // The head is a way OUT — a phone has no Escape key, and the list used to be
+  // reachable only by picking a row, pressing Enter, or deleting everything typed.
+  el.innerHTML = '<div class="ta-head"><span>Orders — tap one, or Close</span>' +
+    '<button type="button" data-ta-close class="md:hidden">✕ Close</button></div>' +
+    matches.map((m,i)=>
+    `<div data-ta="${i}" class="ta-row flex items-center justify-between gap-3 px-3 py-2 text-sm ${m.isDiagnosis?'text-violet-200 hover:bg-violet-950/50':'text-slate-200 hover:bg-slate-800'} cursor-pointer">
+       <span>${esc(displayLabel(m))}</span>
+       <span class="text-[11px] font-bold ${m.isDiagnosis?'text-violet-400':'text-slate-400'} shrink-0">${CATEGORY_LABEL[m.category]||''}</span>
      </div>`).join('');
   el.classList.remove('hidden');
   document.body.classList.add('taOpen');
   positionOrderSuggestions();
   el.querySelectorAll('.ta-row').forEach(row=>row.onclick=()=>basketTypeahead(+row.dataset.ta));
+  const x = el.querySelector('[data-ta-close]'); if(x) x.onclick = e => { e.stopPropagation(); hideTypeahead(); };
+  positionOrderSuggestions();
 }
+// On a stacked (phone) layout #obToggleRow (History/Chart) sits directly above the order
+// box, and the list is anchored to the box (CSS bottom-full) with no headroom reserved for
+// the row above it — a full list's own max-height was enough to grow straight over it, so
+// elementFromPoint at the CHART button's centre came back a .ta-row instead. Rather than
+// hide the row (the earlier fix, and what Kim was describing as "no way back"), this gives
+// the list enough margin-bottom to clear the row's own measured height, so the row stays
 function hideTypeahead(){ const el=$('typeahead'); if(el){ el.classList.add('hidden'); el.classList.remove('dosePicker'); el.innerHTML='';
   el.style.cssText='';
   if(el._orderHome && el._orderHome.isConnected) el._orderHome.appendChild(el);
@@ -5753,7 +5792,7 @@ function acceptTypeahead(i){
   const cmd = $('cmd'); const entry = _taMatches[i]; if(!cmd || !entry) return;
   const text = cmd.value;
   const frag = currentFragment(text);
-  cmd.value = text.slice(0, text.length-frag.length) + entry.label + ' ';
+  cmd.value = text.slice(0, text.length-frag.length) + displayLabel(entry) + ' ';
   hideTypeahead();
   cmd.focus();
   cmd.dispatchEvent(new Event('input'));
@@ -5771,6 +5810,12 @@ function basketTypeahead(i){
   if(prefix) basketAdd(prefix, prefix, true);
   // An assessment entry is a diagnosis, not an order: it belongs in the DIAGNOSIS box,
   // whose own typeahead has the whole condition vocabulary behind it.
+  if(entry.isDiagnosis){
+    const framed='Working diagnosis: '+entry.label;
+    basketAdd('Dx: '+entry.label, framed, false);
+    cmd.value=''; cmd.style.height='auto'; hideTypeahead(); cmd.focus();
+    syncBasketInput(); measureDock(); return;
+  }
   if(entry.category === 'assessment'){
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); focusDxBox(); return;
   }
@@ -5779,8 +5824,8 @@ function basketTypeahead(i){
   // highlighted and Enter away.
   if(entry.doses && entry.doses.length && renderDosePicker(entry)) return;
   const OI0 = root_OrderIntents();
-  basketAdd(entry.label, entry.label, false,
-            OI0 ? OI0.fromCatalog(entry, null, entry.label, entry.label) : undefined);
+  basketAdd(displayLabel(entry), displayLabel(entry), false,
+            OI0 ? OI0.fromCatalog(entry, null, displayLabel(entry), displayLabel(entry)) : undefined);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
   cmd.focus();
@@ -5844,6 +5889,10 @@ async function initGold(){
   if(useInstant()) await loadOfflinePacks();   // the row badge needs to know which cases have packs
   const ready = id => !!(_offline && _offline[id]);
   sec.classList.remove('hidden'); if($('goldCount')) $('goldCount').textContent=all.length;
+  for(const tag of ['ACLS','ATLS','PALS','NRP']){
+    const el=$('courseCount_'+tag), n=all.filter(c=>goldTag(c)===tag).length;
+    if(el) el.textContent=n+' case'+(n===1?'':'s')+' →';
+  }
   // Every non-user row now carries the experimental chip unless it is one of the five, and
   // live-code cases carry their course tag beside it.
   // One chip, one place to change its shape. Tone is the colour family; the title is the
@@ -5856,11 +5905,14 @@ async function initGold(){
     const chips = [];
     // Honest labelling: only the five have been proven end to end. Everything else — a
     // written pack or not — is experimental, and says so.
-    if(!c._user && !isValidation(c.id))
+    if(!c._user && !tag && !isValidation(c.id))
       chips.push(chipHTML('experimental', 'border-amber-500/40 bg-amber-500/10 text-amber-300',
         (useInstant() && _offline && !ready(c.id))
           ? 'Playable with generic results — no written pack, and the grading has not been verified'
           : 'Playable, but the grading has not been verified yet'));
+    else if(!c._user && tag && !isValidation(c.id))
+      chips.push(chipHTML('practice', 'border-slate-600 bg-slate-800/60 text-slate-400',
+        'Core algorithm practice case; scoring refinements are ongoing'));
     if(tag) chips.push(chipHTML(tag, 'border-rose-500/50 bg-rose-500/10 text-rose-300', 'Live code case — runs in real time'));
     const chip = c._user ? '<span class="text-[9px] text-slate-500 uppercase tracking-wider shrink-0">yours</span>' : chips.join('');
     return `<button data-gold="${idx}" class="goldItem w-full text-left px-3 py-2.5 hover:bg-emerald-900/20 transition">
@@ -5883,23 +5935,21 @@ async function initGold(){
     // system chip narrows it, one flat list reads better.
     let html;
     if(!q && !_goldCat){
-      // The five first, in Kim's order; then the rest of the adult algorithm; then everything
-      // else under the label it has earned so far.
-      const five = VALIDATION_CASES.map(id => hits.find(c => c.id === id)).filter(Boolean);
-      const acls = ACLS_ORDER.filter(id => !isValidation(id)).map(id => hits.find(c => c.id === id)).filter(Boolean);
-      const rest = hits.filter(c => !isValidation(c.id) && !isAcls(c));
+      const courseOrder=['ACLS','ATLS','PALS','NRP'];
+      const courseGroups={};
+      for(const tag of courseOrder) courseGroups[tag]=hits.filter(c=>goldTag(c)===tag);
+      const rest = hits.filter(c => !goldTag(c));
       const groups={}; rest.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
       const head = (text, n, tone) =>
         `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest ${tone}">${esc(text)} <span class="text-slate-700">${n}</span></div>`;
-      html = (five.length ? head('The five being proven \u2014 ' + five.map(goldTag).join(' \u00b7 '), five.length, 'text-emerald-300')
-              + five.map(c => rowHTML(c, ACLS_TEACHES[c.id])).join('') : '')
-        + (acls.length ? head('ACLS \u2014 the rest of the adult algorithm', acls.length, 'text-rose-300')
-              + acls.map(c => rowHTML(c, ACLS_TEACHES[c.id])).join('') : '')
-        // Everything else is honestly labelled. These cases are written and mechanically
-        // validated, but they have not been through the same proof as the five above, and
-        // saying so is better than letting a learner find out in the middle of one.
-        + (rest.length ? head('Experimental \u2014 the rest of the library', rest.length, 'text-amber-300')
-             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-500 border-b border-slate-800/60">Playable and mechanically checked, but the grading has not been verified the way the five above are being verified. A score here is a rough guide.</p>'
+      html = courseOrder.map(tag => {
+          const tone={ACLS:'text-rose-300',ATLS:'text-amber-300',PALS:'text-sky-300',NRP:'text-violet-300'}[tag];
+          const label={ACLS:'Adult cardiac life support',ATLS:'Trauma resuscitation',PALS:'Pediatric advanced life support',NRP:'Newborn resuscitation'}[tag];
+          return courseGroups[tag].length ? head(tag+' \u2014 '+label, courseGroups[tag].length, tone)
+            + courseGroups[tag].map(c=>rowHTML(c, ACLS_TEACHES[c.id])).join('') : '';
+        }).join('')
+        + (rest.length ? head('Experimental \u2014 extended case library', rest.length, 'text-amber-300')
+             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-500 border-b border-slate-800/60">These scenarios are playable, but their grading is still being refined. Use the score as practice feedback rather than a certification result.</p>'
              + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
                  head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('')
            : '');
@@ -5926,12 +5976,20 @@ async function initGold(){
     });
     const gb=$('goldBlind');
     if(gb && !gb._wired){ gb._wired=true; gb.onclick=()=>{
-      // walk in blind: random vetted case, no topic reveal until the debrief.
-      // On instant with no key, draw from the pre-authored pool so blind play is never "lite".
-      const pool=(useInstant() && !hasAnyKey() && _offline) ? all.filter(c=>ready(c.id)) : all;
+      const core=all.filter(c=>goldTag(c));
+      const pool=(useInstant() && !hasAnyKey() && _offline) ? core.filter(c=>ready(c.id)) : core;
       const src=pool.length?pool:all;
       loadGoldCase(src[Math.floor(Math.random()*src.length)], {blind:true});
     }; }
+    document.querySelectorAll('[data-course]').forEach(b=>{
+      if(b._wired) return; b._wired=true;
+      b.onclick=()=>{
+        const q=b.dataset.course;
+        const gs=$('goldSearch'); if(gs) gs.value=q;
+        _goldCat=''; paint(q);
+        sec.scrollIntoView({behavior:'smooth',block:'start'});
+      };
+    });
     // The landing page's primary action: a random ready-to-play case, titled (not blind).
     // Wired here because it needs this closure's loaded `all` and its pack check.
     const hs = $('heroStart');
@@ -5957,7 +6015,6 @@ async function initGold(){
   };
   paint('');
   const gs=$('goldSearch'); if(gs && !gs._wired){ gs._wired=true; gs.addEventListener('input',e=>paint(e.target.value)); }
-  paintVoiceTip();
   const lr=$('logReport');
   if(lr){
     // Signed in: the log, once there is one. Signed out with sign-in available: the offer.
@@ -6260,7 +6317,12 @@ function codeChipGroups(){
   // place on the wall.
   if(c.ended === 'rosc') out.postrosc = POST_ARREST.map(x => [x[0], x[1]]);
   const acts = (sc.causes && sc.causes.actions) || {};
-  out.causes = ((sc.causes && sc.causes.required) || [])
+  const caText=(S.criticalActions||[]).join(' ').toLowerCase();
+  const wanted=new Set((sc.causes && sc.causes.required) || []);
+  for(const [key,list] of Object.entries(acts)){
+    if((list||[]).some(a=>a && caText.includes(String(a).toLowerCase()))) wanted.add(key);
+  }
+  out.causes = [...wanted]
     .map(k => (acts[k] || [])[0]).filter(Boolean).map(a => [a, a]);
   return out;
 }
@@ -6322,6 +6384,12 @@ function entryForChip(b){
     (pal.includes(String(e.canonical||'').toLowerCase()) || lab === String(e.label||'').toLowerCase())) || null;
 }
 function palChipClick(b, ev){
+  // Electricity never fires from a chip. In a code the chip opens the case's own ladder
+  // and only a rung sends an order; outside a code (no script) the chip is a plain order.
+  if(b.dataset.energy && typeof codeAnswers === 'function' && codeAnswers() && S.codeScript){
+    energyMenu(ev && ev.currentTarget ? ev : { currentTarget: b }, b.dataset.energy);
+    return;
+  }
   // A code drug keeps its own path: the live engine computes the dose from the case's
   // weight and the rhythm at this instant, which is more specific than any table here.
   if(!(b.dataset.drug) && ev){
@@ -6774,7 +6842,13 @@ function paletteBodyHTML(){
   return sets + Object.entries(groups).map(([tab,items])=>`
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[9px] font-black uppercase tracking-widest text-${inCode?'emerald-500/70':'slate-600'} w-20 shrink-0">${tab}</span>
-                ${items.map(it=>`<button ${it[2]?`id="${it[2]}" `:''}data-pal="${esc(it[1])}" data-lab="${esc(it[0])}" class="pal px-2 py-1 bg-slate-900/60 border border-${inCode?'emerald-500/25':'slate-800'} rounded-md text-[10px] text-${inCode?'emerald-300/90':'slate-400'} hover:text-emerald-300 hover:border-emerald-500/30 transition">${esc(it[0])}</button>`).join('')}${tab === 'Actions' && narrow ? callIt + causes : ''}
+                ${items.map(it=>{
+                  // Electricity opens its ladder here too — this row is the ONLY palette
+                  // a phone (<1200px) ever sees, so a chip with no data-energy was a chip
+                  // that shocked at whatever the default said, with no way to escalate.
+                  const energy = /^Defibrillate\b/.test(it[0]) ? 'shock' : (/^Sync cardiovert\b/i.test(it[0]) ? 'sync' : null);
+                  return `<button ${it[2]?`id="${it[2]}" `:''}${energy?`data-energy="${energy}" `:''}data-pal="${esc(it[1])}" data-lab="${esc(it[0])}" class="pal px-2 py-1 bg-slate-900/60 border border-${inCode?'emerald-500/25':'slate-800'} rounded-md text-[10px] text-${inCode?'emerald-300/90':'slate-400'} hover:text-emerald-300 hover:border-emerald-500/30 transition">${esc(it[0])}${energy?' ▾':''}</button>`;
+                }).join('')}${tab === 'Actions' && narrow ? callIt + causes : ''}
               </div>`).join('') + meds + (narrow ? postArrest : postArrest + callIt + causes);
 }
 
@@ -6784,6 +6858,12 @@ const PALETTE = {
     ['Norepinephrine','Start a norepinephrine infusion'],
     ['Central line','Place a central line'],
     ['Arterial line','Place an arterial line']],
+  'Trauma actions':[
+    ['Pelvic binder','Apply a pelvic binder'],
+    ['Tourniquet','Apply a tourniquet proximal to the bleeding wound'],
+    ['Needle decompression','Perform immediate needle decompression'],
+    ['Chest tube','Place a chest tube'],
+    ['Massive transfusion','Activate the massive transfusion protocol']],
   'Labs':[
     ['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],['CMP','Order a comprehensive metabolic panel.'],
     ['Troponin','Order a troponin.'],['Lactate','Order a lactate.'],['VBG','Order a venous blood gas.'],
@@ -6949,6 +7029,19 @@ const FRAME_ONLY_RE = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?
 // passes one, and the basket carries that identity through to signing instead of letting
 // the sentence be parsed again downstream. Everything that does not pass one behaves
 // exactly as before, through the adapter in order-intents.js.
+// Tap anywhere that is not the list or the order box and the list closes — the way back
+// Kim asked for on a phone, where there is no Escape key. Deliberately defined OUTSIDE
+// the SEARCH_NOISE…basketTypeahead range: two vocabulary tests slice exactly that range
+// and run it in Node, where `document` does not exist.
+// The list closes when you tap anything that is not the list itself or the order box —
+// the way back Kim asked for on a phone, where there is no Escape key.
+document.addEventListener('pointerdown', e => {
+  if(!document.body.classList.contains('taOpen')) return;
+  const t = e.target;
+  if(t.closest && (t.closest('#typeahead') || t.closest('#cmd'))) return;
+  hideTypeahead();
+}, true);
+
 function basketAdd(label, text, quiet, intent){
   const t=basketText(text); if(!t) return false;
   if(FRAME_ONLY_RE.test(t)){
@@ -7029,9 +7122,9 @@ function syncBasketInput(){
   if(!sign) return;
   const plan=basketPlan(S.basket, cmd ? cmd.value : '');
   const n=plan ? plan.count : 0;
-  sign.textContent=S.loading ? 'Submitting…' : `Submit ${n} order${n===1?'':'s'}`;
+  sign.textContent=S.loading ? 'Submitting…' : `Submit ${n} item${n===1?'':'s'}`;
   if(hint) hint.textContent=cmd && cmd.value.trim()
-    ? 'Submit includes the selected orders and your free text.'
+    ? 'Submit includes the selected orders or diagnoses and your free text.'
     : 'Add free text below. Submit sends everything together.';
   const mainSubmit=$('sendBtnLabel'); if(mainSubmit) mainSubmit.textContent=n ? `Submit ${n}` : 'Submit';
 }
@@ -7147,18 +7240,18 @@ function renderBasket(){
   const escA = s => esc(s).replace(/"/g,'&quot;');
   el.innerHTML=`<div class="rounded-xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/[0.07] to-slate-950/60 overflow-hidden shadow-[0_14px_36px_-22px_rgba(16,185,129,.9)]">
     <div class="flex items-center gap-2 px-3 py-1.5 border-b border-emerald-500/15 bg-emerald-500/[0.04]">
-      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Order basket</span>
+      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Clinical basket</span>
       <span class="text-[10px] font-black mono px-1.5 rounded bg-emerald-500/15 border border-emerald-500/25 text-emerald-200">${n}</span>
       <span class="text-[10px] font-black uppercase tracking-widest ${_bskNote?'text-amber-300':'text-slate-600'} ml-auto truncate">${esc(_bskNote||'Waiting to submit')}</span>
     </div>
     <div class="flex flex-wrap gap-1.5 px-3 py-2">
-      ${list.map((o,i)=>`<span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg border text-[11px] transition ${i===_bskFlash?'bg-amber-500/15 border-amber-400/60 text-amber-200':'bg-slate-900/80 border-slate-700/70 text-slate-200'}">
+      ${list.map((o,i)=>`<span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg border text-[11px] transition ${String(o.label||'').startsWith('Dx:')?'bg-violet-500/10 border-violet-500/40 text-violet-200':i===_bskFlash?'bg-amber-500/15 border-amber-400/60 text-amber-200':'bg-slate-900/80 border-slate-700/70 text-slate-200'}">
         <button data-be="${i}" class="bskE font-semibold max-w-[220px] truncate text-left hover:text-emerald-300 transition" title="Edit: ${escA(o.text)}">${esc(o.label)}</button>
         <button data-bx="${i}" class="bskX w-4 h-4 leading-none grid place-items-center rounded text-slate-500 hover:text-rose-300 hover:bg-rose-500/20 transition" title="Remove ${escA(o.label)}">✕</button>
       </span>`).join('')}
     </div>
     <div class="flex flex-wrap items-center gap-2 px-3 pb-2.5">
-      <button id="bskSign" ${busy?'disabled':''} class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition ${busy?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40'}">${busy?'Submitting…':`Submit ${n} order${n===1?'':'s'}`}</button>
+      <button id="bskSign" ${busy?'disabled':''} class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition ${busy?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40'}">${busy?'Submitting…':`Submit ${n} item${n===1?'':'s'}`}</button>
       <button id="bskFreeText" class="min-h-[44px] px-2 py-2 rounded-lg text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/10">+ Add free-text order</button>
       <button id="bskClear" class="px-3 py-2 rounded-xl border border-slate-800 text-slate-500 hover:text-slate-200 hover:border-slate-600 text-[10px] font-black uppercase tracking-widest transition">Clear</button>
     </div>
@@ -7282,6 +7375,7 @@ function renderPlay(){
         <div id="palWrap" class="${_orderMin?'hidden ':''}mb-2">
           <button id="palToggle" class="${codeActive()&&window.innerWidth<768?'hidden ':''}text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-400 transition">${codeActive()?'ACLS actions':'Full order set'} ${_palOpen?'▴':'▾'}</button>
           <div id="palette" class="${_palOpen?'':'hidden'}${codeActive()?' acls':''} mt-2 space-y-1.5">
+            <div class="ta-head pal-head"><span>Full order set</span><button type="button" data-pal-close class="md:hidden">✕ Close</button></div>
             ${paletteBodyHTML()}
           </div>
         </div>
@@ -7307,7 +7401,7 @@ function renderPlay(){
         <div id="obInputRow" class="flex items-end gap-2">
           <div class="relative flex-1">
             <div id="typeahead" class="hidden absolute bottom-full left-0 right-0 mb-1.5 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl z-20"></div>
-            <textarea id="cmd" rows="1" aria-label="Free-text orders or actions" placeholder="Type orders — or combine them with the order sets below" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 max-h-32"></textarea>
+            <textarea id="cmd" rows="1" aria-label="Free-text orders, actions, or diagnoses" placeholder="Type orders or diagnoses — choose several, then Submit" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 max-h-32"></textarea>
           </div>
           ${PUBLIC_BUILD ? '' : `<button id="micBtn" class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-400 transition" title="Dictate">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
@@ -7315,7 +7409,7 @@ function renderPlay(){
           <button id="coachBtn" class="hidden px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Open the coach. In training mode simulation time pauses while it is open.">Coach</button>
           <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add this free text to the basket without submitting">+ Queue</button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
-          <button id="sendBtn" aria-label="Submit selected orders and free text together" title="Submit selected orders and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
+          <button id="sendBtn" aria-label="Submit selected orders, diagnoses, and free text together" title="Submit selected orders, diagnoses, and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
             <span id="sendBtnLabel">Submit</span>
           </button>
         </div>
@@ -7347,10 +7441,13 @@ function renderPlay(){
   paintDxBox();
   paintOrderLog();
   paintConsole();   // the wall chips live in #cinemaHud, outside the rebuild
+  paintViewSwitch();
   paintSoundBtn();
   $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
   const cmd=$('cmd');
-  loadOrderCatalog();   // fire-and-forget: both engines get the typeahead once it lands
+  Promise.all([loadOrderCatalog(),loadDxCatalog()]).then(()=>{
+    if($('cmd')==cmd && cmd.value) cmd.dispatchEvent(new Event('input'));
+  });
   const send=async ()=>{
     if(S.loading) return;
     // Chips + whatever is still typed, signed together as ONE turn. An empty box with a
@@ -7432,7 +7529,8 @@ function renderPlay(){
     syncBasketInput();
     const frag = currentFragment(cmd.value);
     _taEntry = null; _taDoses = null;   // typing again means a different order
-    if(_catalog && _catalog.length) renderTypeahead(searchCatalog(_catalog, frag));
+    const combined=composerCatalog();
+    if(combined.length) renderTypeahead(searchCatalog(combined, frag));
     else hideTypeahead();
   });
   // ↑/↓ recall previous orders when the field is empty or the caret is at the very start.
@@ -7445,7 +7543,7 @@ function renderPlay(){
       if(e.key==='Tab'){ e.preventDefault(); takeDose(_taDoseIdx); return; }
       // Back to the list of orders, not out of the composer altogether.
       if(e.key==='Escape'){ e.preventDefault(); _taEntry=null; _taDoses=null;
-        renderTypeahead(searchCatalog(_catalog||[], currentFragment(cmd.value))); return; }
+        renderTypeahead(searchCatalog(composerCatalog(), currentFragment(cmd.value))); return; }
     }
     if(_taMatches.length && !$('typeahead').classList.contains('hidden')){
       if(e.key==='ArrowDown'){ e.preventDefault(); _taIdx=Math.min(_taMatches.length-1,_taIdx+1); paintTaHighlight(); return; }
@@ -7477,7 +7575,7 @@ function renderPlay(){
     // A generic Labs click should not silently order a broad panel. Open the
     // order palette so the learner chooses tests deliberately.
     if(act==='__LAB_MENU__'){
-      const p=$('palette'); if(p){ p.classList.remove('hidden'); _palOpen=true; $('palToggle').textContent='Full order set ▴';
+      const p=$('palette'); if(p){ p.classList.remove('hidden'); p.classList.toggle('mobileSheet', innerWidth<768); _palOpen=true; $('palToggle').textContent='Full order set ▴';
         const first=p.querySelector('[data-lab]'); if(first) first.focus(); }
       return;
     }
@@ -7543,7 +7641,14 @@ function renderPlay(){
     t.classList.toggle('text-emerald-400', _orderMin);
     t.classList.toggle('text-slate-600', !_orderMin);
   };
-  $('palToggle').onclick=()=>{ const p=$('palette'); _palOpen=p.classList.toggle('hidden')?false:true; $('palToggle').textContent = _palOpen?'Full order set ▴':'Full order set ▾'; };
+  $('palToggle').onclick=()=>{ const p=$('palette'); _palOpen=p.classList.toggle('hidden')?false:true;
+    p.classList.toggle('mobileSheet', _palOpen && innerWidth<768);
+    $('palToggle').textContent = _palOpen?'Full order set ▴':'Full order set ▾'; };
+  // Same close as the toggle: the sheet's own Close button, for a phone with no Escape key.
+  { const palClose = $('palette').querySelector('[data-pal-close]');
+    if(palClose) palClose.onclick = e => { e.stopPropagation(); const p=$('palette');
+      p.classList.add('hidden'); p.classList.remove('mobileSheet'); _palOpen=false;
+      $('palToggle').textContent='Full order set ▾'; }; }
   // Palette, order sets, and quick actions all QUEUE. The only immediate controls are
   // live-code actions, where a shock or compression command cannot wait for a signature.
   // Outside a code a chip stages an order to sign. Inside one it fires immediately:
@@ -8048,9 +8153,12 @@ function roomMenuItems(ev, title, items0, key){
   // The defibrillator trolley's energies are the case's, not the adult defaults. On the
   // 6 kg infant this menu offered "Synchronized cardioversion at 100 joules" — twenty
   // times the starting dose, in the words of that case's own learning point.
+  // Electricity from the trolley opens the ladder too, same as the wall and the
+  // fallback palette — the joules Kim is prompted for are the case's own, not a
+  // default that already fired.
   if(key==='defib' && S.codeScript) items = items.map(([lbl, ord]) =>
-      /^Defibrillate$/.test(lbl) ? [lbl + ' ' + codeShockJoules(S.codeScript, S.code) + ' J', codeShockOrder(S.codeScript, S.code)]
-    : /^Synchronized cardioversion$/.test(lbl) ? [lbl + ' ' + codeSyncJoules(S.codeScript) + ' J', codeSyncOrder(S.codeScript)]
+      /^Defibrillate$/.test(lbl) ? ['Defibrillate … choose joules', '__energy:shock']
+    : /^Synchronized cardioversion$/.test(lbl) ? ['Synchronized cardioversion … choose joules', '__energy:sync']
     : [lbl, ord]);
   const m=document.createElement('div');
   m.className='roomMenu fixed z-[75] min-w-[150px] max-w-[15rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
@@ -8071,6 +8179,7 @@ function roomMenuItems(ev, title, items0, key){
     // A LOCAL ITEM IS NOT AN ORDER. Same convention the palette already uses for
     // __recap: anything starting "__" is handled here and never reaches an engine.
     if(typeof ord==='string' && ord.startsWith('__repeat:')) return sayAgain(ord.slice(9));
+    if(typeof ord==='string' && ord.startsWith('__energy:')) return energyMenu({ currentTarget: null }, ord.slice(9));
     if(ord===null){
       const reg = key==='examPick' ? EXAM_PICK_REGION[+b.dataset.mi] : key;
       if(reg==='chest') auscultate();
@@ -9032,6 +9141,7 @@ function enterCinema(){
   document.body.classList.add('cinema');
   ensureCinemaStage();
   renderPatient();                      // mounts the scene into the stage, empties the card
+  paintViewSwitch();
 }
 // Fold every panel away and give the room the whole screen; press again to bring them
 // back exactly as they were. hudL and hudR are deliberately untouched, so a player who
@@ -9194,7 +9304,20 @@ function exitCinema(){
 // every future case with nothing on screen saying so and no setting to undo it.
 // (Reported as "I'd like the sim room to be the default view" by someone for whom
 // it already was.) Esc now just leaves this case's room; the next one opens in it.
-function leaveCinema(persist){ if(!S.cinema) return; if(persist) setRoomFirst(false); exitCinema(); renderPatient(); }
+function leaveCinema(persist){ if(!S.cinema) return; if(persist) setRoomFirst(false); exitCinema(); renderPatient(); paintViewSwitch(); }
+function paintViewSwitch(){
+  const host=$('playViewSwitch'); if(!host) return;
+  const playing=S.stage==='play';
+  host.classList.toggle('hidden', !playing);
+  host.classList.toggle('flex', playing);
+  const room=$('viewRoomBtn'), chart=$('viewChartBtn');
+  const set=(el,on)=>{ if(!el) return;
+    el.className='px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition '+
+      (on?'bg-emerald-600 text-white shadow':'text-slate-500 hover:text-slate-200');
+    el.setAttribute('aria-pressed',String(on));
+  };
+  set(room, !!S.cinema); set(chart, !S.cinema);
+}
 function setRoomFirst(on){ S.roomFirst=!!on; try{ localStorage.setItem('ms_roomFirst', on?'1':'0'); }catch(_){ } }
 // Open the case inside the sim room. Safe to call unconditionally at the start of
 // every case: it never throws, and it resets a scene-less view back to the room.
@@ -9278,7 +9401,15 @@ document.addEventListener('keydown', e=>{
   if(b.contains('feedOpen')){ b.remove('feedOpen'); paintLabsRail(); paintCast(); return; }
   leaveCinema(false);   // Esc: leave this room, keep the preference
 });
-document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinExit')) leaveCinema(true); });   // the labelled button IS deliberate
+document.addEventListener('click', e=>{
+  if(!e.target || !e.target.closest) return;
+  if(e.target.closest('#cinExit') || e.target.closest('#viewChartBtn')) leaveCinema(false);
+  if(e.target.closest('#viewRoomBtn') && S.stage==='play'){
+    setRoomFirst(true);
+    if(!ROOM_VIEWS[S.pview]){ S.pview='room'; try{ localStorage.ms_pview='room'; }catch(_){ } }
+    if(!S.cinema) enterCinema();
+  }
+});
 document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinClear')) toggleClearRoom(); });
 // The button and the caption beside it are the same target — a player who reads
 // "— CALL IT" and clicks the words should get the menu.

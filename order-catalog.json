@@ -5266,6 +5266,27 @@
       ]
     },
     {
+      "id": "procedure-pelvic-binder",
+      "label": "Pelvic Binder",
+      "category": "procedure",
+      "canonical": "pelvic binder",
+      "aliases": []
+    },
+    {
+      "id": "procedure-tourniquet",
+      "label": "Tourniquet",
+      "category": "procedure",
+      "canonical": "tourniquet",
+      "aliases": []
+    },
+    {
+      "id": "procedure-needle-decompression",
+      "label": "Needle Decompression",
+      "category": "procedure",
+      "canonical": "needle decompression",
+      "aliases": []
+    },
+    {
       "id": "procedure-blood-transfusion",
       "label": "Blood Transfusion",
       "category": "procedure",
