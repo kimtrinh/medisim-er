@@ -126,6 +126,27 @@ async function flush(){
   if(ok){ drop(outboxKey(uid)); A._offline = false; emit(); return q.length; }
   return 0;
 }
+
+// ------------------------------------------------------- shared runs (insert-only sink)
+// The consented run record (runlog.js). This is NOT the training log: it carries no
+// user id, it is never read back, and a re-ship inserts a new row. It has no outbox of
+// its own — the retry lives in runlog.js's own outbox (ms_runlog_outbox), which the app
+// drains only while the consent switch is on (loggingOn()), and only that one. A second
+// outbox here would double-queue and double-insert the same failed run, run on every
+// sign-in whether or not consent was on, survive sign-out, and use a cap sized for small
+// entries against records that run tens of KB — so this function never queues anything.
+async function insertRun(rec){
+  if(!A.client || !A._uid || !rec) return false;
+  try{
+    const { error } = await A.client.from('run_log')
+      .insert([{ run_id: String(rec.runId || ''), schema: Number(rec.schema) || 2, run: rec }]);
+    return !error;
+  }catch(_){ return false; }
+}
+async function shipRun(rec){
+  if(!rec || !rec.runId) return false;
+  return insertRun(rec);
+}
 // Everything this person has ever done, oldest first — the order every consumer of
 // getCaseLog() already assumes.
 async function hydrate(uid){
@@ -272,6 +293,7 @@ function status(){
 
 root.Account = { init, signIn, signOut, log, append, flush, status,
                  pendingMerge, mergeLocal, declineMerge,
+                 shipRun,
                  entryId, newId, _state: A };
 if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.Account;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
