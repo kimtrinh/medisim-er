@@ -2262,35 +2262,58 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
   } else if(intent === 'consult'){
     // Longest match wins: "pediatric surgery" is not answered by "pediatrics".
     const svc = CONSULT_SERVICES.filter(s=>fuzzyHas(toks,s)).sort((a,b)=>b.length-a.length)[0] || 'the consultant';
-    // First contact asks for the assessment; CALLBACKS rotate (a static line
-    // collided with the dedupe and "call toxicology" returned pure filler).
+    const Svc = svc.charAt(0).toUpperCase()+svc.slice(1);
     if(state) state.consulted = state.consulted || {};
-    const again = state && state.consulted[svc];
     if(state) state.consulted[svc] = true;
-    const callbackLines = [
-      `${svc.charAt(0).toUpperCase()+svc.slice(1)} here again — go ahead, what's changed?`,
-      `Back on the line — talk to me. What do you need?`,
-      `Still here. Give me the update.`];
-    fb.speech.push({speaker:'consultant', text: (again
-      ? callbackLines[((state && state.turnCount) || 0) % callbackLines.length]
-      : `This is ${svc}. I've looked at the chart — what's your assessment, and what specifically do you need from me?`), repeat: true});
-    // Remember that the consultant asked: the next narrative/assessment clause is
-    // their answer, and it must be acknowledged (playtest: three consultants asked
-    // for an assessment and then ignored the player's full SBAR reply).
-    if(state) state.consultPending = {svc, t: state.turnCount || 0};
+    // Kim: "I don't want the generic 'what's your update' bc it's not clear what to do."
+    // A blanket "agreed with your read" accepted a wrong diagnosis exactly as readily as a
+    // right one, and never told the player what to do next. The consultant now asks for
+    // exactly one thing — the working diagnosis in the box — and answers to THAT, judged by
+    // matchesDiagnosis, the debrief's own definition of correct and nothing else. It never
+    // names a missing order: on the 167 cases with no authored consult gate, that sentence
+    // would come straight off the case's own critical-action list and hand the player the
+    // answer they are being graded on.
+    const accepted = !!(state && (state.assessments || [])
+      .some(a => matchesDiagnosis(a.text || a.clause || '', opts.diagnosis)));
+    let line;
+    if(accepted){
+      line = `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`;
+      if(state) state.consultWaiting = null;
+    } else {
+      // "Called again" is read off consultWaiting, not off a permanent "ever consulted"
+      // flag — a service consulted once and accepted, then called again, is not "still
+      // waiting" for anything.
+      const askedBefore = !!(state && state.consultWaiting && state.consultWaiting.service === svc);
+      line = askedBefore
+        ? `${Svc} again — I still need your working diagnosis in the box before I can be any use.`
+        : `This is ${Svc}. I've read the chart — put your working diagnosis in the diagnosis box and I'll tell you what I think.`;
+      if(state) state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
+    }
+    fb.speech.push({speaker:'consultant', text: line, repeat: true});
   } else if(intent === 'disposition'){
     fb._ends = 'good';
     fb.speech.push({speaker:'nurse', text:'Understood — I\'ll get the paperwork moving.'});
   } else if(intent === 'assessment' || intent === 'other'){
-    const cp = state && state.consultPending;
-    if(cp && ((state.turnCount || 0) - cp.t) <= 2){
-      const lines = [
-        `Good summary — agreed with your read. We're on board; call me if anything changes.`,
-        `That helps. Reasonable plan — we'll see the patient and get back to you with recommendations.`,
-        `Understood. I agree with your assessment — go ahead, and keep us in the loop.`];
-      fb.speech.push({speaker:'consultant', text: lines[(state.turnCount || 0) % lines.length], repeat: true});
-      state.consultPending = null;
-    } else if(intent === 'assessment'){
+    // A CONSULTANT WHO ASKED A QUESTION HEARS THE ANSWER. They asked for the working
+    // diagnosis; the reply often arrives as prose rather than through the diagnosis box
+    // ("intentional tca overdose, wide qrs on bicarb, intubated — need bed guidance"),
+    // and answering only the framed kind left them asking and then ignoring the answer.
+    // Same two lines, same single definition of correct.
+    // Not on a gated case: there the gate owns consultWaiting and answers for itself.
+    if(state && state.consultWaiting && opts && opts.diagnosis && !opts.consultGate){
+      const svcW = state.consultWaiting.service || 'the consultant';
+      const SvcW = svcW.charAt(0).toUpperCase() + svcW.slice(1);
+      const said = String(rawClause || clause || '');
+      if(matchesDiagnosis(said, opts.diagnosis)){
+        fb.speech.push({speaker:'consultant', repeat: true,
+          text: `${SvcW} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`});
+        state.consultWaiting = null;
+      } else {
+        fb.speech.push({speaker:'consultant', repeat: true,
+          text: `${SvcW} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`});
+      }
+    }
+    if(intent === 'assessment'){
       // Echo the read back rather than brushing it off. The player's own words make
       // the line specific without the nurse knowing anything, so a wrong call is
       // answered with the same weight as a right one and the reply never grades it.
@@ -3566,28 +3589,45 @@ function runTurn(pack, state, action, opts){
     // a turn that closed the consult and swallowed the pack's answer would end the case and
     // then mark "call it SVT" missed — measured: without this the run lost credit for
     // action 0. That is the cath-lab bug wearing different clothes.
-    if(gate && state.consultWaiting && diagnosisClause){
-      const view = Object.assign({}, state,
-        { assessments: ((state.assessments) || []).concat([{ text: clause }]) });
-      const d = consultGateDecision(gate, view, opts.diagnosis);
-      if(d.accept){
-        out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
-        state.consultWaiting = null;
-        if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
-          state.satisfied.push(d.credits);
-        endedBy = endedBy || 'good';
-        anyApplied = true;
-      } else {
-        // They still will not take the patient, but the diagnosis has landed — so the box
-        // must stop asking for it. Refresh rather than leave the old record standing: the
-        // pulse was still demanding a diagnosis the doctor had just given, because
-        // paintDxBox reads consultWaiting.needDx and nothing but acceptance ever rewrote it.
-        state.consultWaiting = { service: gate.service, needDx: d.needDx, at: state.turnCount || 0 };
-        // …but only ONE consultant answer per turn. A turn that both calls the service and
-        // names the condition already reached the summons path above, which spoke; adding
-        // this line would have the trauma lead read her list back twice in a row.
-        if(!(out.speech || []).some(s => s.speaker === 'consultant'))
+    // A case with no authored gate gets the same re-put, in plainer words: matchesDiagnosis
+    // alone decides it, nothing is credited, and nothing ends the case — that stays the five
+    // gated cases' behaviour only.
+    if(state.consultWaiting && diagnosisClause){
+      if(gate){
+        const view = Object.assign({}, state,
+          { assessments: ((state.assessments) || []).concat([{ text: clause }]) });
+        const d = consultGateDecision(gate, view, opts.diagnosis);
+        if(d.accept){
           out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
+          state.consultWaiting = null;
+          if(Number.isInteger(d.credits) && !state.satisfied.includes(d.credits))
+            state.satisfied.push(d.credits);
+          endedBy = endedBy || 'good';
+          anyApplied = true;
+        } else {
+          // They still will not take the patient, but the diagnosis has landed — so the box
+          // must stop asking for it. Refresh rather than leave the old record standing: the
+          // pulse was still demanding a diagnosis the doctor had just given, because
+          // paintDxBox reads consultWaiting.needDx and nothing but acceptance ever rewrote it.
+          state.consultWaiting = { service: gate.service, needDx: d.needDx, at: state.turnCount || 0 };
+          // …but only ONE consultant answer per turn. A turn that both calls the service and
+          // names the condition already reached the summons path above, which spoke; adding
+          // this line would have the trauma lead read her list back twice in a row.
+          if(!(out.speech || []).some(s => s.speaker === 'consultant'))
+            out.speech.push({ speaker: 'consultant', text: d.line, repeat: true });
+        }
+      } else {
+        const svc = state.consultWaiting.service;
+        const Svc = svc.charAt(0).toUpperCase()+svc.slice(1);
+        const accepted = matchesDiagnosis(clause, opts.diagnosis);
+        const line = accepted
+          ? `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`
+          : `${Svc} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`;
+        if(accepted){ state.consultWaiting = null; anyApplied = true; }
+        else state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
+        // …but only ONE consultant answer per turn, same rule as the gated branch above.
+        if(!(out.speech || []).some(s => s.speaker === 'consultant'))
+          out.speech.push({ speaker: 'consultant', text: line, repeat: true });
       }
     }
     if(matched.length){
@@ -3717,10 +3757,9 @@ function runTurn(pack, state, action, opts){
           committed[committed.length-1].matchedAssessment = true;
         if(r0.intent === 'med' || r0.intent === 'procedure'){ state.medCount++; if(!withheld) recordMedGiven(state, clause, opts.catalog); }
         if(r0.intent === 'consult'){
-          state.consultPending = null;
           // The accepting consultant remembers being called — a pack-responder
           // contact previously left `consulted` unset and the callback restarted
-          // with "what's your assessment?"
+          // with the generic ask.
           state.consulted = state.consulted || {};
           for(const svc of CONSULT_SERVICES) if(fuzzyHas(ctoks, svc)) state.consulted[svc] = true;
         }
