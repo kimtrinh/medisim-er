@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-x2kYaaT4tzccs7gmlmD7zWzIq4weelcWB6bRy+nl2/s=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-rTuW7T0Fr/4b1t84s0VHZhJsarjEPjpUsijOBdIPW4A=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -111,7 +111,7 @@
   body.comfortableText #sideBar,body.comfortableText #orderBar{background-color:rgba(2,6,23,.96)!important}
   @media (max-width:767px){.rmActionLabel{display:none}}
   @media (max-width:767px){#playViewSwitch{display:none!important}}
-  @media (max-width:767px){
+  @media (max-width:767px), (max-width:1023px) and (max-height:500px){
     /* Dose and energy choices are decisions, not tooltips. A bottom sheet provides
        full-width targets that cannot open under the fixed phone composer. */
     .mobileActionSheet{left:8px!important;right:8px!important;top:auto!important;
@@ -135,7 +135,7 @@
   /* Phones: the sidebar is display:none below md, and it holds BOTH the sim room and
      the Clinical Workspace — so results were unreachable on a phone. You could order a
      troponin and never read it. This opens that same element as a full-screen chart. */
-  @media (max-width:767px){
+  @media (max-width:767px), (max-width:1023px) and (max-height:500px){
     /* NORMAL: the chart takes the lower part of the screen and the patient stays above it.
        It used to be inset:0 — a full-screen sheet that replaced the room and the monitor
        even when the chart was empty, so checking a result meant losing sight of the
@@ -591,7 +591,7 @@
      A tablet held upright gets the same treatment: at 768x1024 the floating HUD
      leaves a 95px command box and four slivers of panel over a letterboxed room,
      while there is a whole screen of height going spare underneath it. */
-  @media (max-width:767px), (max-width:1023px) and (orientation:portrait){
+  @media (max-width:767px), (max-width:1023px) and (orientation:portrait), (max-width:1023px) and (max-height:500px){
     body.cinema{--rw:100vw;--rl:0px}
     body.cinema header{order:0;padding:.45rem .75rem}
     body.cinema header h1 + div{display:none}            /* the engine tagline wrapped to 3 lines */
@@ -715,7 +715,7 @@
      resus bay, and 11px is not a size you can read there.
      Scoped to phone widths on purpose: the desktop console starts at 1200px and its
      density was measured against the bed, so none of this can reach it. */
-  @media (max-width:767px){
+  @media (max-width:767px), (max-width:1023px) and (max-height:500px){
     /* This used to be scoped away from running codes, to protect a PIXEL FLOOR under the
        transcript. Task 8 replaces that floor with the invariant it was standing in for —
        the learner must always be able to REACH readable team messages — so the type can be
@@ -851,7 +851,7 @@
      vitals stay on screen, legible and unhidden, and the room photo is untouched at
      375x812. 144px → 250px+. Strictly phone widths — an upright tablet has the height
      to spare and keeps the layout it had. */
-  @media (max-width:767px){
+  @media (max-width:767px), (max-width:1023px) and (max-height:500px){
     /* ONE row, not two, and no vertical padding of its own. Position tabs and equipment
        chips are both secondary controls, and stacked they held 88px above the fold
        permanently — with the gear row clipped mid-word ("O₂ MAS") into the bargain.
@@ -1061,6 +1061,78 @@
     .gj-victory-header{gap:.5rem}
     .gj-victory-header .gj-stamp > div{padding:.75rem}
     .gj-rank-art{width:58px;height:72px}
+  }
+  /* ================= MOBILE WORKSPACE RAIL =================
+     A phone has one persistent navigation surface: Room, Orders, History and Results.
+     The old row mixed a quick-action disclosure with two destinations, while the room
+     itself had no destination at all. This makes the mental model explicit and leaves
+     only one lower drawer open at a time. */
+  @media (max-width:767px), (max-width:1023px) and (max-height:500px){
+    #obToggleRow{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:.3rem}
+    #obToggleRow .mobileDockBtn{display:flex;min-width:0;min-height:46px;padding:.25rem .15rem;
+      align-items:center;justify-content:center;flex-direction:column;gap:1px;border:1px solid transparent;
+      border-radius:.7rem;color:#94a3b8;font-size:9px;font-weight:900;line-height:1.05;
+      letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+    #obToggleRow .mobileDockBtn .mobileDockIcon{font-size:15px;line-height:1}
+    body:not(.ordersOpen):not(.feedOpen):not(.chartOpen) #roomBtn,
+    body.ordersOpen #obToggle,body.feedOpen #historyBtn,body.chartOpen #chartBtn{
+      color:#6ee7b7;background:rgba(16,185,129,.13);border-color:rgba(52,211,153,.38)}
+    #orderModeHint{display:none}
+    #ticker{display:block;margin:0 0 .25rem;padding:.25rem .45rem;border-left:2px solid #334155;
+      color:#94a3b8;font-size:11px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+    /* The transcript is summary-only in Room. History opens the complete record as a
+       real drawer rather than merely changing a class on the same crowded column. */
+    #chat,body.cinema #chat{display:none}
+    body.feedOpen #ticker{display:none}
+    body.feedOpen #chat,body.cinema.feedOpen #chat{display:block!important;position:fixed!important;
+      left:8px!important;right:8px!important;top:auto!important;
+      bottom:calc(var(--obInputH,96px) + var(--obToggleH,54px) + env(safe-area-inset-bottom,0px) + 8px)!important;
+      width:auto!important;height:min(52vh,30rem)!important;min-height:12rem!important;overflow-y:auto!important;
+      padding:.8rem!important;border:1px solid #334155!important;border-radius:18px!important;
+      background:#020617!important;box-shadow:0 -18px 55px rgba(0,0,0,.55)!important;z-index:90!important}
+    body.feedOpen #feedClose,body.cinema.feedOpen #feedClose{display:flex!important;position:fixed!important;
+      left:18px!important;right:18px!important;top:auto!important;
+      bottom:calc(var(--obInputH,96px) + var(--obToggleH,54px) + min(52vh,30rem) + env(safe-area-inset-bottom,0px) + 8px)!important;
+      width:auto!important;min-height:40px!important;z-index:92!important;border-radius:12px 12px 0 0!important}
+    body.ordersOpen #palette.mobileSheet{box-shadow:0 -18px 55px rgba(0,0,0,.55)}
+    #queueBtn .queueLong{display:none}
+    #queueBtn .queueShort{display:inline}
+  }
+  /* Landscape is the useful "control-room" phone layout: the patient remains visible
+     on the left while the selected workspace slides in from the right. Nothing becomes
+     a full-screen wall unless the learner explicitly expands Results. */
+  @media (max-width:1023px) and (max-height:500px) and (orientation:landscape){
+    body{--mobileDrawerW:min(56vw,34rem);--landRoomW:calc(28vh * var(--ra,1.791))}
+    #dxBox,#playViewSwitch{display:none!important}
+    body.cinema #cinExit,body.cinema #cinClear{display:none!important}
+    .mobileActionSheet [data-menu-close],#palette.mobileSheet [data-pal-close]{display:block!important}
+    #obToggleRow .mobileDockBtn .md\:hidden{display:inline!important}
+    #obToggleRow .mobileDockBtn .hidden.md\:inline{display:none!important}
+    body.cinema header{padding:.18rem .6rem}
+    body.cinema #roomBox{width:min(48vw,var(--landRoomW));margin-left:.5rem;margin-right:auto}
+    /* Use the black letterbox beside the short room frame for the monitor instead of
+       stacking the monitor below it. The waveforms fold on a 390px-tall screen, but all
+       four live numbers remain in view and aligned with the patient. */
+    body.cinema #monBar{display:block!important;position:fixed!important;left:calc(min(48vw,var(--landRoomW)) + 16px)!important;
+      right:8px!important;top:var(--hdr,44px)!important;width:auto!important;height:28vh!important;
+      padding:.3rem .45rem!important;z-index:24!important;border:1px solid #1e293b!important;border-radius:12px!important}
+    body.cinema #monGrid{display:block!important}
+    body.cinema #ecgBox,body.cinema #monMeta,body.cinema #v_nextBar{display:none!important}
+    body.cinema #vitalsGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+      gap:.3rem!important;margin-top:.25rem!important}
+    body.cinema #vitalsGrid > div{padding:.3rem!important}
+    body.cinema #vitalsGrid .text-3xl{font-size:1.1rem!important}
+    #palette.mobileSheet{left:auto!important;right:8px!important;width:var(--mobileDrawerW)!important;
+      max-height:calc(100vh - var(--obInputH,88px) - var(--obToggleH,50px) - 18px)!important}
+    body.feedOpen #chat,body.cinema.feedOpen #chat{left:auto!important;right:8px!important;
+      width:var(--mobileDrawerW)!important;height:auto!important;min-height:0!important;
+      top:calc(var(--hdr,44px) + 44px)!important}
+    body.feedOpen #feedClose,body.cinema.feedOpen #feedClose{left:auto!important;right:8px!important;
+      width:var(--mobileDrawerW)!important;top:var(--hdr,44px)!important;bottom:auto!important}
+    body.chartOpen aside,body.chartOpen #sideBar{left:auto!important;right:0!important;
+      top:var(--hdr,44px)!important;bottom:calc(var(--obInputH,88px) + var(--obToggleH,50px))!important;
+      width:var(--mobileDrawerW)!important;height:auto!important;border-radius:16px 0 0 0!important}
+    body.cinema.chartOpen #roomBox{width:min(40vw,calc(24vh * var(--ra,1.791)))}
   }
   @media (prefers-reduced-motion: reduce){
     .gj-victory-art{animation:none}
@@ -3638,6 +3710,9 @@ function monitorHemodynamics(v, code){
 // `coach` is Task 10's, and it shares this one state so the coach cannot open on top of
 // the chart on a phone — the same one-panel-at-a-time rule as everything else.
 const PANELS_LOWER = ['orders', 'results', 'history', 'coach'];
+function mobileWorkspace(){
+  return matchMedia('(max-width:767px), (max-width:1023px) and (max-height:500px)').matches;
+}
 function panelState(){
   if(!S.panel) S.panel = { activePanel: null, expanded: false, unreadResultIds: [] };
   return S.panel;
@@ -3663,12 +3738,22 @@ function togglePanelExpanded(){
 // open — it is only the class-writing that is scoped.
 function applyPanel(){
   const st = panelState(), b = document.body.classList;
-  if(innerWidth >= 768){ b.remove('chartOpen', 'panelExpanded'); return; }
+  if(!mobileWorkspace()){ b.remove('chartOpen', 'panelExpanded', 'ordersOpen'); return; }
+  b.toggle('ordersOpen',   st.activePanel === 'orders');
   b.toggle('coachOpen',    st.activePanel === 'coach');
   b.toggle('feedOpen',     st.activePanel === 'history');
   b.toggle('resultsOpen',  st.activePanel === 'results');
   b.toggle('chartOpen',    st.activePanel === 'results');
   b.toggle('panelExpanded', !!st.expanded);
+  const palette = $('palette');
+  if(palette){
+    const ordersOpen = st.activePanel === 'orders';
+    palette.classList.toggle('hidden', !ordersOpen);
+    palette.classList.toggle('mobileSheet', ordersOpen);
+    _palOpen = ordersOpen;
+    const toggle = $('palToggle');
+    if(toggle) toggle.textContent = ordersOpen ? 'Full order set ▴' : 'Full order set ▾';
+  }
   if(typeof paintLabsRail === 'function') paintLabsRail();
   if(typeof paintCast === 'function') paintCast();
 }
@@ -4984,7 +5069,7 @@ function energyMenu(ev, kind){
   const sync = kind === 'sync';
   const rungs = sync ? codeSyncLadder(sc) : codeShockLadder(sc, c);
   const m = document.createElement('div');
-  const mobile = innerWidth < 768;
+  const mobile = mobileWorkspace();
   m.className = 'roomMenu fixed z-[75] min-w-[190px] rounded-xl border border-amber-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden' + (mobile?' mobileActionSheet':'');
   m.style.left = '0px'; m.style.top = '0px';
   m.innerHTML = '<div class="flex items-center gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-amber-400 border-b border-slate-800"><span class="flex-1">' +
@@ -5661,7 +5746,7 @@ function positionOrderSuggestions(){
   // to go back … like exam, history"). On the stacked phone layout that row is fixed above
   // the input, so the list is anchored to whichever of the two is higher on screen.
   const _row=$('obToggleRow');
-  const _rowTop=(innerWidth<768 && _row && _row.getBoundingClientRect().width>0 && getComputedStyle(_row).display!=='none')
+  const _rowTop=(mobileWorkspace() && _row && _row.getBoundingClientRect().width>0 && getComputedStyle(_row).display!=='none')
     ? _row.getBoundingClientRect().top : Infinity;
   const anchorTop=Math.min(b.top, _rowTop);
   const above=Math.max(0, anchorTop-top-gap*2), below=Math.max(0,top+height-b.bottom-gap*2);
@@ -6344,7 +6429,7 @@ function chipDoseMenu(ev, entry, fallbackLab){
   closeRoomMenu();
   if(S.stage !== 'play' || S.loading) return false;
   const m = document.createElement('div');
-  const mobile = innerWidth < 768;
+  const mobile = mobileWorkspace();
   m.className = 'roomMenu fixed z-[75] min-w-[210px] rounded-xl border border-emerald-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden' + (mobile?' mobileActionSheet':'');
   m.style.left='0px'; m.style.top='0px';
   m.innerHTML = '<div class="flex items-center gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800"><span class="flex-1">' +
@@ -6416,9 +6501,7 @@ function wirePalChips(root){
 function openFeed(){
   const st = panelState();
   st.activePanel = 'history'; st.expanded = false;
-  document.body.classList.remove('resultsOpen', 'chartOpen', 'panelExpanded');
-  document.body.classList.add('feedOpen');
-  if(typeof paintLabsRail === 'function') paintLabsRail();
+  applyPanel();
 }
 // what you were already told, which should never cost the patient a minute.
 function showRecap(){
@@ -6742,7 +6825,7 @@ function paletteBodyHTML(){
   // into ONE horizontally scrolling line (the phone rules already nowrap these), with
   // Meds keeping its own row — same chips, half the height. Read once at render; a
   // code does not survive an orientation change often enough to chase resize events.
-  if(inCode && window.innerWidth < 768){
+  if(inCode && mobileWorkspace()){
     const flat = [].concat(...Object.values(groups));
     groups = { 'Actions': flat };
   }
@@ -6777,7 +6860,7 @@ function paletteBodyHTML(){
   // above 768px from the day it was added: the needle-decompression chip that the whole
   // tension-pneumothorax fix was about only ever appeared on a phone. Never infer
   // structure from the shape of a string you just built — carry the flag.
-  const narrow = window.innerWidth < 768;
+  const narrow = mobileWorkspace();
   const row = (label, tone, chips) => `
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[9px] font-black uppercase tracking-widest text-${tone} w-20 shrink-0">${label}</span>
@@ -7362,9 +7445,11 @@ function renderPlay(){
              the only route to the chart below md — #sideBar is hidden there and opens
              only via body.chartOpen — so it must never fall behind the pinned input
              row, which is exactly what it did while it was left in the scroll. -->
-        <div id="obToggleRow" class="flex items-center gap-2 mb-2">
-          <button id="obToggle" class="text-[10px] font-black uppercase tracking-widest ${_orderMin?'text-emerald-400':'text-slate-600'} hover:text-emerald-300 transition">${_orderMin?'Orders & quick actions ▾':'Hide quick actions ▴'}</button>
-          <button id="historyBtn" class="md:hidden ml-auto px-3 py-1.5 bg-slate-700/40 border border-slate-600 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-200" style="min-height:44px" title="Open the transcript — what the team has said">History</button><button id="chartBtn" class="md:hidden ml-1 px-3 py-1.5 bg-emerald-600/20 border border-emerald-600/50 rounded-lg text-[11px] font-black uppercase tracking-widest text-emerald-300" style="min-height:44px">Chart<span id="chartCount" class="ml-1 text-emerald-200"></span></button>
+        <div id="obToggleRow" class="flex items-center gap-2 mb-2" aria-label="Mobile simulation workspace">
+          <button id="roomBtn" class="mobileDockBtn md:hidden" title="Close menus and return to the patient"><span class="mobileDockIcon">▣</span><span>Room</span></button>
+          <button id="obToggle" class="mobileDockBtn text-[10px] font-black uppercase tracking-widest ${_orderMin?'text-emerald-400':'text-slate-600'} hover:text-emerald-300 transition"><span class="mobileDockIcon md:hidden">＋</span><span class="md:hidden">Orders</span><span class="hidden md:inline">${_orderMin?'Orders & quick actions ▾':'Hide quick actions ▴'}</span></button>
+          <button id="historyBtn" class="mobileDockBtn md:hidden" title="Open the transcript — what the team has said"><span class="mobileDockIcon">☰</span><span>History</span></button>
+          <button id="chartBtn" class="mobileDockBtn md:hidden" title="Open results and the clinical chart"><span class="mobileDockIcon">▥</span><span>Results<span id="chartCount" class="ml-1 text-emerald-200"></span></span></button>
         </div>
         <div id="orderModeHint" class="mb-2 rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold ${codeActive()?'border-rose-500/30 bg-rose-500/10 text-rose-200':'border-emerald-500/20 bg-emerald-500/[0.06] text-slate-400'}">
           ${codeActive()?'⚡ Resuscitation controls act immediately. Typed orders submit together.':'Selected orders wait in the basket. Add as many as needed, then press Submit once.'}
@@ -7373,7 +7458,7 @@ function renderPlay(){
           ${QUICK.map((q,i)=>`<button data-q="${i}" class="qa px-3 py-1.5 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition">${q[0]}</button>`).join('')}
         </div>
         <div id="palWrap" class="${_orderMin?'hidden ':''}mb-2">
-          <button id="palToggle" class="${codeActive()&&window.innerWidth<768?'hidden ':''}text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-400 transition">${codeActive()?'ACLS actions':'Full order set'} ${_palOpen?'▴':'▾'}</button>
+          <button id="palToggle" class="${codeActive()&&mobileWorkspace()?'hidden ':''}text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-400 transition">${codeActive()?'ACLS actions':'Full order set'} ${_palOpen?'▴':'▾'}</button>
           <div id="palette" class="${_palOpen?'':'hidden'}${codeActive()?' acls':''} mt-2 space-y-1.5">
             <div class="ta-head pal-head"><span>Full order set</span><button type="button" data-pal-close class="md:hidden">✕ Close</button></div>
             ${paletteBodyHTML()}
@@ -7407,7 +7492,7 @@ function renderPlay(){
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
           </button>`}
           <button id="coachBtn" class="hidden px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Open the coach. In training mode simulation time pauses while it is open.">Coach</button>
-          <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add this free text to the basket without submitting">+ Queue</button>
+          <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add this free text to the basket without submitting"><span class="queueLong">+ Queue</span><span class="queueShort hidden">+ Add</span></button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
           <button id="sendBtn" aria-label="Submit selected orders, diagnoses, and free text together" title="Submit selected orders, diagnoses, and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
             <span id="sendBtnLabel">Submit</span>
@@ -7575,7 +7660,7 @@ function renderPlay(){
     // A generic Labs click should not silently order a broad panel. Open the
     // order palette so the learner chooses tests deliberately.
     if(act==='__LAB_MENU__'){
-      const p=$('palette'); if(p){ p.classList.remove('hidden'); p.classList.toggle('mobileSheet', innerWidth<768); _palOpen=true; $('palToggle').textContent='Full order set ▴';
+      const p=$('palette'); if(p){ p.classList.remove('hidden'); p.classList.toggle('mobileSheet', mobileWorkspace()); _palOpen=true; $('palToggle').textContent='Full order set ▴';
         const first=p.querySelector('[data-lab]'); if(first) first.focus(); }
       return;
     }
@@ -7606,10 +7691,11 @@ function renderPlay(){
   // the transcript was squeezed under the command box and NOTHING on screen opened it —
   // the rail and the ticker are both display:none at that height, so what the team said
   // was unreachable. One panel at a time, through the same panel state as the chart.
-  if($('historyBtn')) $('historyBtn').onclick=()=>{
-    if(panelState().activePanel === 'history'){ document.body.classList.remove('feedOpen');
-      panelState().activePanel = null; applyPanel(); }
-    else openFeed();
+  if($('historyBtn')) $('historyBtn').onclick=()=>setPanel('history');
+  if($('roomBtn')) $('roomBtn').onclick=()=>{
+    const st=panelState(); st.activePanel=null; st.expanded=false;
+    hideTypeahead(); applyPanel();
+    const room=$('cinemaStage') || $('roomBox'); if(room) room.scrollIntoView({block:'start'});
   };
   // One close button, two shapes of chart: the full-screen sheet on a phone and the
   // console's right-hand drawer. It was wired only to the sheet, so on the desktop it was
@@ -7631,6 +7717,7 @@ function renderPlay(){
     if(!S.cinema) enterCinema(); };
   paintChartCount();
   $('obToggle').onclick=()=>{
+    if(mobileWorkspace()){ hideTypeahead(); setPanel('orders'); return; }
     // Same pattern as palToggle: flip the flag and restyle in place. Rebuilding
     // the play screen here would wipe whatever is typed in #cmd.
     _orderMin = !_orderMin;
@@ -7642,12 +7729,13 @@ function renderPlay(){
     t.classList.toggle('text-slate-600', !_orderMin);
   };
   $('palToggle').onclick=()=>{ const p=$('palette'); _palOpen=p.classList.toggle('hidden')?false:true;
-    p.classList.toggle('mobileSheet', _palOpen && innerWidth<768);
+    p.classList.toggle('mobileSheet', _palOpen && mobileWorkspace());
     $('palToggle').textContent = _palOpen?'Full order set ▴':'Full order set ▾'; };
   // Same close as the toggle: the sheet's own Close button, for a phone with no Escape key.
   { const palClose = $('palette').querySelector('[data-pal-close]');
     if(palClose) palClose.onclick = e => { e.stopPropagation(); const p=$('palette');
       p.classList.add('hidden'); p.classList.remove('mobileSheet'); _palOpen=false;
+      if(mobileWorkspace()){ panelState().activePanel=null; applyPanel(); }
       $('palToggle').textContent='Full order set ▾'; }; }
   // Palette, order sets, and quick actions all QUEUE. The only immediate controls are
   // live-code actions, where a shock or compression command cannot wait for a signature.
@@ -7683,6 +7771,7 @@ function renderPlay(){
   // the bar is. Measure before the browser paints, so the toggle row is never briefly
   // drawn on top of the input row.
   measureDock();
+  applyPanel();
   if($('micBtn')) $('micBtn').onclick=startDictation;   // absent in PUBLIC_BUILD (no local whisper server)
   // "/" from anywhere focuses the order line (like a command palette).
   if(!window._slashBound){ window._slashBound=true;
@@ -9127,13 +9216,15 @@ function measureDock(){
   // Below md both rows are position:fixed and their heights are real. Above md they are
   // ordinary rows and the variables are unused — but leaving a stale value behind would
   // put a phantom reserve under the order bar the next time the window narrows.
-  if(!matchMedia('(max-width:767px)').matches){
+  if(!mobileWorkspace()){
     st.removeProperty('--obInputH'); st.removeProperty('--obToggleH'); return;
   }
   st.setProperty('--obInputH', Math.round(inp.getBoundingClientRect().height)+'px');
   st.setProperty('--obToggleH', Math.round(tog.getBoundingClientRect().height)+'px');
 }
-if(!window._dockResize){ window._dockResize=true; addEventListener('resize', measureDock); }
+if(!window._dockResize){ window._dockResize=true; addEventListener('resize', ()=>{
+  measureDock(); if(S.stage==='play') applyPanel();
+}); }
 function enterCinema(){
   if(!ROOM_VIEWS[S.pview]) return;      // only the walkthrough positions have a scene
   closeRoomMenu();
@@ -9223,7 +9314,9 @@ async function startSignIn(){
 }
 document.addEventListener('click', e => {
   if(e.target && e.target.closest && e.target.closest('#feedClose')){
-    document.body.classList.remove('feedOpen'); paintLabsRail(); paintCast(); return;
+    if(mobileWorkspace()){ panelState().activePanel=null; panelState().expanded=false; applyPanel(); }
+    else { document.body.classList.remove('feedOpen'); paintLabsRail(); paintCast(); }
+    return;
   }
   const t = e.target;
   if(!t || !t.closest) return;
@@ -9259,9 +9352,10 @@ function setResults(open){
   const st = panelState();
   st.activePanel = open ? 'results' : (st.activePanel === 'results' ? null : st.activePanel);
   if(!open) st.expanded = false;
+  if(mobileWorkspace()){ applyPanel(); }
   if(open) document.body.classList.remove('feedOpen');
   document.body.classList.toggle('resultsOpen', !!open);
-  document.body.classList.toggle('chartOpen', !!open && innerWidth < 768);
+  document.body.classList.toggle('chartOpen', !!open && mobileWorkspace());
   document.body.classList.toggle('panelExpanded', !!st.expanded);
   try{ localStorage.setItem('ms_results', open ? '1' : '0'); }catch(_){ }
   paintLabsRail();
@@ -9354,7 +9448,7 @@ function renderCinemaRoom(who){
 // leaves uncovered.
 // True when the sim room is laid out as a stacked page (phones, upright tablets) rather
 // than a floating HUD — the same condition as the CINEMA ON A PHONE stylesheet block.
-function roomIsStacked(){ return matchMedia('(max-width:767px), (max-width:1023px) and (orientation:portrait)').matches; }
+function roomIsStacked(){ return matchMedia('(max-width:767px), (max-width:1023px) and (orientation:portrait), (max-width:1023px) and (max-height:500px)').matches; }
 function paintCinemaCard(who){
   const card=document.getElementById('cinemaCard'); if(!card) return;
   const view=ROOM_VIEWS[S.pview]||ROOM_VIEWS.room;
