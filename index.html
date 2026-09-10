@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-rTuW7T0Fr/4b1t84s0VHZhJsarjEPjpUsijOBdIPW4A=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3Gx5PCMVXr8hhndy6Bg7XHSimr7l1yuvUyipaHAZeMs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -250,6 +250,45 @@
   body.cinema.hudClear .cinTab{display:none}
   body.cinema.hudClear #monMeta{display:none}
   body.cinema.hudClear #monBar{padding:.3rem .6rem}
+  /* HIDE / SHOW ALL. Kim: "the simulator hide the pt in the sim room. i want everything
+     visible and toggle to hide." Everything is drawn by default; one toggle — the button on
+     the photo, the header button and H, all through toggleClearRoom() — takes away every
+     layer painted OVER the scene: the speech bubbles, the team figures and their click
+     strips, the CPR / bag-mask / defibrillator clinicians and their labels, and the order
+     status line. It is CSS, not a sweep, so a bubble or a rescuer that arrives while the
+     room is hidden stays hidden, and Show all puts back exactly what was there.
+     body.roomHide is the state. body.hudClear (the panel fold above) is set alongside it
+     ONLY where the panels float over the photo; on a stacked phone they sit below it, and
+     the order box has to stay usable, so there only the overlays go. The overhead monitor
+     stays in both states.
+     visibility rather than display for the scene layers: the bubbles are placed by
+     measuring them (placeRoomBubbles), and a laid-out but unpainted bubble can still be
+     measured — it also takes no clicks, so the zones under a figure's strip are reachable. */
+  body.cinema.roomHide #rmCast,
+  body.cinema.roomHide #rmActionFx{visibility:hidden}
+  body.cinema.console.roomHide #orderFeedback{visibility:hidden}
+  /* The console's open drawers carry one class more than the fold above, so they won the
+     tie and stayed up through a clear. Said again with the class that beats them. */
+  body.cinema.console.hudClear.resultsOpen #sideBar,
+  body.cinema.console.hudClear.feedOpen #chat,
+  body.cinema.console.hudClear.feedOpen #feedClose{display:none}
+  /* The toggle itself: on the photo, top right, never covered by what it hides.
+     placeRoomToggle() nudges it clear of the header glass, the overhead display and an
+     open drawer by hit-testing where it stands. */
+  #rmHide{position:absolute;top:6px;right:6px;z-index:12;display:none;align-items:center;gap:.3rem;
+    padding:.25rem .55rem;border-radius:9999px;border:1px solid rgba(148,163,184,.4);
+    background:rgba(2,6,23,.72);color:#e2e8f0;font-size:11px;font-weight:900;letter-spacing:.08em;
+    text-transform:uppercase;line-height:1.2;cursor:pointer;white-space:nowrap;pointer-events:auto;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 14px -6px rgba(0,0,0,.8)}
+  #rmHide:hover{border-color:rgba(110,231,183,.7);color:#6ee7b7}
+  #rmHide svg{width:14px;height:14px;flex:none}
+  body.cinema #rmHide{display:flex}
+  body.cinema.roomHide #rmHide{border-color:rgba(110,231,183,.7);color:#6ee7b7}
+  /* A bubble is as wide as its words up to 14rem, never squeezed by the edge of the photo:
+     shrink-to-fit used to cap it at the distance to the right edge, and on a landscape
+     phone the patient's line came out 76px wide and 180px tall. */
+  .roomBubble{width:max-content;max-width:min(14rem, calc(100% - 8px))}
+  .roomBubble .rbClamp{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
   /* ===================== THE ROOM IS THE CONSOLE =====================
      Kim: "It's such a waste to have a beautiful picture of the patient and the room
      being obscured by all the data. Can you think of innovative ways to have everything
@@ -447,17 +486,39 @@
      overlap, on this build and on the one before it. The dock's usable width starts where
      the left column ends, which is the same rule the room already follows — orders on the
      left, everything else beside them. */
-  body.cinema.console #orderFeedback,
   body.cinema.console #readbackChip{left:calc(var(--rl) + var(--rw) * .205 + .5rem)}
   /* ...and they stop where an open drawer starts. Found by the Task 11 smoke test on the
      built artifact: with RESULTS open, the readback chip still spanned the full dock, so
      "Yes, that's the order" — the only way to confirm an order the parser was unsure of —
      sat underneath the drawer and could not be clicked. Same family as every other
      obscured-control report: the control was drawn, and the click landed elsewhere. */
-  body.cinema.console.resultsOpen #orderFeedback,
   body.cinema.console.resultsOpen #readbackChip{right:calc(var(--colR) + var(--gap) + .5rem)}
-  body.cinema.console.feedOpen #orderFeedback,
   body.cinema.console.feedOpen #readbackChip{left:calc(var(--colL) + var(--gap) + .5rem)}
+  /* THE ORDER STATUS LINE STANDS ON THE LEFT WALL, NOT ACROSS THE FOOT OF THE BED.
+     Measured 2026-09-10 with it floating across the dock: at 1440x900 it ran 681-753 over
+     a bed that ends at 772, and at 1280x800 581-653 over a bed that ends at 686 — with and
+     without a code. There is no strip below the bed line to move it into: the dock's own
+     top edge (758 and 658) is already above the bed's foot. "Report problem" is a button,
+     so it belongs with the things you click. It ends a gap short of the bed's left edge
+     (x 27%) and is short enough to stay under the paramedic's click strip.
+     When the order wall is drawn it owns that wall down to 88% of the photo (#clSections
+     bottom:12%), so the status line takes only the strip between the wall's foot and the
+     dock — 44px at 1440x900, 28px at 1280x800. fitOrderFeedback() measures it into
+     --fbRoom and sets .fbStrip; the heading goes and the rows scroll inside the strip (the
+     transcript drawer says the same lines in full). With no wall drawn the cap is 10rem. */
+  body.cinema.console #orderFeedback{left:.5rem;right:auto;max-height:var(--fbRoom,10rem);
+    width:calc(var(--rl) + var(--rw) * .27 - var(--gap) - 1rem - 8px)}
+  body.cinema.console.fbStrip #orderFeedback{padding:.15rem .4rem}
+  body.cinema.console.fbStrip #orderFeedback > div{padding:0;border:0;background:none}
+  body.cinema.console.fbStrip #orderFeedback > div > div:first-child{display:none}
+  /* On a short window the strip is thinner than one line (8px in a 1400x813 browser), so the
+     wall's foot steps up by the difference (--fbLift) rather than the line landing on the
+     section headers. The wall scrolls; it gives up a line's height, nothing is covered. */
+  body.cinema.console.fbStrip #console #clSections{bottom:calc(12% + var(--fbLift,0px))}
+  body.cinema.console.fbStrip #console #clOrders{
+    max-height:calc(var(--rh) - (var(--hdr,66px) + 8px - var(--rt)) - 12% - var(--fbLift,0px))}
+  /* The transcript drawer opens over that same wall and says the same thing in full. */
+  body.cinema.console.feedOpen #orderFeedback{display:none}
   /* Transcript and chart become drawers, closed by default — the room is the point. */
   body.cinema.console #chat{display:none}
   body.cinema.console.feedOpen #chat{display:flex;left:var(--gap);width:var(--colL);
@@ -614,10 +675,11 @@
     body.cinema #cinemaCard #gearTray > button{flex:none;white-space:nowrap}
     body.cinema .cinTab{display:none}                    /* FEED / LABS rail tabs: nothing to slide */
     body.cinema.hudL #chat{display:block}
-    /* Nothing floats on a phone, so there is nothing to clear — and the control that
-       would do it is meaningless. Undone exactly as hudL is, on the line above. */
-    body.cinema.hudClear #chat,body.cinema.hudClear #sideBar,
-    body.cinema.hudClear #orderBar,body.cinema.hudClear #cinemaCard{display:block}
+    /* No panel floats over the photo on a phone, so there are no panels to fold:
+       applyRoomHide() never sets body.hudClear on a stacked layout (it used to be undone
+       here with display:block, which now would open the chart sheet full screen). What
+       covers the patient here is drawn ON the photo, and the Hide button on the photo
+       takes that away. The header has no room for a second copy of the control. */
     body.cinema #cinClear{display:none}
     body.cinema #main{order:3;position:static;flex:1 1 0;min-height:0;display:flex;flex-direction:column;
       overflow:hidden;pointer-events:auto}
@@ -897,8 +959,15 @@
        62% of the screen — so something has to shrink or the sheet is a letterbox. The room
        yields, and it yields by WIDTH: capping its height instead would break every overlay
        on it, all of which are positioned in per-cent of this box (see the phone rule this
-       mirrors). */
-    body.cinema.chartOpen #roomBox{width:min(100%, calc(15vh * var(--ra,1.791)))}
+       mirrors).
+       2026-09-10, Kim: "the simulator hide the pt in the sim room." A flat 15vh took the
+       patient from 219px to 127px at 390x844 every time the chart opened. fitChartRoom()
+       now starts the sheet where the monitor ends instead, and gives the room back its
+       full height whenever the chart still gets its share; the room only yields as far as
+       it must (a 375x667 phone during a code), never below the old 15vh. The literal is
+       the fallback for the first paint before any JS has run. */
+    body.cinema.chartOpen #roomBox{width:min(100%, calc(var(--chartRoomH, 15vh) * var(--ra,1.791)))}
+    body.cinema.chartOpen.sheetFit:not(.panelExpanded) #sideBar{top:var(--sheetTop)!important;height:auto!important}
     /* A LANDSCAPE PHONE IS 375px TALL. 52vh of that is 195px of chart, which is too little
        to read a panel in — measured. The room is already small there, so it yields further
        and the sheet takes more; the patient and the monitor still have to stay visible,
@@ -3756,6 +3825,7 @@ function applyPanel(){
   }
   if(typeof paintLabsRail === 'function') paintLabsRail();
   if(typeof paintCast === 'function') paintCast();
+  if(typeof fitChartRoom === 'function') fitChartRoom();   // the sheet lands under the monitor in the same frame
 }
 function newRunSeed(){
   try{ return (crypto.getRandomValues(new Uint32Array(1))[0] >>> 0).toString(36); }
@@ -6147,6 +6217,7 @@ async function loadGoldCase(seed, opts){
   startCoachSession();
   try{ resetRoomActionTimers(); }catch(_){ }
   S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
+  document.body.classList.remove('roomHide'); try{ applyRoomHide(); }catch(_){ }   // a new patient starts with everything showing
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
@@ -7311,6 +7382,22 @@ function renderOrderFeedback(){
   </div>`;
   el.classList.remove('hidden');
   el.querySelectorAll('[data-order-problem]').forEach(b=>b.onclick=()=>downloadOrderProblem(rows[+b.dataset.orderProblem]));
+  fitOrderFeedback();
+}
+// The status line's room when the order wall is drawn: from the wall's foot (88% of the
+// photo) down to the dock. No wall (tap layout, phones, no cinema) → no strip, the CSS cap holds.
+// The transcript drawer takes the wall down while it is up (and hides the status line with
+// it), so the strip is left as it was for when the wall comes back.
+function fitOrderFeedback(){
+  const b=document.body, con=$('console'), bar=$('orderBar'), box=$('roomBox');
+  const inConsole=b.classList.contains('console');
+  if(inConsole && b.classList.contains('feedOpen')) return;
+  const c=(inConsole && con && box && bar && getComputedStyle(con).display!=='none') ? box.getBoundingClientRect() : null;
+  if(!c || c.height < 40){ b.style.removeProperty('--fbRoom'); b.style.removeProperty('--fbLift'); b.classList.remove('fbStrip'); return; }
+  const LINE=24, room=Math.floor(bar.getBoundingClientRect().top - 7 - (c.top + c.height*.88) - 4);
+  b.style.setProperty('--fbRoom', Math.max(LINE, room)+'px');
+  b.style.setProperty('--fbLift', Math.max(0, LINE - room)+'px');
+  b.classList.add('fbStrip');
 }
 function renderBasket(){
   const el=$('basketTray'); if(!el) return;
@@ -8904,6 +8991,9 @@ function buildRoomScene(mount){
           visibly land on the patient's chest, while the layer stays click-through. -->
      <div id="rmActionFx" class="absolute inset-0 pointer-events-none" style="z-index:8" aria-hidden="true"></div>
      <button id="rmExpand" title="Play inside the room (cinema mode)" class="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md bg-black/40 text-slate-200 text-xs hover:bg-black/70">⤢</button>
+     <!-- Hide / Show all, on the photo itself so it exists on every layout (the header's
+          copy has no room on a phone). Shown in cinema only; see #rmHide in the styles. -->
+     <button id="rmHide" type="button" aria-pressed="false" title="Hide everything drawn over the patient (H)"><span id="rmHideIcon">${roomHideIcon(false)}</span><span id="rmHideLab">Hide</span></button>
      <div id="rmFoot" class="absolute bottom-0 left-0 right-0 px-1.5 pb-1 pt-4 pointer-events-none" style="background:linear-gradient(transparent,rgba(0,0,0,.72))">
        <div class="rmHint text-center text-[9px] text-slate-300 uppercase tracking-widest font-bold mb-1" style="text-shadow:0 1px 3px rgba(0,0,0,.9)">${esc(view.hint)}</div>
        <div class="flex flex-wrap justify-center gap-1 pointer-events-auto">
@@ -8918,6 +9008,11 @@ function buildRoomScene(mount){
   });
   mount.querySelectorAll('[data-goto]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); roomGoTo(b.dataset.goto); });
   const _ex=mount.querySelector('#rmExpand'); if(_ex) _ex.onclick=enterCinema;
+  // A fresh button says what the room is doing now, and the bubbles and the button are
+  // placed by measuring the photo — which is 0px tall until its image has decoded.
+  applyRoomHide();
+  const _scene=mount.querySelector('#roomBox > img[data-view]');
+  if(_scene && !_scene.complete) _scene.addEventListener('load', roomLayoutLater, {once:true});
   // paintVitals only fires on the drift interval; paint once now so a freshly built
   // scene shows numbers immediately instead of an empty screen until the next tick.
   startRoomMonitor(); paintRoom(); paintVitals(); paintCast();
@@ -8959,15 +9054,108 @@ function castImgErr(role, el){
   el.src=CAST_PLACEHOLDER[role];
 }
 // Small rounded bubble anchored bottom-centre at (x, y-h) — just above the figure's
-// head (h=0 for the patient, who has no figure, so their spot IS the head/face point).
+// head. data-ax / data-by keep that anchor in per-cent of the photo, so
+// placeRoomBubbles() can start from it again on every re-measure.
 function castBubbleHTML(spot, h, text){
   const full=String(text||''), shown = full.length>90 ? full.slice(0,89)+'…' : full;
-  return `<div class="roomBubble" style="position:absolute;left:${spot.x}%;top:${spot.y-h}%;
-    transform:translate(-50%,-100%);pointer-events:none;max-width:14rem;margin-top:-6px" title="${esc(full)}">
+  return `<div class="roomBubble" data-ax="${spot.x}" data-by="${spot.y-h}" style="position:absolute;left:${spot.x}%;top:${spot.y-h}%;
+    transform:translate(-50%,-100%);pointer-events:none;margin-top:-6px" title="${esc(full)}">
     <div class="relative rounded-xl bg-slate-900/90 border border-slate-700 px-2.5 py-1.5 text-[10px] leading-snug text-slate-100 shadow-xl">
-      ${esc(shown)}
-      <div class="absolute left-1/2 -bottom-[5px] w-2.5 h-2.5 bg-slate-900/90 border-r border-b border-slate-700" style="transform:translate(-50%,0) rotate(45deg)"></div>
+      <span class="rbText">${esc(shown)}</span>
+      <div class="rbTail absolute left-1/2 -bottom-[5px] w-2.5 h-2.5 bg-slate-900/90 border-r border-b border-slate-700" style="transform:translate(-50%,0) rotate(45deg)"></div>
     </div></div>`;
+}
+// WHERE THE PATIENT IS, from the room's own body zones (head / chest / abdomen / legs),
+// in per-cent of the photo: zoneBox() already turns the 100x56 viewBox into per-cent.
+// Every camera has its own zones, so this is right in ROOM, FOOT and AIRWAY alike.
+function patientBodyBox(viewKey){
+  const zones=(ROOM_VIEWS[viewKey]||ROOM_VIEWS.room).zones;
+  let l=Infinity, r=-Infinity, t=Infinity, b=-Infinity;
+  for(const k of ['head','chest','abdomen','legs']){
+    const z=zoneBox(zones,k); if(!z) continue;
+    l=Math.min(l,z.l); r=Math.max(r,z.l+z.w); t=Math.min(t,z.t); b=Math.max(b,z.t+z.h);
+  }
+  return isFinite(l) ? {l, r, t, b} : null;
+}
+function shownRect(e){
+  if(!e) return null;
+  const cs=getComputedStyle(e);
+  if(cs.display==='none' || cs.visibility==='hidden') return null;
+  const r=e.getBoundingClientRect();
+  return (r.width>2 && r.height>2) ? r : null;
+}
+// NO BUBBLE ON THE PATIENT. Kim: "the simulator hide the pt in the sim room." The patient's
+// line used to hang from a point on the patient's head with its lower edge ON the body —
+// measured, 67% of the patient under it on a phone and 15% on the desktop. Now every
+// bubble's lower edge sits above the topmost body zone, and this pass measures what that
+// costs and settles it, in order:
+//   1. still over the body (a long lane stack, a rounding edge) → lifted clear;
+//   2. taller than the space above the patient (a 110px landscape photo) → first wider,
+//      then cut to the lines that fit — the whole line is in the ticker and the transcript;
+//   3. past the side of the photo → slid back inside;
+//   4. under the overhead monitor display (desktop console) → slid sideways off it, never
+//      back down onto the patient; the tail still points at who is speaking;
+//   5. over a bubble already placed → lifted above it.
+// Idempotent: every call starts again from the anchor, so it is safe on every resize,
+// drawer toggle and image load.
+function placeRoomBubbles(){
+  const cast=$('rmCast'), box=$('roomBox'); if(!cast || !box) return;
+  const list=[...cast.querySelectorAll('.roomBubble')]; if(!list.length) return;
+  const B=box.getBoundingClientRect();
+  if(B.width<60 || B.height<40) return;          // not laid out yet — the photo's load event calls back
+  const body=patientBodyBox(ROOM_VIEWS[S.pview]?S.pview:'room');
+  const GAP=6, EDGE=4;
+  const bodyTop = body ? B.top + B.height*body.t/100 : B.bottom;
+  const bodyL = body ? B.left + B.width*body.l/100 : B.left, bodyR = body ? B.left + B.width*body.r/100 : B.right;
+  const mon = document.body.classList.contains('console') ? shownRect($('monBar')) : null;
+  const covers = [shownRect($('sideBar')), shownRect($('chat'))].filter(Boolean);
+  const hit = (a, c) => a.right>c.left && a.left<c.right && a.bottom>c.top && a.top<c.bottom;
+  const area = (a, c) => Math.max(0, Math.min(a.right,c.right)-Math.max(a.left,c.left)) *
+                         Math.max(0, Math.min(a.bottom,c.bottom)-Math.max(a.top,c.top));
+  const placed = [];
+  for(const bub of list){
+    const txt=bub.querySelector('.rbText'), tail=bub.querySelector('.rbTail');
+    const ax=B.width*(+bub.dataset.ax||0)/100;
+    let x=ax, y=B.height*(+bub.dataset.by||0)/100;   // style left/top, px inside the photo
+    bub.style.maxWidth=''; if(txt){ txt.classList.remove('rbClamp'); txt.style.webkitLineClamp=''; }
+    if(tail) tail.style.left='';
+    const put=()=>{ bub.style.left=x.toFixed(1)+'px'; bub.style.top=y.toFixed(1)+'px'; return bub.getBoundingClientRect(); };
+    const clampTo = avail => {                     // cut to the lines that fit in `avail` px
+      if(!txt) return;
+      const tr=txt.getBoundingClientRect(), rr=bub.getBoundingClientRect();
+      const lh=parseFloat(getComputedStyle(txt).lineHeight) || 15;
+      const lines=Math.max(1, Math.floor((avail - (rr.height - tr.height)) / lh));
+      txt.classList.add('rbClamp'); txt.style.webkitLineClamp=String(lines);
+    };
+    let r=put();
+    for(let pass=0; pass<4; pass++){
+      const overBody = () => r.right>bodyL && r.left<bodyR;
+      if(overBody() && r.bottom > bodyTop - 2){ y -= r.bottom - (bodyTop - 2); r=put(); }            // 1
+      if(r.top < B.top + EDGE){                                                                     // 2
+        bub.style.maxWidth=Math.max(0, Math.min(B.width - 2*EDGE, 352))+'px'; r=put();
+        if(r.top < B.top + EDGE){ clampTo(r.bottom - (B.top + EDGE)); r=put(); }
+      }
+      if(r.left < B.left + EDGE){ x += B.left + EDGE - r.left; r=put(); }                          // 3
+      else if(r.right > B.right - EDGE){ x -= r.right - (B.right - EDGE); r=put(); }
+      if(mon && hit(r, mon)){                                                                       // 4
+        const tries=[(mon.left - GAP) - r.right, (mon.right + GAP) - r.left].map(dx => {
+          const n={left:r.left+dx, right:r.right+dx, top:r.top, bottom:r.bottom};
+          const inside = n.left >= B.left + EDGE && n.right <= B.right - EDGE &&
+                         n.left >= EDGE && n.right <= innerWidth - EDGE;
+          const hidden = covers.reduce((s,c)=>s+area(n,c), 0);
+          return { dx, inside, score: Math.abs(dx) + hidden / Math.max(1, r.height) * 4 };
+        }).filter(t=>t.inside).sort((a,b)=>a.score-b.score);
+        if(tries.length){ x += tries[0].dx; r=put(); }
+        else { clampTo(r.bottom - (mon.bottom + GAP)); r=put(); }
+      }
+      const clash = placed.find(p => hit(r, p));                                                     // 5
+      if(clash && pass<3){ y -= r.bottom - clash.top + GAP; r=put(); continue; }
+      break;
+    }
+    placed.push(r);
+    // the tail still points at the speaker when the bubble had to slide
+    if(tail) tail.style.left=Math.max(10, Math.min(r.width-10, ax - (r.left - B.left))).toFixed(1)+'px';
+  }
 }
 // Repaints the cast layer against the CURRENT S.messages/S.pview: who's present, what
 // they're saying right now, where they stand. Idempotent (innerHTML replace, not
@@ -8999,7 +9187,11 @@ function paintCast(){
                       .find(l=>l.speaker==='patient' || present[l.speaker] || l.speaker==='nurse');
     if(said && spots.patient){
       const who = said.speaker.charAt(0).toUpperCase()+said.speaker.slice(1);
-      el.innerHTML = castBubbleHTML(spots.patient, 0, who+' — '+said.text);
+      // above the patient, not on them: the lower edge rests on the topmost body zone
+      const pbody = patientBodyBox(S.pview);
+      const at = { x: spots.patient.x, y: pbody ? Math.min(spots.patient.y, pbody.t) : spots.patient.y };
+      el.innerHTML = castBubbleHTML(at, 0, who+' — '+said.text);
+      placeRoomBubbles();
       _castBubbleTimer=setTimeout(()=>{ const e=$('rmCast'); if(e) e.innerHTML=''; }, 7000);
     } else el.innerHTML='';
     return;
@@ -9047,22 +9239,31 @@ function paintCast(){
   const sorted = bubbles.slice().sort((a,b)=>HEARD_FIRST.indexOf(a.role)-HEARD_FIRST.indexOf(b.role));
   const shown = roomIsStacked() ? sorted.slice(0,1) : sorted.slice(0,3);
   const placed = [];
+  // Nothing rests on the patient: a bubble whose span crosses the body starts with its
+  // lower edge at the top of the body zones (see placeRoomBubbles). The patient's own
+  // line is one of those — its anchor used to be a point on the patient's head.
+  const pbody = patientBodyBox('room');
   for(const b of shown){
     // Width in percent of the photo, from the text, capped at the CSS max-width.
     const w = Math.min(15.5, Math.max(5, b.text.length * 0.42));
     const l = b.spot.x - w/2, r = b.spot.x + w/2;
-    let lift = b.lift;
+    // The lanes compare where the bubbles actually stand. They used to compare each
+    // bubble's lift off its OWN speaker, which only happened to work while every speaker
+    // stood at a different height.
+    let y = b.spot.y - b.lift;
+    if(pbody && r > pbody.l && l < pbody.r) y = Math.min(y, pbody.t);
     // Step up until this span is clear of everything already placed.
     for(let guard=0; guard<6; guard++){
-      const clash = placed.some(p => r > p.l && l < p.r && Math.abs(lift - p.lift) < 6);
+      const clash = placed.some(p => r > p.l && l < p.r && Math.abs(y - p.y) < 6);
       if(!clash) break;
-      lift += 6;
+      y -= 6;
     }
-    placed.push({ l, r, lift });
-    h += castBubbleHTML(b.spot, lift, b.text);
+    placed.push({ l, r, y });
+    h += castBubbleHTML({ x: b.spot.x, y }, 0, b.text);
   }
   el.innerHTML=h;
   wireCast(el);
+  placeRoomBubbles();
 }
 // A FIGURE IS A PERSON, NOT A BUTTON. Clicking one used to fire CAST_ACTIONS[role] as an
 // order: a turn spent, and — for the medic — usually filler, because the handover had
@@ -9198,6 +9399,15 @@ function cinemaMetrics(){
   const hdr=document.querySelector('header'), mb=$('monBar');
   if(hdr) document.body.style.setProperty('--hdr', Math.round(hdr.getBoundingClientRect().height)+'px');
   if(mb)  document.body.style.setProperty('--mb',  Math.round(mb.getBoundingClientRect().height)+'px');
+  // Hide / Show all follows the layout across a resize (the panel fold is desktop-only),
+  // and everything placed by measuring is measured again against the new geometry. The
+  // monitor grows mid-code without a re-render (the CPR strip), so its size is watched.
+  applyRoomHide();
+  if(mb && window._monRoEl !== mb && typeof ResizeObserver === 'function'){
+    if(window._monRo) window._monRo.disconnect();
+    window._monRo = new ResizeObserver(roomLayoutLater); window._monRo.observe(mb); window._monRoEl = mb;
+  }
+  fitChartRoom(); placeRoomToggle(); placeRoomBubbles();
 }
 // The phone dock's two rows are pinned to the foot of the viewport, so the toggle row
 // has to know how tall the input row is and the column has to reserve the pair's
@@ -9211,6 +9421,7 @@ function cinemaMetrics(){
 // because renderPlay replaces both rows, and on every keystroke in #cmd because that
 // is what resizes them.
 function measureDock(){
+  try{ fitOrderFeedback(); }catch(_){ }
   const inp=$('obInputRow'), tog=$('obToggleRow'), st=document.body.style;
   if(!inp || !tog){ st.removeProperty('--obInputH'); st.removeProperty('--obToggleH'); return; }
   // Below md both rows are position:fixed and their heights are real. Above md they are
@@ -9361,23 +9572,131 @@ function setResults(open){
   paintLabsRail();
   if(open){ applyResultsView(); setTimeout(focusNewestResult,40); }
 }
+// HIDE / SHOW ALL — the one function behind the photo's button, the header's #cinClear
+// and the H key. body.roomHide is the whole state (read back from the class, so nothing
+// can disagree with what is on screen); applyRoomHide() derives the rest from it.
 function toggleClearRoom(){
   if(!S.cinema) return;
-  const on = document.body.classList.toggle('hudClear');
-  const lab = $('cinClearLab'), icon = $('cinClearIcon'), btn = $('cinClear');
-  if(lab) lab.textContent = on ? 'Panels' : 'Clear';
-  if(icon) icon.textContent = on ? '▦' : '👁';
-  if(btn){ btn.title = on ? 'Bring the panels back (H)' : 'Hide the panels and see the whole room (H)';
-           btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  const on = !document.body.classList.contains('roomHide');
+  document.body.classList.toggle('roomHide', on);
+  applyRoomHide();
   // display:none zeroes scrollTop, so the transcript comes back at the newest message
   // rather than at the top of the case — the same courtesy the FEED tab already does.
   if(!on){ const c=$('chat'); if(c) c.scrollTop=c.scrollHeight; }
   cinemaMetrics();
 }
+function roomHideIcon(hidden){
+  return hidden
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 4.2M6.6 6.6A17 17 0 002 12s3.5 7 10 7a9.7 9.7 0 005.4-1.6"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg>';
+}
+function applyRoomHide(){
+  const b = document.body.classList, on = !!S.cinema && b.contains('roomHide');
+  if(!S.cinema) b.remove('roomHide');
+  // The panels fold only where they float over the photo. On a stacked phone they are
+  // below it, and the order box must stay usable — there only the overlays go.
+  b.toggle('hudClear', on && !roomIsStacked());
+  const word = on ? 'Show all' : 'Hide';
+  const title = on ? 'Show everything again (H)' : 'Hide everything drawn over the patient (H)';
+  for(const btn of [$('cinClear'), $('rmHide')]){
+    if(!btn) continue;
+    btn.title = title; btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  const lab = $('cinClearLab'), icon = $('cinClearIcon');
+  if(lab) lab.textContent = word;
+  if(icon) icon.textContent = on ? '▦' : '👁';
+  const rl = $('rmHideLab'), ri = $('rmHideIcon');
+  if(rl) rl.textContent = word;
+  if(ri) ri.innerHTML = roomHideIcon(on);
+}
+// The button stands in the photo's top-right corner — unless something that is not the
+// room is standing there: the header glass, the overhead display, an open drawer. It is
+// hit-tested where it stands and stepped below a bar or left of a column until a click at
+// every corner of it lands on it. While the room is hidden it stays where it was: the
+// drawers it stepped around are gone, and a control that jumps out from under the finger
+// that just pressed it has to be found again.
+function placeRoomToggle(){
+  const btn=$('rmHide'), box=$('roomBox'); if(!btn || !box || !S.cinema) return;
+  if(document.body.classList.contains('roomHide') && btn.dataset.placed) return;
+  const B=box.getBoundingClientRect(); if(B.width<60 || B.height<30) return;
+  const PAD=6; let top=PAD, right=PAD;
+  const set=()=>{ btn.style.top=top+'px'; btn.style.right=right+'px'; return btn.getBoundingClientRect(); };
+  let r=set();
+  for(let i=0; i<8; i++){
+    // The button is a pill: its literal corners are outside its own rounded outline and hit
+    // whatever is behind it. Probe inside the curve, and never count the room itself (the
+    // photo, the zones) as something covering a button that stands on top of it.
+    const k=r.height/2;
+    const pts=[[r.left+k,r.top+3],[r.right-k,r.top+3],[r.left+k,r.bottom-3],[r.right-k,r.bottom-3],
+               [(r.left+r.right)/2,(r.top+r.bottom)/2]];
+    let blocker=null;
+    for(const [px,py] of pts){
+      if(px<0 || py<0 || px>=innerWidth || py>=innerHeight) continue;
+      const e=document.elementFromPoint(px,py);
+      if(e && e!==btn && !btn.contains(e) && !box.contains(e)){ blocker=e; break; }
+    }
+    if(!blocker) break;
+    const panel=(blocker.closest && blocker.closest('header,#monBar,#sideBar,#chat,#feedClose,#orderBar,#cinemaCard,#console .cluster,#ribbon,.cinTab,#actionBrowser,.roomMenu')) || blocker;
+    const p=panel.getBoundingClientRect();
+    if(p.left > B.left + B.width*0.5 && p.height > p.width) right=Math.max(right, Math.round(B.right - p.left + PAD));
+    else top=Math.max(top, Math.round(p.bottom - B.top + PAD));
+    r=set();
+    if(r.bottom > B.bottom - PAD || r.left < B.left + PAD){ top=PAD; right=PAD; r=set(); break; }
+  }
+  btn.dataset.placed='1';
+}
+// THE CHART DOES NOT SHRINK THE PATIENT WHEN IT DOES NOT HAVE TO. Portrait phones only.
+// The sheet starts where the monitor ends, and the room keeps its full height as long as
+// the chart still gets its share (a third of the screen, 240px at least). Only when the
+// monitor is too tall for that — a small phone during a code — does the room yield, and
+// only by the pixels it is short, never below the old 15vh.
+function fitChartRoom(){
+  const b=document.body, st=b.style;
+  const on = !!S.cinema && b.classList.contains('chartOpen') && !b.classList.contains('panelExpanded') &&
+             mobileWorkspace() && innerHeight > 500;
+  if(!on){
+    if(b.classList.contains('sheetFit')) b.classList.remove('sheetFit');
+    st.removeProperty('--chartRoomH'); st.removeProperty('--sheetTop'); return;
+  }
+  const mon=$('monBar'); if(!mon || !$('roomBox')) return;
+  const ra=ROOM_ASPECT, vh=innerHeight;
+  const full=Math.min(innerWidth, vh*0.26*ra)/ra;     // the room with the chart closed (the 26vh cap)
+  const least=vh*0.15, floor=Math.max(240, Math.round(vh*0.33));
+  st.setProperty('--chartRoomH', full.toFixed(1)+'px');
+  if(!b.classList.contains('sheetFit')) b.classList.add('sheetFit');
+  let monBottom=mon.getBoundingClientRect().bottom;
+  const short=floor - (vh - monBottom);
+  if(short > 0){
+    st.setProperty('--chartRoomH', Math.max(least, full - short).toFixed(1)+'px');
+    monBottom=mon.getBoundingClientRect().bottom;
+  }
+  st.setProperty('--sheetTop', Math.max(0, Math.round(Math.min(monBottom, vh - floor)))+'px');
+}
+let _roomLayoutRaf=0;
+function roomLayoutLater(){
+  cancelAnimationFrame(_roomLayoutRaf);
+  _roomLayoutRaf=requestAnimationFrame(()=>{ fitChartRoom(); placeRoomToggle(); placeRoomBubbles(); });
+}
+// Every drawer, sheet and layout switch is a class on <body>, and they are set from a dozen
+// places. Watching the class is the one hook none of them can forget. sheetFit is ignored
+// because fitChartRoom sets it.
+if(!window._roomLayoutWired){
+  window._roomLayoutWired=true;
+  let _roomKey='';
+  new MutationObserver(()=>{
+    const k=document.body.className.replace(/\s*\bsheetFit\b/g,'');
+    if(k===_roomKey) return; _roomKey=k; roomLayoutLater();
+  }).observe(document.body, {attributes:true, attributeFilter:['class']});
+  addEventListener('resize', roomLayoutLater);
+  // On a phone #main scrolls, and the monitor the chart sheet starts under scrolls with it.
+  document.addEventListener('scroll', e=>{ if(e.target && e.target.id==='main') roomLayoutLater(); },
+    {capture:true, passive:true});
+}
 function exitCinema(){
   if(!S.cinema) return;
   S.cinema=false;
-  document.body.classList.remove('cinema','hudL','hudR','hudClear','console','feedOpen','resultsOpen');   // collapsed columns don't outlive the room
+  document.body.classList.remove('cinema','hudL','hudR','hudClear','roomHide','console','feedOpen','resultsOpen');   // collapsed columns don't outlive the room
+  applyRoomHide(); fitChartRoom();
   document.body.style.removeProperty('--hdr');
   document.body.style.removeProperty('--mb');
   document.body.style.removeProperty('--ra');
@@ -9504,7 +9823,8 @@ document.addEventListener('click', e=>{
     if(!S.cinema) enterCinema();
   }
 });
-document.addEventListener('click', e=>{ if(e.target && e.target.closest && e.target.closest('#cinClear')) toggleClearRoom(); });
+document.addEventListener('click', e=>{
+  if(e.target && e.target.closest && (e.target.closest('#cinClear') || e.target.closest('#rmHide'))) toggleClearRoom(); });
 // The button and the caption beside it are the same target — a player who reads
 // "— CALL IT" and clicks the words should get the menu.
 document.addEventListener('click', e=>{
@@ -9552,7 +9872,8 @@ document.addEventListener('click', e=>{
   const t=e.target;
   if(!t || !t.closest) return;
   if(t.closest('#sideBar') || t.closest('#chat') || t.closest('.cinTab') || t.closest('#console') ||
-     t.closest('#ribbon') || t.closest('.roomMenu') || t.closest('#orderBar') || t.closest('header')) return;
+     t.closest('#ribbon') || t.closest('.roomMenu') || t.closest('#orderBar') || t.closest('header') ||
+     t.closest('#rmHide')) return;   // Hide must not close the drawer Show all is meant to bring back
   b.remove('feedOpen'); paintLabsRail();
 });
 // H for the room. Guarded against every field a player types into — the order box is
