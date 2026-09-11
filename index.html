@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3Gx5PCMVXr8hhndy6Bg7XHSimr7l1yuvUyipaHAZeMs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3Uhm06bggD5SMF7gVD+f6QDHKHR1/7FtCunNGQtKuM4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -5732,7 +5732,11 @@ function currentFragment(text){
 // A WORD, NOT A TAG. "MED" and "LAB" at 9px told nobody anything on a phone; Kim: "Magnesium —
 // medication" and "Magnesium — blood test" must be distinguishable without another screen.
 const CATEGORY_LABEL = {lab:'lab test', imaging:'imaging', med:'medication', procedure:'procedure',
-                        consult:'consult', assessment:'diagnosis', diagnosis:'diagnosis', disposition:'disposition'};
+                        consult:'consult', assessment:'diagnosis', diagnosis:'diagnosis', disposition:'disposition',
+                        // 2026-09-08: the generator (Task 2) built entries in these two
+                        // categories too — a history question and an exam manoeuvre are
+                        // orders in their own right, not procedures wearing the wrong tag.
+                        history:'history', exam:'exam'};
 // Kim: "if you type cardiology, it should actually say cardiology consult". The list, the
 // basket and the order all carry the suffix; the engine already reads "<service> consult"
 // (it is an alias on every consult entry), so nothing about matching moves.
@@ -5978,9 +5982,18 @@ function basketTypeahead(i){
   // the nurse has to come back and ask about, so ask now, with the usual one already
   // highlighted and Enter away.
   if(entry.doses && entry.doses.length && renderDosePicker(entry)) return;
+  // THE BASKET SHOWS THE BUTTON; THE ENGINE HEARS THE PACK. A generated entry (Task 2 of
+  // the 2026-09-07 plan) carries `sendCanonical: true` and a `canonical` built from the
+  // pack's OWN phrasing — the words the responder actually matches — while its `label` is
+  // the full critical-action sentence, useful to find but never typed by anyone. Sending
+  // that whole sentence as the ORDER (what this used to do) meant the entry was reachable
+  // in the dropdown but not by the engine underneath it: the search found it and the pack
+  // still said "not understood". Every other entry is unaffected — sendCanonical is unset,
+  // so `orderText` is just `displayLabel(entry)`, exactly as before.
+  const orderText = entry.sendCanonical ? entry.canonical : displayLabel(entry);
   const OI0 = root_OrderIntents();
-  basketAdd(displayLabel(entry), displayLabel(entry), false,
-            OI0 ? OI0.fromCatalog(entry, null, displayLabel(entry), displayLabel(entry)) : undefined);
+  basketAdd(displayLabel(entry), orderText, false,
+            OI0 ? OI0.fromCatalog(entry, null, orderText, displayLabel(entry)) : undefined);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
   cmd.focus();
