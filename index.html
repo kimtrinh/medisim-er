@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3Uhm06bggD5SMF7gVD+f6QDHKHR1/7FtCunNGQtKuM4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NDuMzmmgPq0R/xVAspMvfG8sDSWVgs1RC2SkjKv0oew=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -387,6 +387,21 @@
     -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
     box-shadow:0 12px 34px -18px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
   body.cinema.console #ribbon{display:flex}
+  /* A piece stackWall() had to shorten scrolls; keep its bar out of the chips' way. */
+  #console .cluster, #ribbon{scrollbar-width:thin}
+  /* THE TIGHT WALL. stackWall() sets .wallTight only when the wall's pieces do not fit above
+     History / Exam / Orders even packed from the top at their normal size — measured
+     2026-09-10 at 1280x800 in a code, where 27px chip rows needed 637px and the wall had 582.
+     The type stays 10px; the rows, padding and label spacing slim down so every chip stands
+     in view. A roomy screen keeps the normal wall. (The phone's 36px chip floor lives in its
+     own media query and is untouched.) */
+  body.cinema.console.wallTight #console .cluster,
+  body.cinema.console.wallTight #ribbon{padding:.2rem .35rem;row-gap:.15rem}
+  body.cinema.console.wallTight #console .cluster > .pal,
+  body.cinema.console.wallTight #ribbon > .pal{padding-top:1px;padding-bottom:1px;line-height:1.25}
+  body.cinema.console.wallTight #console .clab{margin-bottom:0;line-height:1.1}
+  body.cinema.console.wallTight #clSections > .secHead,
+  body.cinema.console.wallTight #clSections > .pal{padding-top:.2rem;padding-bottom:.2rem;line-height:1.25}
   /* Two classes beat the one above, so the painter's .hidden actually takes: with the
      rhythm call moved to the monitor, a case with no required reversible causes has
      nothing to put here and should not draw an empty panel. */
@@ -6830,6 +6845,7 @@ function paintOrderLog(){
 }
 function paintConsole(){
   const host = $('console'); if(!host) return;
+  try{ roomLayoutLater(); }catch(_){ }   // the new chips are stacked against each other once they are drawn
   const inRoom = document.body.classList.contains('console');
   const on = inRoom && codeAnswers();
   host.innerHTML = '';
@@ -9685,10 +9701,94 @@ function fitChartRoom(){
   }
   st.setProperty('--sheetTop', Math.max(0, Math.round(Math.min(monBottom, vh - floor)))+'px');
 }
+// THE WALL STACKS; IT NEVER OVERLAPS. Every piece of the left wall used to stand at a fixed
+// height whatever its own size — CPR under the header, Rhythm at 21%, Meds 37.5%, Airway 58%
+// of the photo, Hs & Ts at 71% of the WINDOW, the sections 12% off the foot. Measured on the
+// live site 2026-09-10: 17 of 30 case/screen pairs had a chip that took no click — Bicarbonate
+// under the AIRWAY label at 1280x800, IV/IO access under Rhythm at 1280x720, and on every
+// screen size in the trauma and newborn codes, Hs & Ts drawn over History / Exam / Orders.
+// So each piece keeps its usual place when there is room; one that would run into the piece
+// above moves down just past it; if the column then reaches the sections, the pieces pack
+// from the top at their normal size; if even that reaches them, the wall goes TIGHT
+// (.wallTight: same 10px type, slimmer rows — 27px chips become 19px, which is what a
+// 1280x800 laptop needs in a code); and only if it still does not fit does the tallest
+// piece give up height and scroll. Measured 2026-09-10 across five codes and a prose case
+// at six screen sizes: every chip in view and clickable, and nothing scrolls.
+// True when any two wall pieces overlap, or one runs into History / Exam / Orders. Cheap —
+// six rectangles — so it can be asked every second without doing any layout work itself.
+function wallNeedsStack(){
+  const b=document.body, con=$('console'), sec=$('clSections');
+  if(!con || !S.cinema || !b.classList.contains('console') || b.classList.contains('secOpen')) return false;
+  const drawn=e=>!!e && getComputedStyle(e).display!=='none' && e.getBoundingClientRect().height>0;
+  const r=[...con.querySelectorAll('.cluster'), $('ribbon')].filter(e=>e && e.id!=='clSections' && drawn(e))
+    .map(e=>e.getBoundingClientRect()).sort((a,z)=>a.top-z.top);
+  if(drawn(sec)) r.push(sec.getBoundingClientRect());   // the sections stand at the foot, after everything
+  for(let i=1;i<r.length;i++) if(r[i-1].bottom > r[i].top + 1) return true;
+  return false;
+}
+function stackWall(){
+  const b=document.body, con=$('console'), rib=$('ribbon'), sec=$('clSections');
+  if(!con) return;
+  const items=[...con.querySelectorAll('.cluster')].filter(c=>c.id!=='clSections');
+  if(rib) items.push(rib);
+  // A piece can change size with no repaint and no class change on <body> — the Hs & Ts
+  // panel is filled and un-hidden on its own, chips re-label in place as doses tick — and a
+  // wall stacked before that is wrong after it (measured: 2 runs in 3 on the blunt-trauma
+  // code left Hs & Ts over History / Exam / Orders). So every piece's size is watched. The
+  // pass below restores the same sizes it started from, so the watch settles after one echo.
+  // The room itself is watched too (its box, the wall frame, the header): the pieces stand in
+  // % of the room, so when the room settles while a case is starting they move without
+  // changing size, and a wall stacked a moment earlier is left in the wrong place (measured:
+  // 7 runs in 8 on the blunt-trauma code, even with the pieces watched). And once a second
+  // the wall is asked whether anything overlaps — only then is it stacked again — so a
+  // layout change nobody announces heals itself within a second and a settled wall costs nothing.
+  if(typeof ResizeObserver === 'function'){
+    const watch=[...items, sec, con, $('roomBox'), document.querySelector('header')].filter(Boolean);
+    if(!window._wallRo) window._wallRo=new ResizeObserver(()=>roomLayoutLater());
+    const seen=window._wallRoSet;
+    if(!seen || seen.size!==watch.length || watch.some(e=>!seen.has(e))){
+      window._wallRo.disconnect(); watch.forEach(e=>window._wallRo.observe(e)); window._wallRoSet=new Set(watch);
+    }
+  }
+  if(!window._wallCheck){
+    window._wallCheck=setInterval(()=>{ try{ if(wallNeedsStack()) roomLayoutLater(); }catch(_){ } }, 1000);
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>roomLayoutLater());
+  }
+  for(const el of items){ el.style.top=''; el.style.maxHeight=''; el.style.overflowY=''; }
+  b.classList.remove('wallTight');
+  if(!S.cinema || !b.classList.contains('console') || b.classList.contains('secOpen')) return;
+  const drawn=e=>!!e && getComputedStyle(e).display!=='none' && e.getBoundingClientRect().height>0;
+  const GAP=6, MIN=56;
+  const measure=()=>items.filter(drawn).map(el=>{ const r=el.getBoundingClientRect(); return { el, top:r.top, h:r.height }; })
+    .sort((a,z)=>a.top-z.top);
+  const floorOf=()=>(drawn(sec) ? sec.getBoundingClientRect().top : con.getBoundingClientRect().bottom) - GAP;
+  const settle=w=>{ let y=-Infinity; for(const p of w){ p.y=Math.max(p.top, y); y=p.y+p.h+GAP; } return y-GAP; };
+  const pack=w=>{ let y=w[0].top; for(const p of w){ p.y=y; y+=p.h+GAP; } return y-GAP; };
+  let w=measure();
+  if(!w.length) return;
+  let floor=floorOf();
+  let y=settle(w);
+  if(y > floor) y=pack(w);
+  if(y > floor){ b.classList.add('wallTight'); w=measure(); floor=floorOf(); y=settle(w); if(y > floor) y=pack(w); }
+  if(y > floor){
+    let over=y-floor;
+    for(const p of [...w].sort((a,z)=>z.h-a.h)){
+      if(over<=0) break;
+      const give=Math.min(over, Math.max(0, p.h-MIN));
+      if(give>0){ p.h-=give; p.cap=p.h; over-=give; }
+    }
+    pack(w);
+  }
+  for(const p of w){
+    const base=(p.el.offsetParent||con).getBoundingClientRect().top;
+    if(Math.abs(p.y-p.top)>0.5) p.el.style.top=Math.round(p.y-base)+'px';
+    if(p.cap){ p.el.style.maxHeight=Math.floor(p.cap)+'px'; p.el.style.overflowY='auto'; }
+  }
+}
 let _roomLayoutRaf=0;
 function roomLayoutLater(){
   cancelAnimationFrame(_roomLayoutRaf);
-  _roomLayoutRaf=requestAnimationFrame(()=>{ fitChartRoom(); placeRoomToggle(); placeRoomBubbles(); });
+  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); placeRoomToggle(); placeRoomBubbles(); });
 }
 // Every drawer, sheet and layout switch is a class on <body>, and they are set from a dozen
 // places. Watching the class is the one hook none of them can forget. sheetFit is ignored
@@ -9697,7 +9797,7 @@ if(!window._roomLayoutWired){
   window._roomLayoutWired=true;
   let _roomKey='';
   new MutationObserver(()=>{
-    const k=document.body.className.replace(/\s*\bsheetFit\b/g,'');
+    const k=document.body.className.replace(/\s*\b(sheetFit|wallTight)\b/g,'');   // both are set by the layout pass itself
     if(k===_roomKey) return; _roomKey=k; roomLayoutLater();
   }).observe(document.body, {attributes:true, attributeFilter:['class']});
   addEventListener('resize', roomLayoutLater);
