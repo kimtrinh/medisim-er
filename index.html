@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NDuMzmmgPq0R/xVAspMvfG8sDSWVgs1RC2SkjKv0oew=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-8WgbtoAfKupy39wb2jFA8YHCrvKyIBIJV3jpKT+GsNs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1230,6 +1230,210 @@
   .text-\[8px\]{font-size:10px!important}
   .text-\[9px\],.text-\[10px\]{font-size:11px!important}
   .text-slate-600{color:#94a3b8!important}
+  /* ================================================================ THE PHONE: FOLDING SECTIONS
+     Kim, 2026-09-11: "the layout of the orders is still cluttered ... make every menu
+     collapsible, hide and unhide ... minimize clutter." Measured at 390x844 before this:
+     40 tappable controls on the first screen, 32 under 44px; 66 and 58 mid-code; text in
+     seven sizes; the camera strip, the code strip and the code actions cut off at the
+     right edge; two Chart controls; and an Orders tab that opened nothing on an ordinary
+     case (#palette lives in #palWrap, hidden whenever quick actions are minimised).
+     The principle: one thing at a time. The photo, then one-line headers — Monitor ·
+     Orders · History · Results · Coach — each tap-to-open, tap-to-fold, one open at a
+     time (the same panelState() switch the phone already had, with 'monitor' added), and
+     a bottom bar with the order box, Dx and Submit. Everything below is scoped to
+     body.phoneFold, which applyPhoneFold() sets only on mobileWorkspace() layouts in
+     cinema; the desktop console is untouched. This block is LAST in the stylesheet on
+     purpose: the phone rules above it reach for !important, and so must these. */
+  body.phoneFold #cinemaCard, body.phoneFold #obToggleRow, body.phoneFold #qaRow, body.phoneFold #palWrap,
+  body.phoneFold #ticker, body.phoneFold #orderModeHint, body.phoneFold #cinExit, body.phoneFold #viewChartBtn,
+  body.phoneFold #feedClose, body.phoneFold #rmFoot, body.phoneFold #rmExpand{display:none!important}
+  /* The Hs & Ts panel's own rule (#ribbon{display:flex}) outranks its .hidden class, so on
+     every phone an EMPTY outlined box was painted at 71% of the screen — a faint ghost under
+     whichever header stood there. Hidden means hidden, at every width. */
+  #ribbon.hidden{display:none!important}
+  /* With the working tree's "Choose an action" panel merged in: its launcher duplicates the
+     Orders section, and its phone rule keeps the order box hidden until "Type" is tapped —
+     here the box is the bottom bar and is always there. (No-ops where the panel is absent.) */
+  body.phoneFold #actionLaunch{display:none!important}
+  body.phoneFold #obInputRow{display:flex!important}
+  /* the transcript's own close button is pinned over the column by a landscape rule of
+     higher specificity (body.cinema.feedOpen #feedClose); the History header is the way
+     to close it here, so it stays away at every specificity */
+  body.cinema.phoneFold.feedOpen #feedClose, body.phoneFold.feedOpen #feedClose{display:none!important}
+  /* #playBody / #playCol are wrappers with no job here: dissolving them makes the
+     monitor, the transcript, the order bar and the chart all direct flex children of
+     #main, so the headers below can interleave with them by order. */
+  body.phoneFold #playBody, body.phoneFold #playCol{display:contents!important}
+  body.phoneFold #main{display:flex!important;flex-direction:column!important;min-height:0;overflow:hidden!important;
+    padding-bottom:calc(var(--obInputH,64px) + env(safe-area-inset-bottom,0px))!important}
+  /* The photo keeps its full width unless the screen is short and a section other than the
+     Monitor is open — then fitFoldRoom() narrows it just enough for that section to get
+     200px (measured at 375x667: the Orders list had 82px and its chips spilled under the
+     headers below). Narrower is centred; the overlays are in % of the box so they follow. */
+  body.phoneFold #roomBox{width:var(--foldRoomW,100%)!important;margin-left:auto!important;margin-right:auto!important}
+  /* the headers */
+  .foldHead{display:none}
+  body.phoneFold .foldHead{display:flex!important;flex:none;align-items:center;gap:.6rem;width:100%;min-height:44px;
+    padding:0 .85rem;border:0;border-top:1px solid #1e293b;border-radius:0;background:rgba(2,6,23,.94);
+    color:#cbd5e1;font-size:14px!important;font-weight:700;line-height:1.2;text-align:left;cursor:pointer}
+  body.phoneFold .foldHead .foldLab{flex:none;min-width:4.6rem;font-size:12px!important;font-weight:900;
+    letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+  body.phoneFold .foldHead .foldSum{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-size:14px!important;font-weight:600;color:#e2e8f0}
+  body.phoneFold .foldHead .foldSum.foldNew{color:#6ee7b7}
+  body.phoneFold .foldHead .foldChev{flex:none;font-size:12px!important;color:#64748b;transition:transform .2s}
+  body.phoneFold .foldHead[aria-expanded="true"]{color:#6ee7b7;border-top-color:rgba(52,211,153,.4);background:rgba(6,78,59,.28)}
+  body.phoneFold .foldHead[aria-expanded="true"] .foldLab{color:#6ee7b7}
+  body.phoneFold .foldHead[aria-expanded="true"] .foldChev{transform:rotate(180deg)}
+  body.phoneFold #foldCoach{display:none!important} body.phoneFold.coachAvail #foldCoach{display:flex!important}
+  /* the stack, in order: photo (order 1 on #cinemaStage), then the column */
+  body.phoneFold #foldMonitor{order:10} body.phoneFold #monBar{order:11}
+  body.phoneFold #foldOrders{order:20}  body.phoneFold #phoneOrders{order:21}
+  body.phoneFold #foldHistory{order:30} body.phoneFold #chat{order:31}
+  body.phoneFold #foldResults{order:40} body.phoneFold #sideBar{order:41}
+  body.phoneFold #foldCoach{order:50}
+  body.phoneFold #orderBar{order:90}
+  /* each panel shows only while its header is open, static in the column, and takes the
+     room that is left; a folded panel takes none */
+  body.phoneFold #monBar, body.phoneFold #chat, body.phoneFold #sideBar, body.phoneFold #phoneOrders{display:none!important}
+  /* The open panel is the part that gives: it shrinks and scrolls before a header can be
+     pushed under the bottom bar (measured at 375x667 with the Monitor open: the Results
+     header landed under the bar). The monitor never grows past its content; the transcript,
+     the chart and the orders fill what is left. */
+  body.phoneFold.monitorOpen #monBar{display:block!important;position:static!important;flex:0 1 auto!important;min-height:0!important;
+    overflow-y:auto!important;width:auto!important;
+    height:auto!important;max-height:none!important;padding:.4rem .75rem .5rem!important;border:0!important;border-radius:0!important;
+    box-shadow:none!important;z-index:auto!important;background:rgba(2,6,23,.9)!important}
+  body.phoneFold.monitorOpen #monGrid{display:block!important}
+  /* flex, not block: the two trace canvases are flex children of this box (flex:62 / flex:38)
+     and take their height from it; as a block the ECG collapsed to a 1px strip */
+  body.phoneFold.monitorOpen #ecgBox{display:flex!important;flex-direction:column!important;height:64px!important}
+  body.phoneFold.monitorOpen #monMeta{display:flex!important}
+  body.phoneFold.monitorOpen #vitalsGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:.3rem!important}
+  body.phoneFold.feedOpen #chat{display:block!important;position:static!important;flex:1 1 0!important;min-height:0!important;
+    height:auto!important;max-height:none!important;width:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    overflow-y:auto!important;padding:.6rem .85rem!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+    background:rgba(2,6,23,.9)!important;z-index:auto!important;font-size:14px!important;line-height:1.45}
+  body.phoneFold.resultsOpen #sideBar{display:block!important;position:static!important;inset:auto!important;flex:1 1 0!important;
+    min-height:0!important;height:auto!important;width:auto!important;overflow-y:auto!important;padding:.5rem .85rem .9rem!important;
+    border-radius:0!important;z-index:auto!important;background:rgba(2,6,23,.92)!important}
+  body.phoneFold.resultsOpen.panelExpanded #sideBar{position:fixed!important;inset:0!important;z-index:60!important;padding:1rem!important}
+  body.phoneFold.resultsOpen #chartSheetBar{display:flex!important}
+  body.phoneFold.resultsOpen #chartClose{display:flex!important}
+  body.phoneFold.ordersOpen #phoneOrders{display:block!important;flex:1 1 0!important;min-height:0!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    padding:.35rem .75rem .9rem;background:rgba(2,6,23,.9);-webkit-overflow-scrolling:touch}
+  body.phoneFold #palette{display:none!important}
+  /* the Orders section: wrapped rows of fingertip chips, one label per group */
+  body.phoneFold #phoneOrders .foldGroup{margin:.55rem 0 .25rem;font-size:12px!important;font-weight:900;letter-spacing:.1em;
+    text-transform:uppercase;color:#94a3b8}
+  body.phoneFold #phoneOrders .foldRow{display:flex;flex-wrap:wrap;gap:.4rem}
+  /* gap, because a flex row drops the space between a drug's name and its dose span */
+  body.phoneFold #phoneOrders .pal, body.phoneFold #phoneOrders .oset{display:inline-flex;align-items:center;gap:.3em;min-height:44px;max-width:100%;
+    margin:0!important;padding:.35rem .75rem!important;font-size:12px!important;line-height:1.25!important;letter-spacing:.04em;
+    white-space:normal!important;text-align:left;border-radius:.7rem}
+  body.phoneFold #phoneOrders .oset .mono{font-size:12px!important}
+  /* the chart (results) content: nothing under 12px, headings at 12, body at 14 */
+  body.phoneFold #chat :is(.text-\[9px\],.text-\[10px\],.text-\[11px\]), body.phoneFold #sideBar :is(.text-\[9px\],.text-\[10px\],.text-\[11px\]),
+  body.phoneFold #monBar :is(.text-\[9px\],.text-\[10px\],.text-\[11px\]), body.phoneFold #monMeta > span,
+  body.phoneFold #vitalsGrid .vLab, body.phoneFold #vitalsGrid .vLabShort, body.phoneFold #vitalsGrid .vUnit,
+  body.phoneFold #phoneOrders :is(.text-\[9px\],.text-\[10px\],.text-\[11px\]),
+  body.phoneFold #orderBar :is(.text-\[9px\],.text-\[10px\],.text-\[11px\]){font-size:12px!important}
+  body.phoneFold #chat .text-xs, body.phoneFold #sideBar .text-xs, body.phoneFold #chat .text-sm, body.phoneFold #sideBar .text-sm,
+  body.phoneFold #chat .text-\[13px\], body.phoneFold #sideBar .text-\[13px\]{font-size:14px!important}
+  body.phoneFold #monBar .text-3xl{font-size:16px!important;line-height:1.2}
+  body.phoneFold #codeStrip > div.flex.flex-wrap{flex-wrap:wrap!important;overflow:visible!important}
+  body.phoneFold #codeStrip > div.flex.flex-wrap > *{white-space:nowrap}
+  /* the bottom bar: the box, Dx and Submit; + Add, the mic and Coach once there is
+     something typed (Dx stays — on a phone it is the only diagnosis control, and it
+     pulses when a consultant is waiting for the diagnosis) */
+  body.phoneFold #orderBar{position:static!important;max-height:none!important;overflow:visible!important;padding:0 .6rem!important;
+    border:0!important;background:none!important}
+  body.phoneFold #orderBar > div.flex.items-end{position:fixed!important;left:0!important;right:0!important;bottom:0!important;
+    z-index:40;padding:.3rem .6rem calc(.3rem + env(safe-area-inset-bottom,0px))!important;gap:.3rem!important;
+    background:rgba(2,6,23,.97)!important;border-top:1px solid #1e293b}
+  /* The box keeps a line of its own (the phone rule "#obInputRow > div.relative" already
+     gives it one): its suggestion list hangs off it, and a 240px box beside Dx and Submit
+     truncated every drug name. Dx and Submit take the row beneath, right-aligned. */
+  body.phoneFold #obInputRow{flex-wrap:wrap!important;justify-content:flex-end!important}
+  body.phoneFold #cmd{font-size:16px!important;line-height:1.35;min-height:44px;padding:.6rem .9rem!important;border-radius:.9rem!important}
+  body.phoneFold #obInputRow button{min-height:44px!important;font-size:12px!important;border-radius:.9rem!important;padding-left:.8rem!important;padding-right:.8rem!important}
+  body.phoneFold #coachBtn{display:none!important}   /* the Coach section header is the way in */
+  body.phoneFold:not(.typed):not(.hasBasket) #queueBtn, body.phoneFold:not(.typed) #micBtn{display:none!important}
+  body.phoneFold #queueBtn .queueLong{display:none} body.phoneFold #queueBtn .queueShort{display:inline}
+  /* the suggestion list opens over the column; the headers under it are not tappable
+     while it is up, so they say so (visibility, like the tab row before them) */
+  body.phoneFold.taOpen .foldHead, body.phoneFold.taOpen #phoneOrders, body.phoneFold.taOpen #foldStack{visibility:hidden}
+  body.phoneFold #typeahead .ta-row{min-height:44px;font-size:14px!important}
+  body.phoneFold #basketTray, body.phoneFold #readbackChip, body.phoneFold #orderFeedback{margin:.3rem 0!important}
+  /* The order feedback stands in the column above the bar. At its desktop size (heading,
+     a row per order, a Report-problem button each) it took ~90px and, with five headers and
+     the two-row bar, left the open chart 150px on a 390x844 phone. Here it is a strip: no
+     heading, one line per order, two lines before it scrolls. The full wording is in History. */
+  body.phoneFold #orderFeedback{max-height:3.4rem!important;overflow-y:auto!important}
+  body.phoneFold #orderFeedback > div{padding:.15rem .5rem!important;border:0!important;background:none!important}
+  body.phoneFold #orderFeedback > div > div:first-child{display:none}
+  body.phoneFold #orderFeedback > div > div{flex-wrap:nowrap!important;align-items:center!important;gap:.4rem!important;min-height:1.6rem}
+  body.phoneFold #orderFeedback > div > div > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  body.phoneFold #orderFeedback [data-order-problem]{padding:.1rem .4rem!important;flex:none}
+  /* the camera and equipment button, bottom-left of the photo (Hide is top-right) */
+  #rmCam{display:none}
+  body.phoneFold #rmCam{display:inline-flex;position:absolute;left:6px;bottom:6px;z-index:12;align-items:center;gap:.35rem;
+    min-height:36px;padding:0 .7rem;border-radius:9999px;border:1px solid rgba(148,163,184,.4);background:rgba(2,6,23,.78);
+    color:#e2e8f0;font-size:12px!important;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
+  .roomMenu.camMenu button{min-height:44px;font-size:14px!important}
+  .roomMenu.camMenu button[aria-pressed="true"]{color:#6ee7b7;background:rgba(16,185,129,.12)}
+  /* landscape: the photo on the left, the column on the right, the bar under the column */
+  @media (max-width:1023px) and (max-height:500px) and (orientation:landscape){
+    body.phoneFold{display:grid!important;grid-template-columns:min(48vw,var(--landRoomW)) minmax(0,1fr);
+      grid-template-rows:auto minmax(0,1fr);height:100vh;overflow:hidden}
+    body.phoneFold header{grid-column:1/-1;grid-row:1}
+    body.phoneFold #cinemaStage{grid-column:1;grid-row:2;align-self:start;overflow:visible}
+    body.phoneFold #roomBox{width:100%!important;margin:.35rem 0 0 .5rem!important}
+    body.phoneFold #cinemaHud{display:none!important}
+    body.phoneFold #main{grid-column:2;grid-row:2;min-height:0;padding-left:.5rem;
+      padding-bottom:calc(var(--obInputH,52px) + env(safe-area-inset-bottom,0px))!important}
+    body.phoneFold #roomBox{width:100%!important}
+    body.phoneFold.monitorOpen #monBar{position:static!important;height:auto!important;left:auto!important;right:auto!important;top:auto!important}
+    body.phoneFold.monitorOpen #ecgBox{display:flex!important;flex-direction:column!important;height:52px!important}
+    body.phoneFold.monitorOpen #monMeta, body.phoneFold.monitorOpen #v_nextBar{display:flex!important}
+    body.phoneFold.resultsOpen #sideBar{position:static!important;width:auto!important;height:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important}
+    body.phoneFold #orderBar > div.flex.items-end{left:calc(min(48vw,var(--landRoomW)) + .5rem)!important;padding:.3rem .5rem!important}
+    body.phoneFold #cmd{min-height:44px;padding:.5rem .8rem!important}
+    /* sideways the column is 640px wide: the box, Dx and Submit share one row (the
+       two-row bar plus the vitals line left the open section 167px on a 390px screen) */
+    body.phoneFold #obInputRow{flex-wrap:nowrap!important}
+    body.phoneFold #obInputRow > div.relative{flex:1 1 0!important;width:auto!important;min-width:0}
+    body.phoneFold #obInputRow button, body.phoneFold #phoneOrders .pal, body.phoneFold #phoneOrders .oset, body.phoneFold .foldHead{min-height:44px}
+  }
+  /* THE HEADERS AS A ROW OF TABS. Five stacked 44px headers do not fit a short screen:
+     sideways (390px tall) they left 19px for the monitor; on a 375x667 phone, with the
+     two-row bar, the open Orders list had 160px even with the photo at its floor. On both,
+     the headers become one row of 44px tabs across the top of the column — same
+     tap-to-open, tap-to-fold — with the summaries hidden and the open section filling the
+     rest. A tall phone keeps the stack and its one-line summaries. */
+  @media (max-width:1023px) and (max-height:500px) and (orientation:landscape), (max-width:767px) and (max-height:719px) and (orientation:portrait){
+    /* rows: the tabs, the vitals line (the Monitor tab's own summary, shown under the row
+       whenever the Monitor is folded — the numbers must stay on screen with the chart or
+       the orders open), the open section, the basket/feedback strip */
+    body.phoneFold #main{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:44px 22px minmax(0,1fr) auto;
+      column-gap:2px;align-items:stretch;position:relative}
+    body.phoneFold.monitorOpen #main{grid-template-rows:44px 0 minmax(0,1fr) auto}
+    body.phoneFold:not(.coachAvail) #main{grid-template-columns:repeat(4,minmax(0,1fr))}
+    body.phoneFold #foldMonitor{position:static}
+    body.phoneFold:not(.monitorOpen) #foldMonitor .foldSum{display:block!important;position:absolute;left:0;right:0;top:44px;height:22px;
+      line-height:22px;padding:0 .85rem;font-size:12px!important;color:#cbd5e1;background:rgba(2,6,23,.94);border-bottom:1px solid #1e293b;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+    body.phoneFold #foldMonitor{grid-area:1/1} body.phoneFold #foldOrders{grid-area:1/2} body.phoneFold #foldHistory{grid-area:1/3}
+    body.phoneFold #foldResults{grid-area:1/4} body.phoneFold #foldCoach{grid-area:1/5}
+    body.phoneFold .foldHead{justify-content:center;padding:0 .3rem;border-top:0;border-bottom:2px solid transparent;min-width:0}
+    body.phoneFold .foldHead[aria-expanded="true"]{border-bottom-color:#34d399}
+    body.phoneFold .foldHead .foldSum{display:none}
+    body.phoneFold .foldHead .foldLab{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    body.phoneFold #monBar, body.phoneFold #chat, body.phoneFold #sideBar, body.phoneFold #phoneOrders{grid-column:1/-1;grid-row:3}
+    body.phoneFold #orderBar{grid-column:1/-1;grid-row:4}
+    body.phoneFold #roomBox{width:100%!important}
+  }
 </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -3793,7 +3997,9 @@ function monitorHemodynamics(v, code){
 // play screen rather than being rebuilt from whichever class happened to survive.
 // `coach` is Task 10's, and it shares this one state so the coach cannot open on top of
 // the chart on a phone — the same one-panel-at-a-time rule as everything else.
-const PANELS_LOWER = ['orders', 'results', 'history', 'coach'];
+// 'monitor' is a phone folding section (2026-09-11): the one-open-at-a-time switch below is
+// exactly the accordion the phone needed, so the monitor joined it rather than getting one.
+const PANELS_LOWER = ['orders', 'results', 'history', 'coach', 'monitor'];
 function mobileWorkspace(){
   return matchMedia('(max-width:767px), (max-width:1023px) and (max-height:500px)').matches;
 }
@@ -3828,7 +4034,9 @@ function applyPanel(){
   b.toggle('feedOpen',     st.activePanel === 'history');
   b.toggle('resultsOpen',  st.activePanel === 'results');
   b.toggle('chartOpen',    st.activePanel === 'results');
+  b.toggle('monitorOpen',  st.activePanel === 'monitor');
   b.toggle('panelExpanded', !!st.expanded);
+  try{ paintFoldStack(); }catch(_){ }   // the phone's folding headers show which one is open
   const palette = $('palette');
   if(palette){
     const ordersOpen = st.activePanel === 'orders';
@@ -3856,6 +4064,7 @@ function acuityChip(){
 }
 function paintVitals(){
   const v=S.shown; if(!$('v_hr')) return;
+  try{ foldSummaryLater(); }catch(_){ }   // the phone's folded Monitor line follows the numbers
   paintWho();          // who the numbers below belong to — age first, before the clock
   const hemo=monitorHemodynamics(v,S.code), sys=hemo.sys, dia=hemo.dia,
         rr=Math.round(v.rr), o2=Math.min(100,Math.round(v.o2));
@@ -4369,6 +4578,9 @@ function enterCodeMode(script){
   // carries pulse check, CPR, shock and the drugs with their doses, and the toggle is
   // one tap away. Both are still togglable; this only sets the opening state.
   _orderMin = false; _palOpen = true;
+  // On a phone the folding Orders section opens for the code (Kim, 2026-09-11): the code
+  // actions are what an arrest needs most, and the folded Monitor line still carries the clock.
+  if(mobileWorkspace()){ panelState().activePanel = 'orders'; panelState().expanded = false; }
   // Credits from code orders need somewhere to land. The turn engine builds this
   // lazily on its first turn, which in a code may never come — a player can run a
   // whole arrest without typing one thing the turn engine answers.
@@ -5010,6 +5222,7 @@ function codeTallyRows(c){
   return out;
 }
 function paintCodeStrip(){
+  try{ foldSummaryLater(); }catch(_){ }   // the phone's folded Monitor line carries the code clock
   paintCodeTally();   // the record outlives the code itself — it stays up through ROSC
   paintCareStrip();
   const el = $('codeStrip'); if(!el) return;
@@ -5436,6 +5649,7 @@ function paintCoach(){
   $('coachMode').onclick  = () => setTrainingMode(trainingMode() === 'exam' ? 'training' : 'exam');
 }
 function paintCoachButton(){
+  try{ foldSummaryLater(); }catch(_){ }   // the phone's Coach section shows only when the coach is available
   const b = $('coachBtn'); if(!b) return;
   b.classList.toggle('hidden', !coachAvailable());
   b.setAttribute('aria-pressed', String(panelState().activePanel === 'coach'));
@@ -6246,6 +6460,8 @@ async function loadGoldCase(seed, opts){
   try{ resetRoomActionTimers(); }catch(_){ }
   S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
   document.body.classList.remove('roomHide'); try{ applyRoomHide(); }catch(_){ }   // a new patient starts with everything showing
+  // ...and, on a phone, with the Monitor open and the other sections folded (Kim's choice).
+  if(mobileWorkspace()){ panelState().activePanel = 'monitor'; panelState().expanded = false; }
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
@@ -6862,26 +7078,7 @@ function paintConsole(){
   const g = codeChipGroups(); if(!g) return;
   const cluster = (id, label, chips) =>
     '<div class="cluster" id="' + id + '"><span class="clab">' + label + '</span>' + chips.join('') + '</div>';
-  const parts = [];
-  if(g.cpr.length)    parts.push(cluster('clCpr', 'CPR &amp; access',
-    g.cpr.map(x => consoleChip(x[0], x[1], null, null, 'border-rose-500/40 text-rose-200'))));
-  if(g.meds.length)   parts.push(cluster('clMeds', 'Meds',
-    g.meds.map(x => consoleChip(x[0], null, x[2], x[3], 'border-emerald-500/40 text-emerald-200'))));
-  // Post-arrest replaces the rhythm cluster in the same slot: nothing on it applies to a
-  // patient with a pulse, and the room should not offer a shock ladder to one.
-  if((g.postrosc || []).length) parts.push(cluster('clRhythm', 'Post-arrest',
-    g.postrosc.map(x => consoleChip(x[0], x[1], null, null, 'border-sky-500/40 text-sky-200'))));
-  else if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
-    g.rhythm.map(x => {
-      // Electricity opens its energy ladder. Kim: "there should be options to have different
-      // joules for cardioversion, to increase it if you need it" — her own case's teaching
-      // says escalate stepwise, and the wall offered exactly one number.
-      const energy = /^Defibrillate /.test(x[0]) ? 'shock' : (/^Sync cardiovert /.test(x[0]) ? 'sync' : null);
-      const chip = consoleChip(x[0] + (energy ? ' \u25be' : ''), x[1], x[2], null, 'border-amber-500/40 text-amber-200');
-      return energy ? chip.replace('<button ', '<button data-energy="' + energy + '" ') : chip;
-    })));
-  if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
-    g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
+  const parts = codeClusterParts(g, cluster);
   // A code case's wall is deliberately just the algorithm. This is the way to everything
   // else — labs, imaging, exam, the order sets — without putting it all on the wall.
   host.innerHTML = (_openSection ? '' : parts.join('')) + sectionsHTML();
@@ -6906,6 +7103,32 @@ function paintConsole(){
   }
   wirePalChips(host); wirePalChips(rib);
   paintCodeStrip();      // fills the drug faces with their live doses
+}
+// The four algorithm groups of a code, as HTML, through whichever wrapper the surface
+// wants: the desktop wall wraps each in a positioned .cluster; the phone's folding Orders
+// section wraps each in a wrapped row. One source for the chips either way.
+function codeClusterParts(g, cluster){
+  const parts = [];
+  if(g.cpr.length)    parts.push(cluster('clCpr', 'CPR &amp; access',
+    g.cpr.map(x => consoleChip(x[0], x[1], null, null, 'border-rose-500/40 text-rose-200'))));
+  if(g.meds.length)   parts.push(cluster('clMeds', 'Meds',
+    g.meds.map(x => consoleChip(x[0], null, x[2], x[3], 'border-emerald-500/40 text-emerald-200'))));
+  // Post-arrest replaces the rhythm cluster in the same slot: nothing on it applies to a
+  // patient with a pulse, and the room should not offer a shock ladder to one.
+  if((g.postrosc || []).length) parts.push(cluster('clRhythm', 'Post-arrest',
+    g.postrosc.map(x => consoleChip(x[0], x[1], null, null, 'border-sky-500/40 text-sky-200'))));
+  else if(g.rhythm.length) parts.push(cluster('clRhythm', 'Rhythm',
+    g.rhythm.map(x => {
+      // Electricity opens its energy ladder. Kim: "there should be options to have different
+      // joules for cardioversion, to increase it if you need it" — her own case's teaching
+      // says escalate stepwise, and the wall offered exactly one number.
+      const energy = /^Defibrillate /.test(x[0]) ? 'shock' : (/^Sync cardiovert /.test(x[0]) ? 'sync' : null);
+      const chip = consoleChip(x[0] + (energy ? ' \u25be' : ''), x[1], x[2], null, 'border-amber-500/40 text-amber-200');
+      return energy ? chip.replace('<button ', '<button data-energy="' + energy + '" ') : chip;
+    })));
+  if(g.airway.length) parts.push(cluster('clAirway', 'Airway',
+    g.airway.map(x => consoleChip(x[0], x[1], null, null, 'border-cyan-500/40 text-cyan-200'))));
+  return parts;
 }
 function paletteBodyHTML(){
   const inCode = typeof codeActive === 'function' && codeActive();
@@ -7430,6 +7653,7 @@ function fitOrderFeedback(){
 }
 function renderBasket(){
   const el=$('basketTray'); if(!el) return;
+  try{ foldSummaryLater(); }catch(_){ }   // the phone's folded Orders line counts what is waiting
   const list=S.basket||[], n=list.length;
   if(!n){ el.classList.add('hidden'); el.innerHTML=''; return; }
   el.classList.remove('hidden');
@@ -7642,6 +7866,7 @@ function renderPlay(){
   paintDxBox();
   paintOrderLog();
   paintConsole();   // the wall chips live in #cinemaHud, outside the rebuild
+  try{ applyPhoneFold(); }catch(_){ }   // the phone's folding headers are children of #main, which was just rebuilt
   paintViewSwitch();
   paintSoundBtn();
   $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
@@ -7724,6 +7949,7 @@ function renderPlay(){
   _submitBasket=send;
   $('sendBtn').onclick=send;
   cmd.addEventListener('input',()=>{
+    document.body.classList.toggle('typed', !!cmd.value.trim());   // a phone shows + Add and the mic once there is something to add
     cmd.style.height='auto';cmd.style.height=Math.min(cmd.scrollHeight,128)+'px';
     measureDock();   // the box just grew or shrank; the CHART button rides on its height
     hideReadbackChip();
@@ -9023,6 +9249,9 @@ function buildRoomScene(mount){
      <!-- Hide / Show all, on the photo itself so it exists on every layout (the header's
           copy has no room on a phone). Shown in cinema only; see #rmHide in the styles. -->
      <button id="rmHide" type="button" aria-pressed="false" title="Hide everything drawn over the patient (H)"><span id="rmHideIcon">${roomHideIcon(false)}</span><span id="rmHideLab">Hide</span></button>
+     <!-- The camera and the equipment, behind one button on the photo — phones only (the
+          strip of tabs under the photo is gone there). See #rmCam in the phone styles. -->
+     <button id="rmCam" type="button" title="Camera and equipment"><span aria-hidden="true">▣</span><span id="rmCamLab">${esc(ROOM_VIEWS[S.pview] ? ROOM_VIEWS[S.pview].label : 'Room')}</span><span aria-hidden="true">▾</span></button>
      <div id="rmFoot" class="absolute bottom-0 left-0 right-0 px-1.5 pb-1 pt-4 pointer-events-none" style="background:linear-gradient(transparent,rgba(0,0,0,.72))">
        <div class="rmHint text-center text-[9px] text-slate-300 uppercase tracking-widest font-bold mb-1" style="text-shadow:0 1px 3px rgba(0,0,0,.9)">${esc(view.hint)}</div>
        <div class="flex flex-wrap justify-center gap-1 pointer-events-auto">
@@ -9432,6 +9661,7 @@ function cinemaMetrics(){
   // and everything placed by measuring is measured again against the new geometry. The
   // monitor grows mid-code without a re-render (the CPR strip), so its size is watched.
   applyRoomHide();
+  try{ applyPhoneFold(); }catch(_){ }   // a resize across 768px puts the folding sections up or takes them down
   if(mb && window._monRoEl !== mb && typeof ResizeObserver === 'function'){
     if(window._monRo) window._monRo.disconnect();
     window._monRo = new ResizeObserver(roomLayoutLater); window._monRo.observe(mb); window._monRoEl = mb;
@@ -9680,6 +9910,9 @@ function placeRoomToggle(){
 // monitor is too tall for that — a small phone during a code — does the room yield, and
 // only by the pixels it is short, never below the old 15vh.
 function fitChartRoom(){
+  // With the folding sections up the chart is a section in the column, not a sheet over
+  // it, and the photo keeps its full width: nothing here to fit.
+  if(document.body.classList.contains('phoneFold')){ document.body.classList.remove('sheetFit'); return; }
   const b=document.body, st=b.style;
   const on = !!S.cinema && b.classList.contains('chartOpen') && !b.classList.contains('panelExpanded') &&
              mobileWorkspace() && innerHeight > 500;
@@ -9785,6 +10018,191 @@ function stackWall(){
     if(p.cap){ p.el.style.maxHeight=Math.floor(p.cap)+'px'; p.el.style.overflowY='auto'; }
   }
 }
+// ================================================================ THE PHONE: FOLDING SECTIONS
+// Kim, 2026-09-11 (see the stylesheet block of the same name for the measurements). On a
+// phone in the room, everything under the photo is a section with a one-line header:
+// Monitor · Orders · History · Results · Coach. Tap to open, tap to fold, one open at a
+// time — the switch is panelState().activePanel, which the phone already had for its lower
+// drawers; 'monitor' joined it. A new case opens the Monitor; a code opens the Orders.
+const FOLD_SECTIONS = [['monitor','Monitor'], ['orders','Orders'], ['history','History'], ['results','Results'], ['coach','Coach']];
+function phoneFoldWanted(){ return !!S.cinema && S.stage === 'play' && mobileWorkspace(); }
+function applyPhoneFold(){
+  const on = phoneFoldWanted();
+  const was = document.body.classList.contains('phoneFold');
+  document.body.classList.toggle('phoneFold', on);
+  if(!on){ document.body.style.removeProperty('--foldRoomW'); document.querySelectorAll('.foldHead, #phoneOrders').forEach(e=>e.remove()); return; }
+  // The open section's class must land with phoneFold, not a beat after it: the ECG canvas
+  // sizes itself to its box, and a box hidden for one frame gave a 1px trace.
+  // Arriving in this layout with nothing open (a resize from a desktop, mid-case): the
+  // Monitor opens, or the Orders during a code — the same starting states a phone gets.
+  if(!was){ const st = panelState();
+    if(S.code && !S.code.ended) st.activePanel = 'orders';          // a desktop's open chart does not outrank the code's actions
+    else if(!st.activePanel || st.activePanel === 'coach') st.activePanel = 'monitor';
+    applyPanel(); }
+  else paintFoldStack();
+}
+// Short portrait screens: with a section other than the Monitor open, the photo gives up
+// height until that section has 200px. Full width whenever that is not needed.
+function fitFoldRoom(){
+  const b = document.body, box = $('roomBox'), main = $('main');
+  b.style.removeProperty('--foldRoomW');
+  if(!b.classList.contains('phoneFold') || !box || !main) return;
+  if(matchMedia('(orientation:landscape) and (max-height:500px), (max-width:767px) and (max-height:719px)').matches) return;   // the headers are a row of tabs there; the photo stays full
+  const open = panelState().activePanel; if(!open || open === 'monitor' || open === 'coach') return;
+  const heads = [...document.querySelectorAll('.foldHead')].filter(h => getComputedStyle(h).display !== 'none')
+    .reduce((s, h) => s + h.getBoundingClientRect().height, 0);
+  const bar = $('obInputRow') ? $('obInputRow').getBoundingClientRect().height : 64;
+  const room = box.getBoundingClientRect();
+  const avail = innerHeight - room.top - room.height - heads - bar - 8;
+  const MIN = 200; if(avail >= MIN) return;
+  const h = Math.max(120, room.height - (MIN - avail));
+  b.style.setProperty('--foldRoomW', Math.round(h * ROOM_ASPECT) + 'px');
+}
+// The headers, as direct children of #main so they interleave with the panels by order.
+// renderPlay rebuilds #main, so they are re-created after every render; the Orders body
+// is rebuilt with them (the wall's chips are built the same way, per render).
+function paintFoldStack(){
+  const main = $('main'); if(!main || !document.body.classList.contains('phoneFold')) return;
+  const open = panelState().activePanel;
+  for(const [key, label] of FOLD_SECTIONS){
+    const id = 'fold' + label;
+    let h = $(id);
+    if(!h || h.parentElement !== main){
+      if(h) h.remove();
+      h = document.createElement('button'); h.type = 'button'; h.id = id; h.className = 'foldHead'; h.dataset.fold = key;
+      h.innerHTML = '<span class="foldLab">' + label + '</span><span class="foldSum"></span><span class="foldChev" aria-hidden="true">▾</span>';
+      h.onclick = () => { closeRoomMenu(); hideTypeahead(); setPanel(key); if(key === 'coach') paintCoach(); };
+      main.appendChild(h);
+    }
+    h.setAttribute('aria-expanded', String(open === key));
+    h.setAttribute('aria-controls', { monitor:'monBar', orders:'phoneOrders', history:'chat', results:'sideBar', coach:'coachPanel' }[key]);
+  }
+  const cmd = $('cmd'); if(cmd && !cmd.value) cmd.placeholder = 'Type an order or diagnosis';   // the long placeholder wrapped to two lines in a one-line box
+  let po = $('phoneOrders');
+  if(!po || po.parentElement !== main){
+    if(po) po.remove();
+    po = document.createElement('div'); po.id = 'phoneOrders'; po.setAttribute('aria-label', 'Orders');
+    main.appendChild(po);
+  }
+  if(open === 'orders' && (!po.dataset.key || po.dataset.key !== phoneOrdersKey())) paintPhoneOrders(po);
+  document.body.classList.toggle('coachAvail', typeof coachAvailable === 'function' && coachAvailable());
+  if(open === 'results') S.chartSeen = chartTotal();   // they are looking at it
+  paintFoldSummaries();
+  fitFoldRoom();
+  // The bar is a different height in this layout (the box on its own line): its reserve
+  // follows, and the photo fit is taken again against the settled bar (measured at
+  // 375x667: fitted against the old bar height the Orders list came out 160px, not 200).
+  requestAnimationFrame(() => { try{ measureDock(); fitFoldRoom(); }catch(_){ } });
+}
+// What the Orders section holds changes with the case's state: a code shows the algorithm,
+// ROSC swaps the shock ladder for post-arrest care, a prose case shows the sets and the list.
+function phoneOrdersKey(){
+  const c = S.code;
+  return [S.caseId || S.currentCaseId || '', c ? (c.ended || 'code') : 'prose', c ? c.rhythm : '', c ? (c.pulse ? 'p' : 'np') : ''].join('|');
+}
+function paintPhoneOrders(po){
+  po = po || $('phoneOrders'); if(!po) return;
+  po.dataset.key = phoneOrdersKey();
+  const group = (label, chips) => chips.length ? '<div class="foldGroup">' + label + '</div><div class="foldRow">' + chips.join('') + '</div>' : '';
+  const chip = (lab, order, tone) => consoleChip(lab, order, null, null, tone || 'border-slate-700 text-slate-200');
+  const parts = [];
+  if(codeAnswers()){
+    const g = codeChipGroups();
+    if(g){
+      parts.push(...codeClusterParts(g, (id, label, chips) => group(label, chips)));
+      if(g.callIt.length) parts.push(group('Call the rhythm', g.callIt.map(([lab, order]) => chip(lab, order, 'border-violet-500/40 text-violet-200'))));
+      if(g.causes.length) parts.push(group('Hs &amp; Ts', g.causes.map(([lab, order]) => chip(lab, order, 'border-amber-500/40 text-amber-200'))));
+    }
+    for(const name of ['Labs', 'Imaging', 'Consult / Dispo']) if(PALETTE[name]) parts.push(group(name, PALETTE[name].map(it => chip(it[0], it[1]))));
+  } else {
+    parts.push(group('Order sets — fill the basket', Object.entries(ORDER_SETS).map(([name, items]) =>
+      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' · ')) +
+      '" class="oset rounded-md border border-emerald-500/30 bg-emerald-500/10 font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
+      esc(name) + '<span class="mono ml-1 font-black text-emerald-500/70">' + items.length + '</span></button>')));
+    for(const [name, items] of Object.entries(PALETTE)) parts.push(group(name, items.map(it => chip(it[0], it[1]))));
+    for(const key of ['history', 'exam']){
+      const sec = SECTIONS[key]; if(!sec) continue;
+      parts.push(group(key === 'history' ? 'History &amp; reassessment' : 'Examination',
+        sec.items.map(it => chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1]))
+          .concat(key === 'history' ? [chip('Re-evaluate', 'Reassess the patient.', 'border-sky-500/40 text-sky-200')] : [])));
+    }
+  }
+  po.innerHTML = parts.join('');
+  wirePalChips(po);
+  po.querySelectorAll('.oset').forEach(b => b.onclick = () => basketAddSet(b.dataset.os));
+  if(S.code) try{ paintCodeStrip(); }catch(_){ }   // the drug chips' faces carry their live doses
+}
+// The one-line summaries on the folded headers. Cheap, and asked for after every paint
+// that could change one (vitals, the transcript, the code strip, the basket, the coach).
+let _foldSumRaf = 0;
+function foldSummaryLater(){
+  if(!document.body.classList.contains('phoneFold')) return;
+  cancelAnimationFrame(_foldSumRaf);
+  _foldSumRaf = requestAnimationFrame(paintFoldSummaries);
+}
+function paintFoldSummaries(){
+  const b = document.body; if(!b.classList.contains('phoneFold')) return;
+  const set = (label, text, fresh) => { const h = $('fold' + label); if(!h) return; const s = h.querySelector('.foldSum'); if(!s) return;
+    s.textContent = text || ''; s.classList.toggle('foldNew', !!fresh); };
+  const txt = id => { const e = $(id); return e ? e.textContent.replace(/\s+/g, ' ').trim() : ''; };
+  const open = panelState().activePanel;
+  // Monitor: the code strip in a code, the four numbers otherwise
+  if(S.code && !S.code.ended){
+    const chips = [...document.querySelectorAll('#codeStrip > div.flex.flex-wrap > *')].map(e => e.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    set('Monitor', chips.slice(0, 4).join(' · ') || 'Code running');
+  } else {
+    const hr = txt('v_hr'), bp = txt('v_bp'), o2 = txt('v_o2'), rr = txt('v_rr'), clock = txt('v_clock');
+    set('Monitor', ['HR ' + hr, 'BP ' + bp, 'SpO₂ ' + o2, 'RR ' + rr, clock].filter(x => !/\s(undefined|)$/.test(x)).join(' · '));
+  }
+  // Orders: what is waiting in the basket, or what the section holds
+  const n = (S.basket || []).length;
+  set('Orders', n ? n + ' waiting to submit' : (S.code && !S.code.ended ? 'Code actions, drugs, airway' : 'Order sets, tests, drugs, exam'), n > 0);
+  // History: the last thing anyone said
+  const last = (S.messages || []).filter(m => m.role === 'assistant').slice(-1)[0];
+  set('History', last ? String(last.content).replace(/\s+/g, ' ').trim().slice(0, 90) : 'Nothing said yet');
+  // Results: how many are waiting
+  const total = typeof chartTotal === 'function' ? chartTotal() : 0;
+  if(open === 'results') S.chartSeen = total;
+  const unseen = Math.max(0, total - (S.chartSeen || 0));
+  set('Results', unseen ? unseen + ' new result' + (unseen === 1 ? '' : 's') : (total ? total + ' on the chart' : 'Chart and results'), unseen > 0);
+  set('Coach', 'Hints and checkpoints');
+  b.classList.toggle('hasBasket', n > 0);
+  const cmd = $('cmd'); b.classList.toggle('typed', !!(cmd && cmd.value.trim()));   // the box is emptied by a submit with no input event
+  b.classList.toggle('coachAvail', typeof coachAvailable === 'function' && coachAvailable());
+  const lab = $('rmCamLab'); if(lab) lab.textContent = ROOM_VIEWS[S.pview] ? ROOM_VIEWS[S.pview].label : 'Room';
+}
+// The camera and the equipment, behind one button on the photo: the four cameras, then
+// the gear toggles — the same handlers the strip under the photo used to carry.
+function camMenu(ev){
+  closeRoomMenu();
+  const m = document.createElement('div');
+  m.className = 'roomMenu camMenu fixed z-[75] min-w-[170px] max-w-[16rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
+  const cams = ['room', 'foot', 'airway', 'bed'];
+  const label = k => ROOM_VIEWS[k] ? ROOM_VIEWS[k].label : (k === 'bed' ? 'BEDSIDE' : k.toUpperCase());
+  m.innerHTML = '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">Camera</div>' +
+    cams.map(k => '<button data-cam="' + k + '" aria-pressed="' + (S.pview === k) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(label(k)) + '</button>').join('') +
+    '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-t border-b border-slate-800">Equipment</div>' +
+    GEAR.map(g => '<button data-cgear="' + g.key + '" aria-pressed="' + !!(S.gear && S.gear[g.key]) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(g.label) + '</button>').join('');
+  document.body.appendChild(m);
+  const btn = $('rmCam'), r = btn ? btn.getBoundingClientRect() : null, pad = 6;
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.round(Math.max(pad, Math.min(r ? r.left : pad, innerWidth - w - pad))) + 'px';
+  m.style.top = Math.round(Math.max(pad, r ? r.top - h - 4 : pad)) + 'px';
+  m.querySelectorAll('[data-cam]').forEach(b => b.onclick = e => { e.stopPropagation(); closeRoomMenu();
+    if(b.dataset.cam === S.pview) return;
+    S.pview = b.dataset.cam; try{ localStorage.ms_pview = S.pview; }catch(_){ }
+    renderPatient();
+    if(b.dataset.cam === 'bed' && mobileWorkspace()){ panelState().activePanel = 'results'; applyPanel(); }
+  });
+  m.querySelectorAll('[data-cgear]').forEach(b => b.onclick = e => { e.stopPropagation(); closeRoomMenu();
+    S.gear[b.dataset.cgear] = !S.gear[b.dataset.cgear]; paintGear(); });
+  setTimeout(() => { document.addEventListener('click', _roomMenuAway, true); window.addEventListener('scroll', _roomMenuAway, true);
+    window.addEventListener('resize', _roomMenuAway); }, 0);
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest && e.target.closest('#rmCam'); if(!b) return;
+  e.preventDefault(); e.stopPropagation(); camMenu(e);
+}, true);
 let _roomLayoutRaf=0;
 function roomLayoutLater(){
   cancelAnimationFrame(_roomLayoutRaf);
@@ -10440,6 +10858,7 @@ function transcriptSpeechHTML(m){
   return `<div class="mt-3 pl-3 border-l-2 border-emerald-700/40 space-y-2 text-[13px] leading-relaxed text-slate-100">${rows.join('')}</div>`;
 }
 function renderChat(){
+  try{ foldSummaryLater(); }catch(_){ }   // the phone's folded History line shows the last thing said
   paintTicker();
   const c=$('chat'); if(!c) return;
   c.innerHTML=S.messages.map((m,i)=>{
