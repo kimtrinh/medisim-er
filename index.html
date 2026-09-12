@@ -1342,6 +1342,13 @@
   body.phoneFold #chat .text-xs, body.phoneFold #sideBar .text-xs, body.phoneFold #chat .text-sm, body.phoneFold #sideBar .text-sm,
   body.phoneFold #chat .text-\[13px\], body.phoneFold #sideBar .text-\[13px\]{font-size:14px!important}
   body.phoneFold #monBar .text-3xl{font-size:16px!important;line-height:1.2}
+  /* The monitor's sound button is a 22px icon on the corner of the trace. A 44px box there
+     would cover the newest part of the rhythm, so the icon stays small and its tap area
+     reaches 11px further on every side. */
+  body.phoneFold #soundBtn::after{content:'';position:absolute;inset:-11px}
+  /* one layer above the TREND label 2px beneath it (a status label, not a control), so the
+     enlarged tap area wins the few pixels where they overlap */
+  body.phoneFold #soundBtn{z-index:11!important}
   body.phoneFold #codeStrip > div.flex.flex-wrap{flex-wrap:wrap!important;overflow:visible!important}
   body.phoneFold #codeStrip > div.flex.flex-wrap > *{white-space:nowrap}
   /* the bottom bar: the box, Dx and Submit; + Add, the mic and Coach once there is
@@ -1385,7 +1392,12 @@
   .roomMenu.camMenu button[aria-pressed="true"]{color:#6ee7b7;background:rgba(16,185,129,.12)}
   /* landscape: the photo on the left, the column on the right, the bar under the column */
   @media (max-width:1023px) and (max-height:500px) and (orientation:landscape){
-    body.phoneFold{display:grid!important;grid-template-columns:min(48vw,var(--landRoomW)) minmax(0,1fr);
+    /* The photo's column. It was sized for the old stacked layout (28% of the height), which
+       left the patient ~200x110px in the corner with black space under it. With the
+       sections beside it the photo can take up to 40% of the width, bounded by the height
+       it has. */
+    body.phoneFold{--foldLandW:min(40vw, calc((100vh - var(--hdr,44px) - 16px) * var(--ra,1.791)))}
+    body.phoneFold{display:grid!important;grid-template-columns:var(--foldLandW) minmax(0,1fr);
       grid-template-rows:auto minmax(0,1fr);height:100vh;overflow:hidden}
     body.phoneFold header{grid-column:1/-1;grid-row:1}
     body.phoneFold #cinemaStage{grid-column:1;grid-row:2;align-self:start;overflow:visible}
@@ -1398,12 +1410,16 @@
     body.phoneFold.monitorOpen #ecgBox{display:flex!important;flex-direction:column!important;height:52px!important}
     body.phoneFold.monitorOpen #monMeta, body.phoneFold.monitorOpen #v_nextBar{display:flex!important}
     body.phoneFold.resultsOpen #sideBar{position:static!important;width:auto!important;height:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important}
-    body.phoneFold #orderBar > div.flex.items-end{left:calc(min(48vw,var(--landRoomW)) + .5rem)!important;padding:.3rem .5rem!important}
+    body.phoneFold #orderBar > div.flex.items-end{left:calc(var(--foldLandW) + .5rem)!important;padding:.3rem .5rem!important}
     body.phoneFold #cmd{min-height:44px;padding:.5rem .8rem!important}
     /* sideways the column is 640px wide: the box, Dx and Submit share one row (the
        two-row bar plus the vitals line left the open section 167px on a 390px screen) */
     body.phoneFold #obInputRow{flex-wrap:nowrap!important}
-    body.phoneFold #obInputRow > div.relative{flex:1 1 0!important;width:auto!important;min-width:0}
+    /* ...and the box gets the width, the buttons only their words (measured at 844x390: the
+       box was squeezed to ~160px and its placeholder wrapped while Dx and Submit each
+       stretched past 200px) */
+    body.phoneFold #obInputRow > div.relative{flex:1 1 auto!important;width:auto!important;min-width:0}
+    body.phoneFold #obInputRow > button{flex:0 0 auto!important;width:auto!important;min-width:5.5rem}
     body.phoneFold #obInputRow button, body.phoneFold #phoneOrders .pal, body.phoneFold #phoneOrders .oset, body.phoneFold .foldHead{min-height:44px}
   }
   /* THE HEADERS AS A ROW OF TABS. Five stacked 44px headers do not fit a short screen:
