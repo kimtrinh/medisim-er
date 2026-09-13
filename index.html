@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-8WgbtoAfKupy39wb2jFA8YHCrvKyIBIJV3jpKT+GsNs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-h26bF91HF5g4xXbhFQteWJk+WBsoIJSnX5po9zbmhjQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1281,6 +1281,13 @@
   body.phoneFold .foldHead .foldSum{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     font-size:14px!important;font-weight:600;color:#e2e8f0}
   body.phoneFold .foldHead .foldSum.foldNew{color:#6ee7b7}
+  /* THE RHYTHM STRIP, ALWAYS ON: the live ECG canvas sits in the Monitor header's slot
+     while the Monitor is folded (placeEcg), the summary beside it shortened to HR · BP */
+  .foldStrip, #foldStripRow{display:none}
+  body.phoneFold:not(.monitorOpen) #foldMonitor .foldStrip{display:block;flex:1 1 0;min-width:0;height:34px;margin:0 .1rem;
+    border-radius:6px;background:#020617;overflow:hidden}
+  body.phoneFold:not(.monitorOpen) #foldMonitor .foldSum{flex:0 1 auto;max-width:46%}
+  body.phoneFold .foldStrip > canvas, body.phoneFold #foldStripRow > canvas{width:100%!important;height:100%!important;display:block;flex:none!important}
   body.phoneFold .foldHead .foldChev{flex:none;font-size:12px!important;color:#64748b;transition:transform .2s}
   body.phoneFold .foldHead[aria-expanded="true"]{color:#6ee7b7;border-top-color:rgba(52,211,153,.4);background:rgba(6,78,59,.28)}
   body.phoneFold .foldHead[aria-expanded="true"] .foldLab{color:#6ee7b7}
@@ -1432,13 +1439,16 @@
     /* rows: the tabs, the vitals line (the Monitor tab's own summary, shown under the row
        whenever the Monitor is folded — the numbers must stay on screen with the chart or
        the orders open), the open section, the basket/feedback strip */
-    body.phoneFold #main{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:44px 22px minmax(0,1fr) auto;
+    body.phoneFold #main{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:44px 18px 34px minmax(0,1fr) auto;
       column-gap:2px;align-items:stretch;position:relative}
-    body.phoneFold.monitorOpen #main{grid-template-rows:44px 0 minmax(0,1fr) auto}
+    body.phoneFold.monitorOpen #main{grid-template-rows:44px 0 0 minmax(0,1fr) auto}
+    body.phoneFold #foldMonitor .foldStrip{display:none!important}
+    body.phoneFold:not(.monitorOpen) #foldStripRow{display:block;grid-column:1/-1;grid-row:3;height:34px;padding:1px .5rem;background:#020617;border-bottom:1px solid #1e293b}
+    body.phoneFold:not(.monitorOpen) #foldMonitor .foldSum{max-width:none}
     body.phoneFold:not(.coachAvail) #main{grid-template-columns:repeat(4,minmax(0,1fr))}
     body.phoneFold #foldMonitor{position:static}
-    body.phoneFold:not(.monitorOpen) #foldMonitor .foldSum{display:block!important;position:absolute;left:0;right:0;top:44px;height:22px;
-      line-height:22px;padding:0 .85rem;font-size:12px!important;color:#cbd5e1;background:rgba(2,6,23,.94);border-bottom:1px solid #1e293b;
+    body.phoneFold:not(.monitorOpen) #foldMonitor .foldSum{display:block!important;position:absolute;left:0;right:0;top:44px;height:18px;
+      line-height:18px;padding:0 .85rem;font-size:12px!important;color:#cbd5e1;background:rgba(2,6,23,.94);border-bottom:1px solid #1e293b;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
     body.phoneFold #foldMonitor{grid-area:1/1} body.phoneFold #foldOrders{grid-area:1/2} body.phoneFold #foldHistory{grid-area:1/3}
     body.phoneFold #foldResults{grid-area:1/4} body.phoneFold #foldCoach{grid-area:1/5}
@@ -1446,8 +1456,8 @@
     body.phoneFold .foldHead[aria-expanded="true"]{border-bottom-color:#34d399}
     body.phoneFold .foldHead .foldSum{display:none}
     body.phoneFold .foldHead .foldLab{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    body.phoneFold #monBar, body.phoneFold #chat, body.phoneFold #sideBar, body.phoneFold #phoneOrders{grid-column:1/-1;grid-row:3}
-    body.phoneFold #orderBar{grid-column:1/-1;grid-row:4}
+    body.phoneFold #monBar, body.phoneFold #chat, body.phoneFold #sideBar, body.phoneFold #phoneOrders{grid-column:1/-1;grid-row:4}
+    body.phoneFold #orderBar{grid-column:1/-1;grid-row:5}
     body.phoneFold #roomBox{width:100%!important}
   }
 </style>
@@ -10046,7 +10056,7 @@ function applyPhoneFold(){
   const on = phoneFoldWanted();
   const was = document.body.classList.contains('phoneFold');
   document.body.classList.toggle('phoneFold', on);
-  if(!on){ document.body.style.removeProperty('--foldRoomW'); document.querySelectorAll('.foldHead, #phoneOrders').forEach(e=>e.remove()); return; }
+  if(!on){ restoreEcg(); document.body.style.removeProperty('--foldRoomW'); document.querySelectorAll('.foldHead, #phoneOrders, #foldStripRow').forEach(e=>e.remove()); return; }
   // The open section's class must land with phoneFold, not a beat after it: the ECG canvas
   // sizes itself to its box, and a box hidden for one frame gave a 1px trace.
   // Arriving in this layout with nothing open (a resize from a desktop, mid-case): the
@@ -10086,7 +10096,8 @@ function paintFoldStack(){
     if(!h || h.parentElement !== main){
       if(h) h.remove();
       h = document.createElement('button'); h.type = 'button'; h.id = id; h.className = 'foldHead'; h.dataset.fold = key;
-      h.innerHTML = '<span class="foldLab">' + label + '</span><span class="foldSum"></span><span class="foldChev" aria-hidden="true">▾</span>';
+      h.innerHTML = '<span class="foldLab">' + label + '</span>' + (key === 'monitor' ? '<span class="foldStrip" aria-hidden="true"></span>' : '') +
+        '<span class="foldSum"></span><span class="foldChev" aria-hidden="true">▾</span>';
       h.onclick = () => { closeRoomMenu(); hideTypeahead(); setPanel(key); if(key === 'coach') paintCoach(); };
       main.appendChild(h);
     }
@@ -10094,6 +10105,9 @@ function paintFoldStack(){
     h.setAttribute('aria-controls', { monitor:'monBar', orders:'phoneOrders', history:'chat', results:'sideBar', coach:'coachPanel' }[key]);
   }
   const cmd = $('cmd'); if(cmd && !cmd.value) cmd.placeholder = 'Type an order or diagnosis';   // the long placeholder wrapped to two lines in a one-line box
+  let row = $('foldStripRow');
+  if(!row || row.parentElement !== main){ if(row) row.remove(); row = document.createElement('div'); row.id = 'foldStripRow'; row.setAttribute('aria-hidden', 'true'); main.appendChild(row); }
+  placeEcg();
   let po = $('phoneOrders');
   if(!po || po.parentElement !== main){
     if(po) po.remove();
@@ -10109,6 +10123,25 @@ function paintFoldStack(){
   // follows, and the photo fit is taken again against the settled bar (measured at
   // 375x667: fitted against the old bar height the Orders list came out 160px, not 200).
   requestAnimationFrame(() => { try{ measureDock(); fitFoldRoom(); }catch(_){ } });
+}
+// THE RHYTHM STRIP IS ALWAYS ON. Kim (2026-09-12): "you do not see the tracing ... the strip
+// is not visible and that is critical for that simulation." With the Monitor folded, the
+// live ECG canvas itself moves into the Monitor header's slot (or, where the headers are
+// tabs, into a slim row of its own) and moves back into the full display when the Monitor
+// opens. One canvas, the one the monitor draws on — always live, never drawn twice. Its
+// ResizeObserver refits and re-primes it on each move.
+function foldTabsMode(){ return matchMedia('(orientation:landscape) and (max-height:500px), (max-width:767px) and (max-height:719px)').matches; }
+function placeEcg(){
+  const ecg = $('ecg'); if(!ecg) return;
+  if(panelState().activePanel === 'monitor'){ restoreEcg(); return; }
+  const slot = foldTabsMode() ? $('foldStripRow') : document.querySelector('#foldMonitor .foldStrip');
+  if(!slot) return;
+  if(ecg.parentElement !== slot) slot.appendChild(ecg);
+}
+function restoreEcg(){
+  const ecg = $('ecg'), box = $('ecgBox'); if(!ecg || !box || ecg.parentElement === box) return;
+  const pl = $('pleth');
+  box.insertBefore(ecg, pl && pl.parentElement === box ? pl : null);
 }
 // What the Orders section holds changes with the case's state: a code shows the algorithm,
 // ROSC swaps the shock ladder for post-arrest care, a prose case shows the sets and the list.
@@ -10165,10 +10198,11 @@ function paintFoldSummaries(){
   // Monitor: the code strip in a code, the four numbers otherwise
   if(S.code && !S.code.ended){
     const chips = [...document.querySelectorAll('#codeStrip > div.flex.flex-wrap > *')].map(e => e.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
-    set('Monitor', chips.slice(0, 4).join(' · ') || 'Code running');
+    set('Monitor', (foldTabsMode() ? chips.slice(0, 4) : chips.slice(0, 2)).join(' · ') || 'Code running');
   } else {
     const hr = txt('v_hr'), bp = txt('v_bp'), o2 = txt('v_o2'), rr = txt('v_rr'), clock = txt('v_clock');
-    set('Monitor', ['HR ' + hr, 'BP ' + bp, 'SpO₂ ' + o2, 'RR ' + rr, clock].filter(x => !/\s(undefined|)$/.test(x)).join(' · '));
+    const all = ['HR ' + hr, 'BP ' + bp, 'SpO₂ ' + o2, 'RR ' + rr, clock].filter(x => !/\s(undefined|)$/.test(x));
+    set('Monitor', (foldTabsMode() ? all : all.slice(0, 2)).join(' · '));   // the trace takes the header's width; the tab-mode line has room for all
   }
   // Orders: what is waiting in the basket, or what the section holds
   const n = (S.basket || []).length;
