@@ -1,1 +1,35 @@
-{}
+{
+ "young-m": {
+  "leg-wound": {
+   "box": [
+    118,
+    338,
+    258,
+    531
+   ],
+   "bleeds": "pulsing"
+  }
+ },
+ "young-f": {
+  "leg-wound": {
+   "box": [
+    130,
+    341,
+    250,
+    505
+   ],
+   "bleeds": "pulsing"
+  }
+ },
+ "older-m": {
+  "leg-wound": {
+   "box": [
+    139,
+    347,
+    254,
+    487
+   ],
+   "bleeds": "pulsing"
+  }
+ }
+}
