@@ -1504,6 +1504,10 @@
           "label": "0.4 mg SL",
           "text": "0.4 mg sublingual",
           "default": true
+        },
+        {
+          "label": "100 mcg/min infusion",
+          "text": "100 mcg/min IV infusion"
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -1543,6 +1547,11 @@
         {
           "label": "5000 units",
           "text": "5000 units IV"
+        },
+        {
+          "label": "18 units/kg/hr infusion",
+          "text": "18 units/kg/hr IV infusion",
+          "perKg": 18
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -2116,8 +2125,6 @@
         "epi im",
         "epi iv push",
         "code dose epi",
-        "epi drip",
-        "epi gtt",
         "start epi",
         "epi auto injector",
         "1 to 1000 epi",
@@ -2221,6 +2228,10 @@
           "label": "0.1 units/kg/hr",
           "text": "at 0.1 units/kg per hour",
           "default": true
+        },
+        {
+          "label": "1 unit/kg/hr high-dose",
+          "text": "at 1 unit/kg per hour"
         }
       ],
       "sentence": "Start an {name} infusion {dose}."
@@ -2288,7 +2299,6 @@
         "opioid reversal",
         "evzio",
         "narcan iv",
-        "narcan drip",
         "narcan the patient",
         "intranasal narcan",
         "narcan 2mg",
@@ -2673,6 +2683,10 @@
         {
           "label": "4 g IV",
           "text": "4 g IV"
+        },
+        {
+          "label": "2 g/hr infusion",
+          "text": "2 g/hr IV infusion"
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -2747,6 +2761,10 @@
         {
           "label": "150 mg IV",
           "text": "150 mg IV"
+        },
+        {
+          "label": "1 mg/min infusion",
+          "text": "1 mg/min IV infusion"
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -2889,6 +2907,10 @@
         {
           "label": "20 mg IV",
           "text": "20 mg IV"
+        },
+        {
+          "label": "2 mg/min infusion",
+          "text": "2 mg/min IV infusion"
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -2924,6 +2946,10 @@
           "text": "0.5 mg/kg IV over 1 minute",
           "default": true,
           "perKg": 0.5
+        },
+        {
+          "label": "50 mcg/kg/min infusion",
+          "text": "50 mcg/kg/min IV infusion"
         }
       ],
       "sentence": "Give {name} {dose}."
@@ -5266,27 +5292,6 @@
       ]
     },
     {
-      "id": "procedure-pelvic-binder",
-      "label": "Pelvic Binder",
-      "category": "procedure",
-      "canonical": "pelvic binder",
-      "aliases": []
-    },
-    {
-      "id": "procedure-tourniquet",
-      "label": "Tourniquet",
-      "category": "procedure",
-      "canonical": "tourniquet",
-      "aliases": []
-    },
-    {
-      "id": "procedure-needle-decompression",
-      "label": "Needle Decompression",
-      "category": "procedure",
-      "canonical": "needle decompression",
-      "aliases": []
-    },
-    {
       "id": "procedure-blood-transfusion",
       "label": "Blood Transfusion",
       "category": "procedure",
@@ -6364,6 +6369,282 @@
       ]
     },
     {
+      "id": "med-naloxone-infusion",
+      "label": "Naloxone infusion",
+      "category": "med",
+      "canonical": "naloxone infusion",
+      "aliases": [
+        "naloxone drip",
+        "narcan drip",
+        "narcan infusion",
+        "naloxone gtt",
+        "narcan gtt",
+        "continuous naloxone",
+        "continuous naloxone infusion",
+        "start a naloxone drip",
+        "start naloxone infusion",
+        "naloxone continuous infusion"
+      ],
+      "doses": [
+        {
+          "label": "0.4 mg/hr",
+          "text": "at 0.4 mg/hr",
+          "default": true
+        },
+        {
+          "label": "0.8 mg/hr",
+          "text": "at 0.8 mg/hr"
+        }
+      ],
+      "sentence": "Start a {name} {dose}."
+    },
+    {
+      "id": "med-epinephrine-infusion",
+      "label": "Epinephrine infusion",
+      "category": "med",
+      "canonical": "epinephrine infusion",
+      "aliases": [
+        "epinephrine drip",
+        "epi drip",
+        "epi gtt",
+        "epi infusion",
+        "epinephrine gtt",
+        "adrenaline infusion",
+        "adrenaline drip",
+        "start an epi drip",
+        "start epi drip",
+        "continuous epinephrine",
+        "epinephrine continuous infusion"
+      ],
+      "doses": [
+        {
+          "label": "2 mcg/min",
+          "text": "at 2 mcg/min",
+          "default": true
+        },
+        {
+          "label": "5 mcg/min",
+          "text": "at 5 mcg/min"
+        },
+        {
+          "label": "10 mcg/min",
+          "text": "at 10 mcg/min"
+        },
+        {
+          "label": "0.05 mcg/kg/min",
+          "text": "at 0.05 mcg/kg/min"
+        },
+        {
+          "label": "0.1 mcg/kg/min",
+          "text": "at 0.1 mcg/kg/min"
+        }
+      ],
+      "sentence": "Start an {name} {dose}."
+    },
+    {
+      "id": "med-racemic-epinephrine",
+      "label": "Racemic epinephrine",
+      "category": "med",
+      "canonical": "racemic epinephrine",
+      "aliases": [
+        "nebulized epinephrine",
+        "nebulised epinephrine",
+        "epinephrine neb",
+        "epi neb",
+        "neb epi",
+        "racemic epi",
+        "racemic epinephrine nebulizer",
+        "racemic epi neb",
+        "nebulized adrenaline",
+        "adrenaline nebulizer",
+        "nebulized racemic epinephrine",
+        "vaponefrin"
+      ],
+      "doses": [
+        {
+          "label": "0.5 mL 2.25% neb",
+          "text": "0.5 mL nebulized",
+          "default": true
+        },
+        {
+          "label": "0.5 mL/kg 1:1000 neb (max 5 mL)",
+          "text": "0.5 mL/kg nebulized"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
+    },
+    {
+      "id": "med-dopamine-infusion",
+      "label": "Dopamine infusion",
+      "category": "med",
+      "canonical": "dopamine infusion",
+      "aliases": [
+        "dopamine",
+        "dopamine drip",
+        "dopa drip",
+        "dopamine gtt",
+        "start dopamine",
+        "hang dopamine",
+        "dopamine infusion"
+      ],
+      "doses": [
+        {
+          "label": "5 mcg/kg/min",
+          "text": "at 5 mcg/kg/min",
+          "default": true
+        },
+        {
+          "label": "10 mcg/kg/min",
+          "text": "at 10 mcg/kg/min"
+        },
+        {
+          "label": "20 mcg/kg/min",
+          "text": "at 20 mcg/kg/min"
+        }
+      ],
+      "sentence": "Start a {name} {dose}."
+    },
+    {
+      "id": "med-dobutamine-infusion",
+      "label": "Dobutamine infusion",
+      "category": "med",
+      "canonical": "dobutamine infusion",
+      "aliases": [
+        "dobutamine",
+        "dobutamine drip",
+        "dobutamine gtt",
+        "dobuta drip",
+        "start dobutamine",
+        "inotrope drip",
+        "dobutamine infusion"
+      ],
+      "doses": [
+        {
+          "label": "2.5 mcg/kg/min",
+          "text": "at 2.5 mcg/kg/min",
+          "default": true
+        },
+        {
+          "label": "5 mcg/kg/min",
+          "text": "at 5 mcg/kg/min"
+        }
+      ],
+      "sentence": "Start a {name} {dose}."
+    },
+    {
+      "id": "med-procainamide",
+      "label": "Procainamide",
+      "category": "med",
+      "canonical": "procainamide",
+      "aliases": [
+        "procainamide infusion",
+        "procainamide drip",
+        "procainamide load",
+        "pronestyl"
+      ],
+      "doses": [
+        {
+          "label": "20 mg/min IV",
+          "text": "20 mg/min IV infusion",
+          "default": true
+        },
+        {
+          "label": "17 mg/kg max",
+          "text": "17 mg/kg IV over 60 minutes",
+          "perKg": 17
+        }
+      ],
+      "sentence": "Give {name} {dose}."
+    },
+    {
+      "id": "med-prostaglandin",
+      "label": "Prostaglandin E1 infusion",
+      "category": "med",
+      "canonical": "prostaglandin",
+      "aliases": [
+        "pge1",
+        "pge1 infusion",
+        "alprostadil",
+        "prostaglandin infusion",
+        "prostin",
+        "prostaglandin e1"
+      ],
+      "doses": [
+        {
+          "label": "0.05 mcg/kg/min",
+          "text": "at 0.05 mcg/kg/min",
+          "default": true
+        },
+        {
+          "label": "0.1 mcg/kg/min",
+          "text": "at 0.1 mcg/kg/min"
+        }
+      ],
+      "sentence": "Start {name} {dose}."
+    },
+    {
+      "id": "med-lipid-emulsion",
+      "label": "Lipid emulsion",
+      "category": "med",
+      "canonical": "lipid emulsion",
+      "aliases": [
+        "intralipid",
+        "lipid rescue",
+        "20% lipid emulsion",
+        "intravenous lipid emulsion",
+        "lipid emulsion therapy",
+        "ile"
+      ],
+      "doses": [
+        {
+          "label": "1.5 mL/kg bolus",
+          "text": "1.5 mL/kg IV bolus",
+          "default": true,
+          "perKg": 1.5
+        },
+        {
+          "label": "0.25 mL/kg/min",
+          "text": "at 0.25 mL/kg/min"
+        }
+      ],
+      "sentence": "Give {name} {dose}."
+    },
+    {
+      "id": "procedure-pelvic-binder",
+      "label": "Pelvic Binder",
+      "category": "procedure",
+      "canonical": "pelvic binder",
+      "aliases": [
+        "bind the pelvis",
+        "pelvic binding",
+        "sheet binder",
+        "apply a pelvic binder"
+      ]
+    },
+    {
+      "id": "procedure-tourniquet",
+      "label": "Tourniquet",
+      "category": "procedure",
+      "canonical": "tourniquet",
+      "aliases": [
+        "apply a tourniquet",
+        "tourniquet the leg",
+        "tourniquet the arm",
+        "cat tourniquet"
+      ]
+    },
+    {
+      "id": "procedure-needle-decompression",
+      "label": "Needle Decompression",
+      "category": "procedure",
+      "canonical": "needle decompression",
+      "aliases": [
+        "needle thoracostomy",
+        "decompress the chest",
+        "finger thoracostomy"
+      ]
+    },
+    {
       "id": "procedure-targeted-temperature-management",
       "label": "Targeted temperature management",
       "category": "procedure",
@@ -7119,9 +7400,6 @@
         "needle the second intercostal space",
         "immediate decompression",
         "needle the chest now",
-        "needle decompression",
-        "needle thoracostomy",
-        "decompress the chest",
         "decompress the right chest",
         "14-gauge needle",
         "large bore needle chest",
@@ -9435,38 +9713,6 @@
       ]
     },
     {
-      "id": "ca-eb-dialysis-access-hemorrhage-1",
-      "label": "Escalate to a proximal tourniquet as a temporizing measure if pressure…",
-      "category": "procedure",
-      "canonical": "tourniquet",
-      "aliases": [
-        "tourniquet",
-        "proximal tourniquet",
-        "apply a tourniquet",
-        "tourniquet above the fistula",
-        "occlude proximally",
-        "tourniquet the arm",
-        "place tourniquet",
-        "put on tourniquet",
-        "tourniquet proximal to site",
-        "use tourniquet",
-        "get a tourniquet",
-        "tourniquet control",
-        "apply tq",
-        "place tq",
-        "tourniquet above site",
-        "put tourniquet on",
-        "escalate to a proximal tourniquet as a temporizing measure if pressure…"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "eb-dialysis-access-hemorrhage",
-          "action": 1
-        }
-      ]
-    },
-    {
       "id": "ca-eb-dialysis-access-hemorrhage-5",
       "label": "Monitor the access for thrombosis after hemostasis",
       "category": "exam",
@@ -9959,40 +10205,6 @@
         {
           "case": "eb-ductal-dependent-chd",
           "action": 1
-        }
-      ]
-    },
-    {
-      "id": "ca-eb-ductal-dependent-chd-2",
-      "label": "Start a prostaglandin E1",
-      "category": "med",
-      "canonical": "prostaglandin",
-      "aliases": [
-        "prostaglandin",
-        "prostaglandin e1",
-        "start pge1",
-        "alprostadil",
-        "prostaglandin infusion",
-        "pge-1 drip",
-        "start alprostadil",
-        "begin pge1",
-        "pge1 gtt",
-        "prostin",
-        "alprostadil infusion",
-        "start prostaglandin drip",
-        "commence pge1",
-        "initiate pge1",
-        "pge1 iv",
-        "prostaglandin gtt",
-        "start prostin",
-        "alprostadil drip",
-        "start a prostaglandin e1"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "eb-ductal-dependent-chd",
-          "action": 2
         }
       ]
     },
@@ -10496,41 +10708,6 @@
         {
           "case": "eb-severe-tbi",
           "action": 3
-        }
-      ]
-    },
-    {
-      "id": "ca-cv-adhf-cardiogenic-shock-2",
-      "label": "Initiate inotropic support",
-      "category": "med",
-      "canonical": "dobutamine",
-      "aliases": [
-        "dobutamine",
-        "milrinone",
-        "inotrope",
-        "inotropic support",
-        "start dobutamine",
-        "start milrinone",
-        "pressor for shock",
-        "start inotropes",
-        "give dobutamine",
-        "initiate milrinone",
-        "dobutamine drip",
-        "milrinone infusion",
-        "augment cardiac output",
-        "start pressors",
-        "inotropic therapy",
-        "pressors and inotropes",
-        "give inotrope",
-        "begin dobutamine",
-        "begin milrinone",
-        "initiate inotropic support"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "cv-adhf-cardiogenic-shock",
-          "action": 2
         }
       ]
     },
@@ -12733,42 +12910,6 @@
       ]
     },
     {
-      "id": "ca-trauma-pelvic-fracture-hemorrhage-0",
-      "label": "Apply a pelvic binder or circumferentially wrapped sheet at the level…",
-      "category": "procedure",
-      "canonical": "pelvic binder",
-      "aliases": [
-        "pelvic binder",
-        "apply a binder",
-        "wrap the pelvis",
-        "circumferential sheet wrap",
-        "binder at the trochanters",
-        "compress the pelvis with a binder",
-        "apply pelvic sheet",
-        "put on a binder",
-        "sheet around pelvis",
-        "stabilize the pelvis",
-        "binder now",
-        "emergent binder",
-        "wrap her pelvis",
-        "close the pelvis",
-        "apply binder stat",
-        "reduce pelvic volume",
-        "temporize with binder",
-        "pelvic stabilization",
-        "sheet wrap trochanters",
-        "apply a pelvic binder or circumferentially wrapped sheet at the level…",
-        "pelvic binder or circumferentially wrapped sheet"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "trauma-pelvic-fracture-hemorrhage",
-          "action": 0
-        }
-      ]
-    },
-    {
       "id": "ca-trauma-pelvic-fracture-hemorrhage-5",
       "label": "Reassess vitals",
       "category": "procedure",
@@ -14387,35 +14528,6 @@
       ]
     },
     {
-      "id": "ca-cv-complete-heart-block-4",
-      "label": "Start a chronotropic infusion",
-      "category": "med",
-      "canonical": "epinephrine infusion",
-      "aliases": [
-        "epinephrine infusion",
-        "dopamine",
-        "dopamine infusion",
-        "chronotropic drip",
-        "isoproterenol",
-        "adrenaline drip",
-        "start dopamine drip",
-        "dopamine gtt",
-        "pressors",
-        "hang dopamine",
-        "dopa drip",
-        "chronotropic support",
-        "start a chronotropic infusion",
-        "chronotropic infusion"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "cv-complete-heart-block",
-          "action": 4
-        }
-      ]
-    },
-    {
       "id": "ca-resp-scape-6",
       "label": "Reserve intubation for NIPPV failure",
       "category": "procedure",
@@ -15290,42 +15402,6 @@
       "for": [
         {
           "case": "neuro-lvo-stroke",
-          "action": 6
-        }
-      ]
-    },
-    {
-      "id": "ca-tox-tca-6",
-      "label": "Consider lipid emulsion/ECMO for refractory cardiotoxicity",
-      "category": "med",
-      "canonical": "lipid emulsion",
-      "aliases": [
-        "lipid emulsion",
-        "intralipid",
-        "lipid rescue",
-        "20% lipid emulsion",
-        "ecmo",
-        "extracorporeal life support",
-        "lipid infusion",
-        "start lipids",
-        "give lipid",
-        "lipid therapy",
-        "call ecmo",
-        "start ecmo",
-        "lipid bolus",
-        "fat emulsion",
-        "va ecmo",
-        "get ecmo",
-        "lipid resus",
-        "cannulate for ecmo",
-        "intralipid bolus",
-        "consider lipid emulsion/ecmo for refractory cardiotoxicity",
-        "lipid emulsion/ecmo"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "tox-tca",
           "action": 6
         }
       ]
@@ -16456,6 +16532,40 @@
         {
           "case": "resus-nrp-hypovolemic",
           "action": 7
+        }
+      ]
+    },
+    {
+      "id": "ca-eb-ductal-dependent-chd-3",
+      "label": "Anticipate PGE1-induced apnea",
+      "category": "procedure",
+      "canonical": "prepare for apnea",
+      "aliases": [
+        "prepare for apnea",
+        "have airway equipment ready",
+        "bag valve mask ready",
+        "intubation equipment at bedside",
+        "anticipate apnea",
+        "respiratory support ready",
+        "apnea precautions",
+        "bvm ready",
+        "intubation tray ready",
+        "airway cart nearby",
+        "be ready to intubate",
+        "have airway kit ready",
+        "prepare to bag",
+        "crash cart ready",
+        "airway equipment at hand",
+        "keep airway supplies ready",
+        "ready for intubation",
+        "have ambu bag ready",
+        "anticipate pge1-induced apnea"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-ductal-dependent-chd",
+          "action": 3
         }
       ]
     }

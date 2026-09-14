@@ -611,6 +611,11 @@ const MED_WORDS = ['aspirin','nitroglycerin','heparin','morphine','fentanyl','on
   'acetaminophen','ibuprofen','ceftriaxone','vancomycin','piperacillin','azithromycin','cefepime','meropenem',
   'doxycycline','metronidazole','albuterol','ipratropium','epinephrine','norepinephrine','insulin','dextrose',
   'naloxone','normal saline','lactated ringers','hypertonic','iv fluids','bolus','oxygen','non rebreather','magnesium',
+  // The infusion drugs Kim asked for (2026-09-13) are drugs the engine names, so a readback
+  // can follow the order ("Dopamine drip's running", not the authored "Epinephrine").
+  // Their search entries are hand-authored in lib/catalog-extract.cjs (with rates), which
+  // is why the base-table minter there skips these three.
+  'dopamine','dobutamine','procainamide',
   'potassium','amiodarone','adenosine','diltiazem','metoprolol','labetalol','esmolol','nicardipine',
   'hydralazine','furosemide','lasix','steroids','methylprednisolone','dexamethasone','prednisone',
   'tranexamic','alteplase','tenecteplase','ketamine','midazolam','lorazepam','propofol','etomidate',
@@ -752,19 +757,28 @@ const VOLUME_PHRASE_RE = /\b\d+(?:\.\d+)?\s*(?:ml|cc|l|liters?|litres?)\s*(?:\/\
 // Substituting is the fix rather than rewriting ten packs' prose, because the prose is
 // correct clinical teaching and only the name needs to follow the order.
 function readbackDrug(text, clause, aliasList){
-  // Only aliases that ARE a drug name on their own. Scanning every word of every alias
-  // pulled in "bolus" from "heparin bolus and drip" and produced "Heparin heparin given".
+  // Only aliases that ARE a drug name on their own, or that OPEN with one ("epinephrine
+  // drip", "dopamine infusion" — the drug is the head word). Scanning every word of every
+  // alias pulled in "bolus" from "heparin bolus and drip" and produced "Heparin heparin
+  // given"; the head word alone cannot — but "bolus" heads "bolus of 3% saline" and is a
+  // form, not a drug, so a head word must be a real name (six letters or more, the same
+  // cut tools_validate_packs.cjs's readback lint uses for its vocabulary; the lint mirrors
+  // this exact rule, so a speech line it accepts is one this function can correct).
   const pool = new Set();
   for(const a of (aliasList || [])){
     const na = normalize(a);
-    if(na && !na.includes(' ') && MED_WORD_SET.has(na)) pool.add(na);
+    const head = na.split(' ')[0];
+    if(head && head.length >= 6 && MED_WORD_SET.has(head)) pool.add(head);
   }
   if(pool.size < 2) return text;
   const ctoks = normalize(clause).split(' ');
   const said = [...pool].find(d => ctoks.includes(d));
   if(!said) return text;
   const lower = String(text).toLowerCase();
-  const written = [...pool].find(d => d !== said && lower.includes(d));
+  // Only a drug the doctor did NOT name is wrong in the readback. "3% hypertonic saline"
+  // names both pool words ("hypertonic", "saline"); swapping one for the other mangled
+  // the line ("3% saline hypertonic is in").
+  const written = [...pool].find(d => d !== said && !ctoks.includes(d) && lower.includes(d));
   if(!written) return text;
   return String(text).replace(new RegExp(written, 'gi'),
     m => (m[0] === m[0].toUpperCase() ? said.charAt(0).toUpperCase() + said.slice(1) : said));
@@ -1553,7 +1567,7 @@ const CLAUSE_FILLER = new Set(['a','an','the','of','to','for','on','in','at','wi
 // connective and timing words that only the fold may swallow. Reordering the alternatives is
 // safe: the pattern is anchored end to end and only ever used with .test(), so which branch
 // wins cannot change what matches.
-const DOSE_TOKEN_RE = new RegExp('^(' + AMOUNT_UNITS + '|kg|kilos?|kilograms?|%|percent|hours?|hrs?|h|min|mins|minutes?|sec|secs|seconds?|bolus|boluses|pushe?s?|drips?|gtt|infusions?|per|over|at|of|and|wide|open|rate|q\\d*h?)$');
+const DOSE_TOKEN_RE = new RegExp('^(' + AMOUNT_UNITS + '|kg|kilos?|kilograms?|%|percent|hours?|hrs?|h|min|mins|minutes?|sec|secs|seconds?|bolus|boluses|pushe?s?|drips?|gtt|infusions?|nebuli[sz]ed|neb|per|over|at|of|and|wide|open|rate|q\\d*h?)$');
 function unexplainedTokens(clause, aliasText){
   const covered = new Set(String(aliasText||'').split(' ').filter(Boolean));
   return clause.split(' ').filter(t => t && !covered.has(t) && !CLAUSE_FILLER.has(t)
@@ -1691,7 +1705,11 @@ function resolveOrders(action, catalog){
     // invent the friction.
     const peers = tied.filter(t => t.leftover === exactLeft && t.alias.length === (exactAlias||'').length);
     if(peers.length > 1){
-      peers.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+      // A dead heat between a composer entry (it carries doses) and a generated
+      // critical-action entry goes to the composer's: "epinephrine infusion" used to lose
+      // to ca-cv-complete-heart-block-4 on id order and send a rate-less canonical.
+      const rank = t => (t.doses && t.doses.length ? 0 : 1) + (/^ca-/.test(t.id) ? 2 : 0);
+      peers.sort((a, b) => (rank(a) - rank(b)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       exact = candidates.find(e => e.id === peers[0].id) || exact;
       exactAlias = peers[0].alias;
     }
@@ -1793,6 +1811,23 @@ function enforceReadRules(rep){
     return {...rep, body: note};
   }
   return rep;
+}
+// What is in the patient when a film is taken. Kim (2026-09-13): "when I intubate a
+// patient and ask for chest x-ray, it still shows a chest x-ray before the intubation."
+// There is no post-intubation film in the library and none is generated — the reviewed
+// image stays. The REPORT carries the devices, and only NAMES them: a chest X-ray gives
+// no read (enforceReadRules above), so a position ("2 cm above the carina") would be a
+// finding, and the film gives none. "In place" is all it says. Wording is in
+// docs/film-device-lines-for-review.md. Chest films only; a head CT never grows a tube.
+const FILM_DEVICE_LINES = [['ett', 'endotracheal tube in place'], ['cvc', 'central venous catheter in place'], ['chestTube', 'chest tube in place']];
+function deviceSig(devices){ return FILM_DEVICE_LINES.filter(([k]) => devices && devices[k]).map(([k]) => k).join('+'); }
+function filmDeviceLines(rep, devices){
+  const t = ((rep.image && rep.image.type) || '').toLowerCase();
+  if(t !== 'cxr') return rep;
+  const lines = FILM_DEVICE_LINES.filter(([k]) => devices && devices[k]).map(([, line]) => line);
+  if(!lines.length) return rep;
+  const body = String(rep.body || '').trim().replace(/\.$/, '');
+  return {...rep, body: (body ? body + ' — ' : '') + lines.join('; ') + '.'};
 }
 // Normal ranges by analyte name, for repeat-lab physiology: improvement STOPS at
 // the range edge (a round-5 playtest watched sodium compound 116→195, each step
@@ -1969,6 +2004,35 @@ const NURSING_ACTIONS = [
   {re:/mark (the )?(margins?|borders?|erythema|redness)|margins? marked/, text:'Margins marked and timed — we\'ll watch for spread.'},
   {re:/nasal cannula|blow by|face ?mask|liters? (of )?oxygen|oxygen at \d|supplemental oxygen/, text:'Oxygen\'s on — watching the sat.', o2:3},
 ];
+// A re-evaluation after a treatment says what the treatment bought. Kim (2026-09-13):
+// "when I ask for a re-evaluation after giving an intervention, it should reflect the
+// response." The numbers at the moment of the last treatment are kept on the state
+// (noteTreatment, from every med/procedure path); the re-eval compares the live set to
+// them and says what moved — or that nothing did, which is the honest answer and not a
+// response invented for the order's sake. During a live code the code engine already
+// says this (opts.responseNote), so this line steps aside for it.
+// A re-evaluation of the PATIENT — not a lab recheck ("recheck the potassium" is a lab).
+const REASSESS_RE = /\bre-?(assess|evaluat|examin)|\b(check|evaluate|assess) (the |his |her )?(response|patient)\b|\bhow is (he|she|the patient) (doing|now)\b/i;
+const LIVE_NUMBERS = [['hr', 'HR', 1, 5], ['bpSystolic', 'systolic', 1, 8], ['rr', 'RR', 1, 3], ['o2', 'sat', 1, 2], ['temp', 'temp', 10, 0.4]];
+function liveNumbers(v){
+  return `HR ${Math.round(v.hr||0)}, BP ${Math.round(v.bpSystolic||0)}/${Math.round(v.bpDiastolic||0)}, RR ${Math.round(v.rr||0)}, sat ${Math.round(v.o2||0)}%, temp ${(+(v.temp||37)).toFixed(1)}`;
+}
+function noteTreatment(state, clause, opts){
+  state.lastTx = { minute: state.simMinNow, label: String(clause || '').trim(), vitals: {...((opts && opts.vitals) || {})} };
+}
+function sinceTreatment(state, v){
+  const tx = state && state.lastTx;
+  if(!tx || !tx.vitals) return '';
+  const moved = [];
+  for(const [key, name, scale, min] of LIVE_NUMBERS){
+    const a = +tx.vitals[key], b = +v[key];
+    if(!isFinite(a) || !isFinite(b) || Math.abs(b - a) < min) continue;
+    const fmt = x => scale === 10 ? (+x).toFixed(1) : Math.round(x);
+    moved.push(`${name} ${fmt(a)}${key === 'o2' ? '%' : ''} to ${fmt(b)}${key === 'o2' ? '%' : ''}`);
+  }
+  const when = `"${tx.label}" at T+${tx.minute}`;
+  return moved.length ? ` Since ${when}: ${moved.join(', ')}.` : ` No change in the numbers since ${when}.`;
+}
 function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
   // THE RAW WORDING RIDES ALONG HERE TOO. This called classifyIntent with one argument while
   // findSolo three lines down was already being handed `rawClause` — so the fallback classified
@@ -2044,7 +2108,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
                              worsening:'Slipping — this set is worse than the last one.',
                              critical:'Not holding — this is getting critical.' })[(opts && opts.trend) || 'stable']
                           || 'Holding steady since the last set.';
-        const reevalLine = `${lead} — HR ${Math.round(v.hr||0)}, BP ${Math.round(v.bpSystolic||0)}/${Math.round(v.bpDiastolic||0)}, RR ${Math.round(v.rr||0)}, sat ${Math.round(v.o2||0)}%, temp ${(+(v.temp||37)).toFixed(1)}. ${trendLine}` + (opts && opts.responseNote ? ' '+opts.responseNote : '');
+        const reevalLine = `${lead} — ${liveNumbers(v)}. ${trendLine}` + (opts && opts.responseNote ? ' '+opts.responseNote : sinceTreatment(state, v));
         fb.speech.push({speaker:'nurse', text:reevalLine});
         // The transcript renders `narrative`; `speech` is only voiced, and the room
         // bubble clips at 90 characters — which lands exactly on the trend sentence.
@@ -2273,12 +2337,19 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
     // names a missing order: on the 167 cases with no authored consult gate, that sentence
     // would come straight off the case's own critical-action list and hand the player the
     // answer they are being graded on.
-    const accepted = !!(state && (state.assessments || [])
-      .some(a => matchesDiagnosis(a.text || a.clause || '', opts.diagnosis)));
+    const onChart = assessView(state);
+    const accepted = onChart.some(a => diagnosisGrade(a.text || a.clause || '', opts.diagnosis) !== 'wrong');
     let line;
     if(accepted){
       line = `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`;
       if(state) state.consultWaiting = null;
+    } else if(onChart.length){
+      // A diagnosis IS in the box. Kim: "the consultant still asked me for diagnosis, even
+      // though it's already put in the diagnosis box." Never say the box is empty: name what
+      // it holds and ask for another look. Still not graded out loud.
+      const lastSaid = String(onChart[onChart.length - 1].text || '').replace(ASSESS_FRAME_RE, '').trim();
+      line = `${Svc} — I see "${lastSaid}" in the box; that isn't what I'd call this from the chart. Have another look.`;
+      if(state) state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
     } else {
       // "Called again" is read off consultWaiting, not off a permanent "ever consulted"
       // flag — a service consulted once and accepted, then called again, is not "still
@@ -2304,7 +2375,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       const svcW = state.consultWaiting.service || 'the consultant';
       const SvcW = svcW.charAt(0).toUpperCase() + svcW.slice(1);
       const said = String(rawClause || clause || '');
-      if(matchesDiagnosis(said, opts.diagnosis)){
+      if(diagnosisGrade(said, opts.diagnosis) !== 'wrong'){
         fb.speech.push({speaker:'consultant', repeat: true,
           text: `${SvcW} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`});
         state.consultWaiting = null;
@@ -2741,9 +2812,9 @@ function consultGateDecision(gate, state, diagnosis){
   // default (1) is exactly the old dxOk test: some assessment matches some part of dx.
   const dxWanted = Number.isInteger(gate.dxParts) && gate.dxParts > 0 ? gate.dxParts : 1;
   const named = new Set();
-  for(const a of ((state && state.assessments) || []))
+  for(const a of assessView(state))
     for(const p of diagnosisParts(diagnosis))
-      if(a && matchesDiagnosis(a.text || a.clause || '', p)) named.add(p.toLowerCase());
+      if(a && diagnosisGrade(a.text || a.clause || '', p) !== 'wrong') named.add(p.toLowerCase());
   const needDx = named.size < dxWanted;
   // A state the case has not reached — no ROSC, still in the arrhythmia — is a reason of
   // its own, and carries its OWN authored sentence. Borrowing a need's words instead would
@@ -2813,6 +2884,58 @@ function matchesDiagnosis(text, dx){
     if(hit / want.size >= 2/3) return true;
   }
   return false;
+}
+// CLOSE ENOUGH TO TAKE THE PATIENT. Kim (2026-09-13): "I already put in a diagnosis in the
+// diagnosis box, but the consultant still asked me for diagnosis." The consultant judged
+// by matchesDiagnosis alone, and 148 of 172 cases reject the head word of their own answer
+// ("stroke" for an LVO stroke, "sepsis" for septic shock). Decided with Kim: the head word
+// of the case's own answer counts — the consultant accepts it and takes the patient; the
+// full phrasing still earns full credit in the debrief, a close one is graded "close".
+// Close = every significant word said is in the gold part (after a small morphology map),
+// and at least one of them is a specific word of it — a generic word alone (shock, arrest,
+// failure, overdose…) never answers anything.
+const DX_MORPH = [
+  ['sepsis','septic'], ['anaphylaxis','anaphylactic'], ['opiate','opioid','narcotic','opiates','opioids'],
+  ['cva','stroke'], ['ischaemic','ischemic'], ['haemorrhage','hemorrhage','haemorrhagic','hemorrhagic'],
+  ['ketoacidosis','dka'], ['anaemia','anemia'], ['oedema','edema'], ['tumour','tumor'],
+  ['appendicitis','appendix'], ['pneumothoraces','pneumothorax'], ['embolus','embolism','emboli'],
+  ['infarct','infarction'], ['overdose','od','poisoning','toxicity','ingestion'],
+];
+const DX_GENERIC_HEAD = new Set(['shock','arrest','failure','overdose','poisoning','toxicity','ingestion','injury','injuries',
+  'infection','syndrome','disease','disorder','crisis','bleed','bleeding','hemorrhage','haemorrhage','fracture','fractures',
+  'obstruction','reaction','emergency','event','episode','attack','distress','insufficiency','dysfunction','tachycardia',
+  'bradycardia','arrhythmia','effusion','mass','pain','trauma','wound','burn','burns','exposure','withdrawal','state','status']);
+const DX_QUALIFIER = new Set(['acute','chronic','severe','mild','moderate','suspected','probable','likely','possible','early','late',
+  'right','left','bilateral','type','stanford','grade','new','primary','secondary','isolated','simple','complicated','uncomplicated']);
+function dxMorph(w){ for(const g of DX_MORPH) if(g.includes(w)) return g[0]; return w; }
+function dxWords(s){
+  return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/)
+    .filter(w => w.length > 1 && !DX_QUALIFIER.has(w) && !MO_STOP.has(w)).map(dxMorph);
+}
+function diagnosisClose(text, dx){
+  const said = dxWords(String(text || '').replace(ASSESS_FRAME_RE, ''));
+  if(!said.length) return false;
+  for(const part of diagnosisParts(dx)){
+    const want = dxWords(part); if(!want.length) continue;
+    // every word said belongs to this part, and at least one of them is a SPECIFIC word
+    // of it (not shock/arrest/failure/overdose…): "sepsis" answers "septic shock", "shock"
+    // does not; "cardiogenic shock" does not either — "cardiogenic" is not in it.
+    if(!said.every(w => want.includes(w))) continue;
+    if(!said.some(w => !DX_GENERIC_HEAD.has(w))) continue;
+    return true;
+  }
+  return false;
+}
+// 'correct' (matchesDiagnosis, unchanged), 'close' (the head word), or 'wrong'.
+function diagnosisGrade(text, dx){
+  if(matchesDiagnosis(text, dx)) return 'correct';
+  return diagnosisClose(text, dx) ? 'close' : 'wrong';
+}
+// Every diagnosis on the chart, plus the ones committed earlier in THIS turn: a diagnosis
+// and a consult signed together in one basket used to be invisible to each other, because
+// assessments are filed at the end of the turn.
+function assessView(state){
+  return ((state && state.assessments) || []).concat((state && state.pendingAssessments) || []);
 }
 function coveredByMet(opportunity, metTexts){
   const o = moTokens(opportunity);
@@ -3195,10 +3318,12 @@ function buildDebrief(pack, state, opts, outcome){
     criticalActionsMet: metS,
     criticalActionsMissed: missedS,
     // The reasoning arc, and the only place correctness is ever revealed.
-    workingDiagnosis: (state.assessments || []).map(a => ({ text: a.text, minute: a.minute, correct: !!a.correct })),
+    workingDiagnosis: (state.assessments || []).map(a => ({ text: a.text, minute: a.minute, correct: !!a.correct, close: !!a.close })),
     dxNotes: (state.dxHeld || []).slice(),
+    // correct beats close beats wrong: the best read on the chart is the grade
     dxCalled: (state.assessments || []).length
-      ? ((state.assessments || []).some(a => a.correct) ? 'correct' : 'wrong')
+      ? ((state.assessments || []).some(a => a.correct) ? 'correct'
+         : (state.assessments || []).some(a => a.close) ? 'close' : 'wrong')
       : null,
     dxFirstCorrect: !!((state.assessments || [])[0] || {}).correct,
     criticalEvents: metAll.map(i=>({event:CA[i],
@@ -3518,7 +3643,8 @@ function runTurn(pack, state, action, opts){
     const emptyFrame = intent === 'assessment' && !framedBody;   // fallbackFor asks for it
     const diagnosisClause = intent === 'assessment' && !emptyFrame && !PLAN_PHRASE_RE.test(clause)
       && !LEADING_ORDER_RE.test(framedBody);
-    if(diagnosisClause) committed.push({ clause, matchedAssessment: false });
+    if(diagnosisClause){ committed.push({ clause, matchedAssessment: false });
+      state.pendingAssessments = committed.map(c => ({ text: c.clause })); }
     // One trace row per clause. matchScore is a pure function of (responder, tokens),
     // so recomputing it here returns exactly the value matchResponders selected on.
     const tc = trace ? {text:clause, matched:[], scores:[], viaCatalog, gated: gated.slice(),
@@ -3619,7 +3745,7 @@ function runTurn(pack, state, action, opts){
       } else {
         const svc = state.consultWaiting.service;
         const Svc = svc.charAt(0).toUpperCase()+svc.slice(1);
-        const accepted = matchesDiagnosis(clause, opts.diagnosis);
+        const accepted = diagnosisGrade(clause, opts.diagnosis) !== 'wrong';
         const line = accepted
           ? `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`
           : `${Svc} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`;
@@ -3656,7 +3782,12 @@ function runTurn(pack, state, action, opts){
         // treatment) and different findings. Skipping it here would drop the very answer
         // the variant exists to give: scan, decompress, scan again, and the second scan
         // fell through to a generic negative FAST.
-        if(!reorderVerb && !r0.when && !(Number.isInteger(r0.satisfies) && !state.satisfied.includes(r0.satisfies))){
+        // Nor is a film taken after something went INTO the patient: a chest X-ray
+        // re-ordered after the tube is a different film (its report names the tube), and
+        // skipping it here sent the bare re-order to the generic normal film instead.
+        const devSig = deviceSig(opts && opts.devices);
+        const filmChanged = (r0.diagnosticReports || []).some(rep => rep.image && state.filmDevices && rep.title in state.filmDevices && state.filmDevices[rep.title] !== devSig);
+        if(!reorderVerb && !r0.when && !filmChanged && !(Number.isInteger(r0.satisfies) && !state.satisfied.includes(r0.satisfies))){
           const rows = r0.labResults || [], reps = r0.diagnosticReports || [];
           const allRows = rows.length && rows.every(l => state.labsSeen[canonLabName(l.name)] || state.labsSeen[l.name]);
           const allReps = reps.length && reps.every(rep => state.reportsSeen[rep.title]);
@@ -3755,7 +3886,14 @@ function runTurn(pack, state, action, opts){
         if(r0.intent === 'assessment' && diagnosisClause
            && committed.length && committed[committed.length-1].clause === clause)
           committed[committed.length-1].matchedAssessment = true;
-        if(r0.intent === 'med' || r0.intent === 'procedure'){ state.medCount++; if(!withheld) recordMedGiven(state, clause, opts.catalog); }
+        if(r0.intent === 'med' || r0.intent === 'procedure'){ state.medCount++; if(!withheld){ recordMedGiven(state, clause, opts.catalog); noteTreatment(state, clause, opts); } }
+        // A case's own hand-written re-evaluation line answers with fixed prose (28 of
+        // them, listed in docs/reassess-lines-for-review.md) — it never carried the
+        // numbers on the monitor or what moved since the treatment. Those ride along.
+        if(REASSESS_RE.test(clause) && ((r0.match && r0.match.any) || []).some(a => REASSESS_RE.test(a)) && !(opts && opts.responseNote)){
+          const v = (opts && opts.vitals) || {};
+          reevalNarr += (reevalNarr ? ' ' : '') + `On the monitor — ${liveNumbers(v)}.` + sinceTreatment(state, v);
+        }
         if(r0.intent === 'consult'){
           // The accepting consultant remembers being called — a pack-responder
           // contact previously left `consulted` unset and the callback restarted
@@ -3898,7 +4036,7 @@ function runTurn(pack, state, action, opts){
         out.dosingFlags.push(...fb2.dosingFlags);
         if(fb2._narrative) reevalNarr += (reevalNarr?' ':'') + fb2._narrative;
         anyApplied = true;
-        if(fb2.intent === 'med' || fb2.intent === 'procedure'){ state.medCount++; if(!withheld) recordMedGiven(state, clause, opts.catalog); }
+        if(fb2.intent === 'med' || fb2.intent === 'procedure'){ state.medCount++; if(!withheld){ recordMedGiven(state, clause, opts.catalog); noteTreatment(state, clause, opts); } }
         minutes = Math.max(minutes, fb2._minutes || 3);
       }
       // A consult-shaped clause deserves a live consultant: when its matches are
@@ -3946,7 +4084,7 @@ function runTurn(pack, state, action, opts){
       out.dosingFlags.push(...fb.dosingFlags);
       if(fb._narrative) reevalNarr += (reevalNarr?' ':'') + fb._narrative;
       anyApplied = true;
-      if(!withheld && (fb.intent === 'med' || fb.intent === 'procedure')){ state.medCount++; recordMedGiven(state, clause, opts.catalog); }
+      if(!withheld && (fb.intent === 'med' || fb.intent === 'procedure')){ state.medCount++; recordMedGiven(state, clause, opts.catalog); noteTreatment(state, clause, opts); }
       // The player deserves to know what the sim never understood — an order that
       // drew only filler earned no effect and no credit, and until now that fact
       // was invisible. Collected here, surfaced in the debrief.
@@ -4067,10 +4205,19 @@ function runTurn(pack, state, action, opts){
     if(score > repeatRowScore){ repeatRowScore = score; repeatRow = {name:l.name, value:String(v), unit:l.unit}; }
     return {...l, value:String(v), flag, repeat:true};
   });
-  // Re-ordered studies replace their old card instead of duplicating it.
-  out.diagnosticReports = out.diagnosticReports.map(rep => {
-    if(state.reportsSeen[rep.title]) return {...rep, repeat:true};
-    state.reportsSeen[rep.title] = true; return rep;
+  // Re-ordered studies replace their old card instead of duplicating it. A chest film
+  // names what is in the patient (filmDeviceLines); a film taken again says when, so
+  // the card that replaces the first one reads as the later film and not a reprint.
+  state.filmDevices = state.filmDevices || {};
+  const devSigNow = deviceSig(opts && opts.devices);
+  out.diagnosticReports = out.diagnosticReports.map(rep0 => {
+    const rep = filmDeviceLines(rep0, opts && opts.devices);
+    const seen = !!state.reportsSeen[rep.title];
+    state.reportsSeen[rep.title] = true;
+    if(rep.image) state.filmDevices[rep.title] = devSigNow;
+    if(!seen) return rep;
+    const at = state.simMinNow;
+    return rep.image ? {...rep, repeat:true, repeatAt: at, body: `Repeat film at T+${at} min. ` + String(rep.body || '')} : {...rep, repeat:true};
   });
   // One order can legitimately reach the same responder twice (a multi-clause
   // line where both clauses match it, an assessment riding along) — the
@@ -4127,9 +4274,12 @@ function runTurn(pack, state, action, opts){
   out.simMinutes = minutes;
   // Correctness is decided here and never revealed: the debrief is the only place
   // the player learns whether the read was right.
-  for(const c of committed)
+  for(const c of committed){
+    const grade = c.matchedAssessment ? 'correct' : diagnosisGrade(c.clause, opts.diagnosis);
     state.assessments.push({ text: c.clause, minute: (opts.simMin||0) + minutes,
-                             correct: c.matchedAssessment || matchesDiagnosis(c.clause, opts.diagnosis) });
+                             correct: grade === 'correct', close: grade === 'close' });
+  }
+  state.pendingAssessments = [];
   // The transcript renders `narrative`; `speech` is only voiced. An acknowledgement
   // that lives solely in speech is audible but invisible, so a player who committed
   // to a diagnosis read the generic "the team moves on it" and still felt ignored.
@@ -4407,7 +4557,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
   statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
-  runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis,
+  runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
   consultAdmits,   // does this checklist action's own text say the consult IS the admission
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
