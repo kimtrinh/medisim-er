@@ -199,8 +199,13 @@ function setPaused(session, on){
 // values, the receipts decide what is already credited, and the code state decides whether
 // there is a pulse. A checkpoint that restored only the clock would replay differently and
 // look like a simulator bug.
+// 'motion' is the patient PICTURE's own state (when the bleed started, whether it has been
+// controlled, whether the patient is fitting) — a plain object, so clone() handles it. Without
+// it a rewind to before the tourniquet left the wound looking controlled, which is the one
+// thing a rewind is for: putting the player back in front of the decision.
 const CHECKPOINT_KEYS = ['instantState', 'code', 'simMin', 'trend', 'vitals', 'shown',
-                         'receipts', 'labs', 'reports', 'timeline', 'messages', 'diagnosisHeld'];
+                         'receipts', 'labs', 'reports', 'timeline', 'messages', 'diagnosisHeld',
+                         'motion'];
 
 function clone(v){
   if(v === undefined) return undefined;

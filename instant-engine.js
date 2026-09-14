@@ -4553,6 +4553,9 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   MED_WORDS, PROCEDURE_WORDS, CONSULT_SERVICES,
   classifyIntent, matchResponders, findImaging, findPanel, findSolo,
   RECOGNIZE_RE, ABSTAIN_RE,   // eval harness scores only ACTIONABLE critical actions
+  // One definition of "the player is NOT doing this", shared with the app: the patient
+  // picture must not treat "no tourniquet yet" as a tourniquet applied.
+  WITHHOLD_RE,
 
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
   statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment

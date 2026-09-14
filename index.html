@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ejsFhOF2w+cvcLeIx89F1GEvJqFblPbkDktTmaE73S8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-IazH9vk8ijLCtx8oC9VoMBsiuvCaPtoFQGK0jJ2jWNk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -2895,7 +2895,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false;
     S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, caps: runCaps(), goldId: null,
@@ -3113,6 +3113,7 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined});
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(action+' '+(r.narrative||''));                      // hook equipment the orders placed
+    motionHook(action);                                              // …and the picture: a tourniquet stops the bleed throbbing. THE ORDER ONLY — a narrative saying the bleeding stopped is not the player stopping it
     roomAutoState(action, r._trace);                                 // …confirmed actions drive the room props too
     if(codeActive()) applyCodeVitals();
     else { S.vitals = normVitals(r.updatedVitals); S.vBase={...S.vitals}; }
@@ -4683,6 +4684,10 @@ function stopCodeTicker(){ clearInterval(_codeTimer); _codeTimer = null; }
 function applyCodeVitals(){
   const c = S.code; if(!c) return;
   S.simMin = c.t / 60;
+  // The sim clock just moved, and during an arrest no turn moved it — so the bleed clock is
+  // accounted here as well as in motionHook, or every pulseless minute of the resuscitation
+  // would land on the pool the instant a pulse came back.
+  accrueBleedClock();
   const t = (S.vitals && S.vitals.temp) || 36.5;
   S.vitals = normVitals({ hr:c.hr, bpSystolic:c.bpSys, bpDiastolic:c.bpDia, rr:c.rr, o2:c.spo2,
                           temp:t, rhythm:codeRhythmLabel(c.rhythm) });
@@ -5084,6 +5089,9 @@ function fireCodeOrder(text, label){
   const r = CodeEngine.act(S.code, S.codeScript, text,
     Math.max(0, ((S.simMin || 0) - (S.codeStartMin || 0)) * 60));
   if(!r || !r.handled) return false;
+  // A traumatic arrest is exactly where the tourniquet gets ordered, and a code order is
+  // claimed here and never reaches progress() — so the picture is hooked on this path too.
+  motionHook(text);
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
   const outcome = codeOutcome(before, S.code, r);
@@ -6549,11 +6557,14 @@ async function loadGoldCase(seed, opts){
   S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
   startCoachSession();
   try{ resetRoomActionTimers(); }catch(_){ }
-  S.gear=gearDefaults(); S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
+  S.gear=gearDefaults(); S.motion=null; S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
   document.body.classList.remove('roomHide'); try{ applyRoomHide(); }catch(_){ }   // a new patient starts with everything showing
   // ...and, on a phone, with the Monitor open and the other sections folded (Kim's choice).
   if(mobileWorkspace()){ panelState().activePanel = 'monitor'; panelState().expanded = false; }
   stopCodeTicker(); S.code=null; S.codeScript=null;   // any previous case's code is over
+  // The finding picture depends on which pictures Kim has kept; if the manifest is not in yet
+  // the first paint shows the unmarked photo and this repaints it a moment later.
+  repaintOnFirstManifest();
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
   narrate(seed.speech, seed.intro);
@@ -7882,6 +7893,7 @@ function renderBasket(){
 let _palOpen=false;   // keep the order-set palette open across turns once expanded
 let _orderMin = true;  // slim order bar: chips+palette tucked away until asked for; re-collapses each case
 function renderPlay(){
+  repaintOnFirstManifest();   // which finding pictures exist decides which photo the patient panel draws
   closeActionBrowser();
   document.body.classList.add('tapUI');
   hideTypeahead();
@@ -8971,7 +8983,11 @@ function patientBaseFor(p){
 // to a broken image.
 const ADULT_FINDINGS = ['stab-chest','gsw','seatbelt-sign','flank-bruising','leg-deformity',
   'burn','cellulitis','jaundice','ascites','zoster',
-  'rash-petechial','rash-urticaria','rash-morbilliform'];
+  'rash-petechial','rash-urticaria','rash-morbilliform',
+  // 2026-09-14, Kim: "I'd like to see a bleeding leg wound" — eight findings the vignettes
+  // describe and the library could not draw (spec docs/superpowers/specs/2026-09-14-realistic-findings-and-motion-design.md).
+  'leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant'
+];
 const TRAUMA_BASES = {
   'young-m': new Set(ADULT_FINDINGS),
   'older-m': new Set(ADULT_FINDINGS),
@@ -8980,12 +8996,83 @@ const TRAUMA_BASES = {
   'child':   new Set(['rash-petechial','rash-morbilliform','rash-urticaria','burn']),
   'infant':  new Set(['rash-petechial','rash-morbilliform','burn']),
 };
+// ECLAMPSIA BELONGS TO A PATIENT, NOT TO A LIST OF CAUSES. Named inside "search for causes
+// (… eclampsia, toxins …)" it is the differential, not this woman — the status epilepticus
+// brief is about a 37-year-old MAN and said eclampsia, which made magnesium a seizure-stopping
+// order for him. One guard, used twice: the pregnant-belly picture and the seizure motion read
+// the same brief through it, so the two can never drift apart.
+// `\beclamp` deliberately does NOT match "preeclampsia" — there is no word boundary inside the
+// word — which is the whole reason ob-hellp-syndrome is not an eclamptic.
+const ECLAMPSIA_RE = /(?<!\b(?:causes?|consider|search(?:ing)? for|differential|including)\b[^.;]{0,80})\beclamp/i;
 const TRAUMA_VARIANTS = [
   ['stab-chest',     /\bstab(?:bed|bing|s)?\b|penetrating (?:chest|thoracic|abdominal)|knife wound/],
   ['seatbelt-sign',  /seat ?belt (?:sign|mark|bruis)|lap belt sign/],
+  // Kim (2026-09-14): a thigh bleeding onto the trolley is what you see at minute twenty;
+  // Grey Turner's sign takes hours. So leg-wound outranks flank-bruising — the one case that
+  // says both ("an unstable pelvic ring with retroperitoneal bleeding ... plus a degloved right
+  // thigh wound running freely onto the trolley") shows the thigh. It stays below stab-chest,
+  // and no gunshot or stab brief in the corpus puts a bleeding word within reach of a leg word,
+  // so gsw (which already sits below flank-bruising) keeps every case it had.
+  // "degloved" is a wound word in its own right: the two thigh cases say "a degloved right
+  // thigh wound" and "a tourniquet on the degloved left thigh", and the second one has no
+  // other bleeding word close enough to "thigh" to reach it.
+  ['leg-wound',     /(?:\b(?:leg|thigh|calf|shin|groin|lower (?:leg|limb|extremity))\b[^.;]{0,60}\b(?:bleed|h[ae]morrhag|lacerat|wound|gash|deglov)|\b(?:bleed|h[ae]morrhag|lacerat|wound|gash|deglov)[^.;]{0,40}\b(?:leg|thigh|calf|shin|groin))/i],
   ['flank-bruising', /gr[ea]y turner|cullen'?s? sign|flank (?:bruis|ecchym|discolo)|retroperitoneal (?:bleed|h[ae]m)/],
   ['leg-deformity',  /(?:femur|femoral|tibia|tibial|lower.leg|lower.limb)\s*(?:shaft\s*)?fracture|deformed (?:leg|limb|lower extremity)|angulated (?:leg|tibia|femur)/],
   ['gsw',            /gunshot|\bgsw\b|shot in the|ballistic|bullet|firearm|penetrating (?:abdominal|flank) (?:wound|injury)/i],
+  // The 2026-09-14 eight. Each is drawn on all four adults; the order is the ranking when
+  // several match (spec Part 1). Every one still goes through assertsFinding. The guards in
+  // each pattern were each put there by a wrong hit on a real vignette, named in the comment.
+  //
+  // "bite" is NOT one of arm-injury's mechanisms — a bitten hand is a bite, and the bite
+  // picture is puncture marks, which is what a cat bite to the finger and a fight bite over
+  // the knuckle actually look like. The lookahead drops the phrases that name a hand or wrist
+  // in an investigation or a consult rather than an injury: "obtain a hand x-ray to exclude
+  // ... fracture" (cat bite), "3-view hand radiographs", "hand surgery consultation". The
+  // window is 40 and not 50 because at 50 "a fall on an outstretched hand must be treated as
+  // a presumed occult scaphoid fracture" reached, and an occult fracture has nothing to draw.
+  ['arm-injury',    /(?:\b(?:arm|forearm|wrist|hand)\b(?! ?(?:x-?ray|radiograph|film|imaging|surgery|hygiene))[^.;]{0,40}\b(?:fracture|deform|lacerat|crush|burn|inject)|\b(?:fracture|lacerat|deform|crush)[^.;]{0,30}\b(?:arm|forearm|wrist|hand)\b)/i],
+  // \b at BOTH ends of "bite": bare /\bbite/ put a bite wound on the pituitary-apoplexy case,
+  // whose brief says the haemorrhage "compresses the optic chiasm (bitemporal visual field loss)".
+  // The leading \b is what costs "snakebite" written as one word — no brief in the corpus does,
+  // and the envenomation case says "bitten", but add \bsnake ?bite if one ever appears.
+  // "FIGHT BITE" IS THE ANSWER, NOT THE PRESENTATION. trauma-high-pressure-injection-hand's
+  // brief names an occult clenched-fist injury ("fight bite") as the thing the learner has to
+  // think of, and a knuckle puncture painted on the hand at minute zero hands it to them. That
+  // brief says it three ways and ONE lookbehind does not cover them: "('fight bite')",
+  // "the fight-bite mechanism" (hyphen, not a space) and "do not primarily close a
+  // bite-mechanism wound" (no "fight" at all). So: not after fight with either joiner, and not
+  // when `bite` is describing a MECHANISM rather than a wound you can look at. Both guards are
+  // on `bite` only — a dog bite, a snake bite and "bitten" are all things the patient arrives
+  // with, and they still fire.
+  ['bite',          /\b(?:(?<!fight[\s-])bites?\b(?!-?\s?mechanism)|bitten\b|envenomat|fangs?\b)/i],
+  // "retro-orbital" is a headache, not an eye injury (the dengue case). A globe only counts
+  // when the sentence says it is open or hurt — "the globe is intact" and "manipulating the
+  // globe" are not findings. "periorbital" alone is puffiness in the nephritic child; it has
+  // to be bruising for the picture (periorbital ecchymosis) to be true.
+  ['eye-injury',    /(?:\b(?:open|ruptured|penetrating|perforated) globe\b|\bglobe (?:ruptur|injur|lacerat|perforat)|\bhyphema\b|\braccoon eyes\b|\bproptosis\b|(?<!retro[- ]?)\borbital\b|\bperiorbital (?:bruis|ecchym|h[ae]matoma)|\beye (?:injury|trauma)\b)/i],
+  // No tightening needed: every mention of these in the corpus is on the patient in front of you.
+  ['nosebleed',     /\b(?:epistaxis|nose ?bleed|nasal bleed)/i],
+  // The lookbehind refuses a mention that the brief puts in the FUTURE. The aortoenteric
+  // fistula is the whole point of that case: he has had one herald bleed and looks well, and
+  // the brief says he will "then abruptly develop massive hematemesis" and warns of "the risk
+  // of sudden massive hematemesis". Blood on his chin at minute zero gives the case away.
+  // "vomiting blood" stays adjacent-only: at any distance it catches the intussusception
+  // brief's "vomiting, and a 'currant-jelly' (blood and mucus) stool".
+  ['hematemesis',   /(?<!\b(?:risk|expect|develop|then|later|subsequent)\w*[^.;]{0,40})\b(?:h[ae]matemesis|vomit(?:ing|ed)? blood|coffee.ground)/i],
+  // No tightening needed either — the swelling words only ever name this patient's own face.
+  ['face-swelling', /\b(?:angioedema|(?:lip|tongue|facial|face) swelling|swollen (?:lips?|tongue|face))/i],
+  // A week count only counts with "gestation" or "pregnant" on it, and only when it is not the
+  // baby's own birth: the BRUE infant's brief says "born at full term (39 weeks' gestation)"
+  // and quotes the AAP criterion "gestational age >= 32 weeks". "postpartum-range risk" in the
+  // CVST brief describes her clotting risk, not a delivery, so postpartum must not be hyphenated.
+  // And eclampsia comes through ECLAMPSIA_RE — the one guard, shared with the seizure motion,
+  // because both read the same brief and must agree about whose eclampsia it is.
+  // Obstetric notation: "34+2 weeks" is 34 weeks and 2 days, and the HELLP brief opens with
+  // "a 27-year-old primigravida at 34+2 weeks gestation". "gravid" carries no leading \b so
+  // that primigravida and multigravida count too — no other English word contains it.
+  ['pregnant',      new RegExp('(?:(?<!\\bborn[^.;]{0,40})\\b(?:2\\d|3\\d|4[0-2])(?:\\+\\d)? weeks(?:\'? gestation|\'? pregnan)|\\bthird trimester\\b|\\bin labou?r\\b|'
+                              + ECLAMPSIA_RE.source + '|\\bpostpartum(?!-)|gravida?\\b)', 'i')],
   // Jaundice and ascites both belong to liver disease and a cirrhotic can have
   // either or both; jaundice is checked first because a yellow patient is the
   // more arresting bedside finding and the one that changes the differential.
@@ -9032,6 +9119,40 @@ function assertsFinding(text, at){
   return !HERRING.test(text.slice(start, end));
 }
 
+// The eight 2026-09-14 findings ship one reviewed picture at a time (Kim keeps each one);
+// a finding with no kept picture is not picked, and the next finding in the ranking (or the
+// unmarked photo) shows instead. patient-trauma/manifest.json is the record of what exists.
+const REVIEWED_FINDINGS = new Set(['leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant']);
+let _findingManifest = null;
+let _manifestFetch = null;
+function loadFindingManifest(){
+  if(_findingManifest) return Promise.resolve(_findingManifest);
+  // The in-flight promise is cached, not just the answer: opening a case calls this from
+  // repaintOnFirstManifest and again from loadGoldCase, and without this that is two fetches
+  // and two repaints of the same panel.
+  return _manifestFetch || (_manifestFetch = fetch('patient-trauma/manifest.json')
+    .then(r => r.ok ? r.json() : (console.warn('patient-trauma/manifest.json: HTTP ' + r.status + ' — no reviewed finding pictures will show'), {}))
+    // Said out loud on purpose: run from a file:// folder with the pictures missing, this is
+    // the only clue that the leg wound is absent because the manifest never arrived.
+    .catch(err => { console.warn('patient-trauma/manifest.json not loaded — no reviewed finding pictures will show', err); return {}; })
+    .then(m => { _findingManifest = m || {}; return _findingManifest; }));
+}
+function findingAvailable(base, name){
+  if(!REVIEWED_FINDINGS.has(name)) return true;   // the older library is complete for every adult base
+  const m = _findingManifest; return !!(m && m[base] && m[base][name]);
+}
+// Paint, then correct the paint once — for the play screen that a restored session or a
+// live-generated case draws before the manifest is in. The null test is what keeps it to
+// once: renderPlay() runs on every turn, and a manifest already in hand was used by the
+// paint that just happened, so there is nothing to repaint. The queued flag keeps it to ONE
+// repaint even when loadGoldCase and renderPlay both ask before the fetch resolves — the
+// fetch was already shared, the repaint was not (measured: 1 fetch, 2 repaints).
+let _repaintQueued = false;
+function repaintOnFirstManifest(){
+  if(_findingManifest || _repaintQueued) return;
+  _repaintQueued = true;
+  loadFindingManifest().then(() => { if(S.stage === 'play') renderPatient(); });
+}
 function traumaVariantFor(base){
   const have = TRAUMA_BASES[base];
   if(!have) return null;
@@ -9048,7 +9169,7 @@ function traumaVariantFor(base){
   // bradykinin angioedema being non-urticarial is how you tell it from the
   // allergic kind. Same NEG_LEAD guard the study images use.
   for(const [name, re] of TRAUMA_VARIANTS){
-    if(!have.has(name)) continue;
+    if(!have.has(name) || !findingAvailable(base, name)) continue;
     const scan = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
     let m;
     while((m = scan.exec(t)) !== null){
@@ -9058,6 +9179,302 @@ function traumaVariantFor(base){
     }
   }
   return null;
+}
+// BLEEDING THAT PULSES AND SPREADS (spec Part 3). Kim (2026-09-13): "when you do an
+// intervention ... it should reflect the response" — a degloved thigh that looked exactly the
+// same at minute twenty as at minute zero, tourniquet or no tourniquet, taught that the
+// tourniquet did nothing. So the wound throbs at the monitor's own heart rate, the pool spreads
+// with the sim clock, and BOTH stop the moment the bleed is controlled.
+//
+// This is PICTURE ONLY. Nothing here touches scoring, the packs, the clock or the vitals: the
+// hook reads the order text that has already been dispatched and the engine's own flags, and
+// writes nothing back. A learner who never looks at the photo loses nothing.
+
+// Which finding the photo is currently showing, by name — read back out of the FILENAME the
+// panel is drawing rather than re-derived, so the blood can never sit at a different finding's
+// box than the picture on screen. renderPatient computes that filename once and hands it here;
+// calling traumaVariantFor a second time would run seventeen regexes over the brief for nothing.
+function findingNameFor(base, variant){
+  const m = variant && new RegExp('^patient-trauma/' + base + '-([a-z-]+)\\.jpg$').exec(variant);
+  return m ? m[1] : null;
+}
+// Two ellipses clipped to the wound box from patient-trauma/manifest.json: a dark pool that
+// grows downward out of the wound, and a brighter glisten over the wound itself whose opacity
+// is what pulses. Multiply blending keeps the gown's folds visible through the blood.
+// The clip is what stops a spreading pool from running off the patient and onto the wall: it
+// is the box widened sideways and taken down past the mattress edge, and nothing is drawn
+// outside it however long the bleed runs.
+function bloodLayerHTML(base, variant){
+  // The layer is about to be (re)built, so every remembered attribute belongs to elements that
+  // are on their way out — a stale memo would suppress the first write to the new ones.
+  _bloodWritten = {};
+  // A case with its own hand-painted picture (CASE_VISUALS) is not the finding library's
+  // photo, so the manifest's box describes a picture nobody is looking at — draw nothing
+  // rather than put a pool on the wrong thigh. FOLLOW-UP: that costs the three cases that
+  // most deserve a bleed — resus-atls-penetrating, resus-atls-blunt-multi (whose brief says
+  // the thigh runs "freely onto the trolley") and eb-severe-tbi. They get one as soon as
+  // their hand-made pictures carry wound boxes of their own in the manifest.
+  if(casePatientImg(S.goldId)) return '';
+  const f = findingNameFor(base, variant), e = f && _findingManifest && _findingManifest[base] && _findingManifest[base][f];
+  // Only the two bleeding values draw anything, and naming them both here rather than testing
+  // for "not none" keeps a stray manifest value out of the attribute below. A box that is not
+  // four numbers is a manifest we cannot place anything from — draw nothing rather than NaN.
+  if(!e || (e.bleeds !== 'pulsing' && e.bleeds !== 'trickle') || !Array.isArray(e.box) || e.box.length !== 4) return '';
+  // overlayBoxToXYWH returns STRINGS (it feeds SVG attributes) — coerce before any arithmetic,
+  // or the centre of the wound comes out as "123.461.7".
+  const g = overlayBoxToXYWH(e.box), bx = +g.x, by = +g.y, bw = +g.w, bh = +g.h;
+  const cx = bx + bw / 2, cy = by + bh * 0.55;
+  // …and the clip never leaves the bed. The box widened sideways and taken down past the
+  // mattress is only right for a wound in the middle of the frame: a shin wound sits low and
+  // near the edge, and 1.9x its own height would run the pool off the photo and onto the floor
+  // tiles (the viewBox is 720x421, but the PHOTO stops at PT_PHOTO_H — below that is the panel's
+  // own background). So the rect is clamped to the picture on all three sides that can escape.
+  const clipX = Math.max(0, bx - bw * 0.3), clipR = Math.min(720, bx - bw * 0.3 + bw * 1.6);
+  const clipB = Math.min(PT_PHOTO_H, by + bh * 1.9);
+  return `<g id="pt_blood" data-bleeds="${e.bleeds}" pointer-events="none" style="mix-blend-mode:multiply">
+    <clipPath id="pt_bloodClip"><rect x="${clipX.toFixed(1)}" y="${by.toFixed(1)}" width="${Math.max(0, clipR - clipX).toFixed(1)}" height="${Math.max(0, clipB - by).toFixed(1)}"/></clipPath>
+    <g clip-path="url(#pt_bloodClip)">
+      <ellipse id="pt_bloodStain" cx="${cx.toFixed(1)}" cy="${(by + bh).toFixed(1)}" rx="${(bw * 0.45).toFixed(1)}" ry="${(bh * 0.25).toFixed(1)}" fill="#6b0f14" opacity="0.55"/>
+      <ellipse id="pt_bloodGlisten" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${(bw * 0.35).toFixed(1)}" ry="${(bh * 0.3).toFixed(1)}" fill="#c1121f" opacity="0.35"/>
+    </g></g>`;
+}
+// The orders that stop a bleed you can see. "pressure" on its own is far too common to use —
+// "blood pressure", "check the pressure in both arms" — so it only counts with a word that
+// makes it a hand on a wound. A fluid bolus is not haemorrhage control, however much you give.
+// The second half of the list is the wording the PACKS already accept for the same act
+// ("hold pressure", "control the bleeding"): the picture and the score must not disagree about
+// whether the player has stopped the bleeding.
+function bleedControlOrder(text){
+  const t = String(text || '');
+  // "no tourniquet yet", "hold off on the tourniquet", "don't pack the wound" name the very
+  // thing the player is DECLINING to do. The engine already has one definition of that and
+  // scores by it; the picture uses the same one, so the wound and the score never disagree.
+  // Its own exemption is the reason "hold pressure" still counts — hold is a withhold word
+  // everywhere except in front of "pressure", where it is the order itself.
+  if(typeof InstantEngine !== 'undefined' && InstantEngine.WITHHOLD_RE && InstantEngine.WITHHOLD_RE.test(t)) return false;
+  // The adjectives are the ENGINE'S OWN list (instant-engine.js WITHHOLD_RE): the exemption that
+  // lets "hold pressure" through the withhold guard reads hold/holding + an optional article +
+  // one of direct|firm|manual|steady|continuous|constant|hard + pressure. Anything the guard
+  // exempts as an ORDER has to be an order here too, or "hold firm pressure on the thigh" is
+  // credited by the score and still pumping in the picture. "stop the bleeding" is on the same
+  // footing — WITHHOLD_RE already exempts `stop` in front of bleed/blood/hemorrhag. But "blood"
+  // on its own is not haemostasis: "stop the blood thinners" and "stop the blood pressure
+  // medication" are both real orders in a bleeding patient and neither puts a hand on the wound.
+  // Only "blood LOSS" counts; bleed and h(a)emorrhage take any ending, with or without "the",
+  // so "stop bleeding" counts as well as "stop the bleeding". And a PRESSURE BAG is a bag of
+  // fluid squeezed into a vein — "hold the pressure bag" is a transfusion order, not a hand on
+  // a wound, and it was freezing the pool.
+  return /\btourniquet|direct pressure|pressure dressing|h[ae]mostatic|combat gauze|pack(?:ing)? (?:the\s+)?wound|wound packing|\bligat/i.test(t)
+    || /(?:hold|apply)(?:ing)?\s+(?:the\s+)?(?:direct|firm|manual|steady|continuous|constant|hard)?\s*pressure(?!\s+bag)|manual pressure(?!\s+bag)|compress(?:ion of)? (?:the\s+)?(?:wound|thigh|bleed)|(?:control(?:ling)?|stop(?:ping)?) (?:the\s+)?(?:bleed\w*|blood loss|h[ae]morrhag\w*)|surgicel/i.test(t);
+}
+// The orders that stop a seizure you can see (Task 7 draws it; the rule lives here beside the
+// bleeding one because they share the hook). Magnesium stops an eclamptic fit and nothing else,
+// so it only counts when the vignette is an obstetric one.
+function seizureStopOrder(text, eclampsia){
+  const t = String(text || '');
+  // A REFUSED BENZODIAZEPINE IS NOT A BENZODIAZEPINE. "No lorazepam", "hold off on the
+  // midazolam", "do not give phenytoin", "avoid propofol" all name the very drug the player is
+  // DECLINING, and every one of them used to settle the patient. Same guard, same engine, same
+  // reason as the bleed: the picture and the score must not disagree about what was ordered.
+  if(typeof InstantEngine !== 'undefined' && InstantEngine.WITHHOLD_RE && InstantEngine.WITHHOLD_RE.test(t)) return false;
+  return /lorazepam|midazolam|diazepam|benzodiazepine|levetiracetam|keppra|phenytoin|fosphenytoin|valproate|propofol/i.test(t) || (!!eclampsia && /magnesium/i.test(t));
+}
+// SEIZING RIGHT NOW. `eclamp` is deliberately NOT here: it matched "preeclampsia", and
+// ob-hellp-syndrome — a 27-year-old whose brief warns of "a real risk of … progression to an
+// eclamptic seizure" — was drawn convulsing for the whole case. ob-eclampsia still seizes on
+// her own "then a generalized tonic-clonic seizure", and neuro-status-epilepticus on "status
+// epilepticus"; a woman with preeclampsia who has not fitted does not.
+// `is … seizing` takes up to two words in between, so "is still seizing" and "is now actively
+// seizing" read as what they are. The inner (?!no|not|never) is what keeps "is not seizing" and
+// "is no longer seizing" out: without it the match would START at `is`, and assertsFinding's
+// negation guard only ever looks at the text BEFORE the match.
+const SEIZING_RE = /status epilepticus|\bis(?:\s+(?!not\b|no\b|never\b)\w+){0,2}\s+seizing|actively seizing|tonic-clonic|generali[sz]ed seizure/i;
+// SEIZED, NOT SEIZING. The same words describe a fit that is over: peds-complex-febrile-seizure
+// says "her first seizure … WAS generalized tonic-clonic and LASTED about 18 minutes", and the
+// manikin renders through the same SVG, so a settled toddler jerked through her whole case.
+// A hit is only an ACTIVE seizure when the words around it are not the past tense — read before
+// the hit (the verb that framed it) and just after it (the duration that closed it).
+const SEIZED_LEAD = /\b(?:was|were|had|lasted|earlier|prior|previous|history of|resolved|stopped|self-terminated)\b/i;
+const SEIZED_TAIL = /\b(?:lasted|resolved|stopped|self-terminated)\b/i;
+// …and a patient can have BOTH: "he had a witnessed collapse and is now in status epilepticus",
+// "she was found down at home and is actively seizing on arrival", "known epilepsy, currently in
+// tonic-clonic status". A past-tense word sitting anywhere in the lead window killed all three.
+// So a present-tense cue beside the hit wins over the lead: the history is how he got here, and
+// what is happening now is what the picture draws. It does NOT override the tail — "lasted about
+// 18 minutes" closes a seizure however the sentence opened.
+const SEIZING_NOW = /\b(?:now|currently|on arrival|still|continues|ongoing|actively)\b/i;
+// IS THE FIT HAPPENING, OR DID IT HAPPEN? Read strictly inside the sentence the words are in.
+// A fixed character window reached over the full stop and borrowed the neighbouring sentence's
+// tense: "the patient was intubated in the field. he is in status epilepticus" was read as
+// settled because of a `was` that belongs to the airway, and "he is in status epilepticus. the
+// nosebleed stopped" because of a `stopped` that belongs to the nose. The sentence is cut the
+// way assertsFinding cuts one — back to the previous `.` or `;`, forward to the next `.`.
+//   lead  the run-up to the hit: a past-tense verb here frames the fit as over…
+//   cue   …unless a present-tense word sits beside it (or inside it: "actively seizing"), in
+//         which case the past tense is the history of how he got here, not what he is doing.
+//   tail  what closes the fit — a duration or a "resolved" — and NOTHING outranks that.
+// `hitLen` is here so the tail is the forty characters AFTER the words, not forty from the
+// start of them: "tonic-clonic" alone would eat a third of the window.
+function seizureIsCurrent(text, at, hitLen){
+  const from = Math.max(text.lastIndexOf('.', at), text.lastIndexOf(';', at)) + 1;
+  let to = text.indexOf('.', at); if(to < 0) to = text.length;
+  const sentence = text.slice(from, to), i = at - from, end = i + hitLen;
+  const lead = sentence.slice(Math.max(0, i - 60), i);
+  const tail = sentence.slice(end, end + 40);
+  // The present-tense cue is read in the run-up and inside the words themselves — never in
+  // the tail, where "now" belongs to the resolution ("had a seizure earlier but is now alert").
+  const cue = SEIZING_NOW.test(sentence.slice(Math.max(0, i - 40), end));
+  if(SEIZED_TAIL.test(tail)) return false;
+  return !SEIZED_LEAD.test(lead) || cue;
+}
+// What the vignette says the patient is doing, read ONCE per case. Every mention goes through
+// the same assertsFinding guard the finding pictures use — the status epilepticus brief lists
+// "eclampsia" among the causes to go looking for, and a bare regex would have had a 37-year-old
+// man fitting because of it. assertsFinding is written for the LOWERCASED context, so that is
+// what it is handed here, exactly as traumaVariantFor does.
+function motionDefaults(){
+  const low = String(S.context || '').toLowerCase();
+  // EVERY one of these goes through the same guard, not just the seizure: a bare /chills/ reads
+  // "no rigors or chills" as rigors, and a bare /tonic-clonic/ reads a brief that names it as
+  // the distractor. One helper, used three times. `now` adds the second question the seizure
+  // alone has to answer — is it happening, or did it happen — and only the seizure asks it: a
+  // rigor that "was" is still a rigor the patient has, and eclampsia carries its own guard.
+  // The tense question itself lives in seizureIsCurrent; this helper stays generic.
+  const asserted = (re, current) => { const scan = new RegExp(re.source, 'gi'); let m;
+    while((m = scan.exec(low)) !== null){
+      if(assertsFinding(low, m.index) && (!current || seizureIsCurrent(low, m.index, m[0].length))) return true;
+      if(m.index === scan.lastIndex) scan.lastIndex++; }
+    return false; };
+  // A pack whose startState already says the bleed is controlled starts controlled, rather than
+  // spreading until the player's first order happens to run the hook.
+  // lastMin / pulseAtLast are the bleed clock's books, kept by accrueBleedClock alone.
+  // pulseAtLast is the pulse as it was at the START of the interval now ending: ROSC is
+  // announced by the same turn that ends the arrest, so asking "is there a pulse?" at the end
+  // of the interval would credit the pool with every minute of the arrest.
+  return { bleedStartMin: S.simMin || 0, bleedControlledAt: bleedControlled() ? (S.simMin || 0) : null,
+           lastMin: S.simMin || 0, pulseAtLast: null,
+           seizing: asserted(SEIZING_RE, true), eclampsia: asserted(ECLAMPSIA_RE), rigors: asserted(/\brigors?\b|\bchills\b/i),
+           // the thyroid the shiver needs (see tremorPlan): myxedema, or a KNOWN hypothyroid patient.
+           // Not a bare "hypothyroid" — env-hypothermia lists it among causes to look for.
+           noShiver: asserted(/\bmyx(?:o)?edema\b|\bknown hypothyroid/i) };
+}
+// Beside gearAutoHook, and called from the same two places orders reach: the turn engine and
+// the code engine. It reads the ORDER text only, never the narrative — a nurse's line saying
+// "the bleeding is controlled" is not the player controlling it.
+// WHAT THE PLAYER JUST SAID, READ THE WAY THE ENGINE READS IT. Both order rules consult
+// WITHHOLD_RE, and WITHHOLD_RE is anchored at `^` because the engine applies it to ONE CLAUSE at
+// a time — so handing it a whole line asked "does this line BEGIN with a refusal", which is a
+// different question. "Give 1 g TXA, no tourniquet yet" begins with an order and ends with a
+// refusal, and the wound stopped bleeding on the strength of a tourniquet nobody applied; "no
+// tourniquet, hold direct pressure on the thigh" begins with the refusal and its real order was
+// never seen. Cut the line the way the engine cuts it and ask each clause on its own: any clause
+// that is the order counts, and a refusal only silences the clause it is in.
+// Pure apart from InstantEngine, which is the point — the clause logic is testable without S.
+function motionOrders(text){
+  const raw = String(text || '');
+  // No engine (it loads as a separate script beside the html) — fall back to the whole line,
+  // which is what this did before and is never worse than nothing.
+  let clauses = [raw];
+  if(typeof InstantEngine !== 'undefined' && InstantEngine.splitClauses && InstantEngine.normalize){
+    const cut = InstantEngine.splitClauses(InstantEngine.normalize(raw));
+    if(cut.length) clauses = cut;
+  }
+  return { controlsBleed: clauses.some(c => bleedControlOrder(c)),
+           stopsSeizure: eclampsia => clauses.some(c => seizureStopOrder(c, eclampsia)) };
+}
+function motionHook(text){
+  if(!S.motion) S.motion = motionDefaults();
+  const said = motionOrders(text);
+  // Control is never un-set within a case (spec): a tourniquet does not fall off.
+  if(S.motion.bleedControlledAt == null && said.controlsBleed) S.motion.bleedControlledAt = S.simMin || 0;
+  // WHEN control happened, whoever decided it. The pack's own flags are set by the turn that
+  // just ran, and this hook is called right after it — so the minute is stamped here, once per
+  // order, and the draw loop only ever READS S.motion. Stamping it in the frame instead made a
+  // sixty-times-a-second write out of a once-a-case fact.
+  if(S.motion.bleedControlledAt == null && bleedControlled()) S.motion.bleedControlledAt = S.simMin || 0;
+  if(S.motion.seizing && said.stopsSeizure(S.motion.eclampsia)) S.motion.seizing = false;
+  accrueBleedClock();
+}
+// THE BLEED CLOCK'S BOOKS, in one place that is not the draw loop. Minutes without a pulse do
+// not count: rather than a second accumulator, the START of the bleed is slid forward by exactly
+// the sim time that passed while there was no pulse, so the pool only ever measures minutes the
+// heart was beating. It is a delta of S.simMin, so the answer does not depend on how often this
+// runs — but it MUST run wherever the sim clock moves, and the clock moves in two places: a turn
+// that costs time (motionHook, right after the engine that spent it) and, during an arrest, the
+// code engine's own second-by-second record (applyCodeVitals, which is what writes S.simMin
+// then). It was in paintBleed, sixty times a second, writing state from a draw call — and a
+// player with reduced motion, or looking at the room rather than the bed, never ran it at all.
+function accrueBleedClock(){
+  const m = S.motion; if(!m) return;
+  const now = S.simMin || 0, pulse = bleedPulsatile();
+  if(m.lastMin == null) m.lastMin = now;
+  if(m.pulseAtLast == null) m.pulseAtLast = pulse;
+  // Not slid once the bleed is controlled: the pool is frozen at the minute it was stopped, and
+  // sliding the start under a frozen end would shrink it.
+  if(!bleedControlled() && !m.pulseAtLast) m.bleedStartMin = (m.bleedStartMin || 0) + Math.max(0, now - m.lastMin);
+  m.lastMin = now; m.pulseAtLast = pulse;
+}
+// One remembered value per attribute, so a sixty-times-a-second redraw of an unchanged pool
+// touches no DOM at all. Cleared whenever the layer is rebuilt (bloodLayerHTML).
+let _bloodWritten = {};
+function setBloodAttr(el, name, val){
+  const k = el.id + '.' + name;
+  if(_bloodWritten[k] !== val){ _bloodWritten[k] = val; el.setAttribute(name, val); }
+}
+// WHAT THE BLEED LOOKS LIKE RIGHT NOW, in one call — so the SAME code draws it from the rAF
+// loop (once a frame, with the beat), from the reduced-motion branch (once, beat 0) and from
+// paintPatient (once a turn, beat 0). Kim's reduced-motion players still see the pool spread
+// turn by turn and still see the glisten dim when they stop the bleeding; only the per-beat
+// throb is motion, and only the throb is what they lose.
+function paintBleed(beat){
+  const blood = $('pt_blood'); if(!blood) return;
+  const m = S.motion || EMPTY, controlled = bleedControlled();
+  const glisten = $('pt_bloodGlisten'), stain = $('pt_bloodStain');
+  const swing = blood.dataset.bleeds === 'trickle' ? 0.12 : 0.3;   // a trickle throbs half as hard as an arterial bleed
+  // ACCEPTED DEVIATION from the spec (Part 3), which asks the glisten to "fade to 30% over 3 s"
+  // on control: it settles to 0.12 at once instead. A fade means the wound is still changing for
+  // three seconds AFTER the player has stopped the bleeding — the one thing the picture must not
+  // say, and what the "no swing once controlled" check would read as a bleed still running.
+  if(glisten) setBloodAttr(glisten, 'opacity', (controlled ? 0.12 : 0.25 + swing * beat).toFixed(3));
+  if(!stain) return;
+  // The AUTHORED size is remembered on the element, not in a closure: the attribute itself has
+  // already been grown by the time the next call reads it, and re-reading it would compound.
+  if(!stain.dataset.rx){ stain.dataset.rx = stain.getAttribute('rx'); stain.dataset.ry = stain.getAttribute('ry'); }
+  // NOTHING IS WRITTEN TO S HERE — accrueBleedClock keeps the books, and this only reads them.
+  // While there is no pulse the pool is frozen where the last accounting left it, so a sim clock
+  // that moves with nobody accounting (a coach rewind, a hand-driven probe) still cannot grow a
+  // wound on a patient with no output.
+  const now = S.simMin || 0;
+  const until = (controlled && m.bleedControlledAt != null) ? m.bleedControlledAt
+              : (bleedPulsatile() ? now : (m.lastMin != null ? Math.min(now, m.lastMin) : now));
+  const since = Math.max(0, until - (m.bleedStartMin || 0)), grow = Math.min(1.6, 1 + 0.02 * since);
+  setBloodAttr(stain, 'ry', (+stain.dataset.ry * grow).toFixed(1));
+  setBloodAttr(stain, 'rx', (+stain.dataset.rx * (1 + (grow - 1) * 0.6)).toFixed(1));
+}
+// THE PULSE GATE, and the one answer to "is there an output" that the wound and the tremor both
+// ask. A pulseless patient neither throbs nor bleeds out: no output, no external haemorrhage.
+// resus-atls-traumatic-arrest starts in PEA — an electrical rate of 38 with no pulse and a
+// systolic of 0 — so a bare `hr > 0` had the wound pumping at a rate nobody could feel. During a
+// code the code engine's own record is the truth; outside one, a systolic of exactly 0 is how
+// this app writes "no pulse".
+// S.code SURVIVES the resuscitation — it is the record, and it is still there with ended:true
+// after ROSC or after the team stops. Reading its `pulse` for the rest of the case froze the
+// wound on the code engine's last word while the turn engine went on moving the pressure on the
+// monitor. codeActive() is the app's own answer to "is a resuscitation RUNNING"; while one is,
+// the code record is the truth, and the moment it is over the turn engine's systolic is.
+function bleedPulsatile(){
+  return codeActive() ? !!S.code.pulse : !((S.shown && S.shown.bpSystolic) === 0);
+}
+// One stand-in for "no flags yet" / "no motion state yet", FROZEN: it is handed out to callers
+// that only read, and a stray write to it would become shared state between cases.
+const EMPTY = Object.freeze({});
+// The pack's own word first — five packs already set one of these three flags when the bleed is
+// controlled, and those are authored clinical truth. The order-text hook is the fallback for the
+// cases that have no flag.
+function bleedControlled(){
+  const f = (S.instantState && S.instantState.flags) || EMPTY;
+  if(f.hemorrhageControlled || f.pressureApplied || f.externalControlled) return true;
+  return !!(S.motion && S.motion.bleedControlledAt != null);
 }
 // Bedside exam close-ups shot from the SAME patient photo, so the face and the
 // room match the panel. The manikin close-ups stay as the fallback for every
@@ -9156,7 +9573,7 @@ function paintWho(){
   const kg = (typeof caseWeightKg === 'function') ? caseWeightKg() : null;
   el.textContent = [age, sex, kg ? kg + ' kg' : ''].filter(Boolean).join(' ');
 }
-let patientRAF=null, _breathT=0;
+let patientRAF=null, _breath={ last:0, phase:0, gasp:{ until:0, next:0, n:0 } };   // survives renderPlay's rebuilds — an order must not restart the breath
 function renderPatient(){
   const host=$('patientPanel'); if(!host) return;
   const p=S.patient||{};
@@ -9193,20 +9610,38 @@ function renderPatient(){
       return `<image id="pt_${gearKey}" href="patient-overlays/${base}/${device}.png" data-optional-overlay="1" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"
              opacity="${S.gear&&S.gear[gearKey]?1:0}" style="transition:opacity .5s" pointer-events="none"/>`;
     }).join('');
+    // What the vignette says is happening to this patient, and when the bleed started —
+    // read once per case, here rather than at case start, because a restored session lands
+    // straight in renderPatient with no case-start to run.
+    if(!S.motion) S.motion = motionDefaults();
+    // ONCE. traumaVariantFor runs seventeen regexes over the hidden brief; the photo and the
+    // blood layer are the same answer, so they ask the same question once.
+    const variant = base==='manikin' ? null : traumaVariantFor(base);
     host.innerHTML=`
      <h3 class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 border-b border-slate-800 pb-3 mb-3">Patient — <span class="text-slate-300 normal-case tracking-normal">${esc(who)}</span>${viewToggle}</h3>
      <div class="relative rounded-2xl border border-slate-800 overflow-hidden">
        <svg id="ptSvg" viewBox="0 0 720 421" class="w-full block">
          <rect width="720" height="421" fill="#eef1f4"/>
+         <!-- #pt_body is the whole patient: the breathing chest AND anything drawn on top of the
+              skin that must NOT breathe with it (the blood pool). Task 7's shiver/seize moves
+              #pt_body, so a shivering patient carries the wound with him. It is untransformed here.
+              The clip is the photo's own rectangle: while it jerks the group is blown up a little
+              so the frame it vacates is filled with more of itself rather than the pale panel
+              behind, and the clip is what stops that blown-up photo spilling over the strip of
+              panel below the picture. The tap polygons are SIBLINGS of this group — neither the
+              clip nor the transform can reach them. -->
+         <clipPath id="pt_bodyClip"><rect x="0" y="0" width="${PT_PHOTO_W}" height="${PT_PHOTO_H}"/></clipPath>
+         <g id="pt_body" clip-path="url(#pt_bodyClip)">
+         <!-- "chest" by history: this group is the whole photo plus the device overlays, and it is what startBreathing scales; the tap polygons below stay put on purpose -->
          <g id="pt_chest">
-           <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (traumaVariantFor(base) || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
+           <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (variant || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
            <!-- Equipment overlays: patches cut from edits of this same base photo, so
                 the fit and lighting are pixel-exact. Feathered edges blend over the
                 original; a missing file simply never shows. Placement maps the source
                 image's crop box (patient-overlays/manifest.json) through the same
                 xMidYMid-slice transform as pt_photo. -->
            ${overlaysHTML}
-         </g>
+         </g>${bloodLayerHTML(base, variant)}</g>
          <rect id="pt_tint" width="720" height="421" fill="#000000" opacity="0" style="transition:opacity .8s, fill .8s" pointer-events="none"/>
          <g id="pt_sweat" opacity="0" fill="#9fd9ff" stroke="#e6f6ff" stroke-width="0.6" style="transition:opacity .6s">
            <ellipse cx="626" cy="196" rx="3.6" ry="5.6"/><ellipse cx="648" cy="207" rx="3.2" ry="5"/><ellipse cx="620" cy="216" rx="3" ry="4.6"/>
@@ -9223,7 +9658,21 @@ function renderPatient(){
      <p class="text-[9px] text-slate-600 mt-1 text-right">${esc(PATIENT_IMG_CREDIT)}</p>`;
     host.querySelectorAll('[data-optional-overlay]').forEach(el=>el.addEventListener('error',()=>el.remove(),{once:true}));
     const ptPhoto=host.querySelector('#pt_photo');
-    if(ptPhoto) ptPhoto.addEventListener('error',()=>ptPhoto.setAttribute('href',PATIENT_IMG),{once:true});
+    // A finding picture that is not on disk yet, or a case picture that was never shipped,
+    // must not leave a broken frame. The chain is this base's own unmarked face first and the
+    // manikin last, and a candidate equal to the href we are already on is skipped — setting
+    // the same href again may not re-fire error, which would strand the frame on the broken
+    // one. When the chain runs out the listener goes away.
+    if(ptPhoto){
+      const chain = (base==='manikin' ? [] : ['patient/'+base+'.jpg']).concat([PATIENT_IMG]);
+      const onPhotoError = () => {
+        let next;
+        while(chain.length && (next = chain.shift()) === ptPhoto.getAttribute('href')) next = null;
+        if(next) ptPhoto.setAttribute('href', next);
+        else ptPhoto.removeEventListener('error', onPhotoError);
+      };
+      ptPhoto.addEventListener('error', onPhotoError);
+    }
     host.querySelectorAll('[data-region]').forEach(el=>{
       const label=ZONE_TITLES[el.dataset.region]||el.dataset.region||'Patient region';
       el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',label);
@@ -10955,17 +11404,182 @@ function startRoomMonitor(){
     roomMonRAF=requestAnimationFrame(loop);
   })();
 }
+// BREATHING YOU CAN SEE. Kim (2026-09-13): "someone breathing fast." The chest rose 1.2% at
+// every RR, which nobody could see. This is the whole rule, pure, so tests/patient-motion
+// pins the table in the spec: what the monitor says is what the picture does.
+//   rr        the monitor's RR (S.shown.rr)
+//   o.trend   S.trend; o.codeRunning codeActive(); o.ventilated ventilationRunning();
+//   o.reducedMotion the OS preference
+// Returns {mode, amp, shoulder, split, rate}: amp/shoulder are fractions of the chest
+// group's height, split is the inhale share of each breath. A running code with no bag is
+// `still` — the CPR rig draws the compressions, and a chest that also "breathes" would lie.
+function breathPlan(rr, o){
+  o = o || {}; rr = +rr || 0;
+  if(o.reducedMotion) return {mode:'still', amp:0, shoulder:0, split:0.5, rate:0};
+  // No RR on the monitor (apnoeic, or the number has not come up yet) → draw the machine's
+  // usual 16. Otherwise the picture matches the monitor, even when the monitor reads low.
+  if(o.ventilated) return {mode:'vent', amp:0.03, shoulder:0, split:0.5, rate: rr || 16};
+  if(!(rr > 0) || o.codeRunning) return {mode:'still', amp:0, shoulder:0, split:0.5, rate:0};
+  // no rate — a long pause, then one gasp (the loop times it)
+  if(rr < 8 && o.trend === 'critical') return {mode:'agonal', amp:0.04, shoulder:0.006, split:0.5, rate:0};
+  if(rr > 30) return {mode:'even', amp:0.02, shoulder:0.012, split:0.35, rate:rr};
+  if(rr > 20) return {mode:'even', amp:0.025, shoulder:0.008, split:0.4, rate:rr};
+  return {mode:'even', amp:0.03, shoulder:0, split:0.5, rate:rr};
+}
+// SHIVERING AND SEIZING (spec Part 3), the same shape as breathPlan: the whole rule, pure, so
+// the test pins it and the draw loop only has numbers to hand to a transform.
+//   v   the MONITOR's numbers (S.shown) — the temperature the player is looking at
+//   m   S.motion — what the vignette said the patient is doing, and whether an order has
+//       stopped it
+// Returns {mode, amp, hz}: amp is a fraction of the frame, hz the full back-and-forth rate.
+//
+// WHY THE COLD BAND HAS A FLOOR. Shivering is how a body fights heat loss, and it fails: below
+// about 32 °C the reflex is gone and the patient lies still. That stillness is a CUE, not an
+// absence — a patient who has stopped shivering is colder, not better — so the picture must go
+// quiet at 31.9 where it trembled at 32, and the monitor's number beside it is what says why.
+// Above the band, shivering means rigors, which is a different illness (a bacteraemic spike);
+// it is drawn only when the brief actually asserts rigors or chills, never on fever alone.
+//
+// SEIZING WINS. A fitting patient is not also shivering — the two are mutually exclusive by
+// construction here, in the plan, rather than by two draw paths racing for the same group.
+// A temperature that is not a number (no reading yet) is `none`: the picture says nothing
+// rather than guessing.
+function tremorPlan(v, m, o){
+  v = v || {}; m = m || {}; o = o || {};
+  // NO OUTPUT, NO MOVEMENT. Shivering and convulsing are both things a perfused brain and muscle
+  // do; a patient in arrest does neither, and drawing a shiver on him is the same lie the wound
+  // told when it throbbed at an electrical rate nobody could feel. The pulse comes from the code
+  // record while a resuscitation is running and from the monitor's systolic otherwise —
+  // bleedPulsatile() is that one answer, and the caller hands it over so this stays pure.
+  // o.codeRunning is not a second gate: a patient with ROSC being cooled SHIVERS, and that
+  // shiver is the thing to treat, so a running code with a pulse still trembles.
+  if(o.pulse === false) return {mode:'none', amp:0, hz:0};
+  if(m.seizing) return {mode:'seize', amp:0.006, hz:3};
+  // NO THERMOGENESIS, NO SHIVER. Kim (2026-09-14): "myxedema stays still" — a hypothyroid
+  // patient cannot mount the reflex, and absent shivering despite hypothermia is a hallmark of
+  // myxedema coma. A picture that trembled would contradict the diagnosis it is meant to teach.
+  if(m.noShiver) return {mode:'none', amp:0, hz:0};
+  const t = +v.temp;
+  if(t >= 32 && t < 35.5) return {mode:'shiver', amp:0.0025, hz:9};
+  if(t >= 39 && m.rigors) return {mode:'shiver', amp:0.0025, hz:9};
+  return {mode:'none', amp:0, hz:0};
+}
+// One breath: phase t in [0,1) → 0..1..0, the inhale taking `split` of the cycle.
+function breathWave(t, split){
+  const u = t < split ? t / split : 1 - (t - split) / (1 - split);
+  return Math.sin(u * Math.PI / 2);
+}
 let _breathPivot={x:150,y:119};
+// The bedside photo's own height in the 720x421 viewBox: the shoulder pivot is a share of
+// the distance from the breathing pivot down to the bottom of the picture. Both renderers
+// share this loop; if the drawn patient ever comes back it needs its own bottom here, the
+// way it already carries its own _breathPivot.
+const PT_PHOTO_H = 409;
+// …and its width. The viewBox is 720 wide and so is the photo, but the tremor is a fraction of
+// the PICTURE, not of the panel, and the two only happen to be the same number.
+const PT_PHOTO_W = 720;
+// How much the picture is blown up while it jerks, so the frame it vacates is filled by more of
+// itself instead of the panel's pale backdrop. 1.045 is the smallest scale for which the rotated,
+// translated photo still covers all four corners of the 720x409 frame at ±1° about its centre
+// (measured, not guessed); the shiver's 1.8px slide needs only 1.01. A clipPath ALONE cannot do
+// this job — a clip removes what spills over the far edge, it does not fill the gap the near edge
+// leaves behind — but it is needed WITH the scale, to stop the blown-up photo from spilling down
+// over the strip of panel below the picture. Both are on #pt_body; the tap polygons are its
+// siblings and neither the clip nor the scale can reach them.
+// These must stay CONSTANT per mode: the breathing probe measures a rendered height RATIO on a
+// shivering case, and any factor that varied with the jitter would inflate it.
+const TREMOR_COVER = { seize: 1.045, shiver: 1.01 };
 function startBreathing(){ cancelAnimationFrame(patientRAF);
   // Respiratory rate is on the monitor as a number, so stilling the chest costs no
   // information — and continuous motion is exactly what this preference asks us to drop.
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const amp = PATIENT_IMG ? 0.012 : 0.045;   // photo breathes subtly; drawing can exaggerate
-  function step(){ _breathT+=0.016; const rr=Math.max(4,S.shown.rr||16);
-    const s=1+amp*Math.sin(_breathT*(rr/60)*2*Math.PI);
-    const g=$('pt_chest'); if(g) g.setAttribute('transform','translate('+_breathPivot.x+','+_breathPivot.y+') scale(1,'+s.toFixed(4)+') translate(-'+_breathPivot.x+',-'+_breathPivot.y+')');
-    patientRAF=requestAnimationFrame(step); }
-  step();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const px = _breathPivot.x, py = _breathPivot.y, py2 = (py + 0.3 * (PT_PHOTO_H - py)).toFixed(1);
+  // One remembered string PER ELEMENT. The chest and the whole body are written from the same
+  // frame, and a single slot had each suppress the other's write. An empty string is "no
+  // transform at all" — removed rather than written, so a still patient carries no attribute
+  // and `getAttribute('transform')` is the honest answer to "is anything moving this?".
+  const write = (g, t) => {
+    const seen = _breath.written;
+    if(seen[g.id] === t) return;
+    seen[g.id] = t;
+    if(t === '') g.removeAttribute('transform'); else g.setAttribute('transform', t);
+  };
+  const still = 'translate(' + px + ',' + py + ') scale(1,1.0000) translate(-' + px + ',-' + py + ')';
+  _breath.last = performance.now();
+  // The phase and the gasp ladder carry over — an order must not restart the breath — but
+  // the elements usually do not, so the "already written" cache starts empty.
+  _breath.written = {};
+  function step(now){
+    const dt = Math.min(0.1, (now - _breath.last) / 1000); _breath.last = now;
+    const p = breathPlan(S.shown && S.shown.rr, { trend: S.trend, codeRunning: codeActive(), ventilated: ventilationRunning(), reducedMotion: reduced });
+    let v = 0, sh = 0;
+    if(p.mode === 'even' || p.mode === 'vent'){
+      _breath.phase = (_breath.phase + dt * p.rate / 60) % 1; v = breathWave(_breath.phase, p.split); sh = v;
+    } else if(p.mode === 'agonal'){
+      // A long still pause (4–8 s, stepping through a fixed ladder so two runs look alike),
+      // then one 1.2 s gasp.
+      const gasp = _breath.gasp;
+      if(now >= gasp.next){ gasp.until = now + 1200; gasp.n++; gasp.next = gasp.until + 4000 + 1000 * (gasp.n % 5); }
+      if(now < gasp.until){ v = breathWave((now - (gasp.until - 1200)) / 1200, 0.45); sh = v; }
+    }
+    const g = $('pt_chest');
+    // The panel was rebuilt out from under us; renderPatient starts a fresh loop when the
+    // chest comes back, so this one stops rather than spinning on nothing.
+    if(!g) return;
+    // amp is the whole rise the player sees; the shoulder share is taken out of the chest
+    // scale so the two scales multiply back to amp, with the upper body carrying more of it.
+    const s1 = 1 + Math.max(0, p.amp - p.shoulder) * v, s2 = 1 + p.shoulder * sh;
+    write(g, 'translate(' + px + ',' + py + ') scale(1,' + s1.toFixed(4) + ') translate(-' + px + ',-' + py + ')'
+      + (p.shoulder ? ' translate(' + px + ',' + py2 + ') scale(1,' + s2.toFixed(4) + ') translate(-' + px + ',-' + py2 + ')' : ''));
+    // THE BLEED. The glisten's opacity follows the monitor's own pulse — sin cubed, so it
+    // spends most of each beat dark and snaps bright, the way a wound actually throbs. The
+    // pool's spread is NOT a per-frame thing: it is a function of the sim clock, which only
+    // moves when a turn costs time (or, during an arrest, when the code engine's own second-by-
+    // second clock writes S.simMin) — so the same call from paintPatient, once a turn, draws
+    // exactly the same pool. Everything it needs is already in S.motion; this only reads.
+    const hr = (S.shown && S.shown.hr) || 0;
+    const beat = hr > 0 && bleedPulsatile() && !bleedControlled()
+      ? Math.pow(Math.max(0, Math.sin(now / 1000 * hr / 60 * 2 * Math.PI)), 3) : 0;
+    paintBleed(beat);
+    // SHIVERING AND SEIZING, on the WHOLE picture: #pt_body wraps the breathing chest and the
+    // blood, so a shivering patient carries his wound with him. The tap polygons are siblings of
+    // it and never move — a region that jitters under the fingertip is a region you cannot hit.
+    // The direction is a square wave off the clock, not a random draw: two runs of the same case
+    // look alike, and a reviewer comparing screenshots is comparing the same thing twice.
+    // #pt_body belongs to the PHOTO renderer, which is the one the manikin bases go through too
+    // (base === 'manikin' only changes which file #pt_photo loads) — so a child on the training
+    // manikin shivers and convulses exactly like an adult, which is what a febrile toddler and a
+    // status epilepticus child should do. Only the DRAWN patient, the fallback vector figure at
+    // the bottom of renderPatient, has no #pt_body, and it skips all of this.
+    // Reduced motion never reaches here either: startBreathing returned before the loop was
+    // ever scheduled, which is the whole of that preference.
+    const body = $('pt_body');
+    if(body){
+      const tp = tremorPlan(S.shown, S.motion || EMPTY, { pulse: bleedPulsatile(), codeRunning: codeActive() });
+      if(tp.mode === 'none') write(body, '');
+      else {
+        const k = Math.floor(now / 1000 * tp.hz * 2) % 2 ? 1 : -1;
+        // A shiver is side to side only. A fit adds a lift and a degree of roll, about the
+        // PICTURE's own centre — a body rolls about its middle — which is what makes it read as
+        // a convulsion and not a shudder. The cover scale rides on the same pivot, because the
+        // measurement that sized it assumed one pivot for both.
+        const seize = tp.mode === 'seize', cx = PT_PHOTO_W / 2, cy = PT_PHOTO_H / 2;
+        const dx = (tp.amp * PT_PHOTO_W * k).toFixed(2), dy = seize ? (tp.amp * PT_PHOTO_H * -k).toFixed(2) : '0';
+        const rot = seize ? (k * 1).toFixed(1) : '0', cover = seize ? TREMOR_COVER.seize : TREMOR_COVER.shiver;
+        write(body, 'translate(' + dx + ',' + dy + ') rotate(' + rot + ' ' + cx + ' ' + cy + ')'
+          + ' translate(' + cx + ',' + cy + ') scale(' + cover + ') translate(-' + cx + ',-' + cy + ')');
+      }
+    }
+    patientRAF = requestAnimationFrame(step);
+  }
+  // Reduced motion never moves, so it needs no loop at all: park the chest at its own size
+  // once and leave the frame budget alone.
+  // …but the BLEED is not all motion: the pool's size and whether the glisten is dimmed are
+  // facts about the patient, not animation. Paint them once, with no beat. paintPatient calls
+  // the same thing on every turn, so a reduced-motion player still watches the pool spread and
+  // still sees it settle when they stop the bleeding — they only lose the throb.
+  if(reduced){ const g = $('pt_chest'); if(g) write(g, still); paintBleed(0); return; }
+  patientRAF = requestAnimationFrame(step);
 }
 function paintPatient(){
   const v=S.shown, tr=S.trend;
@@ -10983,6 +11597,10 @@ function paintPatient(){
     photo.style.filter=f;
     if(tint){ tint.setAttribute('fill',tc); tint.setAttribute('opacity',to); }
     const sw=$('pt_sweat'); if(sw) sw.setAttribute('opacity', tr==='critical'?0.95:((tr==='worsening'||shock)?0.55:0));
+    // paintPatient runs on every turn, which is exactly when the sim clock moved — so the pool
+    // is redrawn here as well as in the frame loop. With reduced motion on, this is the ONLY
+    // thing drawing it.
+    paintBleed(0);
     return;
   }
   // vinyl mannequin tones: base tan, ashen in shock/hypoxia, flushed when febrile
