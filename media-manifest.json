@@ -1284,6 +1284,8 @@
  },
  "mri_generic2": {
   "credit": "511KeV",
+  "normal": true,
+  "region": "head",
   "file": "media/mri_generic2.jpg",
   "generic": true,
   "kw": [
@@ -1481,6 +1483,8 @@
  },
  "us_normal_generic": {
   "credit": "Nevit Dilmen ( talk )",
+  "normal": true,
+  "region": "abdomen",
   "file": "media/us_normal_generic.jpg",
   "generic": true,
   "kw": [
@@ -1503,8 +1507,6 @@
   "file": "media/us_pericardial.jpg",
   "kw": [
    "pericardial effusion",
-   "subxiphoid",
-   "subcostal",
    "tamponade",
    "pericardial fluid",
    "diastolic collapse"
@@ -1624,6 +1626,8 @@
  },
  "xr_generic": {
   "credit": "RSatUSZ",
+  "normal": true,
+  "region": "shoulder",
   "file": "media/xr_generic.jpg",
   "generic": true,
   "kw": [
@@ -1931,5 +1935,41 @@
   "license_url": "https://creativecommons.org/licenses/by/4.0",
   "page": "https://commons.wikimedia.org/wiki/File:Hyperkalemia_ECG.jpg",
   "source_title": "File:Hyperkalemia ECG.jpg"
+ },
+ "ct_abdomen_normal": {
+  "credit": "Mikael H\u00e4ggstr\u00f6m, M.D.",
+  "file": "media/ct_abdomen_normal.jpg",
+  "kw": [],
+  "label": "Abdominal CT \u2014 normal axial slice at the kidneys (contrast)",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "normal": true,
+  "page": "https://commons.wikimedia.org/wiki/File:CT_of_a_normal_abdomen_and_pelvis,_axial_plane_107.png",
+  "region": "abdomen",
+  "source_title": "File:CT of a normal abdomen and pelvis, axial plane 107.png"
+ },
+ "ct_head_axial_normal": {
+  "credit": "Mikael H\u00e4ggstr\u00f6m, M.D.",
+  "file": "media/ct_head_axial_normal.jpg",
+  "kw": [],
+  "label": "Head CT \u2014 normal axial non-contrast slice at the lateral ventricles",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "normal": true,
+  "page": "https://commons.wikimedia.org/wiki/File:CT_of_a_normal_brain,_axial_17.png",
+  "region": "head",
+  "source_title": "File:CT of a normal brain, axial 17.png"
+ },
+ "xr_pelvis_normal": {
+  "credit": "Staff at the Department of Radiology, UC San Diego Health",
+  "file": "media/xr_pelvis_normal.jpg",
+  "kw": [],
+  "label": "Pelvis radiograph \u2014 normal AP pelvis, young adult male",
+  "license": "Public domain",
+  "license_url": "",
+  "normal": true,
+  "page": "https://commons.wikimedia.org/wiki/File:X-ray_of_the_pelvis_of_an_18_year_old_male_-_case_1_-_anteroposterior.jpg",
+  "region": "pelvis",
+  "source_title": "File:X-ray of the pelvis of an 18 year old male - case 1 - anteroposterior.jpg"
  }
 }

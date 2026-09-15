@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3k8797orDX3kkJqz6rlxUiaexD9MFGslMfcWFAfnqcc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ZcyLPp1aOglvDb7XRE18cvm1cpfm2naVM/liqOUyTNQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1285,6 +1285,21 @@
   .text-\[8px\]{font-size:10px!important}
   .text-\[9px\],.text-\[10px\]{font-size:11px!important}
   .text-slate-600{color:#94a3b8!important}
+  /* ================================================================ SUBMIT STAYS ON SCREEN
+     Kim, 2026-09-15, on the groin stab: "it's hard to find the Submit Orders button because it
+     is hidden by the other menu." Measured at 1100x760 and 1024x700 in the chart layout: a code
+     case opens with the ACLS action set expanded, and with ten orders in the basket under it the
+     order bar grew to 649px inside a 427px column. #playBody{overflow:hidden} then cut the order
+     box and Submit off — 34px BELOW the bottom of the screen, reachable by no scroll at all.
+     The bar now scrolls inside its own column and the order row is pinned to the foot of it.
+     Not phones (they pin the same row with position:fixed, at higher specificity) and not the
+     room console (its bar is positioned and never scrolls, so sticky is a no-op there). */
+  @media (min-width:768px) and (min-height:501px){
+    body:not(.cinema):not(.phoneFold) #orderBar{flex:0 1 auto;min-height:0;overflow-y:auto}
+    body:not(.cinema):not(.phoneFold) #chat{min-height:6rem}
+    body:not(.console):not(.phoneFold) #obInputRow{position:sticky;bottom:0;z-index:5;
+      background:#020617;box-shadow:0 -12px 14px -10px #020617}
+  }
   /* ================================================================ THE PHONE: FOLDING SECTIONS
      Kim, 2026-09-11: "the layout of the orders is still cluttered ... make every menu
      collapsible, hide and unhide ... minimize clutter." Measured at 390x844 before this:
@@ -2453,14 +2468,13 @@ const IMG_LIBRARY = {
   cxr_normal: {url:'https://upload.wikimedia.org/wikipedia/commons/a/a1/Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg', page:'https://commons.wikimedia.org/wiki/File%3ANormal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg', credit:'Wikimedia Commons', license:'CC0', kw:['normal chest', 'clear chest', 'unremarkable chest', 'normal cxr']},
   ct_sah: {url:'https://upload.wikimedia.org/wikipedia/commons/0/06/Subarachnoid_hemorrhage_CT_%28uncropped%29.jpg', page:'https://commons.wikimedia.org/wiki/File%3ASubarachnoid_hemorrhage_CT_%28uncropped%29.jpg', credit:'Dr. George Jallo', license:'CC BY-SA 3.0', kw:['subarachnoid', 'sah', 'ruptured aneurysm']},
   ct_pe: {url:'https://upload.wikimedia.org/wikipedia/commons/4/4d/Pulmonary_embolism_CTPA.JPEG', page:'https://commons.wikimedia.org/wiki/File%3APulmonary_embolism_CTPA.JPEG', credit:'Aung Myat and Arif Ahsan', license:'CC BY 2.0', kw:['pulmonary embolism', 'ctpa', 'saddle embolus', 'filling defect', 'pe on ct']},
-  // generic:true entries are LAST-RESORT modality fallbacks — used only when the
-  // specific live Commons search finds nothing, never on the specific query
-  // itself (so a real thumbprinting KUB / McConnell-sign echo is still found
-  // first when online). They guarantee an xr/us order ALWAYS yields an image.
-  xr_normal: {url:'https://upload.wikimedia.org/wikipedia/commons/b/b1/Upright_abdominal_X-ray_demonstrating_a_bowel_obstruction.jpg', page:'https://commons.wikimedia.org/wiki/File%3AUpright_abdominal_X-ray_demonstrating_a_bowel_obstruction.jpg', credit:'Wikimedia Commons', license:'CC BY-SA 3.0', generic:true, kw:['x-ray','x ray','radiograph','kub','plain film','flat plate','abdominal film']},
+  // generic:true entries are LAST-RESORT fallbacks, never matched on the specific query.
+  // For x-ray, CT, MRI and ultrasound a stand-in must also be normal:true and show the
+  // region the study names (see STUDY_REGIONS below). The old xr_normal row is gone: it
+  // was an upright film of a BOWEL OBSTRUCTION standing in as the "normal" radiograph.
   us_normal: {url:'https://upload.wikimedia.org/wikipedia/commons/a/a1/Ultrasound_Scan_ND_110.jpg', page:'https://commons.wikimedia.org/wiki/File%3AUltrasound_Scan_ND_110.jpg', credit:'Wikimedia Commons', license:'CC BY-SA 3.0', generic:true, kw:['ultrasound','sonograph','sonogram','echocard','echo','doppler','duplex','fast exam','point of care','pocus']},
-  ct_generic: {url:'https://upload.wikimedia.org/wikipedia/commons/9/9c/CT_of_a_normal_brain%2C_coronal_53.png', page:'https://commons.wikimedia.org/wiki/File%3ACT_of_a_normal_brain%2C_coronal_53.png', credit:'Wikimedia Commons', license:'CC0', generic:true, kw:['ct','computed tomography','axial','tomograph','cat scan']},
-  mri_generic: {url:'https://upload.wikimedia.org/wikipedia/commons/a/a2/MRI_Brain_ADC_Axial_%281%29.jpg', page:'https://commons.wikimedia.org/wiki/File%3AMRI_Brain_ADC_Axial_%281%29.jpg', credit:'Wikimedia Commons', license:'CC BY-SA 4.0', generic:true, kw:['mri','magnetic resonance','brain mri']},
+  ct_generic: {url:'https://upload.wikimedia.org/wikipedia/commons/9/9c/CT_of_a_normal_brain%2C_coronal_53.png', page:'https://commons.wikimedia.org/wiki/File%3ACT_of_a_normal_brain%2C_coronal_53.png', credit:'Wikimedia Commons', license:'CC0', generic:true, normal:true, region:'head', kw:['ct','computed tomography','axial','tomograph','cat scan']},
+  mri_generic: {url:'https://upload.wikimedia.org/wikipedia/commons/a/a2/MRI_Brain_ADC_Axial_%281%29.jpg', page:'https://commons.wikimedia.org/wiki/File%3AMRI_Brain_ADC_Axial_%281%29.jpg', credit:'Wikimedia Commons', license:'CC BY-SA 4.0', generic:true, normal:true, region:'head', kw:['mri','magnetic resonance','brain mri']},
 };
 // Type-scoped: a keyword can only ever return an image of its OWN modality
 // (the key prefix — ekg_/cxr_/ct_/xr_/us_). Without this, ekg_normal's "normal"
@@ -2534,7 +2548,7 @@ function kwHit(q, w){
   return sawNegated ? -1 : 0;
 }
 
-function mediaEntry(query, type, allowGeneric){
+function mediaEntry(query, type, allowGeneric, accept){
   const q=String(query||'').toLowerCase();
   const want=String(type||'').toLowerCase();
   let best=null, bestScore=0;
@@ -2542,6 +2556,7 @@ function mediaEntry(query, type, allowGeneric){
     if(want && k.split('_')[0]!==want) continue;
     const e=MEDIA_LIB[k];
     if(e.generic && !allowGeneric) continue;
+    if(accept && !accept(e)) continue;
     // Score by how many of the entry's keywords the query mentions, so a query
     // naming several findings lands on the most specific image rather than the
     // first table entry that happens to share one word.
@@ -2571,12 +2586,17 @@ function mediaEntry(query, type, allowGeneric){
 function curatedImage(query, type, allowGeneric){
   const q=String(query||'').toLowerCase();
   const want=String(type||'').toLowerCase();
-  const local = mediaEntry(query, type, allowGeneric);
+  // A finding keyword must not carry a film across the body: "soft tissue gas" is not a
+  // reason to show a thigh for a scrotum. Entries whose region is known must match.
+  const qRegion = REGION_TYPES.has(want) ? studyRegion(q) : null;
+  const sameRegion = e => regionsMatch(qRegion, entryRegion(e));
+  const local = mediaEntry(query, type, allowGeneric, sameRegion);
   let remote = null, remoteScore = 0;
   for(const k in IMG_LIBRARY){
     if(want && k.split('_')[0]!==want) continue;
     const e=IMG_LIBRARY[k];
     if(e.generic && !allowGeneric) continue;
+    if(!sameRegion(e)) continue;
     let n=0, vetoed=false;
     for(const w of e.kw){ const h=kwHit(q, w); if(h<0){ vetoed=true; break; } n+=h; }
     if(vetoed || !n) continue;                                   // query rules it out, or never mentions it
@@ -2604,8 +2624,108 @@ function titlePlausible(title, type){
   const t=String(title||'').toLowerCase();
   return terms.some(w=>t.includes(w));
 }
+// ---- THE FILM SHOWS THE PART OF THE BODY THAT WAS ORDERED ------------------------------
+// Kim, 2026-09-15, on the groin stab: "the X-ray of the pelvis shows a shoulder X-ray. This is
+// a recurrent problem of showing the wrong radiology results." It was. 25 of the 36 plain films
+// in the packs have no reviewed picture of their own, and every one fell through to the single
+// generic radiograph — a transaxillary SHOULDER — whatever had been ordered. The generic CT was
+// worse: an abdomen full of free air, standing in for 89 CTs, about sixty of them normal head CTs.
+// So for x-ray, CT, MRI and ultrasound a stand-in now has to (1) show the same region the study
+// names, (2) be a reviewed NORMAL study (normal:true), (3) stand in only for a study that itself
+// reads normal, and (4) not be an adult film for a child. When nothing honest exists the card
+// carries the written read and no picture — no film teaches nothing, the wrong film teaches the
+// wrong thing. Chest films and ECGs keep their same-modality generic: their region is the chest
+// by definition and the player has no written read to fall back on.
+const REGION_TYPES = new Set(['xr','ct','mri','us']);
+// First un-negated mention wins, so "CT abdomen pelvis" is an abdomen and "AP pelvis … left
+// thigh" is a pelvis. Words are matched at a word START, so "hepat" catches hepatic and "rib"
+// does not catch "distribution". Longer phrases are listed so "femoral head" is not a head.
+const STUDY_REGIONS = [
+  ['whole',    ['skeletal survey','whole body','babygram']],
+  ['pelvis',   ['pelvis','pelvic','hip','hips','acetabul','pubic','pubis','symphysis','sacroiliac','femoral head','femoral neck','groin','inguinal','scrot','testic','ovar','uter','adnex','transvaginal']],
+  ['head',     ['head','brain','skull','cranial','intracranial','cerebr','cerebell','ventricles','subarachnoid','temporal bone','mca','acom']],
+  // "epidural"/"subdural" are left out on purpose: a spinal epidural abscess read as a head.
+  // A FAST scan is its own region: its windows span the abdomen, the pelvis and the chest.
+  ['fast',     ['fast','efast','e-fast','focused assessment','morison','hemoperitoneum','haemoperitoneum','free fluid']],
+  ['face',     ['face','facial','orbit','sinus','maxill','mandib','nasal','zygom','waters view','ocular','globe','retrobulbar']],
+  ['spine',    ['spine','spinal','lumbar','c-spine','cervical spine','thoracolumbar','vertebra','sacrum']],
+  ['neck',     ['soft tissue neck','neck','epiglott','retropharyn','carotid','thyroid','subglottic']],
+  ['chest',    ['chest','thorax','thoracic','lung','lungs','pulmonary','rib','ribs','mediastin','pleura','pneumothorax','ctpa','esophag','oesophag','heart','cardiac','pericard','echocardiog','subxiphoid','parasternal','apical four']],
+  ['abdomen',  ['abdomen','abdominal','kub','bowel','liver','hepat','gallbladder','biliary','ruq','rlq','appendi','kidney','kidneys','renal','ureter','hydroneph','pancrea','splen','spleen','colon','colonic','colitis','sigmoid','rectosigmoid','mesenter','peritone','hepatorenal','splenorenal','aorta','aortic','bladder','duoden','gastric','stomach']],
+  ['shoulder', ['shoulder','humer','clavic','scapul','glenohumeral','acromio']],
+  ['arm',      ['elbow','forearm','radius','ulna','supracondylar','olecranon']],
+  ['hand',     ['wrist','hand','finger','carpal','carpus','scaphoid','metacarp','colles','thumb']],
+  ['leg',      ['femur','femoral shaft','thigh','knee','patella','tibia','fibula','tibial','lower leg','calf','lower extremity','lower limb','popliteal']],
+  ['foot',     ['ankle','foot','calcane','metatars','toe','toes','tillaux','malleol','mortise']],
+];
+const _REGION_RES = STUDY_REGIONS.flatMap(([region, words]) =>
+  words.map(w => ({ region, w, re: new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (w.length < 5 ? '\\b' : ''), 'g') })));
+function studyRegion(text){
+  const q = String(text||'').toLowerCase().replace(/[_%]/g, ' ');
+  let best = null;
+  for(const r of _REGION_RES){
+    r.re.lastIndex = 0; let m;
+    while((m = r.re.exec(q))){
+      if(NEG_LEAD.test(q.slice(Math.max(0, m.index - 44), m.index))) continue;   // "no free fluid in the pelvis"
+      if(!best || m.index < best.i || (m.index === best.i && r.w.length > best.len)) best = { i: m.index, len: r.w.length, region: r.region };
+      break;
+    }
+  }
+  return best ? best.region : null;
+}
+const FAST_REGIONS = new Set(['fast','abdomen','pelvis','chest']);
+function regionsMatch(queryRegion, filmRegion){
+  if(!queryRegion || !filmRegion) return true;               // nothing to compare
+  return queryRegion===filmRegion
+    || (queryRegion==='fast' && FAST_REGIONS.has(filmRegion))
+    || (filmRegion==='fast' && FAST_REGIONS.has(queryRegion));   // a Morison's-pouch film for "free fluid, abdomen" 
+}
+function entryRegion(e){
+  if(!e) return null;
+  return e.region || studyRegion(e.label) || studyRegion(e.source_title) || studyRegion(decodeURIComponent(String(e.url||'').split('/').pop()||'')) || null;
+}
+// A study reads normal when it says so and names no finding that is not ruled out.
+const NORMAL_CUE_RE = /\b(?:normal|unremarkable|intact|negative|no acute|no fracture|no hemorrhage|no haemorrhage|no bleed)/;
+const FINDING_WORDS = ['fracture','dislocat','diastasis','widen','gas','emphysema','free air','air-fluid','fluid','effusion',
+  'hemorrhag','haemorrhag','bleed','hematoma','haematoma','mass','lesion','edema','oedema','swelling','swollen','infarct',
+  'ischem','ischaem','hypodens','hyperdens','atrophy','dilat','obstruct','thicken','stranding','abscess','stone','calcul',
+  'hydroneph','foreign body','shunt','catheter','tube','extravasat','aneurysm','shift','herniat','hernia','erosion','opacif',
+  'contusion','laceration','nodule','cavit','collection','perforat','volvulus','intussuscep','arthroplast','prosthe','hardware',
+  'consolidat','pneumo','cyst','tumo','clot','thromb','occlu','stenosis','narrowing','dissection','flap','blush','injur',
+  'cutoff','changes','deformit','sclero','lytic','periosteal','displace','angulat','step-off','sign','target','mottl'];
+function queryReadsNormal(query){
+  const q = String(query||'').toLowerCase();
+  if(!NORMAL_CUE_RE.test(q)) return false;
+  return !FINDING_WORDS.some(w => kwHit(q, w) === 1);
+}
+const CHILD_RE = /\b(?:infant|neonat|newborn|baby|toddler|pediatric|paediatric|child|juvenile|boy|girl|\d+[- ](?:day|week|month)s?[- ]old)\b/;
+// The reviewed normal film of this region, or null. Local library first; it is vetted on disk.
+function regionNormalImage(query, type){
+  const want = String(type||'').toLowerCase(), q = String(query||'').toLowerCase();
+  const region = studyRegion(q);
+  if(!REGION_TYPES.has(want) || !region || !queryReadsNormal(q) || CHILD_RE.test(q)) return null;
+  const pick = (lib, k) => { const e = lib[k]; return k.split('_')[0]===want && e && e.normal && !e.child && entryRegion(e) && regionsMatch(region, entryRegion(e)); };
+  for(const k in MEDIA_LIB) if(pick(MEDIA_LIB, k)){ const e = MEDIA_LIB[k];
+    return {url:e.file, page:e.page, credit:e.credit, license:e.license, licenseUrl:e.license_url, label:e.label, key:k, source:'local', score:0}; }
+  for(const k in IMG_LIBRARY) if(pick(IMG_LIBRARY, k)){ const e = IMG_LIBRARY[k];
+    return {url:e.url, page:e.page, credit:e.credit, license:e.license, source:'curated', key:k, score:0}; }
+  return null;
+}
+// What a study card swaps to if its picture fails to load. Same rule as above: for the four
+// region modalities the normal film of the same region or nothing; chest films and ECGs keep
+// their same-modality generic.
+function studyFallbackImage(hint){
+  if(!hint) return null;
+  const type = String(hint.type||'').toLowerCase();
+  if(REGION_TYPES.has(type)) return regionNormalImage(hint.query, type);
+  return GENERIC_IMG_QUERY[type] ? curatedImage(GENERIC_IMG_QUERY[type], type, true) : null;
+}
 async function commonsSearch(query, type){
   try{
+    const want=(type||'').toLowerCase();
+    // an unreviewed live result must at least NAME the region that was ordered in its title
+    const region = REGION_TYPES.has(want) ? studyRegion(query) : null;
+    if(REGION_TYPES.has(want) && !region) return null;
     const api='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=6'
       +'&gsrsearch='+encodeURIComponent(query+' filetype:bitmap')
       +'&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1000&format=json&origin=*';
@@ -2615,6 +2735,7 @@ async function commonsSearch(query, type){
     for(const p of pages){
       const ii=(p.imageinfo||[])[0]; if(!ii||!ii.thumburl||ii.mime==='image/svg+xml') continue;
       if(!titlePlausible(p.title, type)) continue;          // reject wrong-modality live results
+      if(region && (!studyRegion(p.title) || !regionsMatch(region, studyRegion(p.title)))) continue; // reject wrong-region live results
       const em=ii.extmetadata||{};
       const artist=((em.Artist&&em.Artist.value)||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
       return { url:ii.thumburl, page:ii.descriptionurl||'',
@@ -2624,16 +2745,18 @@ async function commonsSearch(query, type){
   }catch(_){ }
   return null;
 }
-// Failed lookups are cached per query and retried ONCE with a generic per-type
-// query, so a too-specific pack query still yields a plausible study image
-// instead of an empty card ("chest x-ray without the picture").
+// Failed lookups are cached per query. Chest films and ECGs then retry ONCE with a generic
+// per-type query so a too-specific query still yields a study to read ("chest x-ray without
+// the picture"); the other four modalities stop at the region rule above.
 const _imgFailCache = new Set();
-const GENERIC_IMG_QUERY = {ekg:'normal 12 lead ECG', cxr:'normal chest x-ray radiograph', xr:'plain radiograph x-ray',
-                           ct:'CT scan axial slice', mri:'brain MRI scan', us:'ultrasound scan image'};
+const GENERIC_IMG_QUERY = {ekg:'normal 12 lead ECG', cxr:'normal chest x-ray radiograph'};
 async function resolveStudyImage(hint){
   if(!hint || !hint.query) return null;
   const type = (hint.type||'').toLowerCase();
-  const cur = curatedImage(hint.query, type); if(cur) return cur;   // same-modality specific match only
+  const cur = curatedImage(hint.query, type); if(cur) return cur;   // same-modality, same-region specific match
+  // a normal study of a region we hold a reviewed normal film for never goes to live search,
+  // which cannot tell "normal pelvis" from a pelvis with a hip replacement in it
+  const rn = regionNormalImage(hint.query, type); if(rn) return rn;
   const key = type+':'+hint.query;
   if(!_imgFailCache.has(key)){
     const live = await commonsSearch(hint.query, type);
@@ -2642,7 +2765,7 @@ async function resolveStudyImage(hint){
   }
   const gq = GENERIC_IMG_QUERY[type];
   if(!gq) return null;
-  const gcur = curatedImage(gq, type, true); if(gcur) return gcur;  // guaranteed same-modality generic (ekg/cxr/xr/us)
+  const gcur = curatedImage(gq, type, true); if(gcur) return gcur;  // chest film / ECG same-modality generic
   if(_imgFailCache.has('g:'+gq)) return null;
   const glive = await commonsSearch(gq, type);
   if(!glive) _imgFailCache.add('g:'+gq);
@@ -6198,7 +6321,18 @@ function positionOrderSuggestions(){
   const _row=$('obToggleRow');
   const _rowTop=(mobileWorkspace() && _row && _row.getBoundingClientRect().width>0 && getComputedStyle(_row).display!=='none')
     ? _row.getBoundingClientRect().top : Infinity;
-  const anchorTop=Math.min(b.top, _rowTop);
+  let anchorTop=Math.min(b.top, _rowTop);
+  // ...AND IT MUST CLEAR THE BASKET (Kim, 2026-09-15: "it's hard to find the Submit Orders
+  // button because it is hidden by the other menu"). Picking order after order left the list
+  // open, and on every desktop width it covered the basket and its "Submit 10 items" — the
+  // button you are working towards. The list now stands above the basket whenever there is
+  // room for four suggestions plus its own header; below that it would be a slit, so the list
+  // keeps the space and the Submit at the end of the command row is the one that is in view.
+  const _tray=$('basketTray');
+  if(!mobileWorkspace() && _tray && !_tray.classList.contains('hidden')){
+    const t=_tray.getBoundingClientRect();
+    if(t.height>0 && t.bottom<=b.top+1 && (t.top-(v?v.offsetTop:0))>=4*44+56) anchorTop=Math.min(anchorTop, t.top);
+  }
   const above=Math.max(0, anchorTop-top-gap*2), below=Math.max(0,top+height-b.bottom-gap*2);
   const up=above>=Math.min(240,below);
   const maxH=Math.max(44,Math.min(height*.5,up?above:below));
@@ -12082,7 +12216,7 @@ function renderWorkspace(){
     // same-modality generic before giving up — so a study never shows a broken
     // image icon.
     const rk = ((r.image && r.image.type) || '').toLowerCase();
-    const fbImg = curatedImage(GENERIC_IMG_QUERY[rk]||'', rk, true);
+    const fbImg = studyFallbackImage(r.image);   // same region and normal, or nothing (xr/ct/mri/us)
     const fbUrl = (fbImg && fbImg.url && (!r.img || fbImg.url!==r.img.url)) ? fbImg.url : '';
     const imgHtml = r.img ? `<img src="${esc(r.img.url)}" loading="lazy" alt="Clinical study image: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-fallback="${esc(fbUrl)}" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black" />
       <div class="text-[9px] text-slate-600 leading-tight">${esc(attr)} · click to enlarge</div>` : '';
