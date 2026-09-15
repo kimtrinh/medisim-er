@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-IazH9vk8ijLCtx8oC9VoMBsiuvCaPtoFQGK0jJ2jWNk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-BfA6QoTnC8AI4getyhmr9XNh0MJH5ljjk+k1wR/mGzk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -183,6 +183,15 @@
   body.cinema #cinemaStage{display:block}
   #cinemaScene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
   body.cinema #roomBox{width:var(--rw);border-radius:0;border-color:transparent}
+  /* BEDSIDE in the room: the close-up stands in the gap between the console's panels (placed
+     by fitBedside(), which writes left/top/width), so it gets the rounded frame of a picture
+     rather than bleeding off the edges like a scene.
+     In the room, at every size, the box is the PHOTO's shape (720x409), not the SVG's
+     (720x421): the extra strip under the picture is where the sidebar card writes its hint,
+     and in the room it read as a pale bar along the patient's feet. Nothing is in it — the
+     tap regions end at y339. */
+  body.cinema #roomBox.bedView{aspect-ratio:720/409}
+  body.cinema.console #roomBox.bedView{border-radius:16px;box-shadow:0 24px 60px -24px rgba(0,0,0,.95)}
   /* Header and HUD sit above the scene; the header turns to glass so the room runs
      edge to edge behind it. */
   body.cinema header{position:relative;z-index:30;background:linear-gradient(180deg,rgba(2,6,23,.86),rgba(2,6,23,.42));border-color:rgba(148,163,184,.14)}
@@ -1441,6 +1450,17 @@
   body.phoneFold #rmCam{display:inline-flex;position:absolute;left:6px;bottom:6px;z-index:12;align-items:center;gap:.35rem;
     min-height:36px;padding:0 .7rem;border-radius:9999px;border:1px solid rgba(148,163,184,.4);background:rgba(2,6,23,.78);
     color:#e2e8f0;font-size:12px!important;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
+  /* The console has no camera tabs (#cinemaCard is off there) and its ROOM scene has no floor
+     zones, so without this there was no way from ROOM to any other camera — BEDSIDE included.
+     Same button, top-left of the picture: under the header on a scene (the photo runs up
+     behind the glass), at the corner of the framed close-up at BEDSIDE. */
+  /* NB it shares the top-left corner with the order wall (#console .cluster, off under tapUI) —
+     if the wall ever returns there, this button would be buried under it. */
+  body.cinema.console #rmCam{display:inline-flex;position:absolute;left:10px;top:calc(var(--hdr,66px) + 8px - var(--rt,0px));z-index:12;
+    align-items:center;gap:.35rem;min-height:32px;padding:0 .7rem;border-radius:9999px;border:1px solid rgba(148,163,184,.4);
+    background:rgba(2,6,23,.78);color:#e2e8f0;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
+  body.cinema.console #rmCam:hover{border-color:rgba(110,231,183,.7);color:#6ee7b7}
+  body.cinema.console #roomBox.bedView #rmCam{top:8px}
   .roomMenu.camMenu button{min-height:44px;font-size:14px!important}
   .roomMenu.camMenu button[aria-pressed="true"]{color:#6ee7b7;background:rgba(16,185,129,.12)}
   /* landscape: the photo on the left, the column on the right, the bar under the column */
@@ -1793,6 +1813,8 @@ const S = {
   messages: [], context:'', diagnosis:'', learningPoints:[],
   labs:[], reports:[], exam:[],
   pview: localStorage.ms_pview || 'room',
+  caseCamera: null,       // the camera this case chose to open at (openAtCaseCamera)
+  cameraTouched: false,   // the player has moved the camera since the case started
   difficulty: localStorage.ms_difficulty || 'resident',
   patient:{}, patientVoice:null,
   criticalActions:[], simMin:0, caseLabel:'', timeline:[],
@@ -2910,6 +2932,7 @@ async function generateCase(userContent, hint, label){
     S.messages = [{role:'assistant', content:c.intro||'The patient is at the bedside.', speech:c.speech}];
     S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
     startCoachSession();
+    openAtCaseCamera();      // a case with a drawn injury opens at the camera that shows it
     renderPlay();
     openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
     narrate(c.speech, c.intro);
@@ -6565,6 +6588,7 @@ async function loadGoldCase(seed, opts){
   // The finding picture depends on which pictures Kim has kept; if the manifest is not in yet
   // the first paint shows the unmarked photo and this repaints it a moment later.
   repaintOnFirstManifest();
+  openAtCaseCamera();      // a case with a drawn injury opens at the camera that shows it
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
   narrate(seed.speech, seed.intro);
@@ -8251,9 +8275,8 @@ function renderPlay(){
   };
   // Works at any width: cinema builds into #cinemaStage on <body>, not the sidebar.
   if($('cinemaBtn')) $('cinemaBtn').onclick=()=>{ setChart(false); setRoomFirst(true);
-    // The room can only show the walkthrough positions. Coming from BEDSIDE (the one
-    // view with no scene) the button used to do nothing at all — walk back to the room.
-    if(!ROOM_VIEWS[S.pview]){ S.pview='room'; try{ localStorage.ms_pview='room'; }catch(_){ } }
+    // Every camera, BEDSIDE included, has its picture in the room — the camera you were at is
+    // the camera you walk in at.
     if(!S.cinema) enterCinema(); };
   paintChartCount();
   $('obToggle').onclick=()=>{
@@ -9151,8 +9174,35 @@ let _repaintQueued = false;
 function repaintOnFirstManifest(){
   if(_findingManifest || _repaintQueued) return;
   _repaintQueued = true;
-  loadFindingManifest().then(() => { if(S.stage === 'play') renderPatient(); });
+  loadFindingManifest().then(() => {
+    if(S.stage !== 'play') return;
+    // Which finding pictures exist also decides which CAMERA the case opens at — so a case
+    // started before the manifest was in asks again, unless the player has already moved.
+    if(!S.cameraTouched) openAtCaseCamera();
+    renderPatient();
+  });
 }
+// THE CASE OPENS AT THE CAMERA THAT SHOWS ITS INJURY. Kim, 2026-09-14, on the groin stab: "I
+// would like the best perspective to be shown, consistent to the case." Every drawn injury —
+// a case's own hand-made picture, or a finding picture chosen from the brief — is on the
+// BEDSIDE close-up; the room's three scenes show the bed from across the room. So a case with
+// one opens there. It is the CASE's choice, not the player's: it is not written to
+// localStorage.ms_pview, and a case without an injury opens at the camera the player last
+// chose themselves (read back from there, so one injury case does not leave every later case
+// at the bedside). Switching cameras during the case works as always.
+// On a mid-size screen (the floating room, see bedsideInRoom) BEDSIDE cannot be a room camera,
+// because the panels bury it. Kim chose (2026-09-14) that an injury case there opens at the
+// BEDSIDE close-up in the chart layout anyway — the injury first — and openRoomIfPreferred
+// leaves the room for that one case; the preference to play in the room is untouched.
+function caseCamera(){
+  const base = patientBaseFor(S.patient || {});
+  const roomHidesBed = S.roomFirst && !bedsideInRoom();
+  if(casePatientImg(S.goldId) || bedsideVariant(base)) return 'bed';
+  let kept = null; try{ kept = localStorage.ms_pview; }catch(_){ }
+  if(kept === 'bed' && roomHidesBed) return 'room';
+  return isRoomCamera(kept) ? kept : 'room';
+}
+function openAtCaseCamera(){ S.pview = S.caseCamera = caseCamera(); S.cameraTouched = false; }
 function traumaVariantFor(base){
   const have = TRAUMA_BASES[base];
   if(!have) return null;
@@ -9588,100 +9638,30 @@ function renderPatient(){
   if(S.pview===undefined) S.pview = localStorage.ms_pview || 'room';
   const tab=(k,lbl)=>`<button data-pview="${k}" class="px-2 py-0.5 text-[9px] font-black ${S.pview===k?'bg-emerald-600/30 text-emerald-300':'text-slate-500 hover:text-slate-300'}">${lbl}</button>`;
   const viewToggle=`<span class="float-right inline-flex rounded-lg overflow-hidden border border-slate-700 -mt-0.5">${tab('room','ROOM')}${tab('foot','FOOT')}${tab('airway','AIRWAY')}${tab('bed','BEDSIDE')}</span>`;
-  // Cinema mode owns the three walkthrough positions: the scene is built into
-  // #cinemaStage (outside #main, so it survives progress()'s rebuild) and the sidebar
-  // card is emptied, which keeps exactly ONE copy of #roomBox and its ids alive.
-  // BEDSIDE is a different renderer that only mounts in the sidebar, so walking
-  // to it steps back out of cinema — the same rule the old expand overlay used.
-  if(S.cinema && !ROOM_VIEWS[S.pview]) exitCinema();
+  // Cinema mode owns EVERY camera, BEDSIDE included: the scene is built into #cinemaStage
+  // (outside #main, so it survives progress()'s rebuild) and the sidebar card is emptied,
+  // which keeps exactly ONE copy of #roomBox — and of the close-up's #ptSvg, #pt_chest and
+  // #pt_photo — alive.
+  // BEDSIDE used to step back OUT of the room here, because the close-up only mounted in the
+  // sidebar. Every injury picture, the bleeding and the breathing are drawn on that close-up,
+  // so inside the room nobody saw them. Kim, 2026-09-14, on the groin stab: "with this
+  // perspective you cannot see the stab wound". The close-up is now a room camera like the others.
+  // …except in the floating room (see bedsideInRoom), where the panels would bury it: there
+  // BEDSIDE steps out to the chart layout, and the preference to play in the room is kept.
+  if(S.cinema && S.pview==='bed' && !bedsideInRoom()){ exitCinema(); paintViewSwitch(); }   // the header's SIM ROOM / CHART switch says where you are
   if(S.cinema){ host.innerHTML=''; renderCinemaRoom(who); return; }
   if(ROOM_VIEWS[S.pview]){ renderRoom(host, who, viewToggle); return; }
   if(PATIENT_IMG){
-    // Photo mode: a demographic-matched real photo (or the training manikin, for
-    // children/unknown demographics) as the base layer; physiology rendered as live
-    // overlays (CSS filter + tint for skin state, sweat droplets, breathing scale,
-    // ECG pads) and the same clickable exam regions as polygons over the anatomy.
-    const base = patientBaseFor(p);
-    const overlayEntry = PATIENT_OVERLAYS[base] || PATIENT_OVERLAYS.manikin || {};
-    const overlaysHTML = OVERLAY_DEVICES.map(([device,gearKey])=>{
-      const d = overlayEntry[device];
-      if(!d || !Array.isArray(d.box)) return '';
-      const g = overlayBoxToXYWH(d.box);
-      return `<image id="pt_${gearKey}" href="patient-overlays/${base}/${device}.png" data-optional-overlay="1" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"
-             opacity="${S.gear&&S.gear[gearKey]?1:0}" style="transition:opacity .5s" pointer-events="none"/>`;
-    }).join('');
-    // What the vignette says is happening to this patient, and when the bleed started —
-    // read once per case, here rather than at case start, because a restored session lands
-    // straight in renderPatient with no case-start to run.
-    if(!S.motion) S.motion = motionDefaults();
-    // ONCE. traumaVariantFor runs seventeen regexes over the hidden brief; the photo and the
-    // blood layer are the same answer, so they ask the same question once.
-    const variant = base==='manikin' ? null : traumaVariantFor(base);
+    const base = patientBaseFor(p), variant = bedsideVariant(base);
     host.innerHTML=`
      <h3 class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 border-b border-slate-800 pb-3 mb-3">Patient — <span class="text-slate-300 normal-case tracking-normal">${esc(who)}</span>${viewToggle}</h3>
      <div class="relative rounded-2xl border border-slate-800 overflow-hidden">
-       <svg id="ptSvg" viewBox="0 0 720 421" class="w-full block">
-         <rect width="720" height="421" fill="#eef1f4"/>
-         <!-- #pt_body is the whole patient: the breathing chest AND anything drawn on top of the
-              skin that must NOT breathe with it (the blood pool). Task 7's shiver/seize moves
-              #pt_body, so a shivering patient carries the wound with him. It is untransformed here.
-              The clip is the photo's own rectangle: while it jerks the group is blown up a little
-              so the frame it vacates is filled with more of itself rather than the pale panel
-              behind, and the clip is what stops that blown-up photo spilling over the strip of
-              panel below the picture. The tap polygons are SIBLINGS of this group — neither the
-              clip nor the transform can reach them. -->
-         <clipPath id="pt_bodyClip"><rect x="0" y="0" width="${PT_PHOTO_W}" height="${PT_PHOTO_H}"/></clipPath>
-         <g id="pt_body" clip-path="url(#pt_bodyClip)">
-         <!-- "chest" by history: this group is the whole photo plus the device overlays, and it is what startBreathing scales; the tap polygons below stay put on purpose -->
-         <g id="pt_chest">
-           <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (variant || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
-           <!-- Equipment overlays: patches cut from edits of this same base photo, so
-                the fit and lighting are pixel-exact. Feathered edges blend over the
-                original; a missing file simply never shows. Placement maps the source
-                image's crop box (patient-overlays/manifest.json) through the same
-                xMidYMid-slice transform as pt_photo. -->
-           ${overlaysHTML}
-         </g>${bloodLayerHTML(base, variant)}</g>
-         <rect id="pt_tint" width="720" height="421" fill="#000000" opacity="0" style="transition:opacity .8s, fill .8s" pointer-events="none"/>
-         <g id="pt_sweat" opacity="0" fill="#9fd9ff" stroke="#e6f6ff" stroke-width="0.6" style="transition:opacity .6s">
-           <ellipse cx="626" cy="196" rx="3.6" ry="5.6"/><ellipse cx="648" cy="207" rx="3.2" ry="5"/><ellipse cx="620" cy="216" rx="3" ry="4.6"/>
-         </g>
-         <polygon class="ptRegion" data-region="head"     points="524.8,212.7 565.1,182 653,182 693.3,212.7 693.3,278.1 638.4,302.7 565.1,286.3 524.8,245.4"/>
-         <polygon class="ptRegion" data-region="chest"    points="352.7,194.3 418.6,180 491.9,190.2 524.1,204.5 524.1,286.3 455.2,302.7 414.9,251.5 352.7,251.5"/>
-         <polygon class="ptRegion" data-region="abdomen"  points="297.7,175.1 351.9,190.2 351.9,253.6 297.7,261.8"/>
-         <polygon class="ptRegion" data-region="pelvis"   points="206.2,180 297.7,175.1 297.7,261.8 206.2,253.6"/>
-         <polygon class="ptRegion" data-region="arm"      points="165.9,267.9 213.5,265 316,280.2 418.6,259.7 418.6,331.3 330.7,339.5 228.1,327.2 158.6,292.4"/>
-         <polygon class="ptRegion" data-region="legs"     points="56,149.3 154.9,132.9 206.2,169.7 206.2,237.2 110.9,225 56,192.2"/>
-       </svg>
-       <div class="absolute bottom-1 left-0 right-0 text-center text-[9px] text-slate-500 uppercase tracking-widest font-bold pointer-events-none" style="text-shadow:0 1px 2px rgba(255,255,255,.8)">Tap a region for its exam and orders</div>
+       ${bedsideSceneHTML(base, variant)}
+       <div class="absolute bottom-1 left-0 right-0 text-center text-[9px] text-slate-500 uppercase tracking-widest font-bold pointer-events-none" style="text-shadow:0 1px 2px rgba(255,255,255,.8)">${BED_HINT}</div>
      </div>
      <p class="text-[9px] text-slate-600 mt-1 text-right">${esc(PATIENT_IMG_CREDIT)}</p>`;
-    host.querySelectorAll('[data-optional-overlay]').forEach(el=>el.addEventListener('error',()=>el.remove(),{once:true}));
-    const ptPhoto=host.querySelector('#pt_photo');
-    // A finding picture that is not on disk yet, or a case picture that was never shipped,
-    // must not leave a broken frame. The chain is this base's own unmarked face first and the
-    // manikin last, and a candidate equal to the href we are already on is skipped — setting
-    // the same href again may not re-fire error, which would strand the frame on the broken
-    // one. When the chain runs out the listener goes away.
-    if(ptPhoto){
-      const chain = (base==='manikin' ? [] : ['patient/'+base+'.jpg']).concat([PATIENT_IMG]);
-      const onPhotoError = () => {
-        let next;
-        while(chain.length && (next = chain.shift()) === ptPhoto.getAttribute('href')) next = null;
-        if(next) ptPhoto.setAttribute('href', next);
-        else ptPhoto.removeEventListener('error', onPhotoError);
-      };
-      ptPhoto.addEventListener('error', onPhotoError);
-    }
-    host.querySelectorAll('[data-region]').forEach(el=>{
-      const label=ZONE_TITLES[el.dataset.region]||el.dataset.region||'Patient region';
-      el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',label);
-      el.onclick=(ev)=>{ if(!S.loading) roomMenu(ev, el.dataset.region); };
-      el.onkeydown=(ev)=>{ if(!S.loading&&(ev.key==='Enter'||ev.key===' ')){ ev.preventDefault(); roomMenu(ev,el.dataset.region); } };
-    });
+    wireBedside(host, base);
     wireViewToggle(host);
-    _breathPivot={x:426,y:233};
-    paintPatient(); startBreathing();
     return;
   }
   _breathPivot={x:150,y:119};
@@ -9779,11 +9759,102 @@ function renderPatient(){
   });
   paintPatient(); startBreathing();
 }
+// ---- THE BEDSIDE CLOSE-UP ----
+// One renderer for both places the close-up is shown — the sidebar card and the room's
+// BEDSIDE camera — so there is one picture, one set of tap regions and one set of ids, and a
+// fix to either is a fix to both.
+const BED_HINT = 'Tap a region for its exam and orders';
+// Which finding picture this patient shows, or null. ONCE per paint: traumaVariantFor runs
+// seventeen regexes over the hidden brief, and the photo and the blood layer ask the same question.
+function bedsideVariant(base){ return base==='manikin' ? null : traumaVariantFor(base); }
+// Photo mode: a demographic-matched real photo (or the training manikin, for children/unknown
+// demographics) as the base layer; physiology rendered as live overlays (CSS filter + tint for
+// skin state, sweat droplets, breathing scale, ECG pads) and the same clickable exam regions as
+// polygons over the anatomy.
+function bedsideSceneHTML(base, variant){
+  const overlayEntry = PATIENT_OVERLAYS[base] || PATIENT_OVERLAYS.manikin || {};
+  const overlaysHTML = OVERLAY_DEVICES.map(([device,gearKey])=>{
+    const d = overlayEntry[device];
+    if(!d || !Array.isArray(d.box)) return '';
+    const g = overlayBoxToXYWH(d.box);
+    return `<image id="pt_${gearKey}" href="patient-overlays/${base}/${device}.png" data-optional-overlay="1" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"
+           opacity="${S.gear&&S.gear[gearKey]?1:0}" style="transition:opacity .5s" pointer-events="none"/>`;
+  }).join('');
+  // What the vignette says is happening to this patient, and when the bleed started — read
+  // once per case, here rather than at case start, because a restored session lands straight
+  // in the renderer with no case-start to run.
+  if(!S.motion) S.motion = motionDefaults();
+  return `
+  <svg id="ptSvg" viewBox="0 0 720 421" class="w-full block">
+    <rect width="720" height="421" fill="#eef1f4"/>
+    <!-- #pt_body is the whole patient: the breathing chest AND anything drawn on top of the
+         skin that must NOT breathe with it (the blood pool). Task 7's shiver/seize moves
+         #pt_body, so a shivering patient carries the wound with him. It is untransformed here.
+         The clip is the photo's own rectangle: while it jerks the group is blown up a little
+         so the frame it vacates is filled with more of itself rather than the pale panel
+         behind, and the clip is what stops that blown-up photo spilling over the strip of
+         panel below the picture. The tap polygons are SIBLINGS of this group — neither the
+         clip nor the transform can reach them. -->
+    <clipPath id="pt_bodyClip"><rect x="0" y="0" width="${PT_PHOTO_W}" height="${PT_PHOTO_H}"/></clipPath>
+    <g id="pt_body" clip-path="url(#pt_bodyClip)">
+    <!-- "chest" by history: this group is the whole photo plus the device overlays, and it is what startBreathing scales; the tap polygons below stay put on purpose -->
+    <g id="pt_chest">
+      <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (variant || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
+      <!-- Equipment overlays: patches cut from edits of this same base photo, so
+           the fit and lighting are pixel-exact. Feathered edges blend over the
+           original; a missing file simply never shows. Placement maps the source
+           image's crop box (patient-overlays/manifest.json) through the same
+           xMidYMid-slice transform as pt_photo. -->
+      ${overlaysHTML}
+    </g>${bloodLayerHTML(base, variant)}</g>
+    <rect id="pt_tint" width="720" height="421" fill="#000000" opacity="0" style="transition:opacity .8s, fill .8s" pointer-events="none"/>
+    <g id="pt_sweat" opacity="0" fill="#9fd9ff" stroke="#e6f6ff" stroke-width="0.6" style="transition:opacity .6s">
+      <ellipse cx="626" cy="196" rx="3.6" ry="5.6"/><ellipse cx="648" cy="207" rx="3.2" ry="5"/><ellipse cx="620" cy="216" rx="3" ry="4.6"/>
+    </g>
+    <polygon class="ptRegion" data-region="head"     points="524.8,212.7 565.1,182 653,182 693.3,212.7 693.3,278.1 638.4,302.7 565.1,286.3 524.8,245.4"/>
+    <polygon class="ptRegion" data-region="chest"    points="352.7,194.3 418.6,180 491.9,190.2 524.1,204.5 524.1,286.3 455.2,302.7 414.9,251.5 352.7,251.5"/>
+    <polygon class="ptRegion" data-region="abdomen"  points="297.7,175.1 351.9,190.2 351.9,253.6 297.7,261.8"/>
+    <polygon class="ptRegion" data-region="pelvis"   points="206.2,180 297.7,175.1 297.7,261.8 206.2,253.6"/>
+    <polygon class="ptRegion" data-region="arm"      points="165.9,267.9 213.5,265 316,280.2 418.6,259.7 418.6,331.3 330.7,339.5 228.1,327.2 158.6,292.4"/>
+    <polygon class="ptRegion" data-region="legs"     points="56,149.3 154.9,132.9 206.2,169.7 206.2,237.2 110.9,225 56,192.2"/>
+  </svg>
+`;
+}
+// The close-up's behaviour, wherever it was mounted: a missing overlay or picture never leaves
+// a broken frame, the regions open the same exam menus as the room's zones, and the chest,
+// the bleed and the tremor start moving.
+function wireBedside(root, base){
+  root.querySelectorAll('[data-optional-overlay]').forEach(el=>el.addEventListener('error',()=>el.remove(),{once:true}));
+  const ptPhoto=root.querySelector('#pt_photo');
+  // A finding picture that is not on disk yet, or a case picture that was never shipped,
+  // must not leave a broken frame. The chain is this base's own unmarked face first and the
+  // manikin last, and a candidate equal to the href we are already on is skipped — setting
+  // the same href again may not re-fire error, which would strand the frame on the broken
+  // one. When the chain runs out the listener goes away.
+  if(ptPhoto){
+    const chain = (base==='manikin' ? [] : ['patient/'+base+'.jpg']).concat([PATIENT_IMG]);
+    const onPhotoError = () => {
+      let next;
+      while(chain.length && (next = chain.shift()) === ptPhoto.getAttribute('href')) next = null;
+      if(next) ptPhoto.setAttribute('href', next);
+      else ptPhoto.removeEventListener('error', onPhotoError);
+    };
+    ptPhoto.addEventListener('error', onPhotoError);
+  }
+  root.querySelectorAll('[data-region]').forEach(el=>{
+    const label=ZONE_TITLES[el.dataset.region]||el.dataset.region||'Patient region';
+    el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',label);
+    el.onclick=(ev)=>{ if(!S.loading) roomMenu(ev, el.dataset.region); };
+    el.onkeydown=(ev)=>{ if(!S.loading&&(ev.key==='Enter'||ev.key===' ')){ ev.preventDefault(); roomMenu(ev,el.dataset.region); } };
+  });
+  _breathPivot={x:426,y:233};
+  paintPatient(); startBreathing();
+}
 // ---- Patient view tabs (ROOM / FOOT / AIRWAY / BEDSIDE) ----
 function wireViewToggle(host){
   host.querySelectorAll('[data-pview]').forEach(b=>b.onclick=()=>{
     if(b.dataset.pview===S.pview) return;
-    S.pview=b.dataset.pview; localStorage.ms_pview=S.pview;
+    chooseCamera(b.dataset.pview);
     renderPatient();
   });
 }
@@ -9841,6 +9912,97 @@ function renderRoom(host, who, viewToggle){
   document.querySelectorAll('[data-gear]').forEach(b=>b.onclick=()=>{ S.gear[b.dataset.gear]=!S.gear[b.dataset.gear]; paintGear(); });
   paintGear();
 }
+// ---- WHAT EVERY CAMERA'S PHOTO CARRIES, the three scenes and the bedside close-up alike ----
+// What a camera is called on its tabs, its menu and the phone's camera button.
+function cameraLabel(k){ return ROOM_VIEWS[k] ? ROOM_VIEWS[k].label : (k === 'bed' ? 'BEDSIDE' : String(k||'room').toUpperCase()); }
+// The cameras the room can stand at: the three scenes, and the close-up.
+function isRoomCamera(k){ return !!ROOM_VIEWS[k] || k === 'bed'; }
+// WHERE BEDSIDE CAN BE A ROOM CAMERA: the console (1200px and up) and the stacked phone room —
+// not the floating room between them (1024-1199px landscape). There the card, the monitor, the
+// transcript, the order bar (up to 56% of the height) and the results column float over almost
+// the whole screen; measured at 1100x800 the largest gap between them is a 139px-wide column
+// and a 53px band, and the close-up laid out like a scene had 16% of the body clear (7% at
+// 1024x768). A scene can afford that — the panels sit over its wall — a close-up that is all
+// patient cannot, and fitting it into a 53px band is a thumbnail. So at those widths BEDSIDE
+// leaves the room for the chart layout, as it always did, where the close-up is fully clear.
+// ROOM_CONSOLE_MIN_W is the same width that turns the console on in cinemaMetrics — change
+// them together, or BEDSIDE becomes a room camera in a layout whose panels bury the patient.
+const ROOM_CONSOLE_MIN_W = 1200;
+function bedsideInRoom(){ return window.innerWidth >= ROOM_CONSOLE_MIN_W || roomIsStacked(); }
+// Every camera control says so, so a finding manifest arriving late does not move the camera
+// out from under a player who has already chosen one.
+function chooseCamera(k){
+  S.pview = k; S.cameraTouched = true;
+  try{ localStorage.ms_pview = k; }catch(_){ }
+}
+// Crash vignette. Its own element, not part of the overlay innerHTML, so the vitals tick can
+// fade it without rebuilding (and re-fetching) the overlays. It is a red edge on whatever
+// picture is showing, so the close-up has it too.
+function roomCritHTML(){
+  return `<div id="rmCrit" class="absolute inset-0 pointer-events-none" style="opacity:0;transition:opacity .9s;
+       background:radial-gradient(ellipse at center, transparent 66%, rgba(190,18,60,.55) 100%)"></div>`;
+}
+// Hide / Show all, on the photo itself so it exists on every layout (the header's copy has no
+// room on a phone). Shown in cinema only; see #rmHide in the styles.
+// The camera and the equipment, behind one button on the photo — on a phone (the strip of tabs
+// under the photo is gone there) and in the console (which has no tab strip either, and whose
+// ROOM scene has no floor zones to walk from). See #rmCam in the styles.
+function roomButtonsHTML(){
+  return `<button id="rmHide" type="button" aria-pressed="false" title="Hide everything drawn over the patient (H)"><span id="rmHideIcon">${roomHideIcon(false)}</span><span id="rmHideLab">Hide</span></button>
+     <button id="rmCam" type="button" title="Camera and equipment"><span aria-hidden="true">▣</span><span id="rmCamLab">${esc(cameraLabel(S.pview))}</span><span aria-hidden="true">▾</span></button>`;
+}
+// BEDSIDE AS A ROOM CAMERA. The close-up in the room's own box (#roomBox, so Hide / Show all,
+// the camera button, the shock flash and every layout pass that measures the room still find
+// it), with nothing from the scenes drawn over it: no wall monitor to blit (there is no wall in
+// this picture — the telemetry strip is the monitor), no walk zones, no cast, no bed occluder.
+// The CPR, bag-mask and defibrillator clinicians are positioned against the SCENE cameras'
+// chest and head zones, so they are not drawn here either (a follow-up: they need their own
+// placement on this picture); the code record and the monitor still show the code.
+function buildBedsideScene(mount, base, variant){
+  mount.innerHTML=`
+   <div class="bedView relative overflow-hidden select-none" id="roomBox" data-view="bed">
+     ${bedsideSceneHTML(base, variant)}
+     ${roomCritHTML()}
+     ${roomButtonsHTML()}
+   </div>`;
+  wireBedside(mount, base);
+  applyRoomHide();   // a fresh Hide button says what the room is doing now
+  fitBedside();
+}
+// WHERE THE CLOSE-UP STANDS IN THE CONSOLE. A scene photo is a backdrop the panels float over,
+// and they were placed over its wall and equipment, not its bed. The close-up is ALL patient:
+// laid out the same way, the results drawer sat on his head and the order bar on his legs. So
+// at BEDSIDE the picture goes in the gap the panels leave — under the header, above the order
+// bar, left of an open results drawer — as large as that gap allows and standing on the order
+// bar, but never so high that the overhead display covers the body, which starts about 30% of
+// the way down the picture (the regions' top edge). Measured, not computed: every one of those
+// panels changes size with the window, the case and the code.
+// Everything else — a phone, the floating layout — lays the close-up out like the scenes.
+function fitBedside(){
+  const box=$('roomBox'); if(!box || !box.classList.contains('bedView')) return;
+  const b=document.body;
+  if(!S.cinema || !b.classList.contains('console')){
+    ['position','left','top','width'].forEach(k=>box.style.removeProperty(k)); delete box.dataset.fit; return;
+  }
+  // While the room is hidden it stays where it was: Hide was just pressed ON this picture, and
+  // a picture that jumps out from under the finger has to be found again. A resized window is
+  // not a click, though — then it is fitted again.
+  const vp=innerWidth+'x'+innerHeight;
+  if(b.classList.contains('roomHide') && box.dataset.fit && box.dataset.fitVp===vp) return;
+  const AR=PT_PHOTO_W/PT_PHOTO_H, BODY_TOP=0.30, GAP=10;   // the box is the photo's shape — see #roomBox.bedView
+  const hdr=document.querySelector('header'), bar=shownRect($('orderBar')), side=shownRect($('sideBar')), mon=shownRect($('monBar'));
+  const top=(hdr ? hdr.getBoundingClientRect().bottom : 0) + 6, bottom=(bar ? bar.top : innerHeight) - 6;
+  const left=GAP, right=(side ? side.left : innerWidth) - GAP;
+  const W=right-left, H=bottom-top; if(W < 120 || H < 80) return;
+  let h=Math.min(W/AR, H);
+  if(mon) h=Math.min(h, Math.max(H*0.5, (bottom - (mon.bottom + 4)) / (1 - BODY_TOP)));
+  const w=h*AR;
+  box.style.position='absolute';
+  box.style.left=Math.round(left + (W-w)/2)+'px';
+  box.style.top=Math.round(bottom - h)+'px';
+  box.style.width=Math.round(w)+'px';
+  box.dataset.fit='1'; box.dataset.fitVp=vp;
+}
 // Mount-agnostic: used by the sidebar card AND the full-screen expand overlay.
 function buildRoomScene(mount){
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room', view=ROOM_VIEWS[viewKey], mb=view.monBox;
@@ -9860,10 +10022,7 @@ function buildRoomScene(mount){
        </div>
      </div>
      <div id="rmOverlays" class="absolute inset-0 pointer-events-none"></div>
-     <!-- Crash vignette. Its own element, not part of the overlay innerHTML, so the
-          vitals tick can fade it without rebuilding (and re-fetching) the overlays. -->
-     <div id="rmCrit" class="absolute inset-0 pointer-events-none" style="opacity:0;transition:opacity .9s;
-       background:radial-gradient(ellipse at center, transparent 66%, rgba(190,18,60,.55) 100%)"></div>
+     ${roomCritHTML()}
      <svg id="rmZones" class="absolute inset-0 w-full h-full" viewBox="0 0 100 56" preserveAspectRatio="none">
        ${Object.entries(view.zones).map(([k,pts])=>{
          const go=k.startsWith('go_');   // walk-here zones read blue, order zones green
@@ -9882,12 +10041,7 @@ function buildRoomScene(mount){
           visibly land on the patient's chest, while the layer stays click-through. -->
      <div id="rmActionFx" class="absolute inset-0 pointer-events-none" style="z-index:8" aria-hidden="true"></div>
      <button id="rmExpand" title="Play inside the room (cinema mode)" class="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md bg-black/40 text-slate-200 text-xs hover:bg-black/70">⤢</button>
-     <!-- Hide / Show all, on the photo itself so it exists on every layout (the header's
-          copy has no room on a phone). Shown in cinema only; see #rmHide in the styles. -->
-     <button id="rmHide" type="button" aria-pressed="false" title="Hide everything drawn over the patient (H)"><span id="rmHideIcon">${roomHideIcon(false)}</span><span id="rmHideLab">Hide</span></button>
-     <!-- The camera and the equipment, behind one button on the photo — phones only (the
-          strip of tabs under the photo is gone there). See #rmCam in the phone styles. -->
-     <button id="rmCam" type="button" title="Camera and equipment"><span aria-hidden="true">▣</span><span id="rmCamLab">${esc(ROOM_VIEWS[S.pview] ? ROOM_VIEWS[S.pview].label : 'Room')}</span><span aria-hidden="true">▾</span></button>
+     ${roomButtonsHTML()}
      <div id="rmFoot" class="absolute bottom-0 left-0 right-0 px-1.5 pb-1 pt-4 pointer-events-none" style="background:linear-gradient(transparent,rgba(0,0,0,.72))">
        <div class="rmHint text-center text-[9px] text-slate-300 uppercase tracking-widest font-bold mb-1" style="text-shadow:0 1px 3px rgba(0,0,0,.9)">${esc(view.hint)}</div>
        <div class="flex flex-wrap justify-center gap-1 pointer-events-auto">
@@ -10208,7 +10362,7 @@ function roomZoneClick(zone, ev){
 function roomGoTo(view){
   if(!ROOM_VIEWS[view] && view!=='bed') return;
   closeRoomMenu();
-  const box=$('roomBox'), go=()=>{ S.pview=view; localStorage.ms_pview=view; renderPatient(); };
+  const box=$('roomBox'), go=()=>{ chooseCamera(view); renderPatient(); };
   if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return go();
   box.style.transition='opacity .16s'; box.style.opacity='0';
   setTimeout(go, 160);
@@ -10273,11 +10427,14 @@ function ensureCinemaStage(){
 // re-measured after every renderPlay, since that is what rebuilds the strip.
 function cinemaMetrics(){
   if(!S.cinema) return;
+  // A window narrowed from the console into the floating room while at BEDSIDE: the close-up
+  // would be buried there (bedsideInRoom), so step out to the chart layout, preference kept.
+  if(S.pview==='bed' && !bedsideInRoom()){ leaveCinema(false); return; }
   // The console needs room for four wall clusters and a full-width ribbon. Below this
   // the photo is too small for a chip to sit anywhere that is not the patient, so the
   // existing floating layout takes over; the phone's stacked layout is untouched below
   // it again. Re-evaluated here because this is the resize hook.
-  const wantConsole = window.innerWidth >= 1200 && !roomIsStacked();
+  const wantConsole = window.innerWidth >= ROOM_CONSOLE_MIN_W && !roomIsStacked();
   if(document.body.classList.contains('console') !== wantConsole){
     document.body.classList.toggle('console', wantConsole);
     // A chart you left open is open when you come back — into the room, into the next
@@ -10302,7 +10459,7 @@ function cinemaMetrics(){
     if(window._monRo) window._monRo.disconnect();
     window._monRo = new ResizeObserver(roomLayoutLater); window._monRo.observe(mb); window._monRoEl = mb;
   }
-  fitChartRoom(); placeRoomToggle(); placeRoomBubbles();
+  fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles();
 }
 // The phone dock's two rows are pinned to the foot of the viewport, so the toggle row
 // has to know how tall the input row is and the column has to reserve the pair's
@@ -10332,7 +10489,10 @@ if(!window._dockResize){ window._dockResize=true; addEventListener('resize', ()=
   measureDock(); if(S.stage==='play') applyPanel();
 }); }
 function enterCinema(){
-  if(!ROOM_VIEWS[S.pview]) return;      // only the walkthrough positions have a scene
+  // Every camera has a picture in the room, BEDSIDE included — except BEDSIDE in the floating
+  // room (bedsideInRoom), which walks in at ROOM, as it always did. Not written back: it is
+  // the layout's limit, not the player's choice.
+  if(!isRoomCamera(S.pview) || (S.pview==='bed' && !bedsideInRoom())) S.pview='room';
   closeRoomMenu();
   S.cinema=true;
   document.body.classList.add('cinema');
@@ -10516,20 +10676,43 @@ function placeRoomToggle(){
   const B=box.getBoundingClientRect(); if(B.width<60 || B.height<30) return;
   const PAD=6; let top=PAD, right=PAD;
   const set=()=>{ btn.style.top=top+'px'; btn.style.right=right+'px'; return btn.getBoundingClientRect(); };
-  let r=set();
-  for(let i=0; i<8; i++){
-    // The button is a pill: its literal corners are outside its own rounded outline and hit
-    // whatever is behind it. Probe inside the curve, and never count the room itself (the
-    // photo, the zones) as something covering a button that stands on top of it.
+  // The button is a pill: its literal corners are outside its own rounded outline and hit
+  // whatever is behind it. Probe inside the curve, and never count the room itself (the
+  // photo, the zones) as something covering a button that stands on top of it.
+  const blockerAt=r=>{
     const k=r.height/2;
     const pts=[[r.left+k,r.top+3],[r.right-k,r.top+3],[r.left+k,r.bottom-3],[r.right-k,r.bottom-3],
                [(r.left+r.right)/2,(r.top+r.bottom)/2]];
-    let blocker=null;
     for(const [px,py] of pts){
       if(px<0 || py<0 || px>=innerWidth || py>=innerHeight) continue;
       const e=document.elementFromPoint(px,py);
-      if(e && e!==btn && !btn.contains(e) && !box.contains(e)){ blocker=e; break; }
+      if(e && e!==btn && !btn.contains(e) && !box.contains(e)) return e;
     }
+    return null;
+  };
+  // BEDSIDE in the console: the overhead display can hang over the close-up's top-right corner,
+  // and stepping below it walked the button down onto the patient (measured at 1200x650: on his
+  // chest). So on the close-up the button tries the corners that are wall or bed, not body —
+  // top-right, beside the camera button, then bottom-right under the head of the bed — and
+  // takes the first one no panel covers and that stays off the tap regions' box.
+  const cam=$('rmCam');
+  if(box.classList.contains('bedView') && document.body.classList.contains('console')){
+    let body=null;
+    box.querySelectorAll('.ptRegion').forEach(p=>{ const q=p.getBoundingClientRect();
+      body = body ? { left:Math.min(body.left,q.left), top:Math.min(body.top,q.top), right:Math.max(body.right,q.right), bottom:Math.max(body.bottom,q.bottom) } : q; });
+    const onBody=r=>!!body && r.right>body.left && r.left<body.right && r.bottom>body.top && r.top<body.bottom;
+    const spots=[[PAD, PAD]];
+    if(cam && cam.offsetWidth){ const c=cam.getBoundingClientRect(); spots.push([Math.round(c.top-B.top), Math.round(B.right-(c.right+PAD+btn.offsetWidth))]); }
+    spots.push([Math.round(B.height - btn.offsetHeight - PAD), PAD]);
+    for(const [t, rt] of spots){
+      top=t; right=rt; const r0=set();
+      if(r0.left >= B.left + PAD && !blockerAt(r0) && !onBody(r0)){ btn.dataset.placed='1'; return; }
+    }
+    top=PAD; right=PAD;
+  }
+  let r=set();
+  for(let i=0; i<8; i++){
+    const blocker=blockerAt(r);
     if(!blocker) break;
     const panel=(blocker.closest && blocker.closest('header,#monBar,#sideBar,#chat,#feedClose,#orderBar,#cinemaCard,#console .cluster,#ribbon,.cinTab,#actionBrowser,.roomMenu')) || blocker;
     const p=panel.getBoundingClientRect();
@@ -10829,7 +11012,7 @@ function paintFoldSummaries(){
   b.classList.toggle('hasBasket', n > 0);
   const cmd = $('cmd'); b.classList.toggle('typed', !!(cmd && cmd.value.trim()));   // the box is emptied by a submit with no input event
   b.classList.toggle('coachAvail', typeof coachAvailable === 'function' && coachAvailable());
-  const lab = $('rmCamLab'); if(lab) lab.textContent = ROOM_VIEWS[S.pview] ? ROOM_VIEWS[S.pview].label : 'Room';
+  const lab = $('rmCamLab'); if(lab) lab.textContent = cameraLabel(S.pview);
 }
 // The camera and the equipment, behind one button on the photo: the four cameras, then
 // the gear toggles — the same handlers the strip under the photo used to carry.
@@ -10838,21 +11021,22 @@ function camMenu(ev){
   const m = document.createElement('div');
   m.className = 'roomMenu camMenu fixed z-[75] min-w-[170px] max-w-[16rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
   const cams = ['room', 'foot', 'airway', 'bed'];
-  const label = k => ROOM_VIEWS[k] ? ROOM_VIEWS[k].label : (k === 'bed' ? 'BEDSIDE' : k.toUpperCase());
   m.innerHTML = '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">Camera</div>' +
-    cams.map(k => '<button data-cam="' + k + '" aria-pressed="' + (S.pview === k) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(label(k)) + '</button>').join('') +
+    cams.map(k => '<button data-cam="' + k + '" aria-pressed="' + (S.pview === k) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(cameraLabel(k)) + '</button>').join('') +
     '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-t border-b border-slate-800">Equipment</div>' +
     GEAR.map(g => '<button data-cgear="' + g.key + '" aria-pressed="' + !!(S.gear && S.gear[g.key]) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(g.label) + '</button>').join('');
   document.body.appendChild(m);
   const btn = $('rmCam'), r = btn ? btn.getBoundingClientRect() : null, pad = 6;
   const w = m.offsetWidth, h = m.offsetHeight;
   m.style.left = Math.round(Math.max(pad, Math.min(r ? r.left : pad, innerWidth - w - pad))) + 'px';
-  m.style.top = Math.round(Math.max(pad, r ? r.top - h - 4 : pad)) + 'px';
+  // Above the button on a phone (it stands at the foot of the photo); below it in the console,
+  // where it stands under the header and a menu opened upward would land on top of it.
+  const above = r ? r.top - h - 4 : pad;
+  m.style.top = Math.round(above >= pad ? above : Math.max(pad, Math.min(r.bottom + 4, innerHeight - h - pad))) + 'px';
   m.querySelectorAll('[data-cam]').forEach(b => b.onclick = e => { e.stopPropagation(); closeRoomMenu();
     if(b.dataset.cam === S.pview) return;
-    S.pview = b.dataset.cam; try{ localStorage.ms_pview = S.pview; }catch(_){ }
-    renderPatient();
-    if(b.dataset.cam === 'bed' && mobileWorkspace()){ panelState().activePanel = 'results'; applyPanel(); }
+    chooseCamera(b.dataset.cam);
+    renderPatient();   // BEDSIDE included: the close-up is drawn on the photo, in the room
   });
   m.querySelectorAll('[data-cgear]').forEach(b => b.onclick = e => { e.stopPropagation(); closeRoomMenu();
     S.gear[b.dataset.cgear] = !S.gear[b.dataset.cgear]; paintGear(); });
@@ -10866,7 +11050,7 @@ document.addEventListener('click', e => {
 let _roomLayoutRaf=0;
 function roomLayoutLater(){
   cancelAnimationFrame(_roomLayoutRaf);
-  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); placeRoomToggle(); placeRoomBubbles(); });
+  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles(); });
 }
 // Every drawer, sheet and layout switch is a class on <body>, and they are set from a dozen
 // places. Watching the class is the one hook none of them can forget. sheetFit is ignored
@@ -10899,7 +11083,7 @@ function exitCinema(){
 }
 // Exit AND put the normal layout back. exitCinema alone is the half a caller wants
 // when it is about to render something else anyway (renderPatient, renderDebrief).
-// Programmatic exits (case end, menu, a pview with no scene) call exitCinema
+// Programmatic exits (case end, menu, BEDSIDE in the floating room) call exitCinema
 // directly and leave the preference alone.
 //
 // Only a DELIBERATE walk-out changes the default. Clicking "✕ Leave the room" is
@@ -10924,12 +11108,14 @@ function paintViewSwitch(){
 }
 function setRoomFirst(on){ S.roomFirst=!!on; try{ localStorage.setItem('ms_roomFirst', on?'1':'0'); }catch(_){ } }
 // Open the case inside the sim room. Safe to call unconditionally at the start of
-// every case: it never throws, and it resets a scene-less view back to the room.
+// every case: it never throws, and it opens at whatever camera the case chose (openAtCaseCamera).
 function openRoomIfPreferred(){
   if(!S.roomFirst || S.cinema) return;
-  // 'bed' is a valid patient view but has no room scene, and it persists across
-  // cases — so a single trip to the bedside used to switch the room off forever.
-  if(!ROOM_VIEWS[S.pview]){ S.pview='room'; try{ localStorage.ms_pview='room'; }catch(_){ } }
+  // An injury case on a mid-size screen opens at the BEDSIDE close-up in the chart layout
+  // (see caseCamera) — entering the room here would bury the patient under its panels.
+  if(S.pview === 'bed' && !bedsideInRoom()) return;
+  // BEDSIDE used to be forced back to ROOM here (and the choice overwritten), because it had
+  // no picture in the room. It has one now, and the case may have opened there on purpose.
   try{ enterCinema(); }catch(_){ }   // never let the room break the start of a case
 }
 // Called from renderPatient when cinema is on. Rebuilds the scene only when the
@@ -10938,7 +11124,19 @@ function openRoomIfPreferred(){
 function renderCinemaRoom(who){
   const st=ensureCinemaStage(), scene=st.querySelector('#cinemaScene');
   if(!S.gear) S.gear=gearDefaults();
-  if(scene.dataset.view!==S.pview || !scene.firstElementChild){
+  if(S.pview==='bed'){
+    // The close-up is rebuilt when its PICTURE would change — a new patient, or the finding
+    // manifest arriving and the unmarked photo giving way to the injury — and not on every
+    // order, which would re-decode the photo and restart the bleed layer twenty times a case.
+    const base=patientBaseFor(S.patient||{}), variant=bedsideVariant(base);
+    // The blood layer reads the finding manifest too (its wound box and whether it bleeds), so
+    // whether the manifest is in is part of the key: its arrival always rebuilds the picture.
+    const key='bed|'+base+'|'+(casePatientImg(S.goldId)||variant||'')+'|'+(_findingManifest?1:0)+'|'+(S.runSeed||'');
+    if(scene.dataset.view!==key || !scene.firstElementChild){ scene.dataset.view=key; buildBedsideScene(scene, base, variant); }
+    // Every render restarts the loop, as the sidebar card always has: the phase carries over,
+    // and it is how a changed reduced-motion preference takes the throb away on the next turn.
+    else { paintPatient(); startBreathing(); fitBedside(); }
+  } else if(scene.dataset.view!==S.pview || !scene.firstElementChild){
     scene.dataset.view=S.pview;
     buildRoomScene(scene);
     // Two pieces of the card's chrome make no sense at full size: the expand button
@@ -10961,23 +11159,20 @@ function renderCinemaRoom(who){
 function roomIsStacked(){ return matchMedia('(max-width:767px), (max-width:1023px) and (orientation:portrait), (max-width:1023px) and (max-height:500px)').matches; }
 function paintCinemaCard(who){
   const card=document.getElementById('cinemaCard'); if(!card) return;
-  const view=ROOM_VIEWS[S.pview]||ROOM_VIEWS.room;
-  const label=k=>ROOM_VIEWS[k]?ROOM_VIEWS[k].label:(k==='bed'?'BEDSIDE':k.toUpperCase());
-  const tab=k=>`<button data-pview="${k}" class="px-1.5 py-1 text-[9px] font-black flex-1 ${S.pview===k?'bg-emerald-600/30 text-emerald-300':'text-slate-500 hover:text-slate-300'}">${label(k)}</button>`;
+  const hint=S.pview==='bed' ? BED_HINT : (ROOM_VIEWS[S.pview]||ROOM_VIEWS.room).hint;
+  const tab=k=>`<button data-pview="${k}" class="px-1.5 py-1 text-[9px] font-black flex-1 ${S.pview===k?'bg-emerald-600/30 text-emerald-300':'text-slate-500 hover:text-slate-300'}">${cameraLabel(k)}</button>`;
   card.innerHTML=`
     <div class="text-[9px] font-black uppercase tracking-[.3em] text-slate-500 mb-1.5">Sim Room — <span class="text-slate-300">${esc(who||'')}</span></div>
     <div class="flex rounded-lg overflow-hidden border border-slate-700 mb-1.5">${tab('room')}${tab('foot')}${tab('airway')}${tab('bed')}</div>
-    <div class="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">${esc(view.hint)}</div>
+    <div class="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">${esc(hint)}</div>
     <div class="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1">Equipment</div>
     <div class="flex flex-wrap gap-1" id="gearTray">${GEAR.map(g=>`<button data-gear="${g.key}" title="${g.label}">${g.label}</button>`).join('')}</div>`;
   card.querySelectorAll('[data-pview]').forEach(b=>b.onclick=()=>{
     if(b.dataset.pview===S.pview) return;
-    S.pview=b.dataset.pview; localStorage.ms_pview=S.pview;
-    renderPatient();                     // leaves cinema by itself for BEDSIDE
-    // On a phone the bedside close-up lives in the side panel, which phones hide —
-    // so BEDSIDE would land on a page with no patient on it. Open the chart sheet
-    // (the same panel, full screen) so the tap always shows the patient.
-    if(b.dataset.pview==='bed' && roomIsStacked()) document.body.classList.add('chartOpen');
+    chooseCamera(b.dataset.pview);
+    // BEDSIDE stays in the room and draws the close-up where the scene was — on a phone too,
+    // so it no longer needs the chart sheet opened to have a patient on the page.
+    renderPatient();
   });
   card.querySelectorAll('[data-gear]').forEach(b=>b.onclick=()=>{ S.gear[b.dataset.gear]=!S.gear[b.dataset.gear]; paintGear(); });
 }
@@ -11010,8 +11205,7 @@ document.addEventListener('click', e=>{
   if(e.target.closest('#cinExit') || e.target.closest('#viewChartBtn')) leaveCinema(false);
   if(e.target.closest('#viewRoomBtn') && S.stage==='play'){
     setRoomFirst(true);
-    if(!ROOM_VIEWS[S.pview]){ S.pview='room'; try{ localStorage.ms_pview='room'; }catch(_){ } }
-    if(!S.cinema) enterCinema();
+    if(!S.cinema) enterCinema();   // at whichever camera you were — BEDSIDE is one of the room's
   }
 });
 document.addEventListener('click', e=>{
@@ -11284,7 +11478,9 @@ function zoneBox(zones, key){
 // pole, airway cart and ultrasound are in all three scenes but at different
 // coordinates, and a couple of zones (smiley, the go_* walks) exist in only one.
 function paintRoom(){
-  const ov=$('rmOverlays'); if(!ov) return;
+  // No scene (the BEDSIDE close-up, or no room at all): nothing to draw on — but the
+  // care-in-progress strip belongs to the HUD, not the picture, so it is still painted.
+  const ov=$('rmOverlays'); if(!ov){ paintCareStrip(); return; }
   const st=roomState(), reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room';
   const zones=ROOM_VIEWS[viewKey].zones;
