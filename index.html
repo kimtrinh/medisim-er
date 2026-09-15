@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-khFhxOItOFwyCGRcPJOMdonP8OHG+mjKeC0w+ekunek=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XRCrqimTuYcnuIXtR79uysFa0cU29wyXdHfWe2V1BYo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -8417,6 +8417,10 @@ function renderPlay(){
     document.body.classList.remove('feedOpen','resultsOpen','chartOpen');
     const st=panelState(); st.activePanel=null; st.expanded=false;
     hideTypeahead(); applyPanel();
+    // Kim, 2026-09-15: "the room button doesn't work." It closed the panels and entered the
+    // room — but at the BEDSIDE close-up the room IS the close-up, so pressing Room from the
+    // bedside changed nothing anyone could see. The button that says Room shows the room.
+    if(S.pview === 'bed'){ chooseCamera('room'); try{ renderPatient(); }catch(_){ } }
     if(!S.cinema && $('cinemaBtn')) $('cinemaBtn').click();
     const room=$('cinemaStage') || $('roomBox'); if(room) room.scrollIntoView({block:'start'});
   };
@@ -8609,11 +8613,7 @@ const CASE_VISUALS = {
   },
   'resus-atls-penetrating': {
     patient:'patient-trauma/case-resus-atls-penetrating.jpg',
-    room:'scenes/room-case-resus-atls-penetrating.jpg',
-    // Where the wound is in ITS OWN picture, in that picture's pixels (1200x670), so the blood
-    // layer throbs over the right groin. Kim, 2026-09-15: "make blood squirt or pour" — the
-    // still shows blood pouring from the gauze; this is what makes it move with the pulse.
-    wound:{box:[435,330,515,400], bleeds:'pulsing'}
+    room:'scenes/room-case-resus-atls-penetrating.jpg'
   }
 };
 function casePatientImg(caseId){
@@ -9345,26 +9345,16 @@ function repaintOnFirstManifest(){
     renderPatient();
   });
 }
-// THE CASE OPENS AT THE CAMERA THAT SHOWS ITS INJURY. Kim, 2026-09-14, on the groin stab: "I
-// would like the best perspective to be shown, consistent to the case." Every drawn injury —
-// a case's own hand-made picture, or a finding picture chosen from the brief — is on the
-// BEDSIDE close-up; the room's three scenes show the bed from across the room. So a case with
-// one opens there. It is the CASE's choice, not the player's: it is not written to
-// localStorage.ms_pview, and a case without an injury opens at the camera the player last
-// chose themselves (read back from there, so one injury case does not leave every later case
-// at the bedside). Switching cameras during the case works as always.
-// On a mid-size screen (the floating room, see bedsideInRoom) BEDSIDE cannot be a room camera,
-// because the panels bury it. Kim chose (2026-09-14) that an injury case there opens at the
-// BEDSIDE close-up in the chart layout anyway — the injury first — and openRoomIfPreferred
-// leaves the room for that one case; the preference to play in the room is untouched.
-function caseCamera(){
-  const base = patientBaseFor(S.patient || {});
-  const roomHidesBed = S.roomFirst && !bedsideInRoom();
-  if(casePatientImg(S.goldId) || bedsideVariant(base)) return 'bed';
-  let kept = null; try{ kept = localStorage.ms_pview; }catch(_){ }
-  if(kept === 'bed' && roomHidesBed) return 'room';
-  return isRoomCamera(kept) ? kept : 'room';
-}
+// EVERY CASE OPENS IN THE ROOM. Kim, 2026-09-15: "always start in room view."
+// It used to open at the camera that showed the injury: a case with a drawn injury — its own
+// hand-made picture, or a finding picture chosen from the brief — started at the BEDSIDE
+// close-up (Kim, 2026-09-14: "I would like the best perspective to be shown"), and on a
+// mid-size screen that meant starting outside the room altogether, in the chart layout. Both
+// case pictures now carry the injury in the ROOM scene too, so the room is where every case
+// starts and BEDSIDE is one click away on the camera control (and on the Room button back).
+// This is the CASE's opening camera, not the player's: it is never written to
+// localStorage.ms_pview, so whatever camera they last chose themselves is still remembered.
+function caseCamera(){ return 'room'; }
 function openAtCaseCamera(){ S.pview = S.caseCamera = caseCamera(); S.cameraTouched = false; }
 function traumaVariantFor(base){
   const have = TRAUMA_BASES[base];
@@ -9422,15 +9412,14 @@ function bloodLayerHTML(base, variant){
   // are on their way out — a stale memo would suppress the first write to the new ones.
   _bloodWritten = {};
   // A case with its own hand-painted picture (CASE_VISUALS) is not the finding library's photo,
-  // so the finding manifest's box describes a picture nobody is looking at — a pool on the
-  // wrong thigh. Such a case bleeds only from a wound box authored for ITS OWN picture
-  // (CASE_VISUALS[id].wound, 2026-09-15 — the groin stab has one; the other two hand-made
-  // pictures still need theirs measured before they can bleed).
+  // so the finding manifest's box describes a picture nobody is looking at — draw nothing rather
+  // than put a pool on the wrong thigh. A CASE_VISUALS[id].wound box was tried on 2026-09-15 so
+  // the groin stab's pool could throb with the pulse; Kim, seeing it live: "remove the
+  // animation." The painted blood in the picture is the bleed now, and it holds still.
   const caseImg = casePatientImg(S.goldId);
-  const caseWound = caseImg && (CASE_VISUALS[String(S.goldId||'')]||{}).wound;
-  if(caseImg && !caseWound) return '';
-  const f = !caseImg && findingNameFor(base, variant);
-  const e = caseWound || (f && _findingManifest && _findingManifest[base] && _findingManifest[base][f]);
+  if(caseImg) return '';
+  const f = findingNameFor(base, variant);
+  const e = f && _findingManifest && _findingManifest[base] && _findingManifest[base][f];
   // Only the two bleeding values draw anything, and naming them both here rather than testing
   // for "not none" keeps a stray manifest value out of the attribute below. A box that is not
   // four numbers is a manifest we cannot place anything from — draw nothing rather than NaN.
