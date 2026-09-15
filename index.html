@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ZcyLPp1aOglvDb7XRE18cvm1cpfm2naVM/liqOUyTNQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-khFhxOItOFwyCGRcPJOMdonP8OHG+mjKeC0w+ekunek=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -8609,7 +8609,11 @@ const CASE_VISUALS = {
   },
   'resus-atls-penetrating': {
     patient:'patient-trauma/case-resus-atls-penetrating.jpg',
-    room:'scenes/room-case-resus-atls-penetrating.jpg'
+    room:'scenes/room-case-resus-atls-penetrating.jpg',
+    // Where the wound is in ITS OWN picture, in that picture's pixels (1200x670), so the blood
+    // layer throbs over the right groin. Kim, 2026-09-15: "make blood squirt or pour" — the
+    // still shows blood pouring from the gauze; this is what makes it move with the pulse.
+    wound:{box:[435,330,515,400], bleeds:'pulsing'}
   }
 };
 function casePatientImg(caseId){
@@ -9417,14 +9421,16 @@ function bloodLayerHTML(base, variant){
   // The layer is about to be (re)built, so every remembered attribute belongs to elements that
   // are on their way out — a stale memo would suppress the first write to the new ones.
   _bloodWritten = {};
-  // A case with its own hand-painted picture (CASE_VISUALS) is not the finding library's
-  // photo, so the manifest's box describes a picture nobody is looking at — draw nothing
-  // rather than put a pool on the wrong thigh. FOLLOW-UP: that costs the three cases that
-  // most deserve a bleed — resus-atls-penetrating, resus-atls-blunt-multi (whose brief says
-  // the thigh runs "freely onto the trolley") and eb-severe-tbi. They get one as soon as
-  // their hand-made pictures carry wound boxes of their own in the manifest.
-  if(casePatientImg(S.goldId)) return '';
-  const f = findingNameFor(base, variant), e = f && _findingManifest && _findingManifest[base] && _findingManifest[base][f];
+  // A case with its own hand-painted picture (CASE_VISUALS) is not the finding library's photo,
+  // so the finding manifest's box describes a picture nobody is looking at — a pool on the
+  // wrong thigh. Such a case bleeds only from a wound box authored for ITS OWN picture
+  // (CASE_VISUALS[id].wound, 2026-09-15 — the groin stab has one; the other two hand-made
+  // pictures still need theirs measured before they can bleed).
+  const caseImg = casePatientImg(S.goldId);
+  const caseWound = caseImg && (CASE_VISUALS[String(S.goldId||'')]||{}).wound;
+  if(caseImg && !caseWound) return '';
+  const f = !caseImg && findingNameFor(base, variant);
+  const e = caseWound || (f && _findingManifest && _findingManifest[base] && _findingManifest[base][f]);
   // Only the two bleeding values draw anything, and naming them both here rather than testing
   // for "not none" keeps a stray manifest value out of the attribute below. A box that is not
   // four numbers is a manifest we cannot place anything from — draw nothing rather than NaN.
