@@ -1812,5 +1812,124 @@
   "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
   "page": "https://commons.wikimedia.org/wiki/File:Sigmoidvolvulus.jpg",
   "source_title": "File:Sigmoidvolvulus.jpg"
+ },
+ "ekg_chb":  {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_chb.jpg",
+  "kw": [
+   "complete heart block",
+   "third degree",
+   "third-degree",
+   "3rd degree",
+   "av dissociation",
+   "high grade av block",
+   "complete av block"
+  ],
+  "label": "ECG \u2014 complete (third-degree) heart block",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:CompleteHeartBlock.jpg",
+  "source_title": "File:CompleteHeartBlock.jpg"
+ },
+ "ekg_stemi":  {
+  "credit": "Displaced",
+  "file": "media/ekg_stemi.jpg",
+  "kw": [
+   "stemi",
+   "st elevation",
+   "st-elevation",
+   "st segment elevation",
+   "myocardial infarction",
+   "anterior mi",
+   "inferior mi",
+   "lateral mi",
+   "acute injury"
+  ],
+  "label": "ECG \u2014 ST-elevation myocardial infarction",
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:12_Lead_EKG_ST_Elevation_tracing_only.jpg",
+  "source_title": "File:12 Lead EKG ST Elevation tracing only.jpg"
+ },
+ "ekg_normal":  {
+  "credit": "CardioNetworks: Drj",
+  "file": "media/ekg_normal.jpg",
+  "kw": [
+   "normal sinus",
+   "normal ecg",
+   "normal ekg",
+   "normal 12",
+   "sinus rhythm",
+   "nsr",
+   "unremarkable ecg",
+   "unremarkable ekg"
+  ],
+  "label": "ECG \u2014 normal sinus rhythm",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Nsr_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:Nsr (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_afib":  {
+  "credit": "CardioNetworks: [ ]",
+  "file": "media/ekg_afib.jpg",
+  "kw": [
+   "atrial fibrillation",
+   "afib",
+   "a-fib",
+   "irregularly irregular"
+  ],
+  "label": "ECG \u2014 atrial fibrillation",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Afib_ecg_(CardioNetworks_ECGpedia).jpg",
+  "source_title": "File:Afib ecg (CardioNetworks ECGpedia).jpg"
+ },
+ "ekg_vt":  {
+  "credit": "The original uploader was Ksheka at English Wikipedia .",
+  "file": "media/ekg_vt.jpg",
+  "kw": [
+   "ventricular tachycardia",
+   "v-tach",
+   "vtach",
+   "wide complex tachy",
+   "monomorphic vt",
+   "monomorphic"
+  ],
+  "label": "ECG \u2014 monomorphic ventricular tachycardia",
+  "license": "CC BY-SA 2.5",
+  "license_url": "https://creativecommons.org/licenses/by-sa/2.5",
+  "page": "https://commons.wikimedia.org/wiki/File:Electrocardiogram_of_Ventricular_Tachycardia.png",
+  "source_title": "File:Electrocardiogram of Ventricular Tachycardia.png"
+ },
+ "ekg_svt":  {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_svt.jpg",
+  "kw": [
+   "supraventricular",
+   "svt",
+   "narrow complex tachy",
+   "avnrt",
+   "narrow complex regular"
+  ],
+  "label": "ECG \u2014 supraventricular tachycardia",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:SVT2012.JPG",
+  "source_title": "File:SVT2012.JPG"
+ },
+ "ekg_hyperk":  {
+  "credit": "Dr. Michael-Joseph F. Agbayani and Dr. Eddieson Gonzales (Manila, Philippines)",
+  "file": "media/ekg_hyperk.jpg",
+  "kw": [
+   "hyperkalemia",
+   "hyperkalaemia",
+   "peaked t"
+  ],
+  "label": "ECG \u2014 hyperkalaemia, peaked T waves",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Hyperkalemia_ECG.jpg",
+  "source_title": "File:Hyperkalemia ECG.jpg"
  }
 }
