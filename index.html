@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-rV+Z82JD29j+UJQ2wKQEElllYq9Nuh7SwGjxc/4kcmE=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-3k8797orDX3kkJqz6rlxUiaexD9MFGslMfcWFAfnqcc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3790,14 +3790,38 @@ function ecgType(rhythmStr, hr){
   return 'sinus'; // sinus rhythm/tach/brady/arrhythmia share morphology; rate differs
 }
 const _bump=(x,c,w,a)=>{ const z=(x-c)/w; return Math.abs(z)<3.2 ? a*Math.exp(-z*z) : 0; };
-function _qrs(x, wide){ const w=wide?1.9:1;
+function _qrs(x, wide, w0){ const w=w0||(wide?1.9:1);
   return _bump(x,-0.022*w,0.011*w,-0.12) + _bump(x,0,0.013*w,1.0) + _bump(x,0.028*w,0.015*w,-0.30); }
+// Rhythm-intrinsic rates. A pulseless code rhythm arrives with hr 0 — there is no pulse
+// to count — and torsades drawn at the 20/min floor was six slow beats with a wobble.
+// The strip draws the rhythm at the rate that rhythm runs; the number box still shows
+// what the case counted. Complete block: the escape is the ventricular rate, capped
+// where a wide escape lives.
+function intrinsicRate(type, hr){
+  const h=Math.max(0, hr||0);
+  if(type==='torsades') return h>=150 ? h : 220;
+  if(type==='vtach')    return h>=100 ? h : 180;
+  if(type==='chb')      return Math.min(Math.max(20, h||30), 45);
+  return Math.max(20, h||60);
+}
+// Kim (2026-09-15): "a heart block, wide complex, 3rd degree" — the marching P waves ARE
+// the diagnosis, and at 0.12 they could not be seen on the strip.
+const CHB_P_AMP=0.24;
+function _chbP(x){ return _bump(x,0,0.035,CHB_P_AMP); }
+// Monomorphic VT: one broad biphasic complex (~160 ms) whose discordant T runs into the
+// next beat, so at 150-200/min the strip is a regular broad sinusoid, not a picket fence.
+function _vtWave(x){ return _bump(x,-0.035,0.03,-0.30) + _bump(x,0,0.042,1.0) + _bump(x,0.07,0.05,-0.72) + _bump(x,0.17,0.06,0.30); }
+// Torsades: a wide sine-like complex; the caller swings its amplitude AND flips its
+// polarity every few beats, which is the twist around the baseline that names it.
+function _tdpWave(x){ return _bump(x,0,0.055,1.0) + _bump(x,0.10,0.055,-0.85); }
 function _beatWave(now, b){ const x=now-b.t; let y=0;
+  if(b.kind==='vt')       return _vtWave(x)*(b.amp==null?1:b.amp);
+  if(b.kind==='torsades') return _tdpWave(x)*(b.pol||1)*(b.amp==null?1:b.amp);
   // pr: Wenckebach lengthens the P-QRS gap beat by beat before dropping one.
   if(b.p) y+=_bump(x,-(b.pr||0.16),0.033,0.10);                           // P
   if(b.spike) y+=_bump(x,-0.01,0.004,-0.55);                              // pacer spike
   if(b.dropped) return y*(b.amp==null?1:b.amp);                           // P with no QRS: the dropped beat
-  y+=_qrs(x,b.wide);
+  y+=_qrs(x,b.wide,b.w);
   y+=_bump(x, b.wide?0.34:0.27, b.wide?0.10:0.075, b.wide?-0.25:0.22);    // T (discordant if wide)
   return y*(b.amp==null?1:b.amp); }
 function _baseline(type, now){
@@ -3898,7 +3922,7 @@ function startECG(canvas, pleth){
   // buffer. `quiet` runs the identical maths with no sound and no drawing, which is how
   // the strip is filled to its full width BEFORE the first painted frame (prime()).
   function step(quiet){
-    const v=S.shown, hr=Math.max(20,v.hr||60), type=ecgType(v.rhythm,hr);
+    const v=S.shown, type=ecgType(v.rhythm,v.hr||0), hr=intrinsicRate(type, v.hr);
     t+=0.016;
     const organized = type!=='vfib' && type!=='asystole';
     // schedule ventricular beats ~1s ahead
@@ -3907,19 +3931,23 @@ function startECG(canvas, pleth){
         const wide = (type==='vtach'||type==='paced'||type==='chb'||type==='pea'||type==='agonal'||type==='torsades');
         const hasP = (type==='sinus'||type==='avb2i'||type==='avb2ii');
         const b = {t:nextR, wide, p:hasP, spike:(type==='paced')};
+        // The block's escape is a broad ventricular complex, broader than a generic wide beat.
+        if(type==='chb') b.w = 2.6;
+        if(type==='vtach') b.kind = 'vt';
         // PEA: an organized complex that moves no blood — wide and small, not absent.
         if(type==='pea') b.amp = 0.55;
         // Agonal: a dying heart's last wide, slow, ragged complexes.
         if(type==='agonal'){ b.amp = 0.8; }
         // Torsades twists: the QRS amplitude swings through an envelope, which is the
         // feature that names the rhythm and points at magnesium rather than amiodarone.
-        if(type==='torsades') b.amp = 0.35 + 0.65*Math.abs(Math.sin(_beatN*0.22*Math.PI));
+        if(type==='torsades'){ b.kind = 'torsades'; const ph = Math.sin(_beatN*Math.PI/7);
+          b.amp = 0.3 + 0.7*Math.abs(ph); b.pol = ph >= 0 ? 1 : -1; }
         // Mobitz I (Wenckebach): PR stretches over four beats, then a P drops its QRS.
         if(type==='avb2i'){ const k=_beatN%4; b.pr = 0.16 + k*0.045; b.dropped = (k===3); }
         // Mobitz II: PR fixed, every second P conducts nothing.
         if(type==='avb2ii'){ b.pr = 0.16; b.dropped = (_beatN%2===1); }
         rPeaks.push(b); _beatN++;
-        let gap = rr(type, (type==='chb'? Math.min(hr,45) : hr));
+        let gap = rr(type, hr);
         // Agonal beats come raggedly; jitter deterministically off the beat index so the
         // trace looks irregular but never flickers between frames.
         if(type==='agonal') gap *= 1 + 0.45*Math.sin(_beatN*12.9898);
@@ -3927,11 +3955,11 @@ function startECG(canvas, pleth){
       }
     } else { rPeaks.length=0; }
     rPeaks=rPeaks.filter(b=>b.t>t-0.7);
-    if(type==='chb'){ while(nextAP<t+1){ aP.push(nextAP); nextAP+=60/78; } aP=aP.filter(x=>x>t-0.35); }
+    if(type==='chb'){ while(nextAP<t+1){ aP.push(nextAP); nextAP+=60/84; } aP=aP.filter(x=>x>t-0.35); }
     // sample ECG
     let y=_baseline(type,t);
     if(organized) for(const b of rPeaks){ if(Math.abs(t-b.t)<0.6) y+=_beatWave(t,b); }
-    if(type==='chb') for(const p of aP){ if(Math.abs(t-p)<0.2) y+=_bump(t-p,0,0.033,0.12); }
+    if(type==='chb') for(const p of aP){ if(Math.abs(t-p)<0.2) y+=_chbP(t-p); }
     // Defibrillation artifact. Real monitors saturate for a few samples, then sit flat
     // while the myocardium is stunned, then the new rhythm declares itself. Only the
     // live loop consumes the flag — a primed backlog is history, not a shock.
