@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-66fU+gxA3DMdGdsD+h5Tchg+c3Df8R5QbdL27Grw9Zg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-6pRzFCQIIPNYYiBHv08Ysww3xaalN74NSpmDH8sERuc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -7245,7 +7245,8 @@ const SECTIONS = {
     ['Focused history','Take a focused history from the patient.'],
     ['Collateral','Get collateral history from the family or the paramedics.'],
     ['Past medical','Ask about past medical history, medications and allergies.'],
-    ['Recheck vitals','Recheck a full set of vital signs.']] },
+    ['Recheck vitals','Recheck a full set of vital signs.'],
+    ['Repeat the GCS','Repeat the GCS and check the motor score.']] },
     // Re-evaluate is NOT listed here: it has its own full-width button under the panels,
     // and carrying it in both places put the same control on screen twice.
   exam: { label: 'Exam', items: [
@@ -7255,6 +7256,9 @@ const SECTIONS = {
     ['Lungs','Auscultate the lungs.'],
     ['Abdomen','Examine the abdomen.'],
     ['Neuro','Perform a neurologic exam.'],
+    // The head-injury checklist asks for the GCS BY COMPONENT and for its trend; both were
+    // typed-only. Same two reports missed them.
+    ['GCS','Score the GCS by component.'],
     ['Pupils','Check the pupils.'],
     ['Skin','Examine the skin.'],
     ['Extremities','Examine the extremities.'],   // label swapped per case by examChipLabel()
@@ -7589,7 +7593,7 @@ function openActionBrowser(){
   }
   let selected=groups.findIndex(g=>g.name===actionCategory);
   if(selected<0) selected=0;
-  panel.innerHTML='<div class="actionHead"><div><h2>Choose an action</h2><p>'+ (codeActive()?'Resuscitation actions run when tapped.':'Select orders, then submit together.') +
+  panel.innerHTML='<div class="actionHead"><div><h2>Choose an action</h2><p>'+ (codeActive()?'Resuscitation actions run when tapped. Search finds anything you could type.':'Tap to add, then submit together. Search finds anything you could type in the order box.') +
     '</p></div><button data-action-close aria-label="Close action menu">✕</button></div>'+
     // SEARCH, because a menu of nine categories is a menu you guess your way through. Kim went
     // looking for a tourniquet and found it filed under "Hs & Ts" — typing three letters beats
@@ -7621,14 +7625,28 @@ function openActionBrowser(){
     }
     return hits;
   };
+  // ONE VOCABULARY, TWO DOORS. Kim, 2026-09-15: "it can be confusing when to use the quick
+  // orders versus the Orders search bar." They were two different searches over two different
+  // lists — the menu knew ~150 curated chips, the order box knows the whole catalogue — so
+  // which one you reached for decided what you could find. The menu now searches the SAME
+  // catalogue underneath its own chips: the menu is the browsable door, the box is the typing
+  // door, and neither knows anything the other does not.
+  const catalogHits = q => {
+    let cat = [];
+    try{ cat = searchCatalog(composerCatalog(), q) || []; }catch(_){ return []; }
+    return cat.slice(0, 14);
+  };
   const showSearch = raw => {
     const q = String(raw||'').trim().toLowerCase();
     const choices = panel.querySelector('.actionChoices');
     panel.classList.toggle('searching', q.length > 0);
     if(q.length < 2){ if(!q) show(selected); return; }
     const hits = searchAll(q);
-    if(!hits.length){
-      choices.innerHTML = '<p style="grid-column:1/-1;color:#94a3b8">Nothing here matches that. Type it as a free-text order instead \u2014 the sim understands far more than this menu lists.</p>';
+    const known = new Set(hits.map(h => {
+      const m = /data-pal="([^"]*)"/.exec(h.html); return m ? m[1].toLowerCase() : ''; }));
+    const extra = catalogHits(q).filter(e => !known.has(String(displayLabel(e)).toLowerCase()));
+    if(!hits.length && !extra.length){
+      choices.innerHTML = '<p style="grid-column:1/-1;color:#94a3b8">Nothing matches that. Say it in your own words in the order box \u2014 the sim reads plain orders, not just this list.</p>';
       return;
     }
     let html = '', cat = null;
@@ -7637,9 +7655,26 @@ function openActionBrowser(){
         html += '<h3 style="grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin:4px 0 0">'+esc(cat)+'</h3>'; }
       html += h.html;
     }
+    if(extra.length){
+      html += '<h3 style="grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin:4px 0 0">Everything else you can order</h3>';
+      html += extra.map((e,i)=>'<button data-cat-idx="'+i+'">'+esc(displayLabel(e))+
+        ((e.doses && e.doses.length) ? ' <span style="color:#64748b;font-size:12px">· dose</span>' : '')+'</button>').join('');
+    }
     choices.innerHTML = html;
     wirePalChips(choices);
     choices.querySelectorAll('.oset').forEach(b=>b.onclick=()=>basketAddSet(b.dataset.os));
+    // A catalogue result behaves exactly as it does in the order box, because it IS that
+    // code: dose-bearing entries ask for the dose at the command box (where that picker
+    // lives and where nothing covers it), the rest go straight to the basket.
+    choices.querySelectorAll('[data-cat-idx]').forEach(b=>b.onclick=()=>{
+      const i = +b.dataset.catIdx, entry = extra[i]; if(!entry) return;
+      _taMatches = extra; _taIdx = i;
+      const dosed = !!(entry.doses && entry.doses.length);
+      if(dosed) closeActionBrowser();
+      const cmd = $('cmd'); if(cmd) cmd.value = '';
+      basketTypeahead(i);
+      if(!dosed) refreshActionSelection();
+    });
     choices.scrollTop = 0;
     refreshActionSelection();
   };
@@ -7816,7 +7851,11 @@ const PALETTE = {
     ['Tourniquet','Apply a tourniquet proximal to the bleeding wound'],
     ['Needle decompression','Perform immediate needle decompression'],
     ['Chest tube','Place a chest tube'],
-    ['Massive transfusion','Activate the massive transfusion protocol']],
+    ['Massive transfusion','Activate the massive transfusion protocol'],
+    // Two reports in a row (2026-09-15) missed active rewarming, and the vocabulary was
+    // there all along — it just had no button. Hypothermia is a primary-survey threat, not
+    // an afterthought, so it gets a chip beside the binder and the tourniquet.
+    ['Keep them warm','Prevent hypothermia — warmed fluids and warm blankets']],
   'Labs':[
     ['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],['CMP','Order a comprehensive metabolic panel.'],
     ['Troponin','Order a troponin.'],['Lactate','Order a lactate.'],['VBG','Order a venous blood gas.'],
