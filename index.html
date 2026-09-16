@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XRCrqimTuYcnuIXtR79uysFa0cU29wyXdHfWe2V1BYo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-pvQbrmRsqRDkEuXPU9Je8kQmQtRhCB5fUJEW/cP7xeM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1285,6 +1285,11 @@
   .text-\[8px\]{font-size:10px!important}
   .text-\[9px\],.text-\[10px\]{font-size:11px!important}
   .text-slate-600{color:#94a3b8!important}
+  /* The voice line is one line. Wrapped to two it doubled the header's height on a phone,
+     and a header that changes height while the case is running moves everything under it. */
+  #audioChip{flex:0 1 auto;min-width:0;max-width:min(40vw,220px);overflow:hidden}
+  #audioChipText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:639px){ #audioChip{padding:.2rem .4rem;letter-spacing:.06em} }
   /* ================================================================ SUBMIT STAYS ON SCREEN
      Kim, 2026-09-15, on the groin stab: "it's hard to find the Submit Orders button because it
      is hidden by the other menu." Measured at 1100x760 and 1024x700 in the chart layout: a code
@@ -1593,6 +1598,13 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
     <!-- WHO YOU ARE. Hidden entirely when no project is configured, so a build with the
          feature switched off looks exactly as it did before. -->
     <button id="authBtn" class="hidden items-center gap-2 px-3 py-2 rounded-xl border bg-slate-900 border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition text-[10px] font-black uppercase tracking-widest"></button>
+    <!-- What the voice is doing. Kim, 2026-09-15: "can you add a 'generating audio…' line bc it
+         takes some time for the audio to generate sometimes" — and the same line is where a
+         silent turn says WHY it was silent. Lives beside the speaker button so its meaning is
+         obvious; aria-live so a screen reader hears it once, not on every repaint. -->
+    <div id="audioChip" class="hidden items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
+      <span id="audioChipDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span><span id="audioChipText">Generating audio…</span>
+    </div>
     <button id="ttsBtn" aria-label="Toggle voice narration" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Toggle voice narration">
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
     </button>
@@ -3672,17 +3684,39 @@ function browserSpeak(segments, onDone){
 // doomed localhost request on every single turn. Probed once, and the answer gates the
 // POST.
 let _ttsProbe = null;
+// WHERE THE CAST MIGHT BE ANSWERING. A page served over https cannot fetch http://localhost at
+// all — the browser blocks it — so on the deployed site the twelve-voice cast was silently
+// unreachable and every line fell back to the browser voice (Kim, 2026-09-15: "why can't i
+// hear the audio anymore … i want the voice to run from the website"). Measured with the same
+// server running: the request fails from https://kimtrinh.github.io and returns 200 from
+// http://localhost:8090. Same scheme on both ends is the fix, so an https page tries the https
+// form of the configured address FIRST, and falls back to what was configured (which is what a
+// local copy of the app, served over http, still uses). start-tts.sh serves TLS when a
+// mkcert certificate is present.
+function ttsCandidates(){
+  const raw = String(S.ttsURL || '').replace(/\/+$/, '');
+  if(!raw) return [];
+  const list = [raw];
+  if(location.protocol === 'https:' && /^http:\/\//i.test(raw)) list.unshift(raw.replace(/^http:/i, 'https:'));
+  return list;
+}
 async function probeTtsServer(force){
   if(_ttsProbe && !force) return _ttsProbe;
   _ttsProbe = (async () => {
-    if(!S.ttsURL){ S.ttsServerOK = false; return false; }
-    try{
-      const ctl = new AbortController();
-      const t = setTimeout(() => ctl.abort(), 1500);
-      const r = await fetch(S.ttsURL.replace(/\/+$/,'') + '/health', { signal: ctl.signal });
-      clearTimeout(t);
-      S.ttsServerOK = !!(r && r.ok);
-    }catch(_){ S.ttsServerOK = false; }
+    S.ttsServerOK = false;
+    for(const url of ttsCandidates()){
+      try{
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 1500);
+        const r = await fetch(url + '/health', { signal: ctl.signal });
+        clearTimeout(t);
+        if(r && r.ok){
+          // Remember the one that answered for this session, so the POST goes to the same
+          // place. Not written to localStorage: the player's own setting is theirs.
+          S.ttsURL = url; S.ttsServerOK = true; break;
+        }
+      }catch(_){ /* try the next candidate */ }
+    }
     paintVoiceStatus();
     return S.ttsServerOK;
   })();
@@ -3696,7 +3730,9 @@ function paintVoiceStatus(){
   const ok = !!S.ttsServerOK;
   dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' + (ok ? 'bg-emerald-400' : 'bg-slate-600');
   st.textContent = ok ? 'Voice cast: running — all twelve voices'
-                      : 'Voice cast: not running — ./voice-server/install.sh then ./start-tts.sh';
+    : (location.protocol === 'https:'
+        ? 'Voice cast: not reachable — this page is https, so the cast must serve https too (start-tts.sh does it when ~/.medisim/certs holds a mkcert certificate)'
+        : 'Voice cast: not running — ./voice-server/install.sh then ./start-tts.sh');
   st.className = 'text-[10px] font-black uppercase tracking-widest ' + (ok ? 'text-emerald-400' : 'text-slate-500');
 }
 // Where this machine keeps its downloadable voices. The good ones are a download, not a
@@ -3804,6 +3840,45 @@ function paintVoicePicker(){
 // single browser voice if it's unreachable. Newer replies interrupt older ones —
 // unless opts.priority is 'status', in which case the line is the nurse's numbers and it
 // waits for whoever is speaking rather than cutting them off. See the queue above.
+// ---- WHAT THE VOICE IS DOING -----------------------------------------------------------
+// Synthesis is not instant: the HD voices are a round trip to Google and the local cast is a
+// round trip to a model on this machine, and both can take seconds on a long turn. Until now
+// that gap was silent and indistinguishable from broken audio — Kim asked for the line, having
+// just hit the other half of this: on the DEPLOYED https site a page cannot reach a voice
+// server on http://localhost at all (the browser blocks it), so the twelve-voice cast is only
+// available when the app itself is served from localhost. That is worth saying out loud rather
+// than leaving as silence.
+let _audioMsg = null;   // {text, tone} or null
+let _audioMsgTimer = null;
+function paintAudioChip(){
+  const el = $('audioChip'); if(!el) return;
+  const txt = $('audioChipText'), dot = $('audioChipDot');
+  if(!_audioMsg){ el.classList.add('hidden'); el.classList.remove('flex'); return; }
+  // A phone header has room for a few words, not a sentence: the long line wrapped to two
+  // and made the whole header taller mid-case, which moves everything under it.
+  if(txt) txt.textContent = (innerWidth < 640 && _audioMsg.short) ? _audioMsg.short : _audioMsg.text;
+  if(dot) dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' +
+    (_audioMsg.tone === 'warn' ? 'bg-amber-400' : 'bg-emerald-400') +
+    (_audioMsg.tone === 'busy' ? ' animate-pulse' : '');
+  el.classList.remove('hidden'); el.classList.add('flex');
+}
+// `hold` in ms for a message that should be READ and then go away; no hold = stays until the
+// next call (that is how "Generating audio…" lasts exactly as long as the synthesis does).
+function audioStatus(text, tone, hold, short){
+  clearTimeout(_audioMsgTimer); _audioMsgTimer = null;
+  _audioMsg = text ? { text, tone: tone || 'busy', short } : null;
+  paintAudioChip();
+  if(text && hold) _audioMsgTimer = setTimeout(() => { _audioMsg = null; paintAudioChip(); }, hold);
+}
+// Said once per session, not once per turn: a nag on every line would be worse than silence.
+let _saidCastUnreachable = false;
+function noteCastUnreachable(){
+  if(_saidCastUnreachable || !S.ttsURL) return;
+  _saidCastUnreachable = true;
+  const web = location.protocol === 'https:';
+  audioStatus(web ? 'Voice cast unreachable from the web version — browser voice'
+                  : 'Voice cast not running — browser voice', 'warn', 9000, 'No voice cast');
+}
 async function speakSegments(segments, force, opts){
   if(!S.tts && !force) return;   // force = explicit Replay, plays even when muted
   const roleSegs = (segments||[])
@@ -3842,8 +3917,9 @@ async function speakSegments(segments, force, opts){
   // only accepts Google keys; never send anything else there.
   // Instant Mode spends no key anywhere, voices included — fall through to Kokoro/local.
   if(!useInstant() && S.geminiKey && S.hdVoices && /^AIza/.test(S.geminiKey) && !_ttsCooling){
-    try{ await gemSpeakSegments(roleSegs, seq); storyDone(seq); return; }
-    catch(_){ if(seq!==_ttsSeq) return; /* quota or network — fall back to Kokoro */ }
+    audioStatus('Generating audio…', 'busy', 0, 'Audio…');
+    try{ await gemSpeakSegments(roleSegs, seq); audioStatus(null); storyDone(seq); return; }
+    catch(_){ if(seq!==_ttsSeq){ audioStatus(null); return; } /* quota or network — fall back to Kokoro */ }
   }
   // 2) Local Kokoro cast
   const segs = roleSegs.map(s=>({ ...segVoice(s.role), text: s.text }));
@@ -3852,6 +3928,7 @@ async function speakSegments(segments, force, opts){
   // treats http://localhost as trustworthy, so a page on https can reach a cast running on
   // the listener's own machine.
   if(S.ttsURL && S.ttsServerOK){
+    audioStatus('Generating audio…', 'busy', 0, 'Audio…');
     try{
       const res = await fetch(S.ttsURL.replace(/\/+$/,'')+'/tts_multi', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -3859,20 +3936,27 @@ async function speakSegments(segments, force, opts){
       });
       if(res.ok){
         const url = URL.createObjectURL(await res.blob());
-        if(seq!==_ttsSeq || !S.tts){ URL.revokeObjectURL(url); storyDone(seq); return; }  // superseded mid-synthesis
+        if(seq!==_ttsSeq || !S.tts){ URL.revokeObjectURL(url); audioStatus(null); storyDone(seq); return; }  // superseded mid-synthesis
         if(_curUrl) URL.revokeObjectURL(_curUrl);
         _curUrl=url; _audioEl.src=url; _audioEl.currentTime=0;
         // The clip ending is the line ending — the only handler this path ever had was
         // revoking the blob, so nothing downstream could know the speaker had stopped.
         _audioEl.onended=()=>{ if(_curUrl===url){ URL.revokeObjectURL(url); _curUrl=null; } storyDone(seq); };
-        _audioEl.onerror=()=>storyDone(seq);
-        try{ await _audioEl.play(); return; }
-        catch(_){ /* autoplay still blocked → fall through to robot voice */ }
+        _audioEl.onerror=()=>{ audioStatus(null); storyDone(seq); };
+        // The clip is made; the chip comes down as the first word plays, not before.
+        try{ await _audioEl.play(); audioStatus(null); return; }
+        catch(_){ audioStatus('Audio blocked by the browser — click the page, then Replay', 'warn', 9000, 'Audio blocked'); }
       }
-    }catch(_){ /* server unreachable → fall through to browser voice */ }
-  }
+    }catch(_){ S.ttsServerOK = false; noteCastUnreachable(); /* server unreachable → browser voice */ }
+  } else if(S.ttsURL) noteCastUnreachable();
   // roleSegs, not segs: segs carry the Kokoro voice ids, roleSegs carry the speaker.
-  if(seq===_ttsSeq && S.tts){ browserSpeak(roleSegs, ()=>storyDone(seq)); return; }
+  if(seq===_ttsSeq && S.tts){
+    if(!('speechSynthesis' in window) || !(refreshVoices()||[]).length)
+      audioStatus('No voice available in this browser', 'warn', 9000, 'No voice');
+    browserSpeak(roleSegs, ()=>{ if(!_audioMsg || _audioMsg.tone==='busy') audioStatus(null); storyDone(seq); });
+    return;
+  }
+  audioStatus(null);
   storyDone(seq);   // nothing was spoken at all — release the floor rather than hold it
 }
 // Single-voice narrator line (used when no structured speech is available).
@@ -13377,7 +13461,7 @@ $('clearKeysBtn').onclick=()=>{
   warmTier(GEMINI_BASE); warmTier('https://api.anthropic.com');
   autoBestTier().then(()=>{ renderTierStatus(); testConnection(true); });
 };
-$('ttsBtn').onclick=()=>{ S.tts=!S.tts; localStorage.setItem('ms_tts',S.tts?'1':'0'); if(!S.tts) stopSpeak();
+$('ttsBtn').onclick=()=>{ S.tts=!S.tts; localStorage.setItem('ms_tts',S.tts?'1':'0'); if(!S.tts){ stopSpeak(); audioStatus(null); }
   $('ttsBtn').className='p-2.5 rounded-xl border transition '+(S.tts?'bg-emerald-500/10 border-emerald-500/40 text-emerald-400':'bg-slate-900 border-slate-800 text-slate-500'); };
 $('resetBtn').onclick=()=>{ stopSpeak(); clearInterval(driftTimer); cancelAnimationFrame(ecgRAF); if(_ecgFit){ _ecgFit(); _ecgFit=null; } cancelAnimationFrame(patientRAF); renderSetup(); };
 
