@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-pvQbrmRsqRDkEuXPU9Je8kQmQtRhCB5fUJEW/cP7xeM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hT+teIVySyQDMt6Ow9hGqckFPAMzl3wdOn1fSjFtspE=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3696,9 +3696,15 @@ let _ttsProbe = null;
 function ttsCandidates(){
   const raw = String(S.ttsURL || '').replace(/\/+$/, '');
   if(!raw) return [];
-  const list = [raw];
-  if(location.protocol === 'https:' && /^http:\/\//i.test(raw)) list.unshift(raw.replace(/^http:/i, 'https:'));
-  return list;
+  // BOTH SCHEMES, the page's own first. Turning the cast over to TLS for the website would
+  // otherwise silence the LOCAL copy, which is served over http and had only ever tried the
+  // http address; a cast that serves one scheme should be found from either page.
+  const other = /^https:/i.test(raw) ? raw.replace(/^https:/i, 'http:') : raw.replace(/^http:/i, 'https:');
+  const secure = location.protocol === 'https:';
+  const list = (secure === /^https:/i.test(raw)) ? [raw, other] : [other, raw];
+  // An https page cannot reach an http address at all — the browser blocks it — so there is
+  // no point asking, and asking logs a scary console error on every probe.
+  return secure ? list.filter(u => /^https:/i.test(u)) : list;
 }
 async function probeTtsServer(force){
   if(_ttsProbe && !force) return _ttsProbe;
