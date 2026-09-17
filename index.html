@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Yk50dU57GUUlGzenPDgtaMbdxhgvhHGshL+5O3AkstM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LuTOdIaPT3TqtPgXB/nYlxoGAQqsJXA46RK6cVO4Z1I=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1538,6 +1538,12 @@
        stretched past 200px) */
     body.phoneFold #obInputRow > div.relative{flex:1 1 auto!important;width:auto!important;min-width:0}
     body.phoneFold #obInputRow > button{flex:0 0 auto!important;width:auto!important;min-width:5.5rem}
+    /* Sideways, width is the scarcest thing on the screen and this row does not wrap: every
+       button takes it from the order box (measured — a fourth one leaves the box 166px, and
+       Kim's whole complaint about this bar was a box too narrow to read its own text). So the
+       dock keeps the three that must be there and Re-evaluate steps out; it is still one tap
+       away in Assess > Reassess, and in the action menu, on this layout as on every other. */
+    body.phoneFold #reevalBtn{display:none!important}
     body.phoneFold #obInputRow button, body.phoneFold #phoneOrders .pal, body.phoneFold #phoneOrders .oset, body.phoneFold .foldHead{min-height:44px}
   }
   /* THE HEADERS AS A ROW OF TABS. Five stacked 44px headers do not fit a short screen:
@@ -6814,24 +6820,42 @@ async function initGold(){
     // system chip narrows it, one flat list reads better.
     let html;
     if(!q && !_goldCat){
+      // VALIDATED FIRST, AND SAID PLAINLY. Kim, 2026-09-16: "Separate experimental cases in a
+      // separate section." Five cases have been graded end to end and checked by hand; the
+      // other 167 are playable and their grading has not been verified. The list said so only
+      // on each card, in a chip the size of a full stop, while the course headings gave twelve
+      // unverified resuscitation cases the same billing as the five. Two sections now, with the
+      // course groupings kept INSIDE the experimental one — they are how you find a PALS case,
+      // not a claim that it has been checked.
       const courseOrder=['ACLS','ATLS','PALS','NRP'];
+      const validated = hits.filter(c => !c._user && isValidation(c.id));
+      const rest0 = hits.filter(c => c._user || !isValidation(c.id));
       const courseGroups={};
-      for(const tag of courseOrder) courseGroups[tag]=hits.filter(c=>goldTag(c)===tag);
-      const rest = hits.filter(c => !goldTag(c));
+      for(const tag of courseOrder) courseGroups[tag]=rest0.filter(c=>goldTag(c)===tag);
+      const rest = rest0.filter(c => !goldTag(c));
       const groups={}; rest.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
       const head = (text, n, tone) =>
         `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest ${tone}">${esc(text)} <span class="text-slate-700">${n}</span></div>`;
-      html = courseOrder.map(tag => {
+      const note = text =>
+        `<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-500 border-b border-slate-800/60">${esc(text)}</p>`;
+      const courseHTML = courseOrder.map(tag => {
           const tone={ACLS:'text-rose-300',ATLS:'text-amber-300',PALS:'text-sky-300',NRP:'text-violet-300'}[tag];
           const label={ACLS:'Adult cardiac life support',ATLS:'Trauma resuscitation',PALS:'Pediatric advanced life support',NRP:'Newborn resuscitation'}[tag];
           return courseGroups[tag].length ? head(tag+' \u2014 '+label, courseGroups[tag].length, tone)
             + courseGroups[tag].map(c=>rowHTML(c, ACLS_TEACHES[c.id])).join('') : '';
         }).join('')
-        + (rest.length ? head('Experimental \u2014 extended case library', rest.length, 'text-amber-300')
-             + '<p class="px-3 py-2 text-[10px] leading-relaxed text-slate-500 border-b border-slate-800/60">These scenarios are playable, but their grading is still being refined. Use the score as practice feedback rather than a certification result.</p>'
-             + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
-                 head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('')
-           : '');
+        + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
+            head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('');
+      html = (validated.length
+          ? '<div data-list-section="validated">' + head('Validated cases', validated.length, 'text-emerald-400')
+            + note('Graded end to end and checked by hand \u2014 the scoring in these has been verified.')
+            + validated.map(c=>rowHTML(c, ACLS_TEACHES[c.id])).join('') + '</div>'
+          : '')
+        + (courseHTML
+          ? '<div data-list-section="experimental">' + head('Experimental cases', rest0.length, 'text-amber-300')
+            + note('Playable, and the clinical content is written \u2014 but the grading has not been verified yet.')
+            + courseHTML + '</div>'
+          : '');
     } else html = hits.map(c=>rowHTML(c, isAcls(c) ? ACLS_TEACHES[c.id] : null)).join('');
     $('goldList').innerHTML = html || '<p class="px-3 py-2 text-xs text-slate-600">No matches.</p>';
     if($('goldShowing')) $('goldShowing').textContent = hits.length===all.length
@@ -7442,9 +7466,10 @@ function sectionsHTML(){
     body = '<div class="secBody">' + SECTIONS[_openSection].items
       .map(it => chip(it[0] === 'Extremities' ? examChipLabel() : it[0], it[1])).join('') + '</div>';
   }
-  const reassess = '<button data-pal="Reassess the patient." data-lab="Re-evaluate" ' +
-    'class="pal w-full px-2 py-1.5 rounded-md border border-sky-500/40 bg-sky-950/40 text-[10px] ' +
-    'font-black uppercase tracking-widest text-sky-200 hover:bg-sky-900/50 transition">Re-evaluate</button>';
+  // The wall's own full-width Re-evaluate is gone: the dock carries it now (#reevalBtn), and
+  // the same control in two places is how you end up with two of everything. It is also a chip
+  // in Assess > Reassess, for anyone browsing rather than reaching.
+  const reassess = '';
   // One header per generated group, plus the sets. History and Exam are no longer names
   // this file chooses: they are rows inside Assess, and the headers are whatever
   // order-catalog.json's menu places say the groups are called.
@@ -8633,6 +8658,12 @@ function renderPlay(){
           </button>`}
           <button id="coachBtn" class="hidden px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Open the coach. In training mode simulation time pauses while it is open.">Coach</button>
           <button id="queueBtn" class="px-3 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Add this free text to the basket without submitting"><span class="queueLong">+ Queue</span><span class="queueShort hidden">+ Add</span></button>
+          <!-- Kim, 2026-09-16: "Add a re-evaluate button." There was one, under the wall's
+               folding sections, where nobody looked — two case reports in a row went a whole
+               case without a reassessment. It stands in the dock beside Submit now, on every
+               layout, in and out of a code. KEEP the id: the phone rules and the dock
+               measurement select this row's buttons, and the tests hit it by id. -->
+          <button id="reevalBtn" aria-label="Re-evaluate the patient" class="px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Re-examine the patient and read the monitor again">Re-evaluate</button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
           <button id="sendBtn" aria-label="Submit selected orders, diagnoses, and free text together" title="Submit selected orders, diagnoses, and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
             <span id="sendBtnLabel">Submit</span>
@@ -8748,6 +8779,15 @@ function renderPlay(){
   };
   _submitBasket=send;
   $('sendBtn').onclick=send;
+  // The dock's Re-evaluate, wired HERE and not at load: renderPlay rebuilds this row on every
+  // single order, so a handler bound once at startup belongs to a button that no longer exists.
+  // It sends the same order the wall's old full-width button sent, so the packs answer it
+  // exactly as before — it is only standing somewhere a person can find it.
+  if($('reevalBtn')) $('reevalBtn').onclick=()=>{
+    if(S.stage !== 'play' || S.loading) return;
+    hideTypeahead(); closeActionBrowser();
+    dispatchOrders('Reassess the patient.', 'Re-evaluate');
+  };
   cmd.addEventListener('input',()=>{
     document.body.classList.toggle('typed', !!cmd.value.trim());   // a phone shows + Add and the mic once there is something to add
     cmd.style.height='auto';cmd.style.height=Math.min(cmd.scrollHeight,128)+'px';

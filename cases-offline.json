@@ -5951,7 +5951,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 158,
+       "bpSystolic": 80,
+       "bpDiastolic": 50,
+       "rr": 42,
+       "o2": 58,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 60,
@@ -8856,7 +8864,13 @@
        "text": "Titrating to your targets \u2014 HR under 60 and systolic 100 to 120."
       }
      ],
-     "satisfies": 2
+     "satisfies": 2,
+     "vitals": {
+      "hr": 56,
+      "bpSystolic": 112,
+      "bpDiastolic": 70
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -14895,7 +14909,12 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 150,
+       "bpSystolic": 44,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 64,
@@ -17639,7 +17658,7 @@
       "bpSystolic": 96,
       "bpDiastolic": 60,
       "rr": 20,
-      "o2": 94,
+      "o2": 97,
       "rhythm": "Sinus Rhythm"
      },
      "trend": "improving",
@@ -36361,7 +36380,13 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 156,
+       "bpSystolic": 44,
+       "temp": 34.1,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 64,
@@ -40149,7 +40174,16 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 140,
+       "bpSystolic": 84,
+       "bpDiastolic": 50,
+       "rr": 30,
+       "o2": 90,
+       "temp": 40.6,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 55,
@@ -44224,7 +44258,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 138,
+       "bpSystolic": 76,
+       "bpDiastolic": 58,
+       "rr": 30,
+       "o2": 90,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
@@ -45751,7 +45793,13 @@
       "required": true,
       "flagIfUnspecified": "Analgesic dose/route not specified \u2014 e.g., fentanyl 1 mcg/kg IV."
      },
-     "satisfies": 3
+     "satisfies": 3,
+     "vitals": {
+      "hr": 84,
+      "bpSystolic": 128,
+      "bpDiastolic": 78
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -48746,7 +48794,16 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 146,
+       "bpSystolic": 84,
+       "bpDiastolic": 48,
+       "rr": 30,
+       "o2": 95,
+       "temp": 39.5,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 70,
@@ -57119,7 +57176,14 @@
        "text": "Isotonic crystalloid resuscitation has started."
       }
      ],
-     "satisfies": 2
+     "satisfies": 2,
+     "vitals": {
+      "hr": 104,
+      "bpSystolic": 94,
+      "bpDiastolic": 58,
+      "rr": 20
+     },
+     "trend": "improving"
     }
    ],
    "deterioration": {
@@ -60274,7 +60338,16 @@
       "event": "Rewarming stalls \u2014 core temperature stuck despite external measures",
       "trend": "worsening",
       "nurse": "Core's been stuck at 27 for half an hour now \u2014 forced air and warm fluids aren't cutting it at this depth. Do we get the ECMO or bypass team moving?",
-      "feedback": "Severe hypothermia below 28\u00b0C often will not rewarm externally; extracorporeal rewarming is the escalation, and the call has to happen before the arrest."
+      "feedback": "Severe hypothermia below 28\u00b0C often will not rewarm externally; extracorporeal rewarming is the escalation, and the call has to happen before the arrest.",
+      "vitals": {
+       "hr": 28,
+       "bpSystolic": 76,
+       "bpDiastolic": 46,
+       "rr": 6,
+       "o2": 87,
+       "temp": 27,
+       "rhythm": "Sinus Bradycardia"
+      }
      },
      {
       "afterMin": 40,
@@ -62742,7 +62815,12 @@
        "text": "Early crystalloid resuscitation has started while blood products are prepared."
       }
      ],
-     "satisfies": 2
+     "satisfies": 2,
+     "vitals": {
+      "hr": 98,
+      "bpSystolic": 114
+     },
+     "trend": "improving"
     },
     {
      "intent": "assessment",
@@ -62808,7 +62886,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 128,
+       "bpSystolic": 86,
+       "bpDiastolic": 50,
+       "rr": 24,
+       "o2": 94,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
@@ -63398,7 +63484,13 @@
        "text": "IV fluids running \u2014 one liter of normal saline wide open."
       }
      ],
-     "satisfies": 3
+     "satisfies": 3,
+     "vitals": {
+      "hr": 108,
+      "bpSystolic": 110,
+      "bpDiastolic": 68
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -64491,7 +64583,16 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 138,
+       "bpSystolic": 92,
+       "bpDiastolic": 54,
+       "rr": 31,
+       "o2": 91,
+       "temp": 38.8,
+       "rhythm": "Atrial Fibrillation"
+      }
      },
      {
       "afterMin": 60,
@@ -66321,7 +66422,14 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 152,
+       "bpSystolic": 40,
+       "bpDiastolic": 24,
+       "o2": 85,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 62,
@@ -67469,7 +67577,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 146,
+       "bpSystolic": 62,
+       "bpDiastolic": 38,
+       "rr": 34,
+       "o2": 72,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 60,
@@ -71895,7 +72011,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 112,
+       "bpSystolic": 124,
+       "bpDiastolic": 78,
+       "rr": 20,
+       "o2": 91,
+       "rhythm": "Sinus Rhythm"
+      }
      },
      {
       "afterMin": 65,
@@ -81732,7 +81856,16 @@
       "required": true,
       "flagIfUnspecified": "Ceftriaxone dose not specified \u2014 2 g IV daily for 10-14 days as an alternative regimen."
      },
-     "satisfies": 4
+     "satisfies": 4,
+     "vitals": {
+      "hr": 76,
+      "bpSystolic": 124,
+      "bpDiastolic": 76,
+      "rr": 14,
+      "o2": 98,
+      "temp": 36.8
+     },
+     "trend": "improving"
     },
     {
      "intent": "assessment",
@@ -84900,7 +85033,11 @@
        "text": "Bicarb's infusing \u2014 his gas was acidotic, so this should help drive potassium in too."
       }
      ],
-     "satisfies": 2
+     "satisfies": 2,
+     "vitals": {
+      "hr": 52
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -89266,7 +89403,12 @@
       "required": true,
       "flagIfUnspecified": "Vancomycin ordered without a dose \u2014 specify (e.g., 25-30 mg/kg IV load, then weight-based dosing to trough/AUC goal)."
      },
-     "satisfies": 4
+     "satisfies": 4,
+     "vitals": {
+      "hr": 98,
+      "temp": 37.9
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -93089,7 +93231,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 78,
+       "bpSystolic": 206,
+       "bpDiastolic": 92,
+       "rr": 14,
+       "o2": 90,
+       "rhythm": "Sinus Rhythm"
+      }
      },
      {
       "afterMin": 65,
@@ -95238,7 +95388,16 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 176,
+       "bpSystolic": 168,
+       "bpDiastolic": 96,
+       "rr": 6,
+       "o2": 62,
+       "temp": 39.2,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
@@ -98856,7 +99015,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 120,
+       "bpSystolic": 172,
+       "bpDiastolic": 110,
+       "rr": 22,
+       "o2": 94,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
@@ -117361,7 +117528,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 142,
+       "bpSystolic": 86,
+       "bpDiastolic": 50,
+       "rr": 36,
+       "o2": 86,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 60,
@@ -119131,7 +119306,13 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 126,
+       "rr": 32,
+       "o2": 82,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 50,
@@ -119956,7 +120137,16 @@
        "text": "Intramuscular epinephrine will be repeated promptly if symptoms persist."
       }
      ],
-     "satisfies": 0
+     "satisfies": 0,
+     "vitals": {
+      "hr": 106,
+      "bpSystolic": 98,
+      "bpDiastolic": 64,
+      "rr": 22,
+      "o2": 94,
+      "rhythm": "Sinus Tachycardia"
+     },
+     "trend": "improving"
     }
    ],
    "deterioration": {
@@ -123759,7 +123949,13 @@
        "text": "High-flow oxygen is running with continuous albuterol and ipratropium."
       }
      ],
-     "satisfies": 0
+     "satisfies": 0,
+     "vitals": {
+      "hr": 124,
+      "rr": 29,
+      "o2": 91
+     },
+     "trend": "improving"
     }
    ],
    "deterioration": {
@@ -126186,7 +126382,13 @@
        "text": "One liter of normal saline is running wide open."
       }
      ],
-     "satisfies": 1
+     "satisfies": 1,
+     "vitals": {
+      "hr": 42,
+      "bpSystolic": 80,
+      "bpDiastolic": 48
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -126687,7 +126889,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 24,
+       "bpSystolic": 48,
+       "bpDiastolic": 28,
+       "rr": 24,
+       "o2": 86,
+       "rhythm": "Sinus Bradycardia"
+      }
      },
      {
       "afterMin": 55,
@@ -130109,7 +130319,12 @@
        "text": "Ventilation is supported continuously while naloxone is administered."
       }
      ],
-     "satisfies": 2
+     "satisfies": 2,
+     "vitals": {
+      "rr": 14,
+      "o2": 91
+     },
+     "trend": "improving"
     },
     {
      "intent": "med",
@@ -130126,7 +130341,15 @@
        "text": "Weight-based naloxone is being titrated to ventilation, with repeat doses or an infusion ready."
       }
      ],
-     "satisfies": 3
+     "satisfies": 3,
+     "vitals": {
+      "hr": 104,
+      "bpSystolic": 92,
+      "bpDiastolic": 58,
+      "rr": 22,
+      "o2": 96
+     },
+     "trend": "improving"
     }
    ],
    "deterioration": {
@@ -135950,7 +136173,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 144,
+       "bpSystolic": 76,
+       "bpDiastolic": 46,
+       "rr": 28,
+       "o2": 93,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
@@ -137052,7 +137283,15 @@
       ],
       "event": "The patient is deteriorating and needs an immediate rescue intervention",
       "nurse": "Doctor, the patient is deteriorating rapidly. We still have a critical rescue intervention outstanding.",
-      "feedback": "A final warning was given before the lethal deterioration stage."
+      "feedback": "A final warning was given before the lethal deterioration stage.",
+      "vitals": {
+       "hr": 146,
+       "bpSystolic": 68,
+       "bpDiastolic": 54,
+       "rr": 32,
+       "o2": 92,
+       "rhythm": "Sinus Tachycardia"
+      }
      },
      {
       "afterMin": 65,
