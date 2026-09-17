@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-6pRzFCQIIPNYYiBHv08Ysww3xaalN74NSpmDH8sERuc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Yk50dU57GUUlGzenPDgtaMbdxhgvhHGshL+5O3AkstM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -19,6 +19,7 @@
 <script src="runlog.js"></script>
 <script src="account.js"></script>
 <script src="order-intents.js"></script>
+<script src="order-menu.js"></script>
 <script src="order-dispatch.js"></script>
 <script src="objective-rules.js"></script>
 <script src="training-coach.js"></script>
@@ -1247,6 +1248,16 @@
     letter-spacing:0!important;white-space:normal!important;padding:12px!important;text-align:left;border-radius:12px;min-width:0}
   #actionBrowser .actionChoices button[aria-pressed=true]{background:#064e3b;border-color:#34d399;color:#d1fae5}
   #actionBrowser .actionChoices button[aria-pressed=true]:after{content:' ✓';font-weight:900}
+  /* THE BUNDLES, ABOVE EVERYTHING. A whole sepsis workup is one tap and it belongs where
+     the eye lands first, not filed inside a category. Smaller than the action buttons on
+     purpose — these fill the basket, they do not name one order. */
+  .actionSets{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+  .actionSets>span{width:100%;font-size:10px;font-weight:900;letter-spacing:.12em;
+    text-transform:uppercase;color:#64748b;margin-bottom:2px}
+  #actionBrowser .actionSets button{min-height:36px;font-size:12px;font-weight:700;
+    letter-spacing:.04em;text-transform:uppercase;border-radius:10px;padding:4px 10px;
+    background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}
+  #actionBrowser .actionSets button:hover{background:rgba(16,185,129,.2);border-color:#34d399;color:#d1fae5}
   .actionSearch{padding:0 16px 10px}
   .actionSearch input{width:100%;min-height:44px;padding:10px 12px;border-radius:12px;background:#0b1424;
     border:1px solid #334155;color:#e2e8f0;font-size:14px}
@@ -1293,7 +1304,15 @@
   .text-slate-600{color:#94a3b8!important}
   /* The voice line is one line. Wrapped to two it doubled the header's height on a phone,
      and a header that changes height while the case is running moves everything under it. */
-  #audioChip{flex:0 1 auto;min-width:0;max-width:min(40vw,220px);overflow:hidden}
+  /* A RESERVED SLOT, not a growing one. The line sits in the header's flex row, so appearing
+     and disappearing changed the width of the diagnosis box beside it — and the room watches
+     its pieces for size changes and repaints when they move (see measureRoomPieces). Measured
+     on a 390x844 phone mid-code: the repaint replaced the Hide button between the press and
+     the release, and the press was lost. So the slot is always the same size and the line
+     inside it is merely invisible when there is nothing to say. */
+  #audioSlot{flex:0 0 auto;width:clamp(76px,22vw,208px);display:flex;justify-content:flex-end}
+  #audioChip{width:100%;min-width:0;overflow:hidden}
+  #audioChip.idle{visibility:hidden}
   #audioChipText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:639px){ #audioChip{padding:.2rem .4rem;letter-spacing:.06em} }
   /* ================================================================ SUBMIT STAYS ON SCREEN
@@ -1613,9 +1632,9 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
          takes some time for the audio to generate sometimes" — and the same line is where a
          silent turn says WHY it was silent. Lives beside the speaker button so its meaning is
          obvious; aria-live so a screen reader hears it once, not on every repaint. -->
-    <div id="audioChip" class="hidden items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
+    <div id="audioSlot"><div id="audioChip" class="idle flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
       <span id="audioChipDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span><span id="audioChipText">Generating audio…</span>
-    </div>
+    </div></div>
     <button id="ttsBtn" aria-label="Toggle voice narration" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Toggle voice narration">
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
     </button>
@@ -3870,14 +3889,15 @@ let _audioMsgTimer = null;
 function paintAudioChip(){
   const el = $('audioChip'); if(!el) return;
   const txt = $('audioChipText'), dot = $('audioChipDot');
-  if(!_audioMsg){ el.classList.add('hidden'); el.classList.remove('flex'); return; }
+  // idle hides the line without taking its space back — see #audioSlot in the stylesheet
+  if(!_audioMsg){ el.classList.add('idle'); el.setAttribute('aria-hidden', 'true'); return; }
+  el.classList.remove('idle'); el.removeAttribute('aria-hidden');
   // A phone header has room for a few words, not a sentence: the long line wrapped to two
   // and made the whole header taller mid-case, which moves everything under it.
   if(txt) txt.textContent = (innerWidth < 640 && _audioMsg.short) ? _audioMsg.short : _audioMsg.text;
   if(dot) dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' +
     (_audioMsg.tone === 'warn' ? 'bg-amber-400' : 'bg-emerald-400') +
     (_audioMsg.tone === 'busy' ? ' animate-pulse' : '');
-  el.classList.remove('hidden'); el.classList.add('flex');
 }
 // `hold` in ms for a message that should be READ and then go away; no hold = stays until the
 // next call (that is how "Generating audio…" lasts exactly as long as the synthesis does).
@@ -3934,7 +3954,7 @@ async function speakSegments(segments, force, opts){
   // only accepts Google keys; never send anything else there.
   // Instant Mode spends no key anywhere, voices included — fall through to Kokoro/local.
   if(!useInstant() && S.geminiKey && S.hdVoices && /^AIza/.test(S.geminiKey) && !_ttsCooling){
-    audioStatus('Generating audio…', 'busy', 0, 'Audio…');
+    if(!status) audioStatus('Generating audio…', 'busy', 0, 'Audio…');
     try{ await gemSpeakSegments(roleSegs, seq); audioStatus(null); storyDone(seq); return; }
     catch(_){ if(seq!==_ttsSeq){ audioStatus(null); return; } /* quota or network — fall back to Kokoro */ }
   }
@@ -3945,7 +3965,10 @@ async function speakSegments(segments, force, opts){
   // treats http://localhost as trustworthy, so a page on https can reach a cast running on
   // the listener's own machine.
   if(S.ttsURL && S.ttsServerOK){
-    audioStatus('Generating audio…', 'busy', 0, 'Audio…');
+    // Only for a line someone is waiting on. A code calls the rhythm and the pressure every
+    // few seconds, and a chip that blinks on every readback is noise in the corner of the eye
+    // — and, measured on a phone, a header that churns while you are trying to press Hide.
+    if(!status) audioStatus('Generating audio…', 'busy', 0, 'Audio…');
     try{
       const res = await fetch(S.ttsURL.replace(/\/+$/,'')+'/tts_multi', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -6171,8 +6194,38 @@ async function loadOrderCatalog(){
   if(_catalog===null){
     _catalog=[];
     try{ const r=await fetch('order-catalog.json'); if(r.ok) _catalog=(await r.json()).entries||[]; }catch(_){ }
+    // THE MENU IS THIS FILE, and this file arrives after the first paint. The wall's
+    // folding sections, the phone's Orders list, the order bar's full palette and every
+    // order-set chip are all views over it, so anything already drawn from an empty
+    // catalogue is stale the moment this resolves. Rebuild the menu, then redraw them —
+    // without this the player is left looking at headers with nothing under them until
+    // some unrelated repaint happens to come along.
+    rebuildSections();
+    repaintOrderSurfaces();
   }
   return _catalog;
+}
+// The surfaces built from the menu, redrawn in place. Each one is guarded: this runs
+// during load, before the play screen exists on a first visit, and a missing host must
+// cost nothing rather than throw inside the fetch above.
+function repaintOrderSurfaces(){
+  try{ if(document.getElementById('console') && typeof paintConsole === 'function') paintConsole(); }catch(_){ }
+  try{ if(document.getElementById('phoneOrders') && typeof paintPhoneOrders === 'function') paintPhoneOrders(); }catch(_){ }
+  try{
+    const pal = document.getElementById('palette');
+    if(pal && typeof paletteBodyHTML === 'function'){
+      // The head carries the phone's Close button and its handler, so it is moved, not
+      // rebuilt: re-rendering it would leave a button that no longer closes anything.
+      const head = pal.querySelector('.pal-head');
+      const body = document.createElement('div');
+      body.innerHTML = paletteBodyHTML();
+      pal.innerHTML = '';
+      if(head) pal.appendChild(head);
+      while(body.firstChild) pal.appendChild(body.firstChild);
+      wirePalChips(pal);
+      pal.querySelectorAll('.oset').forEach(b => b.onclick = () => basketAddSet(b.dataset.os));
+    }
+  }catch(_){ }
 }
 // Mirrors progress()'s own hybrid-routing check — used to decide whether the
 // upcoming turn will actually be answered by the Instant engine, since the
@@ -6385,6 +6438,27 @@ function composeOrder(entry, d){
   const tmpl = entry.sentence || 'Give {name} {dose}.';
   return tmpl.replace('{name}', entry.canonical || entry.label.toLowerCase()).replace('{dose}', dose);
 }
+// WHAT THIS ENTRY SENDS, AND WHAT IT IS CALLED WHILE IT WAITS IN THE BASKET.
+// Four surfaces ask that question — the order box's own picker, the action menu's chips,
+// the wall and phone rows built from the same menu, and the order sets — and for a while
+// each answered it in its own words, which is exactly how a chip and a search result for
+// one action drift into two wordings. There is one answer, here, and three rules in it:
+//   a dose-bearing entry  -> its default dose sentence (composeOrder)
+//   a `sendCanonical` one -> the pack's own words, "__recap" and all
+//   everything else       -> its display label, which is where a consult gains " consult"
+// tools_ca_reach.cjs's sentFor() mirrors these same three rules so the reachability sweep
+// measures what the app really sends; change one and change the other.
+function entryOrder(entry, dose){
+  if(!entry) return null;
+  const doses = entry.doses || [];
+  const d = dose || (doses.length ? (doses.find(x => x.default) || doses[0]) : null);
+  const text = d ? composeOrder(entry, d)
+                 : (entry.sendCanonical ? entry.canonical : displayLabel(entry));
+  const label = d ? entry.label + ' ' + doseChipLabel(d) : displayLabel(entry);
+  const OI = root_OrderIntents();
+  return { entry, dose: d, text, label,
+           intent: OI ? OI.fromCatalog(entry, d, text, label) : undefined };
+}
 // If the doctor already typed the volume, do not make them pick it again.
 function doseFromFragment(entry, frag){
   const f = String(frag||'').toLowerCase().replace(/\s+/g,'');
@@ -6508,10 +6582,8 @@ function takeDose(i){
   const text = cmd.value;
   const prefix = text.slice(0, text.length - currentFragment(text).length).replace(/[,;\s]+$/,'').trim();
   if(prefix) basketAdd(prefix, prefix, true);
-  const OI1 = root_OrderIntents();
-  const composed = composeOrder(entry, d);
-  basketAdd(entry.label + ' ' + doseChipLabel(d), composed, false,
-            OI1 ? OI1.fromCatalog(entry, d, composed, entry.label + ' ' + doseChipLabel(d)) : undefined);
+  const chosen = entryOrder(entry, d);
+  basketAdd(chosen.label, chosen.text, false, chosen.intent);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead(); cmd.focus(); syncBasketInput(); measureDock();
 }
@@ -6578,6 +6650,21 @@ function basketTypeahead(i){
   const text = cmd.value;
   const prefix = text.slice(0, text.length - currentFragment(text).length).replace(/[,;\s]+$/,'').trim();
   if(prefix) basketAdd(prefix, prefix, true);
+  // A LOCAL ITEM IS NOT AN ORDER. Anything whose order text starts "__" is a page action,
+  // never a sentence for an engine — the convention wirePalChips and roomMenu have both
+  // used for a while. The SEARCH BOX was the one door without the guard, and it stopped
+  // being hypothetical the moment history-recap became a real catalogue entry (2026-09-16,
+  // the order-menu plan: the menu's chips are catalogue entries now, so the Recap chip
+  // needs one too, and having it makes "recap" findable in the Orders box as a side
+  // effect). Without this, picking it baskets the literal string "__recap" and the nurse
+  // answers that she doesn't understand it.
+  const localAction = entry.sendCanonical ? entry.canonical : displayLabel(entry);
+  if(typeof localAction === 'string' && localAction.startsWith('__')){
+    cmd.value=''; cmd.style.height='auto'; hideTypeahead(); cmd.focus();
+    syncBasketInput(); measureDock();
+    if(localAction === '__recap' && typeof showRecap === 'function') showRecap();
+    return;
+  }
   // An assessment entry is a diagnosis, not an order: it belongs in the DIAGNOSIS box,
   // whose own typeahead has the whole condition vocabulary behind it.
   if(entry.isDiagnosis){
@@ -6586,7 +6673,22 @@ function basketTypeahead(i){
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); cmd.focus();
     syncBasketInput(); measureDock(); return;
   }
-  if(entry.category === 'assessment'){
+  // An assessment entry with nothing of its own to SAY is a diagnosis frame — "I think this
+  // is", "working diagnosis" — and belongs in the DIAGNOSIS box, whose own typeahead has the
+  // whole condition vocabulary behind it. That is what this branch was built for.
+  //
+  // 2026-09-16, found reviewing Task 5 of the order-menu plan: it was catching far more than
+  // that. `assessment` also holds 58 entries that carry `sendCanonical` — the pack's own
+  // words for a reasoning step the case grades, generated from its critical actions ("repeat
+  // the gcs", "reassess the patient", "call the time of death", "nihss", "hs and ts"). Those
+  // are ORDERS. Routing them here opened the Dx box and sent nothing, so three chips the menu
+  // now offers — Re-evaluate, Repeat the GCS, Time of death — would have done nothing at all,
+  // and the same 58 were already dead ends in the order box.
+  //
+  // The test is therefore "does this entry have its own sentence to send?", not its category:
+  // sendCanonical means the entry names the words the engine matches, and an entry that names
+  // words is an order. The frame entries have no sendCanonical and still go to the box.
+  if(entry.category === 'assessment' && !entry.sendCanonical){
     cmd.value=''; cmd.style.height='auto'; hideTypeahead(); focusDxBox(); return;
   }
   // An entry that carries doses is not finished yet: a drug without a dose is the thing
@@ -6601,10 +6703,8 @@ function basketTypeahead(i){
   // in the dropdown but not by the engine underneath it: the search found it and the pack
   // still said "not understood". Every other entry is unaffected — sendCanonical is unset,
   // so `orderText` is just `displayLabel(entry)`, exactly as before.
-  const orderText = entry.sendCanonical ? entry.canonical : displayLabel(entry);
-  const OI0 = root_OrderIntents();
-  basketAdd(displayLabel(entry), orderText, false,
-            OI0 ? OI0.fromCatalog(entry, null, orderText, displayLabel(entry)) : undefined);
+  const picked = entryOrder(entry, null);
+  basketAdd(picked.label, picked.text, false, picked.intent);
   cmd.value=''; cmd.style.height='auto';
   hideTypeahead();
   cmd.focus();
@@ -7194,8 +7294,14 @@ function palChipClick(b, ev){
 }
 function wirePalChips(root){
   if(!root) return;
-  for(const b of root.querySelectorAll('.pal')) b.onclick = ev =>
-    (b.dataset.pal === '__recap') ? showRecap() : palChipClick(b, ev);
+  // A catalogue chip wears the same .pal look and none of this behaviour: it has an entry
+  // id where these have an order sentence, and wireEntryChips gives it the order box's own
+  // path. Skipped here rather than merely overwritten afterwards, so the two wirings cannot
+  // start depending on which one ran last.
+  for(const b of root.querySelectorAll('.pal')){
+    if(b.dataset.entry) continue;
+    b.onclick = ev => (b.dataset.pal === '__recap') ? showRecap() : palChipClick(b, ev);
+  }
 }
 // The handover, back on screen. No turn is taken and no order is sent — this is reading
 // The transcript, and only the transcript: see setResults() for why they are exclusive.
@@ -7232,39 +7338,59 @@ function showRecap(){
 // column and stands the algorithm chips down while it is up; closing it brings them back.
 // One open at a time, so the patient is never behind more than one panel. RESULTS is the
 // fourth and it already exists — the drawer on the right.
-const SECTIONS = {
-  history: { label: 'History', items: [
-    // RECAP is not an order — it reopens the handover you were given. Kim, on the blunt
-    // trauma case: "it's hard to get the history… even when you click on history, it
-    // doesn't really show a summary of what is presented in front of you." The
-    // presentation is the FIRST line of the transcript, and by the time you want it again
-    // it has scrolled away inside a drawer that is closed by default. Marked with
-    // data-recap so the chip wiring opens the transcript at the top instead of sending it
-    // to the engine; everything else in this list is a real order.
-    ['↑ Recap the presentation','__recap'],
-    ['Focused history','Take a focused history from the patient.'],
-    ['Collateral','Get collateral history from the family or the paramedics.'],
-    ['Past medical','Ask about past medical history, medications and allergies.'],
-    ['Recheck vitals','Recheck a full set of vital signs.'],
-    ['Repeat the GCS','Repeat the GCS and check the motor score.']] },
-    // Re-evaluate is NOT listed here: it has its own full-width button under the panels,
-    // and carrying it in both places put the same control on screen twice.
-  exam: { label: 'Exam', items: [
-    ['Primary survey','Perform a primary survey.'],
-    ['General','Assess general appearance.'],
-    ['Cardiac','Auscultate the heart.'],
-    ['Lungs','Auscultate the lungs.'],
-    ['Abdomen','Examine the abdomen.'],
-    ['Neuro','Perform a neurologic exam.'],
-    // The head-injury checklist asks for the GCS BY COMPONENT and for its trend; both were
-    // typed-only. Same two reports missed them.
-    ['GCS','Score the GCS by component.'],
-    ['Pupils','Check the pupils.'],
-    ['Skin','Examine the skin.'],
-    ['Extremities','Examine the extremities.'],   // label swapped per case by examChipLabel()
-    ['Rectal','Perform a rectal exam.'],
-    ['Bedside glucose','Check a bedside glucose.']] },
-};
+// The list they hold is not written here any more: it is the SAME menu the action panel
+// shows and the order box searches, read out of order-catalog.json's own `menu` places
+// through order-menu.js. One key per menu GROUP (Resuscitate, Assess, Investigate, Treat,
+// Procedures, Call & move), its items every chip in that group in row order. Before that
+// file lands this is empty and the wall shows bare headers for a moment; loadOrderCatalog
+// rebuilds it and repaints everything already drawn.
+let SECTIONS = {};
+// 'Call & move' -> 'call-move'. The key is what `data-sec` carries and what the phone fold
+// iterates, so it must survive a group name with a space or an ampersand in it.
+function sectionKeyFor(group){
+  return String(group).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+// `{ <key>: { label, items: [[label, orderText], …] } }` — the shape the section renderer
+// and the phone fold have always read, now generated. The order text is entryOrder()'s,
+// the same sentence the order box would send for that entry, so a chip here and the same
+// chip in the action menu cannot say two different things to the engine.
+function buildSections(){
+  const OM = (typeof OrderMenu !== 'undefined') ? OrderMenu : null;
+  const out = {};
+  for(const g of catalogMenu()){
+    const items = [];
+    // ONE CHIP PER ENTRY, ONCE THE ROWS ARE GONE. An entry may sit in two rows of the same
+    // group on purpose — calcium is under Poisoning and under Sugar & salts, two different
+    // reasons to reach for it, and in the action menu the row heading above each one says
+    // which. These surfaces flatten a group into a single list with no headings, so the
+    // second copy is just the same chip twice with nothing to tell them apart. First place
+    // wins, so the survivor's position is the menu's own order and does not depend on
+    // iteration luck. The menu proper is untouched: it still shows both.
+    const seen = new Set();
+    for(const r of g.rows) for(const chip of r.chips){
+      if(seen.has(chip.id)) continue;
+      const o = entryOrder(chip, null);
+      if(!o || !o.text) continue;
+      seen.add(chip.id);
+      items.push([(OM ? OM.chipLabel(chip) : chip.label) || chip.label, o.text]);
+    }
+    if(items.length) out[sectionKeyFor(g.group)] = { label: g.group, items };
+  }
+  return out;
+}
+// PALETTE is gone. It was a fourth hand-written list of chips, read by the order bar's
+// full palette, the room's "More orders" menu and the prose wall — nine groups with their
+// own wordings, beside a menu of six built from the catalogue. This is the same generated
+// menu in the shape those renderers already read: `{ <group label>: [[label, order], …] }`.
+function menuGroups(){
+  const out = {};
+  for(const key of Object.keys(SECTIONS)) out[SECTIONS[key].label] = SECTIONS[key].items;
+  return out;
+}
+function rebuildSections(){
+  try{ SECTIONS = buildSections(); }
+  catch(err){ console.error('order menu: ' + ((err && err.message) || err)); }
+}
 let _openSection = null;
 // "Extremities" reads as a routine survey. On a case whose own exam responder names a
 // wound, that chip is how you find the bleeding — Kim, on the crush case: "I'm not sure I
@@ -7301,14 +7427,16 @@ function sectionsHTML(){
                           : 'border-slate-700/70 bg-slate-950/70 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40') +
     '"><span>' + esc(label) + '</span><span>' + (_openSection === key ? '\u2715' : '\u25b8') + '</span></button>';
   let body = '';
-  if(_openSection === 'orders'){
+  // THE SETS KEEP A HEADER OF THEIR OWN. They used to ride along inside a hand-written
+  // 'orders' section together with the whole PALETTE; that section is gone (the menu
+  // supplies the chips now), and dropping the bundles with it would take the fastest
+  // control on the wall away. One tap fills the basket with a whole workup.
+  if(_openSection === 'sets'){
     body = '<div class="secBody"><div class="secGroup">Order sets \u2014 fill the basket</div>' +
-      Object.entries(ORDER_SETS).map(([name, items]) =>
-        '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+      orderSetNames().map(name =>
+        '<button data-os="' + esc(name) + '" title="' + esc(orderSetTitle(name)) +
         '" class="oset m-0.5 px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
-        esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join('') +
-      Object.entries(PALETTE).map(([group, items]) =>
-        '<div class="secGroup">' + esc(group) + '</div>' + items.map(it => chip(it[0], it[1])).join('')).join('') +
+        esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + orderSetCount(name) + '</span></button>').join('') +
       '</div>';
   }else if(_openSection && SECTIONS[_openSection]){
     body = '<div class="secBody">' + SECTIONS[_openSection].items
@@ -7317,8 +7445,12 @@ function sectionsHTML(){
   const reassess = '<button data-pal="Reassess the patient." data-lab="Re-evaluate" ' +
     'class="pal w-full px-2 py-1.5 rounded-md border border-sky-500/40 bg-sky-950/40 text-[10px] ' +
     'font-black uppercase tracking-widest text-sky-200 hover:bg-sky-900/50 transition">Re-evaluate</button>';
+  // One header per generated group, plus the sets. History and Exam are no longer names
+  // this file chooses: they are rows inside Assess, and the headers are whatever
+  // order-catalog.json's menu places say the groups are called.
   return '<div class="cluster" id="clSections">' + body + reassess +
-    head('history', 'History') + head('exam', 'Exam') + head('orders', 'Orders') + '</div>';
+    Object.keys(SECTIONS).map(key => head(key, SECTIONS[key].label)).join('') +
+    head('sets', 'Order sets') + '</div>';
 }
 document.addEventListener('click', e => {
   const h = e.target && e.target.closest && e.target.closest('.secHead');
@@ -7340,11 +7472,11 @@ function moreOrdersMenu(ev){
   const head = t => '<div class="px-3 pt-2 pb-1 text-[9px] font-black uppercase tracking-widest text-slate-500">' + esc(t) + '</div>';
   let h = '<div class="sticky top-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-400 border-b border-slate-800 bg-slate-900/97">More orders</div>';
   h += head('Order sets \u2014 fill the basket') + '<div class="px-2.5 pb-1">' +
-    Object.entries(ORDER_SETS).map(([name, items]) =>
-      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+    orderSetNames().map(name =>
+      '<button data-os="' + esc(name) + '" title="' + esc(orderSetTitle(name)) +
       '" class="oset m-0.5 px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
-      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join('') + '</div>';
-  for(const [group, items] of Object.entries(PALETTE))
+      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + orderSetCount(name) + '</span></button>').join('') + '</div>';
+  for(const [group, items] of Object.entries(menuGroups()))
     h += head(group) + '<div class="px-2.5 pb-1">' + items.map(it => chip(it[0], it[1])).join('') + '</div>';
   m.innerHTML = h;
   document.body.appendChild(m);
@@ -7383,11 +7515,11 @@ function paintProseConsole(host){
   // The order sets first: one click fills the basket with a whole workup, which is the
   // fastest thing on the screen and the thing Kim went looking for.
   parts.push('<span class="clab">Order sets \u2014 fill the basket</span>' +
-    Object.entries(ORDER_SETS).map(([name, items]) =>
-      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' \u00b7 ')) +
+    orderSetNames().map(name =>
+      '<button data-os="' + esc(name) + '" title="' + esc(orderSetTitle(name)) +
       '" class="oset px-2 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 hover:border-emerald-400/60 transition">' +
-      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + items.length + '</span></button>').join(''));
-  for(const [group, items] of Object.entries(PALETTE))
+      esc(name) + '<span class="mono ml-1 text-[9px] font-black text-emerald-500/70">' + orderSetCount(name) + '</span></button>').join(''));
+  for(const [group, items] of Object.entries(menuGroups()))
     parts.push('<span class="clab" style="margin-top:.45rem">' + esc(group) + '</span>' +
       items.map(it => chip(it[0], it[1])).join(''));
   document.body.classList.toggle('secOpen', !!_openSection);
@@ -7533,11 +7665,78 @@ let actionCategory = '';
 // where you go LOOKING for something, and Kim (2026-09-15) went looking for a tourniquet:
 // "the H and Ts button is not super intuitive to find tourniquet". Same chips, plainer name.
 const ACTION_CATEGORY_LABEL = { 'Hs & Ts': 'Treat the cause', 'Hs &amp; Ts': 'Treat the cause' };
+// THE MENU IS A VIEW OVER THE CATALOGUE. Kim, 2026-09-15: "it can be confusing when to use
+// the quick orders versus the Orders search bar." They were two vocabularies — three
+// hard-coded JS objects here, and order-catalog.json behind the box — so a chip and a
+// search result for the same action could drift apart or exist under two wordings. The
+// menu's groups and rows now come from the catalogue's own `menu` places, through
+// order-menu.js, which is the same list the box searches.
+//
+// order-menu.js is a separate classic script and it THROWS on a malformed place (by
+// design: a chip that silently fails to appear is a much harder bug to notice). A throw
+// here would blank the whole panel, which is a far worse failure than one missing chip, so
+// the panel degrades to the palette rows alone and says why in the console.
+function catalogMenu(){
+  const OM = (typeof OrderMenu !== 'undefined') ? OrderMenu : null;
+  if(!OM) return [];
+  try{
+    // composerCatalog() is the catalogue PLUS the diagnosis vocabulary, which the order box
+    // wants and the menu does not: a diagnosis is committed in the Dx box, never ordered.
+    return OM.menuFromCatalog(composerCatalog().filter(e => !e.isDiagnosis));
+  }catch(err){
+    console.error('order menu: ' + (err && err.message ? err.message : err));
+    return [];
+  }
+}
+// The row heading inside a group — the same markup the search results use for theirs.
+function menuRowHeadingHTML(row){
+  return '<h3 style="grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.12em;' +
+    'text-transform:uppercase;color:#64748b;margin:4px 0 0">'+esc(row)+'</h3>';
+}
+// A catalogue chip. It carries its ENTRY ID, not an order sentence: the click looks the
+// entry up and walks the order box's own path with it, so the two doors cannot drift.
+// `data-lab` is what the search haystack reads (see searchAll), and the quiet "· dose"
+// hint is the search results' own, so a dosed entry looks the same wherever you meet it.
+function menuChipHTML(chip){
+  const OM = (typeof OrderMenu !== 'undefined') ? OrderMenu : null;
+  const lab = (OM ? OM.chipLabel(chip) : chip.label) || chip.label;
+  return '<button data-entry="'+esc(chip.id)+'" data-lab="'+esc(lab)+'" ' +
+    'class="pal px-1.5 py-1 rounded-md border bg-slate-900/70 hover:bg-slate-800 text-[10px] font-black ' +
+    'uppercase tracking-wider whitespace-nowrap transition border-slate-700 text-slate-200">'+esc(lab)+
+    ((chip.doses && chip.doses.length) ? ' <span style="color:#64748b;font-size:12px">· dose</span>' : '')+
+    '</button>';
+}
+// A catalogue chip behaves EXACTLY as picking the same entry from the order box does,
+// because it IS that code: _taMatches/_taIdx are what basketTypeahead reads, so the chip
+// stages itself as the one match and hands over. Dose-bearing entries open the dose picker
+// at the command box, which the panel would cover, so those close the panel first; the
+// rest go straight to the basket and the panel stays open for the next pick.
+function wireEntryChips(root){
+  if(!root) return;
+  for(const b of root.querySelectorAll('[data-entry]')) b.onclick = () => {
+    const entry = (_catalog||[]).find(e => e.id === b.dataset.entry);
+    if(!entry) return;
+    _taMatches = [entry]; _taIdx = 0;
+    const dosed = !!(entry.doses && entry.doses.length);
+    if(dosed) closeActionBrowser();
+    const cmd = $('cmd'); if(cmd) cmd.value = '';
+    basketTypeahead(0);
+    if(!dosed) refreshActionSelection();
+  };
+}
 function refreshActionSelection(){
   const panel=$('actionBrowser'); if(!panel) return;
   const list=S.basket||[];
   panel.querySelectorAll('.actionChoices [data-pal]').forEach(button=>{
     const selected=list.some(order=>basketText(order.text).toLowerCase()===basketText(button.dataset.pal).toLowerCase());
+    button.setAttribute('aria-pressed',String(selected));
+  });
+  // A catalogue chip has no order sentence to compare — it has an identity. order-intents.js
+  // puts the catalog entry's own id on the intent as `catalogId` (fromCatalog), and signing
+  // carries it through, so that is what says whether this chip is already in the basket —
+  // regardless of which dose was picked or which door it came through.
+  panel.querySelectorAll('.actionChoices [data-entry]').forEach(button=>{
+    const selected=list.some(order=>order.intent && order.intent.catalogId===button.dataset.entry);
     button.setAttribute('aria-pressed',String(selected));
   });
   const send=panel.querySelector('[data-action-submit]');
@@ -7570,27 +7769,29 @@ function openActionBrowser(){
   closeActionBrowser();
   const panel=document.createElement('section'); panel.id='actionBrowser';
   panel.setAttribute('aria-label','Choose an action');
-  const source=document.createElement('div'); source.innerHTML=paletteBodyHTML();
   const groups=[];
-  for(const row of source.children){
-    const buttons=[...row.querySelectorAll('button')];
-    if(!buttons.length) continue;
-    const raw=(row.querySelector('span')?.textContent || 'Actions').trim();
-    const name=ACTION_CATEGORY_LABEL[raw] || raw;
-    if(name==='Exam') continue; // The complete examination group below includes the primary survey.
-    groups.push({name,html:buttons.map(b=>{ b.removeAttribute('id'); return b.outerHTML; }).join('')});
+  // DURING A CODE, THE CODE COMES FIRST. The resuscitation palette is computed from the
+  // case's own script — this patient's joules, this patient's drug doses, this case's
+  // authored causes — so it is the one part of the menu the catalogue cannot supply, and
+  // in an arrest it is what the hands reach for. Outside a code there is no palette and
+  // the catalogue groups are the whole menu.
+  if(codeActive()){
+    const source=document.createElement('div'); source.innerHTML=paletteBodyHTML();
+    for(const row of source.children){
+      const buttons=[...row.querySelectorAll('button')];
+      if(!buttons.length) continue;
+      const raw=(row.querySelector('span')?.textContent || 'Actions').trim();
+      const name=ACTION_CATEGORY_LABEL[raw] || raw;
+      if(name==='Exam') continue; // Assess › Exam below includes the primary survey.
+      groups.push({name,html:buttons.map(b=>{ b.removeAttribute('id'); return b.outerHTML; }).join('')});
+    }
   }
-  for(const key of ['history','exam']){
-    const section=SECTIONS[key];
-    groups.push({name:key==='history'?'History & reassessment':'Examination',html:
-      section.items.map(([label,order])=>consoleChip(label,order)).join('') +
-      (key==='history'?consoleChip('Re-evaluate','Reassess the patient.'):'')});
-  }
-  // The live-code palette is intentionally compact. Additional tests and general
-  // orders still need a button route during resuscitation.
-  if(codeActive()) for(const name of ['Trauma actions','Labs','Imaging','Consult / Dispo']){
-    if(PALETTE[name]) groups.push({name,html:PALETTE[name].map(([label,order])=>consoleChip(label,order)).join('')});
-  }
+  // Then the catalogue's own six groups, each one a stack of labelled rows. The rows are
+  // what makes a group of forty chips readable — Resuscitate reads A, B, C, D, E down the
+  // page, which is the order the hands work in.
+  for(const g of catalogMenu())
+    groups.push({name:g.group, html:g.rows.map(r =>
+      menuRowHeadingHTML(r.row) + r.chips.map(menuChipHTML).join('')).join('')});
   let selected=groups.findIndex(g=>g.name===actionCategory);
   if(selected<0) selected=0;
   panel.innerHTML='<div class="actionHead"><div><h2>Choose an action</h2><p>'+ (codeActive()?'Resuscitation actions run when tapped. Search finds anything you could type.':'Tap to add, then submit together. Search finds anything you could type in the order box.') +
@@ -7599,6 +7800,13 @@ function openActionBrowser(){
     // looking for a tourniquet and found it filed under "Hs & Ts" — typing three letters beats
     // knowing which box it is in.
     '<div class="actionSearch"><input id="actionSearchBox" type="search" autocomplete="off" placeholder="Search every action \u2014 tourniquet, blood, CT, theatre\u2026" aria-label="Search actions"></div>'+
+    // TASK 5 TOOK THESE AWAY WITHOUT MEANING TO. The bundle chips were emitted by
+    // paletteBodyHTML's non-code branch, and the menu stopped calling it — so Sepsis,
+    // Chest pain, Trauma and the rest simply vanished from the panel. They are their own
+    // row now, above the categories, which is where one tap actually means one tap.
+    (codeActive() ? '' : '<div class="actionSets" aria-label="Order sets"><span>Order sets \u2014 fill the basket</span>'+
+      orderSetNames().map(name=>'<button class="oset" data-os="'+esc(name)+'" title="'+esc(orderSetTitle(name))+'">'+
+        esc(name)+' <span class="mono" style="color:#34d399">'+orderSetCount(name)+'</span></button>').join('')+'</div>')+
     '<div class="actionCategories" aria-label="Action categories">'+groups.map((g,i)=>'<button data-category="'+i+'" aria-pressed="'+(i===selected)+'">'+esc(g.name)+'</button>').join('')+'</div>'+
     '<div class="actionChoices"></div><div class="actionFoot"><button data-action-type>Type an order / diagnosis</button>'+
     '<button data-action-review>Review</button><button data-action-submit>Back to room</button></div>';
@@ -7607,20 +7815,28 @@ function openActionBrowser(){
     actionCategory=groups[i].name;
     panel.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.category===i)));
     const choices=panel.querySelector('.actionChoices'); choices.innerHTML=groups[i].html;
-    wirePalChips(choices);
+    wirePalChips(choices); wireEntryChips(choices);
     choices.querySelectorAll('.oset').forEach(b=>b.onclick=()=>basketAddSet(b.dataset.os));
     choices.scrollTop=0;
     refreshActionSelection();
   };
   // EVERY chip in every category, searched at once — matching the ORDER TEXT as well as the
   // label, which is what makes "bleeding" find the tourniquet and "theatre" find the OR.
+  // A catalogue chip has no order text to match, so it is searched over the same words the
+  // ORDER BOX searches for it — label, canonical and every alias — which is what keeps the
+  // two doors finding the same things.
   const searchAll = q => {
     const hits = [];
     for(const g of groups){
       const box = document.createElement('div'); box.innerHTML = g.html;
-      for(const b of [...box.children]){
-        const hay = ((b.textContent||'') + ' ' + (b.dataset.pal||'') + ' ' + (b.dataset.os||'')).toLowerCase();
-        if(hay.includes(q)) hits.push({ cat: g.name, html: b.outerHTML });
+      // Row headings are not chips; only buttons are searchable.
+      for(const b of [...box.children].filter(el => el.tagName === 'BUTTON')){
+        let hay = ((b.textContent||'') + ' ' + (b.dataset.pal||'') + ' ' + (b.dataset.os||'')).toLowerCase();
+        if(b.dataset.entry){
+          const e = (_catalog||[]).find(x => x.id === b.dataset.entry);
+          if(e) hay += ' ' + [e.label, e.canonical||'', ...(e.aliases||[])].join(' ').toLowerCase();
+        }
+        if(hay.includes(q)) hits.push({ cat: g.name, html: b.outerHTML, id: b.dataset.entry || null });
       }
     }
     return hits;
@@ -7644,7 +7860,11 @@ function openActionBrowser(){
     const hits = searchAll(q);
     const known = new Set(hits.map(h => {
       const m = /data-pal="([^"]*)"/.exec(h.html); return m ? m[1].toLowerCase() : ''; }));
-    const extra = catalogHits(q).filter(e => !known.has(String(displayLabel(e)).toLowerCase()));
+    // A catalogue chip in the menu proper IS this entry, so it must not be offered a second
+    // time below as "everything else" — which is why the fallback section finds less than it
+    // used to now that 160 entries have a place in the menu.
+    const placed = new Set(hits.map(h => h.id).filter(Boolean));
+    const extra = catalogHits(q).filter(e => !placed.has(e.id) && !known.has(String(displayLabel(e)).toLowerCase()));
     if(!hits.length && !extra.length){
       choices.innerHTML = '<p style="grid-column:1/-1;color:#94a3b8">Nothing matches that. Say it in your own words in the order box \u2014 the sim reads plain orders, not just this list.</p>';
       return;
@@ -7661,7 +7881,7 @@ function openActionBrowser(){
         ((e.doses && e.doses.length) ? ' <span style="color:#64748b;font-size:12px">· dose</span>' : '')+'</button>').join('');
     }
     choices.innerHTML = html;
-    wirePalChips(choices);
+    wirePalChips(choices); wireEntryChips(choices);
     choices.querySelectorAll('.oset').forEach(b=>b.onclick=()=>basketAddSet(b.dataset.os));
     // A catalogue result behaves exactly as it does in the order box, because it IS that
     // code: dose-bearing entries ask for the dose at the command box (where that picker
@@ -7682,6 +7902,11 @@ function openActionBrowser(){
     const box=panel.querySelector('#actionSearchBox'); if(box) box.value='';
     panel.classList.remove('searching');
     show(+b.dataset.category);
+  });
+  // The sets row stands outside .actionChoices, so it survives a category switch and a
+  // search — and it is wired once, here, rather than on every repaint of the choices.
+  panel.querySelectorAll('.actionSets .oset').forEach(b => b.onclick = () => {
+    basketAddSet(b.dataset.os); refreshActionSelection();
   });
   const searchBox = panel.querySelector('#actionSearchBox');
   if(searchBox) searchBox.oninput = () => showSearch(searchBox.value);
@@ -7714,7 +7939,7 @@ function openActionBrowser(){
 }
 function paletteBodyHTML(){
   const inCode = typeof codeActive === 'function' && codeActive();
-  let groups = inCode ? CODE_PALETTE : PALETTE;
+  let groups = inCode ? CODE_PALETTE : menuGroups();
   if(inCode && S.codeScript){
     // The electrical entries are computed per case — energy from the script and the
     // patient's weight, exactly what the order will say. The static fallback said
@@ -7755,7 +7980,7 @@ function paletteBodyHTML(){
   const sets = inCode ? '' : `
             <div class="flex flex-wrap items-center gap-1.5 pb-2 mb-1 border-b border-slate-800/80">
               <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500/70 w-20 shrink-0">Order sets</span>
-              ${Object.entries(ORDER_SETS).map(([name,items])=>`<button data-os="${esc(name)}" title="${esc(items.map(i=>i[0]).join(' · '))}" class="oset inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-md text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 hover:border-emerald-400/50 hover:text-emerald-200 transition">${esc(name)}<span class="mono text-[9px] font-black text-emerald-500/70">${items.length}</span></button>`).join('')}
+              ${orderSetNames().map(name=>`<button data-os="${esc(name)}" title="${esc(orderSetTitle(name))}" class="oset inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-md text-[10px] font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 hover:border-emerald-400/50 hover:text-emerald-200 transition">${esc(name)}<span class="mono text-[9px] font-black text-emerald-500/70">${orderSetCount(name)}</span></button>`).join('')}
               <span class="text-[9px] font-black uppercase tracking-widest text-slate-700 hidden xl:block">→ fills the basket</span>
             </div>`;
   // ONE definition of narrow and ONE row builder. The previous version decided
@@ -7840,138 +8065,113 @@ function paletteBodyHTML(){
               </div>`).join('') + meds + (narrow ? postArrest : postArrest + callIt + causes);
 }
 
-const PALETTE = {
-  'Critical care':[
-    ['Cooling (TTM)','Start targeted temperature management'],
-    ['Norepinephrine','Start a norepinephrine infusion'],
-    ['Central line','Place a central line'],
-    ['Arterial line','Place an arterial line']],
-  'Trauma actions':[
-    ['Pelvic binder','Apply a pelvic binder'],
-    ['Tourniquet','Apply a tourniquet proximal to the bleeding wound'],
-    ['Needle decompression','Perform immediate needle decompression'],
-    ['Chest tube','Place a chest tube'],
-    ['Massive transfusion','Activate the massive transfusion protocol'],
-    // Two reports in a row (2026-09-15) missed active rewarming, and the vocabulary was
-    // there all along — it just had no button. Hypothermia is a primary-survey threat, not
-    // an afterthought, so it gets a chip beside the binder and the tourniquet.
-    ['Keep them warm','Prevent hypothermia — warmed fluids and warm blankets']],
-  'Labs':[
-    ['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],['CMP','Order a comprehensive metabolic panel.'],
-    ['Troponin','Order a troponin.'],['Lactate','Order a lactate.'],['VBG','Order a venous blood gas.'],
-    ['Coags','Order PT/INR and PTT.'],['Lipase','Order a lipase.'],['UA','Order a urinalysis.'],
-    ['Urine hCG','Order a urine pregnancy test.'],['Blood cultures','Draw two sets of blood cultures.'],
-    ['D-dimer','Order a D-dimer.'],['BNP','Order a BNP.'],['Type & screen','Send a type and screen.']],
-  'Imaging':[
-    ['12-lead ECG','Obtain a 12-lead ECG.'],['Portable CXR','Order a portable chest X-ray.'],
-    ['CT head','Order a non-contrast CT head.'],['CTA chest (PE)','Order a CTA chest, PE protocol.'],
-    ['CT abd/pelvis','Order a CT abdomen and pelvis with contrast.'],['FAST','Perform a FAST exam.'],
-    ['RUQ US','Order a right upper quadrant ultrasound.'],['Bedside echo','Perform a bedside echo.']],
-  'Meds':[
-    ['NS 1L bolus','Give a 1 liter normal saline bolus.'],['O2','Place the patient on oxygen.'],
-    ['ASA 324','Give aspirin 324 mg chewed.'],['Nitro SL','Give nitroglycerin 0.4 mg sublingual.'],
-    ['Fentanyl 50','Give fentanyl 50 mcg IV.'],['Zofran 4','Give ondansetron 4 mg IV.'],
-    ['Albuterol neb','Give an albuterol nebulizer.'],['Epi 0.3 IM','Give epinephrine 0.3 mg IM.'],
-    ['D50','Give an amp of D50 IV.'],['Naloxone 0.4','Give naloxone 0.4 mg IV.']],
-  'Antibiotics':[
-    ['Ceftriaxone 2g','Give ceftriaxone 2 g IV.'],['Vanc + Zosyn','Start vancomycin 20 mg/kg IV and piperacillin-tazobactam 4.5 g IV.'],
-    ['Cefepime 2g','Give cefepime 2 g IV.'],['Meropenem 1g','Give meropenem 1 g IV.'],
-    ['Azithromycin 500','Give azithromycin 500 mg IV.'],['Doxycycline 100','Give doxycycline 100 mg IV.'],
-    ['Metronidazole 500','Give metronidazole 500 mg IV.'],['Clindamycin 900','Give clindamycin 900 mg IV.'],
-    ['Levofloxacin 750','Give levofloxacin 750 mg IV.'],['Cefazolin 2g','Give cefazolin 2 g IV.'],
-    ['Ampicillin 2g','Give ampicillin 2 g IV.'],['Gentamicin 5/kg','Give gentamicin 5 mg/kg IV.'],
-    ['Bactrim 5/kg','Give trimethoprim-sulfamethoxazole 5 mg/kg IV (TMP component).'],['Acyclovir 10/kg','Start acyclovir 10 mg/kg IV.'],
-    // The bare IV vancomycin chip was pulled for a while: in the C. diff case a fully
-    // dosed IV order used to credit the ORAL vancomycin action and avert the crash, in
-    // the one case that exists to teach IV vanc never reaches the colon. That is now
-    // fixed at the source — that responder declares the routes it accepts, so an IV
-    // order gets pharmacy questioning the route instead of silent credit. The chip is
-    // back, and in that case it now teaches rather than traps.
-    ['Vancomycin','Start vancomycin 20 mg/kg IV.'],['Zosyn','Start piperacillin-tazobactam 4.5 g IV.']],
-  'Exam':[
-    ['General','Assess general appearance.'],['Cardiac','Auscultate the heart.'],['Lungs','Auscultate the lungs.'],
-    ['Abdomen','Examine the abdomen.'],['Neuro','Perform a neurologic exam.'],['Skin','Examine the skin.'],
-    ['Extremities','Examine the extremities.'],['Rectal','Perform a rectal exam.']],
-  'Consult / Dispo':[
-    ['Cardiology','Consult cardiology.'],['Surgery','Consult surgery.'],['Trauma surgery','Consult trauma surgery.'],
-    ['Neurosurgery','Consult neurosurgery.'],['Neurology','Consult neurology.'],['GI','Consult gastroenterology.'],
-    ['Peds','Consult pediatrics.'],['Internal medicine','Consult internal medicine.'],['ID','Consult infectious disease.'],
-    ['Heme/Onc','Consult hematology.'],['Ortho','Consult orthopedics.'],['OB/Gyn','Consult obstetrics.'],
-    ['Psych','Consult psychiatry.'],
-    // Kim, 2026-09-15: "add option to admit to OR." For a bleeding patient theatre IS the
-    // disposition — the groin stab's checklist asks for it by name ("to theatre rather than
-    // the CT scanner") and the pack answers to "operating room" and "to theatre".
-    ['To the OR','Take the patient to the operating room'],
-    ['Cath lab','Take the patient to the cath lab'],
-    ['ICU','Admit to the ICU.'],['Admit','Admit to the floor.'],
-    ['Discharge','Discharge the patient with return precautions.']]
-};
 // ===================== ORDER SETS (Epic-style condition bundles) =====================
 // Each set drops its whole bundle into the ORDER BASKET — never straight to the engine.
 // That is the entire point: the player reviews the bundle, trims what this patient
-// doesn't need, and signs the rest as one turn. Order text is reused verbatim from
-// PALETTE wherever it exists so the engine's clause matching sees phrasing it already
-// answers; the handful of set-only lines are worded to match order-catalog.json aliases.
+// doesn't need, and signs the rest as one turn.
+//
+// AN ITEM IS A CATALOGUE ID, not a sentence. It used to be a hand-typed [label, order]
+// pair copied out of PALETTE, which meant a set could quietly say something the engine no
+// longer answered, and nothing would notice: a free string has no owner. An id does. It
+// resolves through entryOrder(), the same helper the order box and the menu use, so a set
+// sends exactly what tapping that entry in either of them would send — and an id that is
+// not in the catalogue is a console.error and a dropped item, never a silent wrong order.
+//
+// Every bundle whose old hand-typed line read "Establish IV access, place on O2 and
+// monitor" gets all three: procedure-iv-access, med-oxygen and procedure-cardiac-monitor.
+// The monitor had no generic catalogue entry until 2026-09-17 — only per-case ca-* ones —
+// so for one commit these bundles quietly stopped asking for it.
+//
+// Where an entry's DEFAULT dose is not the one this bundle means, the item is
+// ['<id>', '<dose label>'] and the label must match one of that entry's own doses.
+// Anaphylaxis is the case that needs it: epinephrine's default is the arrest dose, 1 mg
+// IV, and giving that to an anaphylaxis patient is not a small difference.
 const ORDER_SETS = {
-  'Sepsis':[
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],
-    ['Lactate','Order a lactate.'],['Blood cultures','Draw two sets of blood cultures.'],
-    ['CBC','Order a CBC.'],['CMP','Order a comprehensive metabolic panel.'],
-    ['VBG','Order a venous blood gas.'],['UA','Order a urinalysis.'],
-    ['Vanc + Zosyn','Start vancomycin 20 mg/kg IV and piperacillin-tazobactam 4.5 g IV.'],
-    ['NS bolus','Give a 1 liter normal saline bolus.'],
-    ['Portable CXR','Order a portable chest X-ray.']],
-  'Chest pain / ACS':[
-    ['12-lead ECG','Obtain a 12-lead ECG.'],['ASA 324','Give aspirin 324 mg chewed.'],
-    ['Troponin','Order a troponin.'],['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],
-    ['Coags','Order PT/INR and PTT.'],['Portable CXR','Order a portable chest X-ray.'],
-    ['Nitro SL','Give nitroglycerin 0.4 mg sublingual.'],
-    ['IV / O2','Establish IV access, place on O2 and monitor.']],
-  'Trauma':[
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],
-    ['Type & screen','Send a type and screen.'],['CBC','Order a CBC.'],
-    ['CMP','Order a comprehensive metabolic panel.'],['Coags','Order PT/INR and PTT.'],
-    ['Lactate','Order a lactate.'],['FAST','Perform a FAST exam.'],
-    ['Portable CXR','Order a portable chest X-ray.'],['Pelvis X-ray','Order a pelvis X-ray.'],
-    ['TXA','Give tranexamic acid 1 g IV.'],['Surgery','Consult surgery.']],
-  'Stroke':[
-    ['CT head','Order a non-contrast CT head.'],['Glucose','Check a fingerstick glucose.'],
-    ['Neuro exam','Perform a neurologic exam.'],['12-lead ECG','Obtain a 12-lead ECG.'],
-    ['CBC','Order a CBC.'],['BMP','Order a basic metabolic panel.'],['Coags','Order PT/INR and PTT.'],
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],['Neurology','Consult neurology.']],
-  'DKA':[
-    ['Glucose','Check a fingerstick glucose.'],['VBG','Order a venous blood gas.'],
-    ['BMP','Order a basic metabolic panel.'],['CBC','Order a CBC.'],['Lactate','Order a lactate.'],
-    ['UA','Order a urinalysis.'],['Mag / phos','Order a magnesium and a phosphorus level.'],
-    ['12-lead ECG','Obtain a 12-lead ECG.'],['NS bolus','Give a 1 liter normal saline bolus.'],
-    ['Insulin drip','Start an insulin infusion at 0.1 units/kg/hr.'],
-    ['KCl 20 mEq/hr','Give IV potassium chloride at 20 mEq per hour.']],
-  'Altered mental status':[
-    ['Glucose','Check a fingerstick glucose.'],['Naloxone 0.4','Give naloxone 0.4 mg IV.'],
-    ['D50','Give an amp of D50 IV.'],['CBC','Order a CBC.'],
-    ['CMP','Order a comprehensive metabolic panel.'],['VBG','Order a venous blood gas.'],
-    ['UA','Order a urinalysis.'],['Urine tox','Order a urine drug screen.'],
-    ['Ammonia','Order an ammonia level.'],['CT head','Order a non-contrast CT head.'],
-    ['12-lead ECG','Obtain a 12-lead ECG.']],
-  'Anaphylaxis':[
-    ['Epi 0.3 IM','Give epinephrine 0.3 mg IM.'],
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],
-    ['NS bolus','Give a 1 liter normal saline bolus.'],['Albuterol neb','Give an albuterol nebulizer.'],
-    ['Famotidine','Give famotidine 20 mg IV.'],
-    ['Methylpred','Give methylprednisolone 125 mg IV.']],
-  'GI bleed':[
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],['Type & screen','Send a type and screen.'],
-    ['CBC','Order a CBC.'],['CMP','Order a comprehensive metabolic panel.'],
-    ['Coags','Order PT/INR and PTT.'],['Lactate','Order a lactate.'],
-    ['Pantoprazole','Give pantoprazole 40 mg IV.'],['Octreotide 50','Give octreotide 50 mcg IV bolus, then infuse at 50 mcg per hour.'],
-    ['Rectal','Perform a rectal exam.'],['GI','Consult gastroenterology.']],
-  'Respiratory distress':[
-    ['IV / O2','Establish IV access, place on O2 and monitor.'],
-    ['Portable CXR','Order a portable chest X-ray.'],['VBG','Order a venous blood gas.'],
-    ['BNP','Order a BNP.'],['Troponin','Order a troponin.'],['CBC','Order a CBC.'],
-    ['BMP','Order a basic metabolic panel.'],['Albuterol neb','Give an albuterol nebulizer.'],
-    ['Ipratropium','Give an ipratropium nebulizer.'],['12-lead ECG','Obtain a 12-lead ECG.']]
+  'Sepsis': [
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor',
+    'lab-lactate', 'lab-blood-cultures', 'lab-complete-blood-count',
+    'lab-comprehensive-metabolic-panel', 'lab-venous-blood-gas', 'lab-urinalysis',
+    'med-vancomycin', ['med-piperacillin', '4.5 g IV'],
+    'med-normal-saline', 'imaging-chest-x-ray'],
+  'Chest pain / ACS': [
+    'imaging-electrocardiogram', 'med-aspirin', 'lab-troponin',
+    'lab-complete-blood-count', 'lab-basic-metabolic-panel', 'lab-coagulation-panel',
+    'imaging-chest-x-ray', 'med-nitroglycerin',
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor'],
+  'Trauma': [
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor',
+    'lab-type-and-screen', 'lab-complete-blood-count',
+    'lab-comprehensive-metabolic-panel', 'lab-coagulation-panel', 'lab-lactate',
+    'imaging-fast-exam', 'imaging-chest-x-ray', 'imaging-pelvis-x-ray',
+    'med-tranexamic', 'consult-surgery'],
+  'Stroke': [
+    'imaging-computed-tomography-head', 'lab-fingerstick-glucose', 'exam-neuro',
+    'imaging-electrocardiogram', 'lab-complete-blood-count', 'lab-basic-metabolic-panel',
+    'lab-coagulation-panel', 'procedure-iv-access', 'med-oxygen',
+    'procedure-cardiac-monitor', 'consult-neurology'],
+  'DKA': [
+    'lab-fingerstick-glucose', 'lab-venous-blood-gas', 'lab-basic-metabolic-panel',
+    'lab-complete-blood-count', 'lab-lactate', 'lab-urinalysis',
+    'lab-magnesium', 'lab-phosphorus', 'imaging-electrocardiogram',
+    'med-normal-saline', 'med-insulin', 'med-potassium'],
+  'Altered mental status': [
+    'lab-fingerstick-glucose', 'med-naloxone', 'med-dextrose',
+    'lab-complete-blood-count', 'lab-comprehensive-metabolic-panel',
+    'lab-venous-blood-gas', 'lab-urinalysis', 'lab-urine-drug-screen', 'lab-ammonia',
+    'imaging-computed-tomography-head', 'imaging-electrocardiogram'],
+  'Anaphylaxis': [
+    ['med-epinephrine', '0.3 mg IM'],
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor', 'med-normal-saline',
+    'med-albuterol', 'med-famotidine', 'med-methylprednisolone'],
+  'GI bleed': [
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor', 'lab-type-and-screen',
+    'lab-complete-blood-count', 'lab-comprehensive-metabolic-panel',
+    'lab-coagulation-panel', 'lab-lactate',
+    ['med-pantoprazole', '40 mg IV'], 'med-octreotide',
+    'exam-rectal', 'consult-gastroenterology'],
+  'Respiratory distress': [
+    'procedure-iv-access', 'med-oxygen', 'procedure-cardiac-monitor',
+    'imaging-chest-x-ray',
+    'lab-venous-blood-gas', 'lab-bnp', 'lab-troponin',
+    'lab-complete-blood-count', 'lab-basic-metabolic-panel',
+    'med-albuterol', 'med-ipratropium', 'imaging-electrocardiogram']
 };
+function orderSetNames(){ return Object.keys(ORDER_SETS); }
+// How many orders the chip promises. Read off the ids, not the resolved list, so the
+// number on the button is the same before and after the catalogue lands.
+function orderSetCount(name){ return (ORDER_SETS[name] || []).length; }
+// The orders a set will basket, in order, each one an entryOrder() — the label, the
+// sentence and the catalog-bound intent, exactly as picking that entry in the order box
+// produces them, so the basket dedupes a bundled order against a typed one.
+function orderSetEntries(name){
+  const items = ORDER_SETS[name] || [];
+  // Nothing to resolve against yet. Complaining about every id in every set on a page
+  // that simply has not fetched the catalogue would bury the real mistakes; the sets are
+  // redrawn when it arrives (see loadOrderCatalog).
+  if(!(_catalog || []).length) return [];
+  const out = [];
+  for(const item of items){
+    const id = Array.isArray(item) ? item[0] : item;
+    const doseLabel = Array.isArray(item) ? item[1] : null;
+    const entry = (_catalog || []).find(e => e.id === id);
+    if(!entry){ console.error('order set "' + name + '": no catalog entry "' + id + '"'); continue; }
+    let dose = null;
+    if(doseLabel){
+      dose = (entry.doses || []).find(d => d.label === doseLabel);
+      if(!dose){ console.error('order set "' + name + '": "' + id + '" has no dose "' + doseLabel + '"'); continue; }
+    }
+    const o = entryOrder(entry, dose);
+    if(!o || !o.text){ console.error('order set "' + name + '": "' + id + '" sends nothing'); continue; }
+    out.push(o);
+  }
+  return out;
+}
+// The hover title on the chip: what is in the bundle, in the words the basket will use.
+function orderSetTitle(name){
+  const list = orderSetEntries(name);
+  return (list.length ? list.map(o => o.label)
+                      : (ORDER_SETS[name] || []).map(i => Array.isArray(i) ? i[0] : i)).join(' \u00b7 ');
+}
 
 // ===================== ORDER BASKET =====================
 // Epic's model: clicks accumulate into an unsigned basket, you scan it, trim it, and
@@ -8067,9 +8267,11 @@ function basketAdd(label, text, quiet, intent){
   return true;
 }
 function basketAddSet(name){
-  const set=ORDER_SETS[name]; if(!set) return;
+  const set = orderSetEntries(name); if(!set.length) return;
   let added=0, dup=0;
-  set.forEach(o=>{ basketAdd(o[0], o[1], true) ? added++ : dup++; });
+  // The intent goes in with the order. Without it a bundled CBC and a typed one are two
+  // sentences the basket cannot tell are the same action; with it they are one.
+  for(const o of set) basketAdd(o.label, o.text, true, o.intent) ? added++ : dup++;
   basketNote(`${name} · ${added} added${dup?` · ${dup} already queued`:''}`);
   renderBasket(); basketReveal();
 }
@@ -11333,18 +11535,24 @@ function paintPhoneOrders(po){
       if(g.callIt.length) parts.push(group('Call the rhythm', g.callIt.map(([lab, order]) => chip(lab, order, 'border-violet-500/40 text-violet-200'))));
       if(g.causes.length) parts.push(group('Hs &amp; Ts', g.causes.map(([lab, order]) => chip(lab, order, 'border-amber-500/40 text-amber-200'))));
     }
-    for(const name of ['Labs', 'Imaging', 'Consult / Dispo']) if(PALETTE[name]) parts.push(group(name, PALETTE[name].map(it => chip(it[0], it[1]))));
-  } else {
-    parts.push(group('Order sets — fill the basket', Object.entries(ORDER_SETS).map(([name, items]) =>
-      '<button data-os="' + esc(name) + '" title="' + esc(items.map(i => i[0]).join(' · ')) +
-      '" class="oset rounded-md border border-emerald-500/30 bg-emerald-500/10 font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
-      esc(name) + '<span class="mono ml-1 font-black text-emerald-500/70">' + items.length + '</span></button>')));
-    for(const [name, items] of Object.entries(PALETTE)) parts.push(group(name, items.map(it => chip(it[0], it[1]))));
-    for(const key of ['history', 'exam']){
+    // Mid-code the wall is the algorithm; these are the two groups you still reach for
+    // around it — the workup and the phone call — by their generated keys.
+    for(const key of ['investigate', 'call-move']){
       const sec = SECTIONS[key]; if(!sec) continue;
-      parts.push(group(key === 'history' ? 'History &amp; reassessment' : 'Examination',
-        sec.items.map(it => chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1]))
-          .concat(key === 'history' ? [chip('Re-evaluate', 'Reassess the patient.', 'border-sky-500/40 text-sky-200')] : [])));
+      parts.push(group(esc(sec.label), sec.items.map(it => chip(it[0], it[1]))));
+    }
+  } else {
+    parts.push(group('Order sets — fill the basket', orderSetNames().map(name =>
+      '<button data-os="' + esc(name) + '" title="' + esc(orderSetTitle(name)) +
+      '" class="oset rounded-md border border-emerald-500/30 bg-emerald-500/10 font-bold uppercase tracking-wider text-emerald-300/90 hover:bg-emerald-500/20 transition">' +
+      esc(name) + '<span class="mono ml-1 font-black text-emerald-500/70">' + orderSetCount(name) + '</span></button>')));
+    // Every generated group, in menu order. History and Exam used to be named here; they
+    // are rows inside Assess now, and Re-evaluate is a catalogue chip in Assess/Reassess
+    // rather than one this renderer adds by hand.
+    for(const key of Object.keys(SECTIONS)){
+      const sec = SECTIONS[key];
+      parts.push(group(esc(sec.label), sec.items.map(it =>
+        chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1]))));
     }
   }
   po.innerHTML = parts.join('');

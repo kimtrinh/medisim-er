@@ -35,7 +35,13 @@
         "check counts",
         "blood cell count",
         "cbc/diff"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 10,
+        "label": "CBC"
+      }
     },
     {
       "id": "lab-basic-metabolic-panel",
@@ -65,7 +71,13 @@
         "basic metabolic",
         "chem panel",
         "check electrolytes"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 20,
+        "label": "BMP"
+      }
     },
     {
       "id": "lab-coagulation-panel",
@@ -89,7 +101,13 @@
         "pt ptt inr",
         "order coags",
         "coags stat"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 60,
+        "label": "Coags"
+      }
     },
     {
       "id": "lab-venous-blood-gas",
@@ -112,7 +130,12 @@
         "order a vbg",
         "vbg stat",
         "venous blood gas level"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 30
+      }
     },
     {
       "id": "lab-arterial-blood-gas",
@@ -164,7 +187,13 @@
         "order a ua",
         "dipstick",
         "dip a ua"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 80,
+        "label": "UA"
+      }
     },
     {
       "id": "lab-liver-function-tests",
@@ -212,7 +241,13 @@
         "comp metabolic",
         "full chem panel",
         "comprehensive chem panel"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 30,
+        "label": "CMP"
+      }
     },
     {
       "id": "lab-prothrombin-time-inr",
@@ -420,6 +455,20 @@
         "cbg",
         "check a glucose",
         "glucose fingerstick"
+      ],
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Disability",
+          "order": 30,
+          "label": "Glucose"
+        },
+        {
+          "group": "Investigate",
+          "row": "Bedside",
+          "order": 20,
+          "label": "Glucose"
+        }
       ]
     },
     {
@@ -450,7 +499,12 @@
         "get a trop",
         "check troponin level",
         "trop stat"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 40
+      }
     },
     {
       "id": "lab-lactate",
@@ -477,7 +531,12 @@
         "get a lactate",
         "lactate stat",
         "trend lactate"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 50
+      }
     },
     {
       "id": "lab-bnp",
@@ -499,7 +558,12 @@
         "get a bnp",
         "bnp stat",
         "check bnp level"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 110
+      }
     },
     {
       "id": "lab-d-dimer",
@@ -522,7 +586,12 @@
         "dimer test",
         "dimer level",
         "d-dimer stat"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 100
+      }
     },
     {
       "id": "lab-lipase",
@@ -544,7 +613,12 @@
         "amylase and lipase",
         "pancreas enzymes",
         "check pancreatic enzymes"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 70
+      }
     },
     {
       "id": "lab-pregnancy-test",
@@ -573,7 +647,12 @@
         "get a preg test",
         "order a pregnancy test",
         "dip for pregnancy"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 90
+      }
     },
     {
       "id": "lab-blood-cultures",
@@ -600,7 +679,12 @@
         "blood culture x2",
         "bcx",
         "draw cultures"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Cultures",
+        "order": 10
+      }
     },
     {
       "id": "lab-urine-culture",
@@ -623,7 +707,12 @@
         "get urine cx",
         "culture and sensitivity urine",
         "order a ucx"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Cultures",
+        "order": 20
+      }
     },
     {
       "id": "lab-tsh",
@@ -839,7 +928,12 @@
         "blood type and screen",
         "order t and s",
         "hold clot"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 120
+      }
     },
     {
       "id": "lab-urine-drug-screen",
@@ -1001,6 +1095,19 @@
         "12-lead ekg",
         "order an ekg",
         "let's get an ecg"
+      ],
+      "menu": [
+        {
+          "group": "Assess",
+          "row": "Reassess",
+          "order": 40,
+          "label": "Repeat ECG"
+        },
+        {
+          "group": "Investigate",
+          "row": "Bedside",
+          "order": 10
+        }
       ]
     },
     {
@@ -1028,7 +1135,13 @@
         "chest pic",
         "order a cxr",
         "film the chest"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 10,
+        "label": "Portable CXR"
+      }
     },
     {
       "id": "imaging-abdominal-x-ray",
@@ -1074,7 +1187,12 @@
         "pelvic film",
         "pelvis plain film",
         "stat pelvis xray"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 20
+      }
     },
     {
       "id": "imaging-computed-tomography-head",
@@ -1099,7 +1217,13 @@
         "head scan",
         "order ct head",
         "ct the head"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 30,
+        "label": "CT head"
+      }
     },
     {
       "id": "imaging-ct-angiography-chest",
@@ -1125,7 +1249,13 @@
         "order a pe study",
         "chest angiogram",
         "ct chest pe protocol"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 50,
+        "label": "CTA chest"
+      }
     },
     {
       "id": "imaging-ct-angiography-head-neck",
@@ -1174,7 +1304,13 @@
         "order ct a/p",
         "get a ct abd pelvis",
         "ct abd pelvis with contrast"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 60,
+        "label": "CT abd/pelvis"
+      }
     },
     {
       "id": "imaging-computed-tomography-chest",
@@ -1219,7 +1355,13 @@
         "order a c-spine ct",
         "get a ct c spine",
         "ct cspine"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 40,
+        "label": "CT c-spine"
+      }
     },
     {
       "id": "imaging-right-upper-quadrant-ultrasound",
@@ -1241,7 +1383,12 @@
         "order gallbladder us",
         "us abdomen ruq",
         "hida-like scan"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 70
+      }
     },
     {
       "id": "imaging-fast-exam",
@@ -1265,7 +1412,13 @@
         "do a fast exam",
         "bedside trauma scan",
         "fast exam at bedside"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 40,
+        "label": "FAST"
+      }
     },
     {
       "id": "imaging-echocardiogram",
@@ -1297,7 +1450,12 @@
         "heart ultrasound",
         "echocardiogram stat",
         "check the ef"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 50
+      }
     },
     {
       "id": "imaging-transvaginal-ultrasound",
@@ -1470,7 +1628,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 10
+      }
     },
     {
       "id": "med-nitroglycerin",
@@ -1510,7 +1673,13 @@
           "text": "100 mcg/min IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 20,
+        "label": "Nitro"
+      }
     },
     {
       "id": "med-heparin",
@@ -1554,7 +1723,12 @@
           "perKg": 18
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 30
+      }
     },
     {
       "id": "med-morphine",
@@ -1590,7 +1764,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 30
+      }
     },
     {
       "id": "med-fentanyl",
@@ -1627,7 +1806,12 @@
           "text": "100 mcg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 40
+      }
     },
     {
       "id": "med-ondansetron",
@@ -1660,7 +1844,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 60
+      }
     },
     {
       "id": "med-ketorolac",
@@ -1694,7 +1883,12 @@
           "text": "30 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 20
+      }
     },
     {
       "id": "med-acetaminophen",
@@ -1734,7 +1928,12 @@
           "perKg": 15
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 10
+      }
     },
     {
       "id": "med-ibuprofen",
@@ -1813,7 +2012,12 @@
           "text": "1 g IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 10
+      }
     },
     {
       "id": "med-vancomycin",
@@ -1844,7 +2048,12 @@
           "perKg": 20
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 20
+      }
     },
     {
       "id": "med-piperacillin",
@@ -1882,7 +2091,12 @@
           "text": "4.5 g IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 30
+      }
     },
     {
       "id": "med-azithromycin",
@@ -1911,7 +2125,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 90
+      }
     },
     {
       "id": "med-cefepime",
@@ -1937,7 +2156,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 40
+      }
     },
     {
       "id": "med-meropenem",
@@ -1963,7 +2187,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 50
+      }
     },
     {
       "id": "med-doxycycline",
@@ -1994,7 +2223,12 @@
           "text": "100 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 110
+      }
     },
     {
       "id": "med-metronidazole",
@@ -2028,7 +2262,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 120
+      }
     },
     {
       "id": "med-albuterol",
@@ -2075,7 +2314,19 @@
           "text": "10 mg/hr nebulized"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Breathing",
+          "order": 30
+        },
+        {
+          "group": "Treat",
+          "row": "Breathing",
+          "order": 10
+        }
+      ]
     },
     {
       "id": "med-ipratropium",
@@ -2107,7 +2358,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 20
+      }
     },
     {
       "id": "med-epinephrine",
@@ -2158,7 +2414,12 @@
           "text": "20 mcg IV push"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 50
+      }
     },
     {
       "id": "med-norepinephrine",
@@ -2194,7 +2455,19 @@
           "text": "at 5 mcg/min"
         }
       ],
-      "sentence": "Start {name} {dose}."
+      "sentence": "Start {name} {dose}.",
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Circulation",
+          "order": 140
+        },
+        {
+          "group": "Treat",
+          "row": "Pressors & rate control",
+          "order": 10
+        }
+      ]
     },
     {
       "id": "med-insulin",
@@ -2234,7 +2507,12 @@
           "text": "at 1 unit/kg per hour"
         }
       ],
-      "sentence": "Start an {name} infusion {dose}."
+      "sentence": "Start an {name} infusion {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 20
+      }
     },
     {
       "id": "med-dextrose",
@@ -2279,7 +2557,12 @@
           "perKg": 2
         }
       ],
-      "sentence": "Give {dose}."
+      "sentence": "Give {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 10
+      }
     },
     {
       "id": "med-naloxone",
@@ -2321,7 +2604,19 @@
           "text": "4 mg intranasal"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Disability",
+          "order": 50
+        },
+        {
+          "group": "Treat",
+          "row": "Poisoning",
+          "order": 10
+        }
+      ]
     },
     {
       "id": "med-normal-saline",
@@ -2382,7 +2677,12 @@
           "perKg": 30
         }
       ],
-      "sentence": "Give a {dose} {name} bolus."
+      "sentence": "Give a {dose} {name} bolus.",
+      "menu": {
+        "group": "Treat",
+        "row": "Fluids",
+        "order": 10
+      }
     },
     {
       "id": "med-lactated-ringers",
@@ -2435,7 +2735,13 @@
           "perKg": 30
         }
       ],
-      "sentence": "Give a {dose} {name} bolus."
+      "sentence": "Give a {dose} {name} bolus.",
+      "menu": {
+        "group": "Treat",
+        "row": "Fluids",
+        "order": 20,
+        "label": "Lactated Ringer's"
+      }
     },
     {
       "id": "med-hypertonic",
@@ -2468,7 +2774,13 @@
           "text": "30 mL of 23.4% hypertonic saline"
         }
       ],
-      "sentence": "Give {dose}."
+      "sentence": "Give {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 30,
+        "label": "Hypertonic saline"
+      }
     },
     {
       "id": "med-iv-fluids",
@@ -2571,7 +2883,13 @@
           "perKg": 30
         }
       ],
-      "sentence": "Give a {dose} normal saline bolus."
+      "sentence": "Give a {dose} normal saline bolus.",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 80,
+        "label": "Fluid bolus"
+      }
     },
     {
       "id": "med-oxygen",
@@ -2618,7 +2936,12 @@
           "text": "10 L/min"
         }
       ],
-      "sentence": "Give {name} at {dose}."
+      "sentence": "Give {name} at {dose}.",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 10
+      }
     },
     {
       "id": "med-non-rebreather",
@@ -2650,7 +2973,13 @@
           "default": true
         }
       ],
-      "sentence": "Start a {name} at {dose}."
+      "sentence": "Start a {name} at {dose}.",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 20,
+        "label": "Non-rebreather"
+      }
     },
     {
       "id": "med-magnesium",
@@ -2689,7 +3018,12 @@
           "text": "2 g/hr IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 40
+      }
     },
     {
       "id": "med-potassium",
@@ -2726,7 +3060,12 @@
           "text": "40 mEq IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 30
+      }
     },
     {
       "id": "med-amiodarone",
@@ -2767,7 +3106,12 @@
           "text": "1 mg/min IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 40
+      }
     },
     {
       "id": "med-adenosine",
@@ -2800,7 +3144,12 @@
           "text": "12 mg IV push"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 50
+      }
     },
     {
       "id": "med-diltiazem",
@@ -2841,7 +3190,12 @@
           "text": "20 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pressors & rate control",
+        "order": 30
+      }
     },
     {
       "id": "med-metoprolol",
@@ -2872,7 +3226,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 60
+      }
     },
     {
       "id": "med-labetalol",
@@ -3157,7 +3516,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 30
+      }
     },
     {
       "id": "med-dexamethasone",
@@ -3254,7 +3618,21 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Circulation",
+          "order": 130,
+          "label": "TXA"
+        },
+        {
+          "group": "Treat",
+          "row": "Blood & clotting",
+          "order": 10,
+          "label": "TXA"
+        }
+      ]
     },
     {
       "id": "med-alteplase",
@@ -3356,7 +3734,12 @@
           "perKg": 2
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 50
+      }
     },
     {
       "id": "med-midazolam",
@@ -3428,7 +3811,19 @@
           "text": "4 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Disability",
+          "order": 40
+        },
+        {
+          "group": "Treat",
+          "row": "Brain & seizures",
+          "order": 10
+        }
+      ]
     },
     {
       "id": "med-propofol",
@@ -3643,7 +4038,12 @@
           "text": "5 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 20
+      }
     },
     {
       "id": "med-calcium",
@@ -3676,7 +4076,19 @@
           "default": true
         }
       ],
-      "sentence": "Give {dose}."
+      "sentence": "Give {dose}.",
+      "menu": [
+        {
+          "group": "Treat",
+          "row": "Poisoning",
+          "order": 30
+        },
+        {
+          "group": "Treat",
+          "row": "Sugar & salts",
+          "order": 40
+        }
+      ]
     },
     {
       "id": "med-bicarbonate",
@@ -3709,7 +4121,12 @@
           "perKg": 1
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 40
+      }
     },
     {
       "id": "med-octreotide",
@@ -3906,7 +4323,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 70
+      }
     },
     {
       "id": "med-cephalexin",
@@ -3945,7 +4367,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 130
+      }
     },
     {
       "id": "med-levofloxacin",
@@ -3969,7 +4396,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 100
+      }
     },
     {
       "id": "med-ciprofloxacin",
@@ -4015,7 +4447,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 60
+      }
     },
     {
       "id": "med-gentamicin",
@@ -4040,7 +4477,12 @@
           "perKg": 5
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 80
+      }
     },
     {
       "id": "med-trimethoprim",
@@ -4057,7 +4499,13 @@
         "bactrim for uti",
         "start bactrim",
         "tmp/smx"
-      ]
+      ],
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 140,
+        "label": "TMP-SMX"
+      }
     },
     {
       "id": "med-nitrofurantoin",
@@ -4159,7 +4607,12 @@
           "perKg": 10
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 150
+      }
     },
     {
       "id": "med-nafcillin",
@@ -4215,7 +4668,12 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 60
+      }
     },
     {
       "id": "med-lidocaine",
@@ -4307,7 +4765,12 @@
         "get the suction ready",
         "suction catheter",
         "suction the patient"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 10
+      }
     },
     {
       "id": "procedure-suctioning",
@@ -4398,7 +4861,12 @@
         "attach to ventilator",
         "vent him",
         "connect to the vent"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 60
+      }
     },
     {
       "id": "procedure-vent-settings",
@@ -4476,7 +4944,12 @@
         "bougie catheter",
         "pass the bougie",
         "bougie first technique"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 70
+      }
     },
     {
       "id": "procedure-stylet",
@@ -4507,7 +4980,13 @@
         "anterior jaw thrust",
         "trauma jaw thrust",
         "jaw thrust technique"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 30,
+        "label": "Jaw thrust"
+      }
     },
     {
       "id": "procedure-chin-lift",
@@ -4536,7 +5015,13 @@
         "airway adjunct",
         "insert oropharyngeal airway",
         "place an opa"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 20,
+        "label": "Oral airway"
+      }
     },
     {
       "id": "procedure-nasal-trumpet",
@@ -4552,7 +5037,13 @@
         "trumpet",
         "place an npa",
         "insert nasopharyngeal airway"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 30,
+        "label": "Nasal airway"
+      }
     },
     {
       "id": "procedure-bag-mask",
@@ -4576,7 +5067,13 @@
         "put the bvm on",
         "hand ventilate",
         "bag before intubating"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 40,
+        "label": "Bag-mask"
+      }
     },
     {
       "id": "procedure-end-tidal",
@@ -4618,7 +5115,12 @@
         "in-line capnometer",
         "capnometry",
         "capno strip"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 50
+      }
     },
     {
       "id": "procedure-etco2",
@@ -4681,7 +5183,13 @@
         "get a chest x-ray to confirm tube",
         "confirm intubation placement",
         "auscultate to confirm tube"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 40,
+        "label": "Confirm the tube"
+      }
     },
     {
       "id": "procedure-intubate",
@@ -4710,7 +5218,12 @@
         "airway management",
         "get the tube",
         "place the ett"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 60
+      }
     },
     {
       "id": "procedure-central-line",
@@ -4734,7 +5247,12 @@
         "line them centrally",
         "triple lumen catheter",
         "place a cvc"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Lines",
+        "order": 10
+      }
     },
     {
       "id": "procedure-arterial-line",
@@ -4755,7 +5273,12 @@
         "invasive bp monitoring",
         "arterial monitoring line",
         "art line placement"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Lines",
+        "order": 20
+      }
     },
     {
       "id": "procedure-chest-tube",
@@ -4780,7 +5303,13 @@
         "pigtail",
         "cxt",
         "place a chest tube"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Breathing",
+        "order": 20,
+        "label": "Chest tube"
+      }
     },
     {
       "id": "procedure-lumbar-puncture",
@@ -4803,7 +5332,13 @@
         "tap the back",
         "csf tap",
         "spinal needle"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 10,
+        "label": "LP"
+      }
     },
     {
       "id": "procedure-paracentesis",
@@ -4844,7 +5379,12 @@
         "perform a thoracentesis",
         "drain the pleural fluid",
         "pleural drain"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 70
+      }
     },
     {
       "id": "procedure-cardiovert",
@@ -4866,7 +5406,12 @@
         "hit sync and shock",
         "shock them synchronized",
         "sync and shock"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 60
+      }
     },
     {
       "id": "procedure-defibrillate",
@@ -4893,7 +5438,12 @@
         "defib them",
         "clear!",
         "hit the shock button"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 50
+      }
     },
     {
       "id": "procedure-pace",
@@ -4921,7 +5471,12 @@
         "pacing mode",
         "demand pacing",
         "put the pacer on"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 70
+      }
     },
     {
       "id": "procedure-cpr",
@@ -4952,7 +5507,13 @@
         "start cpr now",
         "bag and compress",
         "initiate acls"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 40,
+        "label": "CPR"
+      }
     },
     {
       "id": "procedure-reduce",
@@ -4979,7 +5540,13 @@
         "reduce shoulder",
         "reduce hip",
         "reduce ankle"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 20,
+        "label": "Reduction"
+      }
     },
     {
       "id": "procedure-splint",
@@ -5006,7 +5573,12 @@
         "temporary cast",
         "splint application",
         "thumb spica splint"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 30
+      }
     },
     {
       "id": "procedure-suture",
@@ -5060,7 +5632,13 @@
         "straight cath",
         "catheterize the patient",
         "foley insertion"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 50,
+        "label": "Urinary catheter"
+      }
     },
     {
       "id": "procedure-ng-tube",
@@ -5088,7 +5666,13 @@
         "nasal gastric tube",
         "place a gastric tube",
         "insert nasogastric"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 40,
+        "label": "NG tube"
+      }
     },
     {
       "id": "procedure-io-access",
@@ -5114,6 +5698,20 @@
         "bone marrow access",
         "place io",
         "bone access line"
+      ],
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Circulation",
+          "order": 30,
+          "label": "IO access"
+        },
+        {
+          "group": "Procedures",
+          "row": "Lines",
+          "order": 30,
+          "label": "IO access"
+        }
       ]
     },
     {
@@ -5141,7 +5739,13 @@
         "cric kit",
         "surgical cric",
         "emergency cric"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 80,
+        "label": "Surgical airway"
+      }
     },
     {
       "id": "procedure-pericardiocentesis",
@@ -5165,7 +5769,12 @@
         "needle decompression pericardium",
         "aspirate pericardial fluid",
         "drain the sac around the heart"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 150
+      }
     },
     {
       "id": "procedure-iv-access",
@@ -5189,7 +5798,50 @@
         "start a line",
         "venous access",
         "get access"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 10,
+        "label": "IV access"
+      }
+    },
+    {
+      "id": "procedure-cardiac-monitor",
+      "label": "Cardiac monitor",
+      "category": "procedure",
+      "canonical": "cardiac monitor",
+      "sendCanonical": true,
+      "aliases": [
+        "continuous cardiac monitoring",
+        "continuous monitoring",
+        "cardiac monitoring",
+        "telemetry",
+        "continuous tele",
+        "cardiac tele",
+        "place on telemetry",
+        "place tele",
+        "put him on the monitor",
+        "put her on the monitor",
+        "place on the monitor",
+        "on the monitor",
+        "hook up the monitor",
+        "hook up monitor",
+        "attach monitor",
+        "place cardiac monitor",
+        "monitor leads",
+        "keep on monitor",
+        "keep monitored",
+        "monitor continuously",
+        "continuous ecg monitoring",
+        "provide continuous cardiac monitoring"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 15,
+        "label": "Monitor"
+      }
     },
     {
       "id": "procedure-second-iv",
@@ -5211,7 +5863,13 @@
         "backup line",
         "another line in",
         "second iv site"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 20,
+        "label": "Second IV"
+      }
     },
     {
       "id": "procedure-two-large-bore",
@@ -5333,7 +5991,13 @@
         "code crimson",
         "massive haemorrhage protocol",
         "massive hemorrhage protocol"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 120,
+        "label": "Massive transfusion"
+      }
     },
     {
       "id": "consult-pediatrics",
@@ -5350,7 +6014,13 @@
         "pediatric consult",
         "call pediatrics",
         "peds"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 90,
+        "label": "Peds"
+      }
     },
     {
       "id": "consult-hematology",
@@ -5365,7 +6035,13 @@
         "heme team",
         "call hematology",
         "page hematology"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 120,
+        "label": "Heme"
+      }
     },
     {
       "id": "consult-oncology",
@@ -5615,7 +6291,13 @@
         "intensivist to bedside",
         "call icu attending for admit",
         "critical care consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 150,
+        "label": "Critical care"
+      }
     },
     {
       "id": "consult-internal-medicine",
@@ -5633,7 +6315,13 @@
         "page internal medicine",
         "get medicine involved",
         "im service consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 100,
+        "label": "Medicine"
+      }
     },
     {
       "id": "consult-child-life",
@@ -5712,7 +6400,12 @@
         "heart specialist consult",
         "cardiologist consult",
         "get a cardiology eval"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 10
+      }
     },
     {
       "id": "consult-surgery",
@@ -5739,7 +6432,12 @@
         "call gen surg",
         "surgical eval",
         "call the surgical team"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 20
+      }
     },
     {
       "id": "consult-gastroenterology",
@@ -5763,7 +6461,13 @@
         "call the gut doctor",
         "endoscopy consult",
         "gi workup"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 60,
+        "label": "GI"
+      }
     },
     {
       "id": "consult-neurology",
@@ -5790,7 +6494,12 @@
         "get a neurology eval",
         "neurology workup",
         "call stroke neurology"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 50
+      }
     },
     {
       "id": "consult-neurosurgery",
@@ -5817,7 +6526,12 @@
         "neurosurgical eval",
         "get neurosurgeon on the phone",
         "call for craniotomy eval"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 40
+      }
     },
     {
       "id": "consult-orthopedics",
@@ -5843,7 +6557,13 @@
         "ortho on call",
         "get orthopedic surgery consult",
         "fracture consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 70,
+        "label": "Ortho"
+      }
     },
     {
       "id": "consult-urology",
@@ -5901,7 +6621,13 @@
         "prenatal consult",
         "stork squad",
         "baby doc"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 80,
+        "label": "OB/Gyn"
+      }
     },
     {
       "id": "consult-gynecology",
@@ -5959,7 +6685,13 @@
         "psychiatrist",
         "mental health consult",
         "crisis team"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 130,
+        "label": "Psych"
+      }
     },
     {
       "id": "consult-nephrology",
@@ -6046,7 +6778,13 @@
         "id team",
         "id attending",
         "infection specialist"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 110,
+        "label": "ID"
+      }
     },
     {
       "id": "consult-toxicology",
@@ -6099,7 +6837,12 @@
         "national poison hotline",
         "poison control line",
         "pcc consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 160
+      }
     },
     {
       "id": "consult-anesthesia",
@@ -6126,7 +6869,12 @@
         "airway consult",
         "difficult airway consult",
         "crna consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 140
+      }
     },
     {
       "id": "consult-trauma",
@@ -6150,7 +6898,12 @@
         "trauma bay consult",
         "level 1 trauma consult",
         "trauma attending"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 30
+      }
     },
     {
       "id": "consult-interventional-radiology",
@@ -6607,7 +7360,12 @@
           "text": "at 0.25 mL/kg/min"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 50
+      }
     },
     {
       "id": "procedure-pelvic-binder",
@@ -6619,7 +7377,13 @@
         "pelvic binding",
         "sheet binder",
         "apply a pelvic binder"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 110,
+        "label": "Pelvic binder"
+      }
     },
     {
       "id": "procedure-tourniquet",
@@ -6631,7 +7395,12 @@
         "tourniquet the leg",
         "tourniquet the arm",
         "cat tourniquet"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 100
+      }
     },
     {
       "id": "procedure-needle-decompression",
@@ -6642,7 +7411,13 @@
         "needle thoracostomy",
         "decompress the chest",
         "finger thoracostomy"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Breathing",
+        "order": 10,
+        "label": "Needle decompression"
+      }
     },
     {
       "id": "procedure-targeted-temperature-management",
@@ -6675,7 +7450,13 @@
         "cool to 36",
         "cooling blanket",
         "cooling pads"
-      ]
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 30,
+        "label": "Cooling (TTM)"
+      }
     },
     {
       "id": "assessment-anticoagulation-decision",
@@ -6714,7 +7495,13 @@
         "picu admission",
         "admit to the picu",
         "admit to picu"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 10,
+        "label": "ICU"
+      }
     },
     {
       "id": "disposition-admit-to-a-monitored-bed",
@@ -6752,7 +7539,13 @@
         "hospital admission",
         "admit to peds",
         "admit to the ward"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 20,
+        "label": "Ward"
+      }
     },
     {
       "id": "disposition-admit-to-observation",
@@ -6765,7 +7558,13 @@
         "observation unit",
         "short stay",
         "clinical decision unit"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 50,
+        "label": "Observation"
+      }
     },
     {
       "id": "disposition-discharge-home",
@@ -6782,7 +7581,13 @@
         "let him go home",
         "let her go home",
         "safe for discharge"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 70,
+        "label": "Discharge"
+      }
     },
     {
       "id": "disposition-transfer-to-another-facility",
@@ -6799,7 +7604,12 @@
         "transfer to a trauma center",
         "transfer to a burn centre",
         "transfer to a burn center"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 60
+      }
     },
     {
       "id": "disposition-to-the-operating-room",
@@ -6816,7 +7626,13 @@
         "take her to the or",
         "straight to theatre",
         "needs the or"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 30,
+        "label": "To the OR"
+      }
     },
     {
       "id": "disposition-activate-the-cath-lab",
@@ -6831,7 +7647,13 @@
         "to the cath lab",
         "cardiac catheterisation",
         "cardiac catheterization"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 40,
+        "label": "Cath lab"
+      }
     },
     {
       "id": "assessment-working-diagnosis",
@@ -7686,7 +8508,6 @@
       "canonical": "vitamin k",
       "aliases": [
         "vitamin k",
-        "phytonadione",
         "reverse warfarin",
         "reverse anticoagulation",
         "fresh frozen plasma",
@@ -7782,7 +8603,6 @@
       "category": "exam",
       "canonical": "neuro exam",
       "aliases": [
-        "neuro exam",
         "neurological exam",
         "motor exam",
         "strength",
@@ -8043,39 +8863,6 @@
         {
           "case": "endo-adrenal-crisis",
           "action": 6
-        }
-      ]
-    },
-    {
-      "id": "ca-metab-hyperkalemia-5",
-      "label": "Provide continuous cardiac monitoring",
-      "category": "procedure",
-      "canonical": "cardiac monitor",
-      "aliases": [
-        "cardiac monitor",
-        "continuous monitoring",
-        "telemetry",
-        "put him on the monitor",
-        "monitor leads",
-        "continuous tele",
-        "keep on monitor",
-        "place on telemetry",
-        "cardiac tele",
-        "continuous cardiac monitoring",
-        "hook up monitor",
-        "monitor continuously",
-        "place tele",
-        "keep monitored",
-        "continuous ecg monitoring",
-        "attach monitor",
-        "place cardiac monitor",
-        "provide continuous cardiac monitoring"
-      ],
-      "sendCanonical": true,
-      "for": [
-        {
-          "case": "metab-hyperkalemia",
-          "action": 5
         }
       ]
     },
@@ -10360,7 +11147,6 @@
         "test vision",
         "snellen chart",
         "afferent pupillary defect",
-        "check pupils",
         "pupil exam",
         "red desaturation",
         "ishihara test",
@@ -10419,7 +11205,6 @@
       "category": "exam",
       "canonical": "skin exam",
       "aliases": [
-        "skin exam",
         "full skin exam",
         "head to toe",
         "complete exam",
@@ -13176,7 +13961,6 @@
       "canonical": "place an lma",
       "aliases": [
         "place an lma",
-        "supraglottic airway",
         "igel",
         "laryngeal mask",
         "bridge with an sga",
@@ -13490,7 +14274,6 @@
         "cvs exam",
         "cv exam",
         "cardiac auscultation",
-        "listen to heart",
         "heart auscultation",
         "precordial exam",
         "check the heart",
@@ -13620,7 +14403,6 @@
       "category": "imaging",
       "canonical": "lung ultrasound",
       "aliases": [
-        "lung ultrasound",
         "bedside ultrasound",
         "lung pocus",
         "b-lines",
@@ -14907,7 +15689,6 @@
       "aliases": [
         "reassess vitals",
         "vital signs recheck",
-        "repeat vital signs",
         "trend vitals",
         "q15 vitals",
         "close monitoring",
@@ -15619,7 +16400,6 @@
         "warfarin reversal",
         "iv vitamin k",
         "pccs",
-        "four factor pcc",
         "vitamin k iv",
         "mephyton",
         "for warfarin"
@@ -16568,6 +17348,662 @@
           "action": 3
         }
       ]
+    },
+    {
+      "id": "exam-primary-survey",
+      "label": "Primary survey",
+      "category": "exam",
+      "canonical": "primary survey",
+      "aliases": [
+        "run the primary survey",
+        "do the primary survey",
+        "trauma primary survey",
+        "complete the primary survey",
+        "abcde survey",
+        "initial trauma assessment"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 10
+      }
+    },
+    {
+      "id": "exam-general",
+      "label": "General appearance",
+      "category": "exam",
+      "canonical": "general appearance",
+      "aliases": [
+        "how does the patient look",
+        "overall appearance",
+        "general impression",
+        "look at the patient",
+        "eyeball the patient",
+        "how sick does she look",
+        "how sick does he look"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 20
+      }
+    },
+    {
+      "id": "exam-cardiac",
+      "label": "Cardiac exam",
+      "category": "exam",
+      "canonical": "listen to the heart",
+      "sendCanonical": true,
+      "aliases": [
+        "listen to the heart sounds",
+        "auscultate the praecordium",
+        "listen for a murmur"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 30
+      }
+    },
+    {
+      "id": "exam-lungs",
+      "label": "Lung exam",
+      "category": "exam",
+      "canonical": "listen to the lungs",
+      "sendCanonical": true,
+      "aliases": [
+        "lung exam",
+        "chest exam",
+        "respiratory exam",
+        "listen to the chest",
+        "auscultate the lung fields",
+        "listen for breath sounds"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 40
+      }
+    },
+    {
+      "id": "exam-abdomen",
+      "label": "Abdominal exam",
+      "category": "exam",
+      "canonical": "examine the abdomen",
+      "sendCanonical": true,
+      "aliases": [
+        "abdominal exam",
+        "belly exam",
+        "palpate the abdomen",
+        "press on the belly",
+        "check for peritonitis",
+        "examine the belly"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 50
+      }
+    },
+    {
+      "id": "exam-neuro",
+      "label": "Neuro exam",
+      "category": "exam",
+      "canonical": "neuro exam",
+      "aliases": [
+        "focused neuro exam",
+        "check for focal deficits",
+        "motor and sensory exam"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 60
+      }
+    },
+    {
+      "id": "exam-gcs",
+      "label": "GCS",
+      "category": "exam",
+      "canonical": "score the gcs by component",
+      "sendCanonical": true,
+      "aliases": [
+        "gcs score",
+        "score the gcs",
+        "eye verbal motor score",
+        "what is the gcs",
+        "gcs by component"
+      ],
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Disability",
+          "order": 10
+        },
+        {
+          "group": "Assess",
+          "row": "Exam",
+          "order": 65
+        }
+      ]
+    },
+    {
+      "id": "exam-pupils",
+      "label": "Pupils",
+      "category": "exam",
+      "canonical": "check the pupils",
+      "sendCanonical": true,
+      "aliases": [
+        "are the pupils reactive",
+        "check pupillary reflexes",
+        "look at the pupils",
+        "pupils equal and reactive"
+      ],
+      "menu": [
+        {
+          "group": "Resuscitate",
+          "row": "Disability",
+          "order": 20
+        },
+        {
+          "group": "Assess",
+          "row": "Exam",
+          "order": 70
+        }
+      ]
+    },
+    {
+      "id": "exam-skin",
+      "label": "Skin exam",
+      "category": "exam",
+      "canonical": "examine the skin",
+      "sendCanonical": true,
+      "aliases": [
+        "look at the skin",
+        "head to toe skin exam",
+        "check for rash",
+        "check capillary refill",
+        "undress and look at the skin"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 80
+      }
+    },
+    {
+      "id": "exam-extremities",
+      "label": "Extremities",
+      "category": "exam",
+      "canonical": "examine the extremities",
+      "sendCanonical": true,
+      "aliases": [
+        "extremity exam",
+        "check the limbs",
+        "look at the arms and legs",
+        "check for deformity"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 90
+      }
+    },
+    {
+      "id": "exam-rectal",
+      "label": "Rectal exam",
+      "category": "exam",
+      "canonical": "rectal exam",
+      "aliases": [
+        "check sphincter tone",
+        "guaiac the stool"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 100
+      }
+    },
+    {
+      "id": "exam-pelvis",
+      "label": "Pelvic stability",
+      "category": "exam",
+      "canonical": "check pelvic stability",
+      "sendCanonical": true,
+      "aliases": [
+        "assess the pelvic ring",
+        "is the pelvis stable",
+        "one gentle pelvic compression",
+        "check for pelvic instability",
+        "feel the pelvis"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 110
+      }
+    },
+    {
+      "id": "exam-recheck-vitals",
+      "label": "Recheck vitals",
+      "category": "exam",
+      "canonical": "repeat the vital signs",
+      "sendCanonical": true,
+      "aliases": [
+        "cycle the blood pressure",
+        "new set of vitals",
+        "repeat obs"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 20
+      }
+    },
+    {
+      "id": "history-focused",
+      "label": "Focused history",
+      "category": "history",
+      "canonical": "tell me what happened",
+      "sendCanonical": true,
+      "aliases": [
+        "focused history",
+        "history of the presenting complaint",
+        "take a focused history",
+        "what brought you in",
+        "hpi please"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 20
+      }
+    },
+    {
+      "id": "history-collateral",
+      "label": "Collateral",
+      "category": "history",
+      "canonical": "collateral history from the family",
+      "sendCanonical": true,
+      "aliases": [
+        "ask the family what happened",
+        "ask the paramedics",
+        "ask the nursing home staff",
+        "ask the bystanders"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 30
+      }
+    },
+    {
+      "id": "history-pmh-meds-allergies",
+      "label": "Meds & allergies",
+      "category": "history",
+      "canonical": "past medical history, medications and allergies",
+      "sendCanonical": true,
+      "aliases": [
+        "ampl history",
+        "medication list and allergies",
+        "past medical history and medications",
+        "what does she take",
+        "what does he take",
+        "any drug allergies"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 40
+      }
+    },
+    {
+      "id": "history-recap",
+      "label": "Recap the presentation",
+      "category": "history",
+      "canonical": "__recap",
+      "sendCanonical": true,
+      "aliases": [],
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 10,
+        "label": "Recap"
+      }
+    },
+    {
+      "id": "assessment-reassess",
+      "label": "Re-evaluate",
+      "category": "assessment",
+      "canonical": "reassess the patient",
+      "sendCanonical": true,
+      "aliases": [
+        "re-evaluate the patient",
+        "reassess after treatment",
+        "how is the patient now",
+        "check on the patient again"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 10
+      }
+    },
+    {
+      "id": "assessment-repeat-gcs",
+      "label": "Repeat the GCS",
+      "category": "assessment",
+      "canonical": "repeat the gcs and check the motor score",
+      "sendCanonical": true,
+      "aliases": [
+        "serial gcs",
+        "has the gcs changed"
+      ],
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 30
+      }
+    },
+    {
+      "id": "assessment-time-of-death",
+      "label": "Time of death",
+      "category": "assessment",
+      "canonical": "call the time of death",
+      "sendCanonical": true,
+      "aliases": [
+        "terminate the resuscitation",
+        "stop the resuscitation",
+        "cease resuscitative efforts",
+        "pronounce the patient",
+        "declare death"
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 80
+      }
+    },
+    {
+      "id": "procedure-supraglottic-airway",
+      "label": "Supraglottic airway",
+      "category": "procedure",
+      "canonical": "place a supraglottic airway",
+      "sendCanonical": true,
+      "aliases": [
+        "supraglottic airway",
+        "place an i-gel"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 50,
+        "label": "Supraglottic"
+      }
+    },
+    {
+      "id": "procedure-bipap",
+      "label": "BiPAP",
+      "category": "procedure",
+      "canonical": "start bipap",
+      "sendCanonical": true,
+      "aliases": [
+        "niv",
+        "put them on bipap",
+        "noninvasive positive pressure ventilation"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Breathing",
+        "order": 40,
+        "label": "BiPAP / CPAP"
+      }
+    },
+    {
+      "id": "procedure-direct-pressure",
+      "label": "Direct pressure",
+      "category": "procedure",
+      "canonical": "hold direct pressure on the wound",
+      "sendCanonical": true,
+      "aliases": [
+        "apply pressure to the bleeding",
+        "compress the bleeding site",
+        "pressure dressing",
+        "sustained digital pressure"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 90
+      }
+    },
+    {
+      "id": "procedure-rewarming",
+      "label": "Active rewarming",
+      "category": "procedure",
+      "canonical": "prevent hypothermia with warm blankets and a forced-air warmer",
+      "sendCanonical": true,
+      "aliases": [
+        "prevent hypothermia",
+        "rewarm the patient"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 20
+      }
+    },
+    {
+      "id": "procedure-log-roll",
+      "label": "Log roll",
+      "category": "procedure",
+      "canonical": "log roll the patient",
+      "sendCanonical": true,
+      "aliases": [
+        "log roll",
+        "logroll",
+        "roll the patient and look at the back",
+        "turn the patient to see the back",
+        "log roll with spinal precautions"
+      ],
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 10
+      }
+    },
+    {
+      "id": "imaging-lung-ultrasound",
+      "label": "Lung ultrasound",
+      "category": "imaging",
+      "canonical": "lung ultrasound",
+      "aliases": [
+        "thoracic ultrasound",
+        "scan the lungs for b lines",
+        "check for lung sliding",
+        "pleural ultrasound"
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 60
+      }
+    },
+    {
+      "id": "med-levetiracetam",
+      "label": "Levetiracetam",
+      "category": "med",
+      "canonical": "levetiracetam",
+      "aliases": [
+        "keppra",
+        "load keppra",
+        "levetiracetam load",
+        "give keppra",
+        "keppra load",
+        "lev load",
+        "second line anticonvulsant"
+      ],
+      "doses": [
+        {
+          "label": "60 mg/kg IV",
+          "text": "60 mg/kg IV (max 4.5 g)",
+          "perKg": 60,
+          "default": true
+        },
+        {
+          "label": "1000 mg IV",
+          "text": "1000 mg IV"
+        },
+        {
+          "label": "1500 mg IV",
+          "text": "1500 mg IV"
+        }
+      ],
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 20
+      }
+    },
+    {
+      "id": "med-mannitol",
+      "label": "Mannitol",
+      "category": "med",
+      "canonical": "mannitol",
+      "aliases": [
+        "osmitrol",
+        "give mannitol",
+        "mannitol bolus",
+        "osmotic diuretic",
+        "mannitol for raised icp"
+      ],
+      "doses": [
+        {
+          "label": "1 g/kg IV",
+          "text": "1 g/kg IV",
+          "perKg": 1,
+          "default": true
+        },
+        {
+          "label": "0.5 g/kg IV",
+          "text": "0.5 g/kg IV",
+          "perKg": 0.5
+        }
+      ],
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 40
+      }
+    },
+    {
+      "id": "med-vasopressin",
+      "label": "Vasopressin",
+      "category": "med",
+      "canonical": "vasopressin",
+      "aliases": [
+        "adh",
+        "pitressin",
+        "vaso drip",
+        "start vasopressin",
+        "vasopressin gtt",
+        "second pressor vasopressin",
+        "add vasopressin"
+      ],
+      "doses": [
+        {
+          "label": "0.03 units/min",
+          "text": "at 0.03 units/min",
+          "default": true
+        },
+        {
+          "label": "0.04 units/min",
+          "text": "at 0.04 units/min"
+        }
+      ],
+      "sentence": "Start {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pressors & rate control",
+        "order": 20
+      }
+    },
+    {
+      "id": "med-pcc",
+      "label": "PCC",
+      "category": "med",
+      "canonical": "four factor prothrombin complex concentrate",
+      "aliases": [
+        "factor concentrate for warfarin reversal"
+      ],
+      "doses": [
+        {
+          "label": "25 units/kg",
+          "text": "25 units/kg IV",
+          "perKg": 25,
+          "default": true
+        },
+        {
+          "label": "50 units/kg",
+          "text": "50 units/kg IV",
+          "perKg": 50
+        }
+      ],
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 20
+      }
+    },
+    {
+      "id": "med-vitamin-k",
+      "label": "Vitamin K",
+      "category": "med",
+      "canonical": "phytonadione",
+      "aliases": [
+        "konakion",
+        "aquamephyton"
+      ],
+      "doses": [
+        {
+          "label": "10 mg IV",
+          "text": "10 mg IV slowly",
+          "default": true
+        },
+        {
+          "label": "5 mg IV",
+          "text": "5 mg IV slowly"
+        }
+      ],
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 30
+      }
+    },
+    {
+      "id": "med-platelets",
+      "label": "Platelets",
+      "category": "med",
+      "canonical": "give a pool of platelets",
+      "sendCanonical": true,
+      "aliases": [
+        "platelet transfusion",
+        "pool of platelets",
+        "plt transfusion",
+        "one pack of platelets",
+        "apheresis platelets",
+        "transfuse a platelet pool"
+      ],
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 40
+      }
     }
   ]
 }
