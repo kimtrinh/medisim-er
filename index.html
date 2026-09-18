@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-w076VfXbefcSCc4p7XFMHSjiwO7/O1wEO5s+OqlOI5c=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-IvijX1D6lWzTEwGg1ttICRxD+zgbcFUmlxvj6kwiFGc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -277,6 +277,46 @@
   body.cinema.roomHide #rmCast,
   body.cinema.roomHide #rmActionFx{visibility:hidden}
   body.cinema.console.roomHide #orderFeedback{visibility:hidden}
+  /* THE ED LOG ON THE LEFT. Kim, 2026-09-18: "the ED log of all the orders should be on the
+     left side at a separate area. You should still be able to see the patient." It used to
+     be the ORDERS box inside the chart on the right — the same side the order menu opens on,
+     so the menu covered it. Now it stands on the left wall in its own panel, the same width
+     as the order status line under it (that line ends a gap short of the bed, x 27% of the
+     photo), from under the camera control down to that line. fitEdLog() writes its height.
+     Wide screens only: a phone has its folding sections and keeps the list in the chart. */
+  #edLog{display:none}
+  @media(min-width:1024px),(min-width:768px) and (min-height:501px){
+    body.cinema.console #edLog{display:flex;flex-direction:column;position:absolute;pointer-events:auto;
+      left:.5rem;top:calc(var(--hdr,66px) + 48px);max-height:var(--edRoom,40vh);
+      width:calc(var(--rl) + var(--rw) * .27 - var(--gap) - 1rem - 8px);
+      border:1px solid rgba(148,163,184,.14);border-radius:14px;overflow:hidden;
+      background:linear-gradient(180deg,rgba(2,6,23,.9),rgba(3,7,18,.78));
+      -webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1);
+      box-shadow:0 18px 44px -20px rgba(0,0,0,.95)}
+    /* the chart no longer repeats it */
+    body.cinema.console #sideBar #orderLog{display:none}
+    /* The transcript drawer opens over this same column; Hide / Show all takes it with the rest. */
+    body.cinema.console.feedOpen #edLog,
+    body.cinema.console.hudClear #edLog{display:none}
+    body.cinema.console.roomHide #edLog{visibility:hidden}
+    /* ...and the order menu, open from the first minute now, stops at the patient's head: in
+       every room camera the head and pillow end by x 70% of the photo, so the menu takes the
+       wall to the right of that — narrower on a smaller screen rather than over the patient
+       (at 1280x800 the full 480px reached the sternum). 320px is the floor below which its
+       two-column chips stop being readable. */
+    body.cinema.console #actionBrowser{width:max(320px, min(480px, calc(100vw - (var(--rl) + var(--rw) * .70) - 16px)))}
+    /* A narrower menu must still show its orders, not only its header: at 1280x800 the
+       wrapped order sets took five rows and left the chips a 20px slit. In the room the
+       sets are one row that scrolls sideways, and the header drops its how-to line. */
+    body.cinema.console #actionBrowser .actionHead{padding:14px 16px 10px}
+    body.cinema.console #actionBrowser .actionHead p{display:none}
+    body.cinema.console #actionBrowser .actionSets{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:6px}
+    body.cinema.console #actionBrowser .actionSets>span{width:auto;flex:none;align-self:center;margin:0 4px 0 0}
+    body.cinema.console #actionBrowser .actionSets button{flex:none;white-space:nowrap}
+  }
+  #edLog .edHead{display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+    padding:.45rem .7rem;border-bottom:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.6)}
+  #edLog .edList{overflow-y:auto;scrollbar-width:thin;min-height:0}
   /* The console's open drawers carry one class more than the fold above, so they won the
      tie and stayed up through a clear. Said again with the class that beats them. */
   body.cinema.console.hudClear.resultsOpen #sideBar,
@@ -3180,7 +3220,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false; _ordersAtStart = true;
     S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, caps: runCaps(), goldId: null,
@@ -7073,7 +7113,7 @@ async function loadGoldCase(seed, opts){
   S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
   startCoachSession();
   try{ resetRoomActionTimers(); }catch(_){ }
-  S.gear=gearDefaults(); S.motion=null; S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false;   // fresh kit, room props AND an empty order basket for a new case
+  S.gear=gearDefaults(); S.motion=null; S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false; _ordersAtStart = true;   // fresh kit, room props AND an empty order basket for a new case
   document.body.classList.remove('roomHide'); try{ applyRoomHide(); }catch(_){ }   // a new patient starts with everything showing
   // ...and, on a phone, with the Monitor open and the other sections folded (Kim's choice).
   if(mobileWorkspace()){ panelState().activePanel = 'monitor'; panelState().expanded = false; }
@@ -7696,10 +7736,7 @@ function paintTicker(){
 // An order the sim could not read is marked, not hidden. That is the one thing a player
 // most needs to know while there is still time to say it another way.
 function paintOrderLog(){
-  const box = $('orderLog'); if(!box) return;
   const rows = (S.timeline || []);
-  if(S.stage !== 'play' || !rows.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
-  box.classList.remove('hidden');
   const line = t => {
     const bad = t.unmatched && t.unmatched.length;
     return `<div class="flex items-start gap-2 px-3 py-1.5">
@@ -7708,6 +7745,23 @@ function paintOrderLog(){
         bad ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">not understood</span>' : ''}</span>
     </div>`;
   };
+  // The left wall's ED log (room, wide screens). It is there from the first minute, empty,
+  // so the player knows where their orders will be written down.
+  const ed = $('edLog');
+  if(ed){
+    ed.innerHTML = `<div class="edHead">
+        <span class="text-[10px] font-black uppercase tracking-[.3em] text-sky-300">ED log</span>
+        <span class="text-[10px] font-black tabular-nums text-slate-400">${rows.length ? rows.length + ' order' + (rows.length === 1 ? '' : 's') : ''}</span>
+      </div>
+      <div id="edLogList" class="edList divide-y divide-slate-900">${rows.length ? rows.map(line).join('')
+        : '<p class="px-3 py-2 text-[11px] leading-snug text-slate-500">Every order you give is written here, with the time.</p>'}</div>`;
+    const l = $('edLogList'); if(l) l.scrollTop = l.scrollHeight;
+    fitEdLog();
+  }
+  // The chart's copy — where the list lives on a phone, and outside the room.
+  const box = $('orderLog'); if(!box) return;
+  if(S.stage !== 'play' || !rows.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
+  box.classList.remove('hidden');
   box.innerHTML = `
     <div class="rounded-2xl border border-slate-800 bg-slate-950/70 overflow-hidden">
       <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900/60">
@@ -7721,6 +7775,18 @@ function paintOrderLog(){
   const list = $('orderLogList');
   if(list) list.scrollTop = list.scrollHeight;      // the newest order in view
 }
+// The ED log runs from under the camera control down to whatever stands below it on the
+// left: the order status line when it is showing, otherwise the dock. Measured, because the
+// status line grows and shrinks with each order.
+function fitEdLog(){
+  const ed = $('edLog'); if(!ed || getComputedStyle(ed).display === 'none') return;
+  const top = ed.getBoundingClientRect().top;
+  const fb = $('orderFeedback'), bar = $('orderBar');
+  const fbR = fb && !fb.classList.contains('hidden') && getComputedStyle(fb).display !== 'none' ? fb.getBoundingClientRect() : null;
+  const floor = (fbR && fbR.height > 0) ? fbR.top : (bar ? bar.getBoundingClientRect().top : innerHeight);
+  document.body.style.setProperty('--edRoom', Math.max(80, Math.round(floor - top - 10)) + 'px');
+}
+addEventListener('resize', () => { try{ fitEdLog(); }catch(_){ } });
 function paintConsole(){
   const host = $('console'); if(!host) return;
   try{ roomLayoutLater(); }catch(_){ }   // the new chips are stacked against each other once they are drawn
@@ -7893,14 +7959,17 @@ function fitActionPanel(){
   panel.style.bottom = Math.max(16, Math.round(innerHeight - r.top) + 10) + 'px';
 }
 if(typeof window !== 'undefined') addEventListener('resize', () => { try{ fitActionPanel(); }catch(_){ } });
-function closeActionBrowser(){
+function closeActionBrowser(rebuilding){
+  // Only a literal true means "the play screen is being rebuilt": wired straight to a button,
+  // this receives the click EVENT, which is truthy — and the menu came straight back.
+  if(rebuilding !== true) _ordersAtStart = false;   // the player (or another panel) closed it
   const panel=$('actionBrowser'); if(panel) panel.remove();
   document.body.classList.remove('actionBrowserOpen');
 }
 function openActionBrowser(){
   hideTypeahead(); closeRoomMenu();
   if(mobileWorkspace()){ panelState().activePanel=null; applyPanel(); }
-  closeActionBrowser();
+  closeActionBrowser(true);
   const panel=document.createElement('section'); panel.id='actionBrowser';
   panel.setAttribute('aria-label','Choose an action');
   const groups=[];
@@ -7946,6 +8015,9 @@ function openActionBrowser(){
     '<button data-action-review>Review</button><button data-action-submit>Back to room</button></div>';
   document.body.appendChild(panel); document.body.classList.add('actionBrowserOpen');
   const show=i=>{
+    // The catalogue is fetched when the case starts; pressed in that first moment, the menu
+    // has only its order sets and no categories yet — show those rather than throw.
+    if(!groups[i]) return;
     actionCategory=groups[i].name;
     panel.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.category===i)));
     const choices=panel.querySelector('.actionChoices'); choices.innerHTML=groups[i].html;
@@ -8669,7 +8741,7 @@ if($('feedbackForm')){
 function renderOrderFeedback(){
   const el=$('orderFeedback'); if(!el) return;
   const rows=S.orderFeedback||[];
-  if(!rows.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
+  if(!rows.length){ el.classList.add('hidden'); el.innerHTML=''; fitEdLog(); return; }
   const style={credited:'border-emerald-500/25 text-emerald-300', performed:'border-slate-700 text-slate-300',
                unmapped:'border-amber-500/35 text-amber-200', unparsed:'border-rose-500/40 text-rose-200',
                blocked:'border-amber-500/35 text-amber-200',
@@ -8687,6 +8759,7 @@ function renderOrderFeedback(){
   el.querySelectorAll('[data-order-problem]').forEach(b=>b.onclick=()=>{ const r = rows[+b.dataset.orderProblem];
     openFeedbackForm({ order: r.text, receipt: { status: r.kind, note: r.note }, row: r }); });
   fitOrderFeedback();
+  fitEdLog();
 }
 // The status line's room when the order wall is drawn: from the wall's foot (88% of the
 // photo) down to the dock. No wall (tap layout, phones, no cinema) → no strip, the CSS cap holds.
@@ -8757,10 +8830,16 @@ function renderBasket(){
 // already expanded underneath it, so the first tap on "Orders & quick actions" dumped
 // the whole palette — and in cinema that pushed #cmd below the fold.
 let _palOpen=false;   // keep the order-set palette open across turns once expanded
+// THE ORDER MENU IS OPEN WHEN THE CASE STARTS. Kim, 2026-09-18: "the orders should be open
+// right at the beginning when you start the simulation." Set for each new case; the menu is
+// reopened on every rebuild of the play screen until the player closes it or gives the first
+// order — after that it behaves as before (closes on submit, so the results can be read).
+// Not on a phone: there the menu is a sheet over the patient.
+let _ordersAtStart = false;
 let _orderMin = true;  // slim order bar: chips+palette tucked away until asked for; re-collapses each case
 function renderPlay(){
   repaintOnFirstManifest();   // which finding pictures exist decides which photo the patient panel draws
-  closeActionBrowser();
+  closeActionBrowser(true);
   document.body.classList.add('tapUI');
   hideTypeahead();
   main.innerHTML=`
@@ -8823,6 +8902,9 @@ function renderPlay(){
         <span>Transcript</span><span>\u2715 Hide</span>
       </button>
       <div id="chat" class="flex-1 overflow-y-auto p-3 md:p-5 space-y-4"></div>
+      <!-- The ED log: every order, all case long, on the left wall of the room. paintOrderLog fills it. -->
+      <!-- A div, not an <aside>: the phone chart-sheet rules style every aside when the chart opens. -->
+      <div id="edLog" role="complementary" aria-label="ED log — every order you have given"></div>
       <div id="orderBar" class="border-t border-slate-900 p-3 md:p-4 bg-slate-950/70">
         <!-- Cinema's only other entry is the small icon on the room card, which lives in
              the sidebar — hidden below md. Without this, narrow windows and phones had
@@ -9196,6 +9278,28 @@ function renderPlay(){
   // drawn on top of the input row.
   measureDock();
   applyPanel();
+  if(_ordersAtStart){
+    if((S.timeline||[]).length || mobileWorkspace() || S.stage!=='play') _ordersAtStart = false;
+    // After the catalogue is in, and never from inside this rebuild: renderPlay runs in the
+    // middle of starting a case, and the room has not been entered yet.
+    // The menu's categories need the catalogue AND the diagnosis vocabulary, which arrive
+    // separately — so it waits until the menu actually has its groups (up to ~6 s).
+    else loadOrderCatalog().catch(()=>null).then(() => {
+      let tries = 0;
+      const attempt = () => {
+        if(!_ordersAtStart || S.stage!=='play' || (S.timeline||[]).length || $('actionBrowser') || mobileWorkspace()) return;
+        // Only in the room. A case that opens at the BEDSIDE close-up in the chart layout
+        // (an injury case on a mid-size screen) has its patient exactly where the menu opens.
+        // And only in the room CONSOLE — the layout where panels float beside the photo. A
+        // portrait tablet is in the room but stacked (photo strip on top), and there the menu
+        // covered the patient too.
+        if(!S.cinema || !document.body.classList.contains('console')){ _ordersAtStart = false; return; }
+        if(!catalogMenu().length && ++tries < 30){ setTimeout(attempt, 200); return; }
+        try{ openActionBrowser(); }catch(err){ console.error('order menu at start: ' + (err && err.message || err)); }
+      };
+      setTimeout(attempt, 0);
+    });
+  }
   if($('actionLaunch')) $('actionLaunch').onclick=openActionBrowser;
   if($('micBtn')) $('micBtn').onclick=startDictation;   // absent in PUBLIC_BUILD (no local whisper server)
   // "/" from anywhere focuses the order line (like a command palette).
@@ -10955,17 +11059,10 @@ function buildRoomScene(mount){
   mount.innerHTML=`
    <div class="relative rounded-2xl border border-slate-800 overflow-hidden select-none" id="roomBox">
      <img src="${sceneSrc}" data-view="${viewKey}" class="w-full block pointer-events-none" alt="Emergency simulation room, ${esc(view.label||viewKey)} view">
-     <!-- Box = the monitor's GLASS, measured off this view's render (not the bezel), so the
-          waveform sits inside the screen instead of spilling onto the wall. -->
-     <div id="rmMon" class="absolute overflow-hidden pointer-events-none flex flex-col" style="left:${mb.l}%;top:${mb.t}%;width:${mb.w}%;height:${mb.h}%;background:#020617;border-radius:1px">
-       <canvas id="rm_ecg" class="w-full block" style="flex:3 1 0;min-height:0"></canvas>
-       <canvas id="rm_pleth" class="w-full block" style="flex:2 1 0;min-height:0"></canvas>
-       <div id="rm_nums" class="flex justify-between px-0.5 leading-none shrink-0" style="display:none">
-         <span id="rm_hr" class="text-emerald-400 font-black mono"></span>
-         <span id="rm_bp" class="text-yellow-300 font-black mono"></span>
-         <span id="rm_o2" class="text-blue-300 font-black mono"></span>
-       </div>
-     </div>
+     <!-- NO SECOND MONITOR IN THE ROOM. Kim, 2026-09-18: "You don't need another strip for the
+          monitor in the room. Just keep the telemetry strips." The wall monitor used to carry a
+          copy of the telemetry trace (#rmMon, blitted every frame); the telemetry panel is the
+          one monitor now, and the photo's own screen is left as it is. -->
      <div id="rmOverlays" class="absolute inset-0 pointer-events-none"></div>
      ${roomCritHTML()}
      <svg id="rmZones" class="absolute inset-0 w-full h-full" viewBox="0 0 100 56" preserveAspectRatio="none">
@@ -12021,6 +12118,10 @@ if(!window._roomLayoutWired){
 function exitCinema(){
   if(!S.cinema) return;
   S.cinema=false;
+  // The order menu is sized and placed for the room (it stops at the patient's head there).
+  // Outside it — the BEDSIDE close-up in the chart layout on a mid-size screen — the same
+  // panel lands on the patient, so leaving the room closes it; Orders opens it again.
+  if($('actionBrowser')) closeActionBrowser();
   document.body.classList.remove('cinema','hudL','hudR','hudClear','roomHide','console','feedOpen','resultsOpen');   // collapsed columns don't outlive the room
   applyRoomHide(); fitChartRoom();
   document.body.style.removeProperty('--hdr');
@@ -12559,43 +12660,14 @@ function paintRoom(){
   const im=ov.querySelector('img'); if(im) im.onerror=()=>{ (im.parentElement||im).remove(); };
   paintCareStrip();
 }
-// Mirrors the header's live ECG/pleth canvases onto the wall-mounted monitor in the room
-// photo — no second waveform engine, just a blit each frame. Self-terminates once the
-// scene is torn down (rm_ecg removed from the DOM), so switching tabs away and back is safe.
+// The wall monitor used to mirror the telemetry trace here (removed 2026-09-18, Kim: one
+// monitor, the telemetry strip). What is left only cancels a loop that may still be running.
 let roomMonRAF=null, _rmFit=null;
 function startRoomMonitor(){
+  // The wall-monitor copy of the trace is gone (see buildRoomScene); this only stops a loop
+  // a previous build may have left running, so the callers need not change.
   cancelAnimationFrame(roomMonRAF);
   if(_rmFit){ _rmFit(); _rmFit=null; }
-  const de=$('rm_ecg'), dp=$('rm_pleth');
-  if(!de) return;
-  const dctx=de.getContext('2d'), pctx=dp?dp.getContext('2d'):null;
-  // Same mechanism as the telemetry strip. This used to re-measure clientWidth and
-  // clientHeight inside the frame loop, which fixed the same class of bug (a scene
-  // rebuilt before its photo decoded latched a 0-high canvas) at the cost of forcing a
-  // layout sixty times a second. The observer catches every one of those changes and
-  // costs nothing between them. dpr:1 keeps the wall monitor's pixels exactly as they
-  // were — it is a 94px blit of a strip, not a surface anyone reads letters off.
-  const fitD=autoFitCanvas(de, null, {dpr:1});
-  const fitP=dp?autoFitCanvas(dp, null, {dpr:1}):null;
-  _rmFit=()=>{ fitD.stop(); if(fitP) fitP.stop(); };
-  (function loop(){
-    if(!document.getElementById('rm_ecg')){ if(_rmFit){ _rmFit(); _rmFit=null; } return; }   // scene torn down
-    // The SOURCE canvases are re-queried every frame, never cached: renderPlay()
-    // rebuilds #main on every single order, so a reference captured up here would
-    // be pointing at a detached canvas the moment the first order lands — and in
-    // cinema mode, where the scene outlives that rebuild, the wall monitor would
-    // blit a frozen trace for the rest of the case. getElementById is cheap.
-    const src=$('ecg'), spl=$('pleth');
-    if(!src){ roomMonRAF=requestAnimationFrame(loop); return; }
-    // Copy the WHOLE sweep — slicing "the newest part" draws nothing, because the region
-    // ahead of the sweep cursor is blank. Crop to the band the trace lives in and stack
-    // three offset copies: a 1px line shrunk ~10x otherwise fades below visibility.
-    const blit=(cx,s,d)=>{ cx.fillStyle='#020617'; cx.fillRect(0,0,d.width,d.height);
-      const sy=s.height*0.18, sh=s.height*0.64;
-      for(let dy=-1; dy<=1; dy++) cx.drawImage(s, 0, sy, s.width, sh, 0, dy, d.width, d.height); };
-    try{ blit(dctx,src,de); if(pctx&&spl) blit(pctx,spl,dp); }catch(e){}
-    roomMonRAF=requestAnimationFrame(loop);
-  })();
 }
 // BREATHING YOU CAN SEE. Kim (2026-09-13): "someone breathing fast." The chest rose 1.2% at
 // every RR, which nobody could see. This is the whole rule, pure, so tests/patient-motion
