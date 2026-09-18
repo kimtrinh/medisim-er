@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-6aErrE74ZmufB6M0wQ4Q+zaq2PrlAUiRcvCCIUjnSnw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-w076VfXbefcSCc4p7XFMHSjiwO7/O1wEO5s+OqlOI5c=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -9876,7 +9876,10 @@ function idealBaseFor(p, context){
   const text = String(context == null ? ((typeof S !== 'undefined' && S && S.context) || '') : context);
   for(const [re, by] of BASE_HINTS) if(by[sex] && re.test(text)) return by[sex];
   const yrs = parseFloat(p.age);
-  const age = isFinite(yrs) ? yrs : (legacy.startsWith('young') ? 28 : 70);
+  // No numeric age: the band says where in the old face's range they fall — "adult" is 36-64,
+  // the middle-aged face, not the seventy-year-old the old rule gave every non-young adult.
+  const band = String(p.ageBand || '').toLowerCase();
+  const age = isFinite(yrs) ? yrs : band === 'adult' ? 50 : band === 'senior' ? 75 : (legacy.startsWith('young') ? 28 : 70);
   if(age < 20) return sex === 'male' ? 'teen-m' : legacy;
   if(legacy.startsWith('young')){
     // the case's own id, so the same case always shows the same person
@@ -9893,15 +9896,33 @@ function idealBaseFor(p, context){
 // above can ship before a single new picture exists. tests/patient-bases.test.cjs holds this
 // list to the disk in both directions — nothing marked ready that is missing a picture, and
 // nothing with every picture left switched off.
-const PATIENT_BASES_READY = new Set(['young-m', 'young-f', 'older-m', 'older-f', 'child', 'infant', 'manikin']);
+const PATIENT_BASES_READY = new Set(['young-m', 'young-f', 'older-m', 'older-f', 'child', 'infant', 'manikin',
+  'mid-m',     // 2026-09-18: a 52-year-old Black man, grey beard — Gemini edits of young-m/older-m, 12 pictures
+  'mid-f',     // 2026-09-18: a 48-year-old South Asian woman, grey strands — Gemini edits of young-f/older-f
+  'young-f-2',     // 2026-09-18: a 27-year-old Black woman, short natural hair — Gemini edits of young-f
+  'young-m-2',     // 2026-09-18: a 26-year-old Hispanic man, moustache — Gemini edits of young-m
+  'elder-f',       // 2026-09-18: a frail 86-year-old Chinese woman — Gemini edits of older-f
+  'teen-m']);      // 2026-09-18: an 18-year-old man, auburn curls — an ADULT face on purpose: the
+                   // image tools will not (and should not) draw a minor, and he is closer to a
+                   // 14-17-year-old than the 25-year-old those cases showed before
 const PATIENT_DEVICES = ['c-collar', 'central-line', 'chest-tube', 'defib-pads', 'ett', 'o2-mask'];
+// ...and the two exam close-ups (patient-trauma/<b>-exam-{abdomen,chest}.jpg): without them the
+// exam card fell back to the MANIKIN's close-ups for a real patient (found switching on mid-m).
+const ADULT_FACE_RE = /^(young|mid|older|elder|teen)-[mf](-2)?$/;
 function BASE_NEEDS(b){
   return ['patient/' + b + '.jpg'].concat(PATIENT_DEVICES.map(d => 'patient-overlays/' + b + '/' + d + '.png'),
-    ['room', 'foot', 'airway'].map(v => 'scenes/' + v + '-' + b + '.jpg'));
+    ['room', 'foot', 'airway'].map(v => 'scenes/' + v + '-' + b + '.jpg'),
+    ADULT_FACE_RE.test(b) ? ['abdomen', 'chest'].map(x => 'patient-trauma/' + b + '-exam-' + x + '.jpg') : []);
 }
 function patientBaseFor(p, context){
-  const want = idealBaseFor(p, context);
-  return PATIENT_BASES_READY.has(want) ? want : legacyBaseFor(p);
+  const want = idealBaseFor(p, context), legacy = legacyBaseFor(p);
+  if(!PATIENT_BASES_READY.has(want)) return legacy;
+  // An injury picture outranks a better-matched face. If the brief's finding (a stab wound, a
+  // seatbelt sign…) is painted on the old face and not yet on the new one, the case keeps the
+  // old face until it is — losing the wound to gain the face would teach less, not more.
+  if(want !== legacy && typeof traumaVariantFor === 'function'
+     && traumaVariantFor(legacy) && !traumaVariantFor(want)) return legacy;
+  return want;
 }
 // Visible external findings belong on the PHOTO, not only in the exam text: a
 // stabbed patient should look stabbed the moment you walk in. Each variant was
@@ -9927,6 +9948,12 @@ const TRAUMA_BASES = {
   'older-m': new Set(ADULT_FINDINGS),
   'young-f': new Set(ADULT_FINDINGS),
   'older-f': new Set(ADULT_FINDINGS),
+  // The newer faces (2026-09-18) carry only the findings a case would otherwise keep an old
+  // face for — measured in the page: without them 8 cases stayed on the old face.
+  'mid-f':     new Set(['rash-petechial', 'flank-bruising']),   // heme-ttp; trauma-gunshot-occult-injury, resus-atls-blunt-multi
+  'young-f-2': new Set(['jaundice', 'cellulitis']),            // eb-acute-liver-failure; id-mammalian-bite-infection
+  'young-m-2': new Set(['leg-wound']),                         // resus-atls-traumatic-arrest
+  'teen-m':    new Set(['ascites']),                           // colitis-cdiff-fulminant
   'child':   new Set(['rash-petechial','rash-morbilliform','rash-urticaria','burn']),
   'infant':  new Set(['rash-petechial','rash-morbilliform','burn']),
 };
@@ -10017,7 +10044,7 @@ const TRAUMA_VARIANTS = [
   // AAA both put an ascitic belly on the patient. The full phrase still matches.
   ['ascites',        /ascites|ascitic|tense (?:distended )?abdomen|abdominal distension|paracentesis|spontaneous bacterial peritonitis|decompensated (?:cirrhosis|liver)/i],
   ['zoster',         /zoster|shingles|dermatomal|post-?herpetic|varicella zoster|\bVZV\b/i],
-  ['burn',           /\bburns?\b|scald|thermal injury|flame|house fire|hot (?:water|oil|liquid)/],
+  ['burn',           /\bburns?\b|scald|thermal injury|\bflames?\b|house fire|hot (?:water|oil|liquid)/],   // \b: "inflamed sigmoid colon" drew a burn on diverticulitis
   // Cellulitis sits after the rashes it could be confused with, but before
   // nothing else claims a red leg.
   ['cellulitis',     /cellulitis|erysipelas|red (?:hot )?(?:swollen )?(?:leg|limb)|hot swollen (?:leg|calf)|skin and soft tissue infection/i],
@@ -10434,7 +10461,8 @@ function bleedControlled(){
 // Exam close-ups exist only for the adult bases; children keep the manikin
 // close-ups, which are already manikin shots and so do not clash.
 const REAL_EXAM_IMG = {};
-for(const b of ['young-m','older-m','young-f','older-f']) REAL_EXAM_IMG[b] = {
+// every adult face that is switched on (PATIENT_BASES_READY requires its close-ups — BASE_NEEDS)
+for(const b of [...PATIENT_BASES_READY].filter(x => ADULT_FACE_RE.test(x))) REAL_EXAM_IMG[b] = {
   abdomen: `patient-trauma/${b}-exam-abdomen.jpg`,
   lungs:   `patient-trauma/${b}-exam-chest.jpg`
 };

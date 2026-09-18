@@ -31,5 +31,16 @@
    ],
    "bleeds": "pulsing"
   }
+ },
+ "young-m-2": {
+  "leg-wound": {
+   "box": [
+    186,
+    295,
+    453,
+    551
+   ],
+   "bleeds": "pulsing"
+  }
  }
 }
