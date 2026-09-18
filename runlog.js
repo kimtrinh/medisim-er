@@ -143,6 +143,36 @@ Recorder.prototype.finish = function(debrief){
   return this._run;
 };
 
+// ---------- feedback ----------
+// Kim, 2026-09-16: "Create a way for users to leave feedback for improvement on the case and
+// for it to generate a document that my LLM can continuously learn from." A second record
+// type beside the run: what the player says went wrong, and what should have happened.
+//
+// Its id is its own ("f-", never "r-"): the note and the run it is about are different
+// files, and an id that could equal a run id would let one overwrite the other anywhere
+// records are keyed by id. Free text is redacted like every other string and capped, and a
+// note with nothing in it is refused rather than shipped blank.
+const FEEDBACK_SCHEMA = 3, FEEDBACK_TEXT_MAX = 8000;
+function feedback(f){
+  const o = f || {};
+  const clip = v => redactText(String(v == null ? '' : v).trim()).slice(0, FEEDBACK_TEXT_MAX);
+  const happened = clip(o.happened), should = clip(o.should);
+  if(!happened && !should) throw new Error('nothing to send');
+  return {
+    schema: FEEDBACK_SCHEMA, kind: 'feedback',
+    id: 'f' + makeRunId(o.now, o.rand).slice(1),
+    createdAt: localISO(o.now),
+    runId: o.runId || null,
+    source: o.source || 'local', engine: o.engine || null, version: o.version || null,
+    case: { goldId: o.caseId || null, title: redactText(String(o.caseTitle || '')) },
+    at: { turn: Number.isFinite(o.turn) ? o.turn : null,
+          order: redactText(String(o.order || '').trim()) || null,
+          receipt: o.receipt ? redactValue(o.receipt, 0) : null },
+    happened, should,
+  };
+}
+const isFeedback = rec => !!(rec && rec.kind === 'feedback');
+
 // ---------- size ----------
 function tooBig(rec){ return JSON.stringify(rec).length > MAX_BYTES; }
 
@@ -171,7 +201,11 @@ function outboxWrite(list){
   catch(_){ return false; }   // quota exceeded: the run is lost, the case is not
 }
 // Same runId replaces rather than duplicates — a late flag re-ships the same run.
+// Runs only. A feedback note carries its run's runId, so letting one in here would replace
+// that run's record, and each later note the one before. Notes are sent while the player
+// waits and the form says what happened; they are refused here, loudly, with false.
 function outboxPush(rec){
+  if(isFeedback(rec)) return false;
   const l = outboxRead();
   const i = l.findIndex(x => x && x.runId === rec.runId);
   if(i >= 0) l[i] = rec; else l.push(rec);
@@ -201,6 +235,7 @@ async function ship(rec, send){
 
 root.RunLog = { SCHEMA, MAX_BYTES, OUTBOX_KEY, OUTBOX_MAX,
                 Recorder, makeRunId, localISO, redactText, redactValue, tooBig, fit,
-                outboxRead, outboxWrite, outboxPush, outboxFlush, ship };
+                outboxRead, outboxWrite, outboxPush, outboxFlush, ship,
+                FEEDBACK_SCHEMA, FEEDBACK_TEXT_MAX, feedback, isFeedback };
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.RunLog;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

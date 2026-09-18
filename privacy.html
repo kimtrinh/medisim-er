@@ -89,9 +89,19 @@
   Leaving the switch off shares nothing. Sharing requires being signed in, so that only real
   people can write; the record itself still carries no account.</p>
 
+  <h2>Suggestions you send</h2>
+  <p><em>Suggest an improvement</em>, in the debrief and beside any order, sends a note only
+  when you press Send, whether or not the switch above is on — pressing Send is the consent.
+  A note holds what you typed, which case it was, and, if you opened it from an order, that
+  order and how the simulator answered it. Like the case logs it carries no account, name or
+  email, and the same identifier-shaped text is stripped before it leaves. If this copy of
+  the site has nowhere to send it, the form says so and offers the note as a file for you to
+  download instead; nothing is kept to send later.</p>
+
   <h2>Other services the page contacts</h2>
   <ul>
     <li><strong>Supabase</strong> — sign-in and your training log, only when you are signed in.</li>
+    <li><strong>Cloudflare</strong> — the collector that receives a suggestion when you press Send, and the case logs when the switch above is on. It stores nothing itself; it files the record in a private repository and keeps no record of who sent it.</li>
     <li><strong>Anthropic or Google</strong> — only if you supply your own API key, and only from your browser.</li>
     <li><strong>Wikimedia Commons</strong> — some of the study images are hosted there.</li>
     <li><strong>jsDelivr and cdnjs</strong> — code libraries, loaded only when needed.</li>

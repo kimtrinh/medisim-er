@@ -147,6 +147,21 @@ async function shipRun(rec){
   if(!rec || !rec.runId) return false;
   return insertRun(rec);
 }
+// A player's note (runlog.js feedback(), schema 3). Shaped like the shared runs above, for
+// the same reason: insert-only and WITHOUT a user column, because privacy.html promises
+// shared records "carry no account, name or email" and a note is one. Signing in is the
+// door key, never a label on the row. And like shipRun it queues nothing: the form tells
+// the player it did not go and offers the download, which a silent retry here would turn
+// into "sent" about a note still waiting.
+async function saveFeedback(rec){
+  if(!A.client || !A._uid || !rec || rec.schema !== 3 || rec.kind !== 'feedback' || !rec.id) return false;
+  try{
+    const { error } = await A.client.from('feedback').insert([{
+      note_id: String(rec.id), run_id: rec.runId ? String(rec.runId) : null,
+      case_id: (rec.case && rec.case.goldId) ? String(rec.case.goldId) : null, note: rec }]);
+    return !error;
+  }catch(_){ return false; }
+}
 // Everything this person has ever done, oldest first — the order every consumer of
 // getCaseLog() already assumes.
 async function hydrate(uid){
@@ -293,7 +308,7 @@ function status(){
 
 root.Account = { init, signIn, signOut, log, append, flush, status,
                  pendingMerge, mergeLocal, declineMerge,
-                 shipRun,
+                 shipRun, saveFeedback,
                  entryId, newId, _state: A };
 if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.Account;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

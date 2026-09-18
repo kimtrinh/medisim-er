@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LuTOdIaPT3TqtPgXB/nYlxoGAQqsJXA46RK6cVO4Z1I=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XE1JvbmMvzmoXUoM46PSTUpAM8WzxOrusPP6UlOmbJc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1313,6 +1313,23 @@
   #audioSlot{flex:0 0 auto;width:clamp(76px,22vw,208px);display:flex;justify-content:flex-end}
   #audioChip{width:100%;min-width:0;overflow:hidden}
   #audioChip.idle{visibility:hidden}
+  /* ...but only where the room is. Outside it — the case list, the debrief — there is no room
+     to repaint, so the slot has nothing to protect, and on a phone its empty width was the
+     difference between a header that fits and one that pushed the page to 429px on a 390px
+     screen, zooming everything out (measured 2026-09-17 on the debrief, with the engine's
+     name under the title). Quiet and out of the room, it takes no space at all. */
+  body:not(.cinema) #audioSlot.idle{display:none}
+  /* THE NAME GIVES WAY, not the controls. Collapsing the quiet slot was not enough: while the
+     line is speaking ("Generating audio…" plays over the debrief) it rightly holds its
+     width, and the name block — with the engine's status under it, "Claude (subscription):
+     connected" — held a fixed 190px, so on a 390px phone the header was 429px and the whole
+     page zoomed out. The name may shrink, and the status under it is cut with an ellipsis;
+     the buttons and the voice line keep their size. At desktop widths nothing is cut. */
+  #homeBtn{min-width:0;flex:0 1 auto}
+  #homeBtn > div:last-child{min-width:0}
+  #homeBtn > div:last-child > div{min-width:0}
+  #connText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #connDot{flex:none}
   #audioChipText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:639px){ #audioChip{padding:.2rem .4rem;letter-spacing:.06em} }
   /* ================================================================ SUBMIT STAYS ON SCREEN
@@ -1638,7 +1655,7 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
          takes some time for the audio to generate sometimes" — and the same line is where a
          silent turn says WHY it was silent. Lives beside the speaker button so its meaning is
          obvious; aria-live so a screen reader hears it once, not on every repaint. -->
-    <div id="audioSlot"><div id="audioChip" class="idle flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
+    <div id="audioSlot" class="idle"><div id="audioChip" class="idle flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
       <span id="audioChipDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span><span id="audioChipText">Generating audio…</span>
     </div></div>
     <button id="ttsBtn" aria-label="Toggle voice narration" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Toggle voice narration">
@@ -1656,6 +1673,28 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
 <main id="main" class="flex-1 overflow-hidden flex flex-col"></main>
 
 <!-- ======= SETTINGS MODAL ======= -->
+<!-- Suggest an improvement. One form, opened from any order's receipt (about that order) and
+     from the debrief (about the whole case). It never says a note went somewhere it did not:
+     #fbNowhere is filled BEFORE the player writes when this copy has no destination, and
+     #fbDownload appears when a send fails. -->
+<div id="feedbackModal" class="hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <form id="feedbackForm" class="w-full max-w-lg max-h-full overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-3" novalidate>
+    <h2 id="fbTitle" class="text-sm font-black uppercase tracking-widest text-emerald-400">Suggest an improvement</h2>
+    <p class="text-xs text-slate-400">Your words go to the people who write the cases. No patient information, please &mdash; the sim has none and needs none.</p>
+    <p id="fbAbout" class="text-[11px] text-slate-400"></p>
+    <p id="fbNowhere" class="hidden text-[11px] text-amber-300"></p>
+    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500">What happened?
+      <textarea id="fbHappened" rows="3" maxlength="8000" class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-800 p-3 text-sm normal-case tracking-normal font-normal text-slate-200"></textarea></label>
+    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500">What should have happened?
+      <textarea id="fbShould" rows="3" maxlength="8000" class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-800 p-3 text-sm normal-case tracking-normal font-normal text-slate-200"></textarea></label>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="submit" id="fbSend" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-[11px] font-black uppercase tracking-widest">Send</button>
+      <button type="button" id="fbDownload" class="hidden px-3 py-2 rounded-xl border border-amber-500/50 text-amber-300 text-[11px] font-black uppercase tracking-widest">Download instead</button>
+      <button type="button" id="fbCancel" class="px-3 py-2 rounded-xl border border-slate-800 text-slate-400 text-[11px] font-black uppercase tracking-widest">Cancel</button>
+    </div>
+    <p id="fbStatus" class="text-[11px] text-slate-300 min-h-[1rem]" role="status" aria-live="polite"></p>
+  </form>
+</div>
 <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-xl items-center justify-center p-4">
   <!-- max-h + overflow-y: the modal is taller than a laptop viewport; without this the
        lower fields (fallback API key etc.) are unreachable because the backdrop, not
@@ -1927,7 +1966,7 @@ const $ = id => document.getElementById(id);
 // and how it graded — the evidence the /analyze-runs loop turns into pack fixes.
 // Local builds log to this machine for simulator QA. Public builds collect only
 // when a collector is configured and the player explicitly opts in.
-const COLLECTOR_URL = '';   // set in Phase 3 to the deployed Worker endpoint
+const COLLECTOR_URL = 'https://medisim-collector.kltrinh-28a.workers.dev';   // collector/worker.js, deployed 2026-09-18 (Cloudflare, rate-limited); writes to the private kimtrinh/medisim-logs
 // SIGNING IN. Kim: "I don't want everybody to see my training log. I want everybody to
 // have their individual training logs."
 //
@@ -3896,6 +3935,7 @@ function paintAudioChip(){
   const el = $('audioChip'); if(!el) return;
   const txt = $('audioChipText'), dot = $('audioChipDot');
   // idle hides the line without taking its space back — see #audioSlot in the stylesheet
+  const slot = $('audioSlot'); if(slot) slot.classList.toggle('idle', !_audioMsg);
   if(!_audioMsg){ el.classList.add('idle'); el.setAttribute('aria-hidden', 'true'); return; }
   el.classList.remove('idle'); el.removeAttribute('aria-hidden');
   // A phone header has room for a few words, not a sentence: the long line wrapped to two
@@ -8430,12 +8470,132 @@ function orderProblemPayload(row){
     app:{url:location.href,userAgent:navigator.userAgent}
   };
 }
-function downloadOrderProblem(row){
-  const payload=orderProblemPayload(row), blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a'), url=URL.createObjectURL(blob);
-  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
-  a.href=url; a.download='medisim-order-problem-'+stamp+'.json'; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+// ===================== SUGGEST AN IMPROVEMENT =====================
+// Kim, 2026-09-16: "Create a way for users to leave feedback for improvement on the case and
+// for it to generate a document that my LLM can continuously learn from." A note is
+// runlog.js's feedback() record; tools_build_feedback.cjs folds every note into FEEDBACK.md.
+//
+// Where it can go, in order: this machine (serve_app.py's /progress/feedback, straight into
+// the folder FEEDBACK.md is built from — Kim plays locally, so most notes take this door),
+// the player's account (signed in on the public site; insert-only, no user id), or the
+// collector (once it is deployed). With none of those it goes nowhere, and the form says so
+// before the player writes a word. A note is never queued to "send later": the player is
+// looking at the form, so the form tells them what happened and offers the file instead.
+//
+// feedbackEnv() is the one place this asks where it is running, so the answer can be read —
+// and, in tests/feedback-form.test.cjs, replaced — in one place.
+function feedbackEnv(){
+  return { public: PUBLIC_BUILD, signedIn: accountSink(), collector: COLLECTOR_URL };
+}
+function feedbackSinks(env){
+  const e = env || feedbackEnv(), out = [];
+  if(!e.public) out.push({ where: 'local', label: 'Saved on this machine — thank you. It will be in FEEDBACK.md next time it is built.',
+    send: rec => postNote('progress/feedback', rec) });
+  if(e.public && e.signedIn) out.push({ where: 'account', label: 'Sent — thank you.',
+    send: rec => Account.saveFeedback(rec) });
+  if(e.public && e.collector) out.push({ where: 'collector', label: 'Sent — thank you.',
+    send: rec => postNote(e.collector, rec) });
+  return out;
+}
+async function postNote(url, rec){
+  try{
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rec) });
+    return r.ok;
+  }catch(_){ return false; }
+}
+// Which build the note was written against, so FEEDBACK.md can say "reported on 340af5f".
+// build-dist.sh writes version.txt; a local copy has none and says so.
+let _appVersion = null;
+async function appVersion(){
+  if(_appVersion) return _appVersion;
+  if(!PUBLIC_BUILD) return (_appVersion = 'local');
+  try{ const r = await fetch('version.txt', { cache: 'no-store' }); if(r.ok) _appVersion = (await r.text()).trim().slice(0, 40) || null; }catch(_){}
+  return _appVersion || 'unknown';
+}
+let _fbAbout = null;      // {turn, order, receipt, row} — or null: the whole case
+let _fbLastNote = null;   // what Download saves: the note as built, so the file is what would have been sent
+// Which opening of the form this is. "Sent — thank you" closes the form a moment later; that
+// timer must close the note it was set for and nothing else. Without this, a player who sends
+// one note and opens Report problem on the next order within the moment has the new form
+// vanish under their fingers.
+let _fbGen = 0;
+function openFeedbackForm(about){
+  const m = $('feedbackModal'); if(!m) return;
+  _fbAbout = about || null; _fbLastNote = null; _fbGen++;
+  $('fbAbout').textContent = about && about.order
+    ? 'About the order “' + about.order + '”' + (about.receipt && about.receipt.note ? ' — the sim said: ' + about.receipt.note : '')
+    // Not S.caseLabel: for a course case that is the course's blurb, a paragraph long. The
+    // note records the case id and title for the people who read it; the player knows the case.
+    : 'About the whole case.';
+  const nowhere = !feedbackSinks().length;
+  $('fbNowhere').textContent = nowhere
+    ? 'This copy of the site has nowhere to send notes. Write it anyway — the button below saves it as a file for you to send to the site\'s author.' : '';
+  $('fbNowhere').classList.toggle('hidden', !nowhere);
+  $('fbSend').textContent = nowhere ? 'Download' : 'Send';
+  $('fbDownload').classList.add('hidden');
+  $('fbHappened').value = ''; $('fbShould').value = ''; $('fbStatus').textContent = '';
+  $('fbSend').disabled = false;
+  m.classList.remove('hidden');
+  $('fbHappened').focus();
+}
+function closeFeedbackForm(){ const m = $('feedbackModal'); if(m) m.classList.add('hidden'); _fbAbout = null; }
+async function buildNote(happened, should){
+  const a = _fbAbout || {};
+  return RunLog.feedback({
+    happened, should, now: new Date(),
+    runId: (RUNLOG.current() && RUNLOG.current().runId) || null,
+    caseId: S.goldId || null, caseTitle: S.caseLabel || '',
+    engine: useInstant() ? 'instant' : 'api', version: await appVersion(),
+    source: PUBLIC_BUILD ? 'public' : 'local',
+    turn: S.instantState ? S.instantState.turnCount : undefined,
+    order: a.order || '', receipt: a.receipt || null,
+  });
+}
+// The file is the note itself — the same record a sink would have received — so dropping it
+// into progress/feedback/inbox/ puts it in FEEDBACK.md. From a receipt, the fuller context
+// Report problem used to download on its own rides along under `context`.
+function downloadFeedback(rec){
+  const body = Object.assign({}, rec, _fbAbout && _fbAbout.row ? { context: orderProblemPayload(_fbAbout.row) } : {});
+  const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'), url = URL.createObjectURL(blob);
+  a.href = url; a.download = 'medisim-feedback-' + rec.id + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+async function submitFeedback(){
+  const happened = $('fbHappened').value.trim(), should = $('fbShould').value.trim();
+  if(!happened && !should){ $('fbStatus').textContent = 'Say what happened, or what should have — one line is enough.'; $('fbHappened').focus(); return; }
+  const sinks = feedbackSinks();
+  $('fbSend').disabled = true;
+  let rec;
+  try{ rec = await buildNote(happened, should); }
+  catch(err){ $('fbStatus').textContent = 'Could not build the note: ' + ((err && err.message) || err); $('fbSend').disabled = false; return; }
+  _fbLastNote = rec;
+  if(!sinks.length){
+    downloadFeedback(rec);
+    $('fbStatus').textContent = 'Downloaded — send that file to the site\'s author.';
+    $('fbSend').disabled = false; return;
+  }
+  $('fbStatus').textContent = 'Sending…';
+  for(const sink of sinks){
+    let ok = false;
+    try{ ok = await sink.send(rec); }catch(_){ ok = false; }
+    if(ok){ $('fbStatus').textContent = sink.label;
+      const gen = _fbGen; setTimeout(() => { if(gen === _fbGen) closeFeedbackForm(); }, 1500); return; }
+  }
+  // Every destination refused. Say so plainly, keep the words on screen, offer the file.
+  $('fbStatus').textContent = 'Not sent — it could not be delivered. Your words are still here; download the note and send the file instead.';
+  $('fbDownload').classList.remove('hidden');
+  $('fbSend').disabled = false;
+}
+if($('feedbackForm')){
+  $('feedbackForm').onsubmit = e => { e.preventDefault(); submitFeedback(); };
+  $('fbCancel').onclick = closeFeedbackForm;
+  $('fbDownload').onclick = () => { if(_fbLastNote){ downloadFeedback(_fbLastNote); $('fbStatus').textContent = 'Downloaded — send that file to the site\'s author.'; } };
+  // Escape closes it — only while it is open, and before anything underneath hears the key.
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && !$('feedbackModal').classList.contains('hidden')){ e.stopPropagation(); e.preventDefault(); closeFeedbackForm(); }
+  }, true);
+  $('feedbackModal').addEventListener('mousedown', e => { if(e.target === $('feedbackModal')) closeFeedbackForm(); });
 }
 function renderOrderFeedback(){
   const el=$('orderFeedback'); if(!el) return;
@@ -8453,7 +8613,10 @@ function renderOrderFeedback(){
     ${rows.map((r,i)=>`<div class="flex flex-wrap gap-x-2 gap-y-1 items-baseline text-[11px] ${style[r.kind]||style.performed}"><span class="font-black">${mark[r.kind]||'•'}</span><span class="mono text-slate-200">${esc(r.text)}</span><span class="text-slate-500 flex-1">— ${esc(r.note)}</span><button data-order-problem="${i}" class="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:border-amber-500/50 hover:text-amber-300">Report problem</button></div>`).join('')}
   </div>`;
   el.classList.remove('hidden');
-  el.querySelectorAll('[data-order-problem]').forEach(b=>b.onclick=()=>downloadOrderProblem(rows[+b.dataset.orderProblem]));
+  // Report problem opens the feedback form about this order. The download it used to do on
+  // its own is still one press away inside the form, with the same context attached.
+  el.querySelectorAll('[data-order-problem]').forEach(b=>b.onclick=()=>{ const r = rows[+b.dataset.orderProblem];
+    openFeedbackForm({ order: r.text, receipt: { status: r.kind, note: r.note }, row: r }); });
   fitOrderFeedback();
 }
 // The status line's room when the order wall is drawn: from the wall's foot (88% of the
@@ -13140,12 +13303,14 @@ function renderDebrief(){
       <div class="flex gap-3 pt-2 flex-wrap">
         <button id="goldSaveBtn" class="flex-1 min-w-[10rem] bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold py-3 rounded-xl transition" title="Adds this generated case to your personal library for replay">Save to my personal library</button>
         <button id="dlBtn" class="flex-1 min-w-[10rem] bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition">Download report</button>
+        <button id="debriefFeedback" class="flex-1 min-w-[10rem] bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold py-3 rounded-xl transition" title="Tell the people who write the cases what went wrong, and what should have happened">Suggest an improvement</button>
         <button id="newBtn" class="flex-1 min-w-[10rem] bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">New case</button>
       </div>
     </div>
   </div>`;
   $('newBtn').onclick=()=>{ stopSpeak(); renderSetup(); };
   $('dlBtn').onclick=()=>downloadReport(d,score);
+  $('debriefFeedback').onclick=()=>openFeedbackForm(null);
   const gsb=$('goldSaveBtn');
   if(gsb){ if(!S.caseSeed){ gsb.disabled=true; gsb.classList.add('opacity-40'); }
     gsb.onclick=()=>{ if(saveGoldCase()){ gsb.textContent='✓ Saved to your personal library'; gsb.disabled=true; gsb.classList.add('opacity-60'); } }; }
