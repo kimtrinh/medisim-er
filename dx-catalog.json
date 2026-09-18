@@ -7100,6 +7100,13 @@
     {
       "canonical": "head injury",
       "label": "Head injury",
+      "aliases": [
+        "head trauma"
+      ]
+    },
+    {
+      "canonical": "head trauma",
+      "label": "Head trauma",
       "aliases": []
     },
     {
@@ -8533,12 +8540,22 @@
       "aliases": []
     },
     {
+      "canonical": "intracerebral bleed",
+      "label": "Intracerebral bleed",
+      "aliases": []
+    },
+    {
+      "canonical": "intracerebral haemorrhage",
+      "label": "Intracerebral haemorrhage",
+      "aliases": [
+        "intracerebral bleed",
+        "intracerebral hemorrhage"
+      ]
+    },
+    {
       "canonical": "intracerebral hemorrhage",
       "label": "Intracerebral hemorrhage",
-      "aliases": [
-        "ich",
-        "intracranial hemorrhage"
-      ]
+      "aliases": []
     },
     {
       "canonical": "intracerebral hemorrhage on anticoagulation",
@@ -8549,6 +8566,16 @@
       "canonical": "intracranial bleed",
       "label": "Intracranial bleed",
       "aliases": []
+    },
+    {
+      "canonical": "intracranial haemorrhage",
+      "label": "Intracranial haemorrhage",
+      "aliases": [
+        "brain bleed",
+        "ich",
+        "intracranial bleed",
+        "intracranial hemorrhage"
+      ]
     },
     {
       "canonical": "intracranial hemorrhage",

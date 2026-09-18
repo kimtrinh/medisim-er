@@ -2339,8 +2339,19 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
     // answer they are being graded on.
     const onChart = assessView(state);
     const accepted = onChart.some(a => diagnosisGrade(a.text || a.clause || '', opts.diagnosis) !== 'wrong');
+    // A NEUROSURGEON TAKES A HEAD-INJURY REFERRAL AS A REFERRAL. Asked about a documented head
+    // injury, they do not answer "that isn't what I'd call this" because the case's final
+    // answer is something more specific (or the head is not the main event, as in a pelvic
+    // bleed with a GCS of 9) — they take the referral and ask for what they need to see.
+    // Neutral on purpose: it confirms nothing, so it hands no diagnosis away. Ported
+    // 2026-09-17 from the unreviewed working-folder edits (branch codex-wip-2026-09-15).
+    const neuroConcern = !accepted && /neurosurg/i.test(svc) && onChart.some(a =>
+      /\b(head (?:injury|trauma)|traumatic brain injury|tbi|intracranial (?:bleed|ha?emorrhage)|brain bleed)\b/i.test(a.text || a.clause || ''));
     let line;
-    if(accepted){
+    if(neuroConcern){
+      line = `${Svc} — your head-injury concern is documented. Send the neurological examination and available head imaging for review. This acknowledges the referral, not confirmation of a diagnosis.`;
+      if(state) state.consultWaiting = null;
+    } else if(accepted){
       line = `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`;
       if(state) state.consultWaiting = null;
     } else if(onChart.length){
@@ -2688,12 +2699,18 @@ const DX_EQUIV = [
   ['pe','pulmonary embolism','pulmonary embolus','saddle embolus'],
   ['dka','diabetic ketoacidosis'],
   ['tbi','traumatic brain injury'],
+  // Ported 2026-09-17 from the unreviewed working-folder edits (branch codex-wip-2026-09-15).
+  ['head injury','head trauma'],
   ['pph','postpartum hemorrhage','post partum hemorrhage'],
   ['svt','supraventricular tachycardia','avnrt'],
   ['af','afib','a fib','atrial fibrillation'],
   ['chb','complete heart block','third degree av block','third degree heart block'],
   ['sah','subarachnoid hemorrhage','subarachnoid haemorrhage'],
-  ['ich','intracranial hemorrhage','intracerebral hemorrhage'],
+  // Intracranial is the CATEGORY, intracerebral one bleed within it, so they are no longer one
+  // group: "intracerebral haemorrhage" for a SUBDURAL was graded correct, which it is not. The
+  // other direction — the category named for one of its members — is DX_UMBRELLA's (close).
+  ['ich','intracranial hemorrhage','intracranial haemorrhage','intracranial bleed','brain bleed'],
+  ['intracerebral hemorrhage','intracerebral haemorrhage','intracerebral bleed'],
 ];
 // Padded and punctuation-stripped so a term matches as a WHOLE phrase: "mi" must not
 // fire inside "mild", and "af" must not fire inside "after".
@@ -2912,7 +2929,33 @@ function dxWords(s){
   return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/)
     .filter(w => w.length > 1 && !DX_QUALIFIER.has(w) && !MO_STOP.has(w)).map(dxMorph);
 }
+// BROADER, NOT WRONG. DX_EQUIV says two names mean the same thing; this says one name is the
+// category another belongs to. "Intracranial haemorrhage" for an intracerebral bleed, or "head
+// injury" for an epidural haematoma, is less specific and never wrong — close, never correct.
+// Measured before this existed: "head injury" was graded WRONG for the epidural haematoma, the
+// severe TBI and the blunt multi-trauma with a GCS of 9, and splitting intracerebral out of the
+// ICH group turned "intracranial hemorrhage" for the anticoagulant ICH from correct to wrong.
+// The member patterns are specific on purpose: "epidural" alone is also a SPINAL epidural
+// abscess (neuro-cord-compression), and "intracranial" alone is also idiopathic intracranial
+// HYPERTENSION (peds-pseudotumor-cerebri) — neither is a bleed or a head injury.
+const DX_UMBRELLA = [
+  { broad: ['intracranial hemorrhage', 'intracranial bleed', 'brain bleed', 'ich'],
+    members: /\b(intracerebral|intraparenchymal|intraventricular|subdural|subarachnoid)\b|\b(epidural|extradural)\b[^.;:]*\bha?ematoma\b|\bintracranial ha?emorrhage\b/i,
+    never: /\bspinal\b/i },
+  { broad: ['head injury', 'head trauma'],
+    members: /\btraumatic brain injury\b|\btbi\b|\bsubdural\b|\b(epidural|extradural)\b[^.;:]*\bha?ematoma\b|\btraumatic intracranial\b|\bdiffuse axonal\b|\bskull fracture\b|\bconcussion\b/i,
+    never: /\bspinal\b/i },
+];
+function dxUmbrellaClose(text, dx){
+  // The WHOLE thing said must be the category (qualifiers aside): "brain bleed" is, "brain
+  // bleed from an AVM" is a different claim and goes through the ordinary rules.
+  const core = dxWords(String(text || '').replace(ASSESS_FRAME_RE, '')).join(' ');
+  if(!core) return false;
+  const d = String(dx || '');
+  return DX_UMBRELLA.some(u => u.broad.some(b => dxWords(b).join(' ') === core) && u.members.test(d) && !u.never.test(d));
+}
 function diagnosisClose(text, dx){
+  if(dxUmbrellaClose(text, dx)) return true;
   const said = dxWords(String(text || '').replace(ASSESS_FRAME_RE, ''));
   if(!said.length) return false;
   for(const part of diagnosisParts(dx)){
@@ -3389,6 +3432,11 @@ function buildDebrief(pack, state, opts, outcome){
 const ORDER_FRAGMENT = /^(drip|gtt|and|then|also|too|stat|now|please|iv|po|im|sq|it|that|this|one|two|both|plus|with)$/i;
 function isOrderFragment(text){ return ORDER_FRAGMENT.test(String(text == null ? '' : text).trim()); }
 
+// How the cases say a tube went in ("Airway's secured — tube confirmed and tied at the lip",
+// "Tube's in and confirmed with end-tidal CO2", "She's intubated.", "Advanced airway placed"),
+// and the words that make such a line a refusal, a plan or a failure instead.
+const TUBE_CONFIRMED_RE = /\b(tube(?:'s| is)? in|tube confirmed|tube placed|endotracheal tube placed|intubation successful|successfully intubated|airway(?:'s| is)? secured|advanced airway placed|(?:he|she|they)(?:'s| is| are) intubated|intubated for airway protection)\b/i;
+const TUBE_NOT_RE = /\b(not|failed|unable|unsuccessful|if you|if he|if she|hold on|don't|before we|staged|want to)\b/i;
 function runTurn(pack, state, action, opts){
   // Defensive init for fields added after the original state shape shipped.
   // Recorded on the state so a replay can be handed the same one. A case with no seed
@@ -4118,11 +4166,25 @@ function runTurn(pack, state, action, opts){
   }
   // Intubation is a one-way door for patient dialogue: after "RSI, roc 100" and a
   // confirmed tube, the patient still answered a history question out loud.
+  //
+  // But a REFUSED intubation is no tube. Measured 2026-09-17 on the 45 cases that can
+  // intubate: reading the ORDER alone silenced the patient in all 45, including the ones where
+  // the consultant stops you ("Hold on — let's give CPAP/BiPAP a real trial first", "Don't.
+  // Induce a patient who is still bleeding…") and nothing happens. So the order counts only
+  // if the engine did not refuse it — its own gate verdict, the same one that withholds the
+  // procedure's effects. And the tube's confirmation counts on its own, which also catches
+  // an intubation ordered without the word ("RSI with ketamine and roc", "tube him").
+  // (The confirmation idea is from the unreviewed working-folder edits, branch
+  // codex-wip-2026-09-15; on its own, with its narrower wording, it caught 6 of the 45.)
   if(!state.intubated){
+    const INTUBATE_RE = /\b(intubate|intubated|intubation|rapid sequence intubation)\b/;
+    const ordered = INTUBATE_RE.test(rawNorm) && !WITHHOLD_RE.test(rawNorm) && !PREP_RE.test(rawNorm)
+      && !/\?\s*$/.test(String(action));
+    const tubeClauses = clauseList.filter(c => INTUBATE_RE.test(normalize(c)));
+    const refused = tubeClauses.length > 0 && tubeClauses.every(c => blockedClauses.has(c));
+    const confirmed = out.speech.some(s => TUBE_CONFIRMED_RE.test(s.text || '') && !TUBE_NOT_RE.test(s.text || ''));
     if(state.flags.airwaySecured || state.flags.intubated) state.intubated = true;
-    else if(/\b(intubate|intubated|intubation|rapid sequence intubation)\b/.test(rawNorm)
-            && !WITHHOLD_RE.test(rawNorm) && !PREP_RE.test(rawNorm) && !/\?\s*$/.test(String(action)))
-      state.intubated = true;
+    else if((ordered && !refused) || confirmed) state.intubated = true;
   }
   // bare "labs"/"routine labs" ⇒ CBC + BMP ONLY, preferring the pack's case-specific rows
   if(wantRoutine){
