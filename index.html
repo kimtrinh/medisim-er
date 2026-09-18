@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-XE1JvbmMvzmoXUoM46PSTUpAM8WzxOrusPP6UlOmbJc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-6aErrE74ZmufB6M0wQ4Q+zaq2PrlAUiRcvCCIUjnSnw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -2625,12 +2625,33 @@ const NEG_LEAD = /\b(?:no|not|without|absent|negative for|free of|ruled? out|den
 // so "subxiphoid cardiac ultrasound, no pericardial effusion" still scored on the
 // view and showed an effusion. If the query explicitly rules a finding OUT, that
 // image is wrong no matter what else matches.
-function kwHit(q, w){
-  let i = q.indexOf(w), sawNegated = false;
+//
+// A keyword is a WORD, not a string of letters (2026-09-18). kwHit used to match anywhere inside
+// the text, so the Stevens-Johnson/TEN photograph was shown for "tenderness", "attention" and
+// "often" (its keyword "ten"), the burn for "McBurney's point", and "fluctuant" for
+// "non-fluctuant" — measured: ~25 exam findings, from coronary occlusion to a torsades arrest,
+// showed skin sloughing off. A keyword must now START a word; a short one (4 letters or fewer)
+// must also END it, bar a plural or tense ("burns", "burned"); longer ones may still be stems
+// ("petechia" → petechiae, "meningococc" → meningococcal). "non-" before it is a negation.
+function kwAt(q, w, from){
+  let i = q.indexOf(w, from);
   while(i !== -1){
-    if(!NEG_LEAD.test(q.slice(Math.max(0, i - 44), i))) return 1;
+    const before = i === 0 ? ' ' : q[i - 1];
+    const after = q.slice(i + w.length);
+    const startsWord = !/[a-z0-9]/.test(before);
+    const endsWord = w.length > 4 || /^(?:s|es|ed|ing)?(?![a-z0-9])/.test(after);
+    if(startsWord && endsWord) return i;
+    i = q.indexOf(w, i + 1);
+  }
+  return -1;
+}
+function kwHit(q, w){
+  let i = kwAt(q, w, 0), sawNegated = false;
+  while(i !== -1){
+    const lead = q.slice(Math.max(0, i - 44), i);
+    if(!NEG_LEAD.test(lead) && !/\bnon[- ]?$/.test(lead)) return 1;
     sawNegated = true;
-    i = q.indexOf(w, i + w.length);
+    i = kwAt(q, w, i + w.length);
   }
   return sawNegated ? -1 : 0;
 }
@@ -2654,8 +2675,14 @@ function mediaEntry(query, type, allowGeneric, accept){
   }
   if(!best) return null;
   const e=best.e;
+  // A loop plays only for a study that describes what the loop shows ("video_kw"): the reduced-EF
+  // still is also the pick for a DILATED RIGHT ventricle, and its loop is a left ventricle.
+  const loopFits = !!e.video && (!e.video_kw || e.video_kw.some(w => kwHit(q, w) === 1));
   return {url:e.file, page:e.page, credit:e.credit, license:e.license,
-          licenseUrl:e.license_url, label:e.label, key:best.key, source:'local', score:bestScore};
+          licenseUrl:e.license_url, label:e.label, key:best.key, source:'local', score:bestScore,
+          // an ultrasound LOOP attached to this still (plan 4, task 4) — the still stays the choice
+          video:loopFits?e.video:null, poster:e.video_poster||null, videoCredit:e.video_credit||null,
+          videoLicense:e.video_license||null, videoPage:e.video_page||null};
 }
 
 // BOTH LIBRARIES ARE ONE POOL, RANKED TOGETHER. This used to try the local library first
@@ -2885,6 +2912,35 @@ const FILM_HOTSPOTS = {};   // key -> [{x,y,r,label}]  (populated from media-hot
 }catch(_){ } })();
 
 let _film = null, _filmReturnFocus = null;
+// ULTRASOUND MOVES. Kim, 2026-09-16: "Consider adding GIFs for ultrasound." A still cannot show a
+// chamber collapsing in tamponade, an IVC that swings with each breath, or a heart that barely
+// squeezes; a four-second loop can (media-manifest.json "video" on the still's own entry, so the
+// film a study picks never changes). The loop plays where motion teaches at a glance — the
+// results card and the cart's screen in the room. The film viewer keeps the still: it is the
+// place to study a picture, and its "show me the finding" markers are drawn for the still.
+// Reduced motion keeps the still everywhere.
+function studyLoopOK(img){
+  if(!img || !img.video) return false;
+  try{ return !matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){ return true; }
+}
+function studyLoopHTML(img, attrs, style){
+  return `<video src="${esc(img.video)}" poster="${esc(img.poster||img.url)}" autoplay muted loop playsinline preload="auto"
+    data-loop-fallback="${esc(img.poster||img.url)}" ${attrs||''} style="${style||''}"></video>`;
+}
+// A loop that cannot play (codec, network) becomes its own poster, not a broken box. One listener,
+// in the capture phase because media errors do not bubble — inline error-handler attributes are
+// forbidden here (and the content security policy would block them anyway).
+document.addEventListener('error', e => {
+  const v = e.target;
+  if(!v || v.tagName !== 'VIDEO' || !v.dataset || !v.dataset.loopFallback) return;
+  const im = document.createElement('img');
+  im.src = v.dataset.loopFallback; im.alt = ''; im.setAttribute('style', v.getAttribute('style') || '');
+  for(const a of ['class', 'data-img', 'data-cap', 'data-key', 'role', 'tabindex']) if(v.hasAttribute(a)) im.setAttribute(a, v.getAttribute(a));
+  v.replaceWith(im);
+}, true);
+function studyLoopCredit(img){
+  return img && img.video && img.videoCredit ? ' · loop: ' + img.videoCredit + (img.videoLicense ? ', ' + img.videoLicense : '') : '';
+}
 function openFilmViewer(url, caption, key){
   const spots = (key && FILM_HOTSPOTS[key]) || [];
   let ov=document.getElementById('filmViewer');
@@ -3343,6 +3399,7 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined});
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(action+' '+(r.narrative||''));                      // hook equipment the orders placed
+    reconcileTube(r);                                                // …but a tube only if the engine put one in
     motionHook(action);                                              // …and the picture: a tourniquet stops the bleed throbbing. THE ORDER ONLY — a narrative saying the bleeding stopped is not the player stopping it
     roomAutoState(action, r._trace);                                 // …confirmed actions drive the room props too
     if(codeActive()) applyCodeVitals();
@@ -5433,6 +5490,13 @@ function fireCodeOrder(text, label){
   // A traumatic arrest is exactly where the tourniquet gets ordered, and a code order is
   // claimed here and never reaches progress() — so the picture is hooked on this path too.
   motionHook(text);
+  // …and the pads. A code order never reaches gearAutoHook, so pads placed in a code never
+  // appeared on the patient. The engine's events say what happened: pads placed, or a shock
+  // (which means pads are on, whatever the order called them).
+  if((r.events || []).some(e => e && (e.kind === 'pads' || e.kind === 'shock' || e.kind === 'cardiovert')) && S.gear){
+    if(!S.gear.pads){ S.gear.pads = true; paintGear(); }
+    if((r.events || []).some(e => e && e.kind === 'pads')){ const st = roomState(); if(!st.defib || st.defib === 'idle') st.defib = 'pads'; paintRoom(); }
+  }
   S.messages.push({role:'user', content: label || text});
   S.timeline.push({min:S.simMin, text: label || text});
   const outcome = codeOutcome(before, S.code, r);
@@ -5443,7 +5507,9 @@ function fireCodeOrder(text, label){
   const roscHandoffDone = wasEnded;
   // Only a shock that actually went in flashes the trolley. A refusal ("she has a pulse")
   // must not animate a defibrillation the team never delivered.
-  if(outcome.ok && /\b(shock|defib|cardiovert)/i.test(text)) roomDefib();
+  // Read off the engine's events, not the order's words: "place the defib pads" says "defib"
+  // and delivers nothing, and the trolley flashed a shock for it anyway.
+  if(outcome.ok && (r.events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) roomDefib();
   onCodeEvents(r.events);
   // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
   // point — the code's state IS the monitor. After it, the turn engine owns them, so a
@@ -5914,6 +5980,9 @@ async function instantTurn(action){
   const pack = (S.goldId && packs[S.goldId]) || S.generatedPack || null;
   if(!S.instantState) S.instantState={flags:{...(pack&&pack.startState||{})}, satisfied:[], stagesFired:[], dosing:0,
     labsSeen:{}, reportsSeen:{}, turnCount:0, saidNoNew:0, hpiServed:false};
+  // Whether a tube was in BEFORE this line, so reconcileTube() can take back a tube the words
+  // hooked but the engine refused.
+  S._ettBeforeTurn = !!(S.gear && S.gear.ett);
   await new Promise(res=>setTimeout(res, 350+Math.random()*250));
   // Hook the gear this line places BEFORE the engine answers it, so a film ordered on
   // the same line as the tube ("intubate; chest x-ray") is the film taken after it.
@@ -9222,7 +9291,7 @@ function sceneImgFor(view, base){
   // Adult bases are "young-m" style; the paediatric ones are single words ("child",
   // "infant"). Both have their own scenes — a toddler case showing a grown man in the
   // bed taught the wrong size for every dose and every device in the room.
-  if(!/^(room|foot|airway)$/.test(view) || !/^[a-z]+(-[a-z]+)?$/.test(base)) return null;
+  if(!/^(room|foot|airway)$/.test(view) || !/^[a-z]+(-[a-z0-9]+)*$/.test(base)) return null;   // young-m-2 too
   return 'scenes/'+view+'-'+base+'.jpg';
 }
 
@@ -9753,7 +9822,7 @@ const MOUTH_CALM='M141 66 Q150 69 159 66', MOUTH_GRIMACE='M141 68 Q150 62 159 68
 // bucket the numeric age with the same thresholds the case-generation prompt uses
 // to assign ageBand in the first place (child <13, young 13-35, adult 36-64,
 // senior 65+) — this is not a second, invented rule, just that rule run locally.
-function patientBaseFor(p){
+function legacyBaseFor(p){
   p = p || {};
   const sex = p.sex==='female' ? 'female' : (p.sex==='male' ? 'male' : null);
   if(!sex) return 'manikin';
@@ -9783,6 +9852,56 @@ function patientBaseFor(p){
   if(band==='child') return 'child';
   const sexKey = sex==='female' ? 'f' : 'm';
   return band==='young' ? `young-${sexKey}` : `older-${sexKey}`;
+}
+// WHO IS ON THE BED. Kim, 2026-09-16: "more diverse graphics." Four adult faces were every
+// adult in 172 cases. idealBaseFor() refines legacyBaseFor()'s answer from the case's own
+// words and exact age: frailty, a teenager, the middle-aged apart from
+// the old, and two faces sharing the young-adult slot — chosen by the case, so one case always
+// shows the same person. Children and unknowns are untouched (manikins; Gemini will not draw a
+// real minor). No pregnant face: the 'pregnant' finding already puts the pregnancy on any adult.
+// A word in a DIFFERENTIAL is not this patient ("consider … obesity hypoventilation"), the same
+// rule ECLAMPSIA_RE keeps.
+const NOT_IN_A_DIFFERENTIAL = '(?<!\\b(?:causes?|consider|search(?:ing)? for|differential|includ(?:es|ing)|rule out|r\\/o)\\b[^.;]{0,80})';
+const BASE_HINTS = [
+  // "dementia" is deliberately absent: in these briefs it is the question ("early-onset
+  // Alzheimer disease or another primary dementia", id-neurosyphilis at 63), not the patient.
+  // No heavy-build face either: measured 2026-09-17, no case in the library describes one.
+  [new RegExp(NOT_IN_A_DIFFERENTIAL + '\\b(?:frail|nursing home|care home|bed-?bound)\\b', 'i'), { female: 'elder-f' }],
+]
+function idealBaseFor(p, context){
+  p = p || {};
+  const legacy = legacyBaseFor(p);
+  if(!/^(young|older)-[mf]$/.test(legacy)) return legacy;          // children, infants, unknowns
+  const sex = legacy.slice(-1) === 'f' ? 'female' : 'male';
+  const text = String(context == null ? ((typeof S !== 'undefined' && S && S.context) || '') : context);
+  for(const [re, by] of BASE_HINTS) if(by[sex] && re.test(text)) return by[sex];
+  const yrs = parseFloat(p.age);
+  const age = isFinite(yrs) ? yrs : (legacy.startsWith('young') ? 28 : 70);
+  if(age < 20) return sex === 'male' ? 'teen-m' : legacy;
+  if(legacy.startsWith('young')){
+    // the case's own id, so the same case always shows the same person
+    const seed = String(p.seed || (typeof S !== 'undefined' && S && S.goldId) || '');
+    const bit = [...seed].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7) % 2;
+    return bit ? legacy + '-2' : legacy;
+  }
+  if(age < 65) return sex === 'male' ? 'mid-m' : 'mid-f';
+  if(age >= 82 && sex === 'female') return 'elder-f';
+  return legacy;
+}
+// A face is used only when everything it needs is on disk: the photo, the six device overlays
+// and the three room scenes. Until then the case keeps legacyBaseFor()'s face, so the choice
+// above can ship before a single new picture exists. tests/patient-bases.test.cjs holds this
+// list to the disk in both directions — nothing marked ready that is missing a picture, and
+// nothing with every picture left switched off.
+const PATIENT_BASES_READY = new Set(['young-m', 'young-f', 'older-m', 'older-f', 'child', 'infant', 'manikin']);
+const PATIENT_DEVICES = ['c-collar', 'central-line', 'chest-tube', 'defib-pads', 'ett', 'o2-mask'];
+function BASE_NEEDS(b){
+  return ['patient/' + b + '.jpg'].concat(PATIENT_DEVICES.map(d => 'patient-overlays/' + b + '/' + d + '.png'),
+    ['room', 'foot', 'airway'].map(v => 'scenes/' + v + '-' + b + '.jpg'));
+}
+function patientBaseFor(p, context){
+  const want = idealBaseFor(p, context);
+  return PATIENT_BASES_READY.has(want) ? want : legacyBaseFor(p);
 }
 // Visible external findings belong on the PHOTO, not only in the exam text: a
 // stabbed patient should look stabbed the moment you walk in. Each variant was
@@ -10651,12 +10770,15 @@ const GEAR=[
   {key:'spo2',  label:'Pulse ox',     on:true,  re:/\b(pulse ?ox|spo2|sat probe|oximet)/i},
   {key:'iv',    label:'IV line',      on:false, re:/\b(ivs?|intravenous|cannula|large.?bore|line in|fluids|bolus|drip|infusion)\b/i},
   {key:'o2',    label:'O₂ mask',      on:false, re:/\b(oxygen|o2|non.?rebreather|nrb|face ?mask|nasal cannula)\b/i},
-  {key:'ett',   label:'ET tube',      on:false, re:/\b(intubat|ett|endotracheal|rsi|mechanical ventilat|ventilator|airway secured)\b/i},
+  // "intubat" and "mechanical ventilat" are STEMS: fenced by \b on both sides they matched only
+  // the bare stem, so "intubate", "intubation" and "rapid sequence intubation" never hooked the
+  // tube and the bedside ETT overlay almost never appeared (measured 2026-09-18). Stems take \w*.
+  {key:'ett',   label:'ET tube',      on:false, re:/\b(intubat\w*|ett|endotracheal|rsi|mechanical(?:ly)? ventilat\w*|ventilator|airway secured)\b/i},
   {key:'cvc',   label:'Central line', on:false, re:/\b(central line|cvc|internal jugular|\bij\b|subclavian|cordis|triple lumen)\b/i},
   {key:'ct',    label:'Chest tube',   on:false, re:/\b(chest tube|thoracostomy|pigtail)\b/i},
   // The regexes for these two are deliberately narrow —
   // "ct c-spine" is an imaging order, not a collar, so bare "c-spine" must not hook.
-  {key:'pads',  label:'Defib pads',   on:false, re:/\b(defib(rillator)? pads|pacing pads|pads on|place (the )?pads)\b/i},
+  {key:'pads',  label:'Defib pads',   on:false, re:/\b(defib(rillator)? pads|pacing pads|pads on|(?:place|apply|put on) (the )?(?:defib )?pads)\b/i},
   {key:'collar',label:'C-collar',     on:false, re:/\b(c.?collar|cervical collar|hard collar|spinal (precautions|immobili[sz]ation))\b/i}
 ];
 function gearDefaults(){ const g={}; GEAR.forEach(x=>g[x.key]=x.on); return g; }
@@ -10667,6 +10789,18 @@ function gearAutoHook(text){
   GEAR.forEach(x=>{ if(!S.gear[x.key] && x.re.test(text)){ S.gear[x.key]=true; changed=true; } });
   if(S.gear.ett && S.gear.o2 && /intubat|ett|endotracheal|rsi/i.test(text)){ S.gear.o2=false; changed=true; }
   if(changed) paintGear();
+}
+// A TUBE IS IN WHEN THE ENGINE SAYS SO. The words hook the gear before and after a turn — before,
+// so a film on the same line as the tube is the film taken after it; after, from the order AND
+// the engine's reply. But a refusal says the word too ("Hold on — before you intubate…"), and
+// since 2026-09-18 the engine keeps a refused patient talking (instant-engine: "a refused
+// intubation is no tube"), so the page drew a tube on a patient who was still speaking. In
+// Instant Mode, where the engine's verdict exists, the tube follows it: in if it was in before
+// this line, or the engine intubated on it. Other modes keep reading the words.
+function reconcileTube(r){
+  if(!S.gear || !S.instantState || !r || !r._trace) return;
+  const want = !!S._ettBeforeTurn || !!S.instantState.intubated;
+  if(S.gear.ett !== want){ S.gear.ett = want; paintGear(); }
 }
 function paintGear(){
   // Photo-panel equipment overlays follow the gear state.
@@ -12266,6 +12400,45 @@ function zoneBox(zones, key){
 // Geometry is re-derived from the CURRENT view's zones every repaint: the defib,
 // pole, airway cart and ultrasound are in all three scenes but at different
 // coordinates, and a couple of zones (smiley, the go_* walks) exist in only one.
+// THE TUBE, THE VENTILATOR AND THE PADS, IN THE ROOM. Kim, 2026-09-16: "Add intubation graphics
+// (intubated patient)", "Add defibrillation animation with pads." The bedside close-up has drawn
+// the tube and pads from patient-overlays/ all along; the room — where every case opens since
+// 2026-09-15 — lit up the airway kit and put nothing on the patient.
+//
+// The pictures are Kim's (made in ChatGPT, 2026-09-18: "they are better at generating images"):
+// one transparent cut-out per camera, anchored to the patient's head or chest zone. Every adult
+// face shares the room, the bed and the camera, so one cut-out per camera fits them all. A
+// cut-out is drawn ONLY when its file is listed in ROOM_ART_READY — there is no stand-in shape
+// pasted on the photograph. To switch one on: drop the PNG into media/game/, add its key below,
+// and tune its placement (w = width in scene %, zx/zy = where on the zone it attaches, ax/ay =
+// the attach point inside the picture). tests/device-overlays-room.test.cjs holds this set to
+// the disk and checks each drawn picture lands on its zone.
+const ROOM_ART = {
+  ett:        { zone: 'head',  file: v => 'media/game/room-ett-' + v + '.png',
+                // zx/zy: the MOUTH, measured on scenes/<view>-young-m.jpg (2026-09-18) — the face sits
+                // at the same place in every adult's copy of the scene.
+                at: { room: { w: 7,  zx: .45, zy: .27, ax: .10, ay: .50 }, foot: { w: 6, zx: .48, zy: .50, ax: .50, ay: .10 },
+                      airway: { w: 12, zx: .49, zy: .09, ax: .50, ay: .90 } } },
+  ventilator: { zone: 'head',  file: () => 'media/game/room-ventilator.png',
+                at: { room: { w: 9,  zx: 1.9, zy: -1.4, ax: .50, ay: .50 }, foot: { w: 8, zx: 1.9, zy: -1.2, ax: .50, ay: .50 },
+                      airway: { w: 12, zx: 1.6, zy: -.2, ax: .50, ay: .50 } } },
+  pads:       { zone: 'chest', file: v => 'media/game/room-pads-' + v + '.png',
+                at: { room: { w: 9,  zx: .50, zy: .45, ax: .50, ay: .50 }, foot: { w: 12, zx: .50, zy: .45, ax: .50, ay: .50 },
+                      airway: { w: 20, zx: .50, zy: .50, ax: .50, ay: .50 } } },
+};
+const ROOM_ART_READY = new Set([]);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
+function roomArtKey(kind, view){ return kind === 'ventilator' ? 'ventilator' : kind + '-' + view; }
+function roomArtHTML(kind, view, zone){
+  const art = ROOM_ART[kind], at = art && art.at[view];
+  if(!art || !at || !zone || !ROOM_ART_READY.has(roomArtKey(kind, view))) return '';
+  // x in scene % of width; the zone's t/h are already % of height (zoneBox). Height follows the
+  // picture's own aspect, so only the attach point needs placing: shift by ax of the width and
+  // ay of the rendered height (translate) so the attach point sits on the zone point.
+  const x = zone.l + zone.w * at.zx, y = zone.t + zone.h * at.zy;
+  return `<img data-room-device="${kind}" src="${esc(art.file(view))}" alt="" draggable="false"
+    style="position:absolute;left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${at.w}%;height:auto;
+    transform:translate(${(-at.ax*100).toFixed(1)}%,${(-at.ay*100).toFixed(1)}%);pointer-events:none;z-index:1">`;
+}
 function paintRoom(){
   // No scene (the BEDSIDE close-up, or no room at all): nothing to draw on — but the
   // care-in-progress strip belongs to the HUD, not the picture, so it is still painted.
@@ -12300,6 +12473,11 @@ function paintRoom(){
   else if(st.defib==='shock') h+=halo(d,'rgba(255,251,224,.98)',2.6,'');
   else if(st.defib==='pads')  h+=halo(d,'rgba(52,211,153,.40)',1.5,'');
   if(aw && S.gear && (S.gear.o2||S.gear.ett)) h+=halo(aw,'rgba(52,211,153,.34)',1.45,'');
+  // Where the head and chest are, for the pictures below and for the tests that check them.
+  if(head) h+=`<div data-room-anchor="head" style="position:absolute;left:${head.l}%;top:${head.t}%;width:${head.w}%;height:${head.h}%;pointer-events:none"></div>`;
+  if(chest) h+=`<div data-room-anchor="chest" style="position:absolute;left:${chest.l}%;top:${chest.t}%;width:${chest.w}%;height:${chest.h}%;pointer-events:none"></div>`;
+  if(S.gear && S.gear.ett) h+=roomArtHTML('ett', viewKey, head) + roomArtHTML('ventilator', viewKey, head);
+  if((S.gear && S.gear.pads) || st.defib) h+=roomArtHTML('pads', viewKey, chest);
   // IV bags hang off the pole's hook. Sized from the pole's own width and given a
   // fixed aspect-ratio so they stay bag-shaped in the 300px card and full screen alike.
   if(iv){
@@ -12329,8 +12507,10 @@ function paintRoom(){
     const bx=us.l+us.w*0.10, by=us.t+us.h*0.015, bw=us.w*0.58, bh=us.h*0.26;
     h+=`<div style="position:absolute;left:${bx}%;top:${by}%;width:${bw}%;height:${bh}%;background:#03070f;
       border-radius:2px;overflow:hidden;box-shadow:0 0 10px 2px rgba(56,189,248,.4)">
-      <img src="${esc(usRep.img.url)}" alt="" style="width:106%;height:106%;margin:-3% 0 0 -3%;object-fit:cover;
-        filter:brightness(1.15) contrast(1.1) saturate(.7);display:block">
+      ${studyLoopOK(usRep.img)
+        ? studyLoopHTML(usRep.img, 'data-cart-loop="1"', 'width:106%;height:106%;margin:-3% 0 0 -3%;object-fit:cover;filter:brightness(1.15) contrast(1.1) saturate(.7);display:block')
+        : `<img src="${esc(usRep.img.url)}" alt="" style="width:106%;height:106%;margin:-3% 0 0 -3%;object-fit:cover;
+        filter:brightness(1.15) contrast(1.1) saturate(.7);display:block">`}
     </div>`;
   }
   ov.innerHTML=h;
@@ -12848,8 +13028,10 @@ function renderWorkspace(){
     const rk = ((r.image && r.image.type) || '').toLowerCase();
     const fbImg = studyFallbackImage(r.image);   // same region and normal, or nothing (xr/ct/mri/us)
     const fbUrl = (fbImg && fbImg.url && (!r.img || fbImg.url!==r.img.url)) ? fbImg.url : '';
-    const imgHtml = r.img ? `<img src="${esc(r.img.url)}" loading="lazy" alt="Clinical study image: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-fallback="${esc(fbUrl)}" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black" />
-      <div class="text-[9px] text-slate-600 leading-tight">${esc(attr)} · click to enlarge</div>` : '';
+    const imgHtml = !r.img ? '' : (studyLoopOK(r.img)
+      ? studyLoopHTML(r.img, `aria-label="Clinical study loop: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-study-loop="1" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black"`, '')
+      : `<img src="${esc(r.img.url)}" loading="lazy" alt="Clinical study image: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-fallback="${esc(fbUrl)}" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black" />`)
+      + `<div class="text-[9px] text-slate-600 leading-tight">${esc(attr + (studyLoopOK(r.img) ? studyLoopCredit(r.img) : ''))} · click to enlarge</div>`;
     // WHO READS WHAT: the ED physician interprets ONLY their own 12-lead ECG and
     // chest X-ray in real time — those two show the IMAGE ONLY, never a written
     // read. EVERY other study (ultrasound, plain films like KUB/pelvis, CT, MRI)

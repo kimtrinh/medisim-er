@@ -901,7 +901,25 @@ function actInner(state, script, text, now){
   // "defibrillation" (the noun) and double/dual sequential defibrillation — DSED — are
   // both shocks. AHA 2025: DSED may be considered for VF refractory to standard
   // defibrillation, so the order gets a shock and an honest line, not silence.
-  if(/\b(defibrillat\w*|defib|shock|clear and shock|zap|dsed)\b/.test(s) && !/\b(synchroni[sz]ed|sync)\b|cardiover/.test(s)){
+  // PADS ARE NOT A SHOCK. "Place the defib pads" reached the branch below on the word "defib"
+  // and shocked the patient — then flagged the player for an inappropriate shock (measured
+  // 2026-09-18 on resus-atls-penetrating). "defib pads", "defibrillation pads", "pacing pads"
+  // NAME the pads; they are not an instruction to shock. So the pads phrase is read as a noun
+  // first, and only a real instruction ("shock", "clear", "at 200 J", "defibrillate") shocks.
+  // An order that is ONLY about pads places them; one that also shocks still shocks.
+  const sNoPads = s.replace(/\b(?:defib(?:rillat\w*)?|pacing|pacer|external|transcutaneous)\s+pads?\b/g, ' pads ');
+  if(/\bpads?\b/.test(sNoPads)){
+    const rest = sNoPads.replace(/\b(pads?|place|put|apply|attach|stick|get|hook up|connect|the|a|an|set of|some|on|onto|to|chest|him|her|them|patient|please|now|anterior|lateral|posterior|anterolateral|anteroposterior|ap|al|position|positioned|and)\b/g, ' ')
+      .replace(/[^a-z0-9]+/g, ' ').trim();
+    if(!rest){
+      const already = !!state.padsOn;
+      state.padsOn = true;
+      return { handled: true, events: [ev(state, 'pads', already
+        ? 'Pads are already on, doctor.'
+        : 'Pads are on — anterior-lateral, and the defibrillator is reading the rhythm through them.')] };
+    }
+  }
+  if(/\b(defibrillat\w*|defib|shock|clear and shock|zap|dsed)\b/.test(sNoPads) && !/\b(synchroni[sz]ed|sync)\b|cardiover/.test(s)){
     const dsed = /\b(double|dual)\b.*\bsequential\b|\bdsed\b|\bsequential (defib|shock)/.test(s);
     const out = deliverShock(state, script, shockEnergy(text, script));
     if(dsed && out.length) out[0].text = 'Double sequential defibrillation — second set of pads anterior-posterior, both charged, fired together. ' + out[0].text;

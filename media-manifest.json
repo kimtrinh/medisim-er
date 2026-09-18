@@ -341,13 +341,7 @@
  "derm_cellulitis": {
   "credit": "RafaelLopez",
   "file": "media/derm_cellulitis.jpg",
-  "kw": [
-   "cellulitis",
-   "erythema",
-   "warm erythematous",
-   "spreading redness",
-   "erysipelas"
-  ],
+  "kw": ["cellulitis","warm erythematous","spreading redness","erysipelas","spreading erythema"],
   "label": "Skin \u2014 cellulitis",
   "license": "CC BY-SA 3.0",
   "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
@@ -357,13 +351,7 @@
  "derm_cyanosis": {
   "credit": "James Heilman, MD",
   "file": "media/derm_cyanosis.jpg",
-  "kw": [
-   "cyanosis",
-   "cyanotic",
-   "blue lips",
-   "mottled",
-   "mottling"
-  ],
+  "kw": ["cyanosis","cyanotic","blue lips","dusky lips"],
   "label": "Skin \u2014 peripheral cyanosis",
   "license": "CC BY-SA 3.0",
   "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
@@ -537,8 +525,7 @@
    "scarlet",
    "scarlatin",
    "sandpaper",
-   "strawberry tongue",
-   "kawasaki"
+   "strawberry tongue"
   ],
   "label": "Skin \u2014 scarlatiniform rash",
   "license": "CC BY-SA 4.0",
@@ -549,15 +536,7 @@
  "derm_sjs_ten": {
   "credit": "James Heilman, MD",
   "file": "media/derm_sjs_ten.jpg",
-  "kw": [
-   "stevens",
-   "johnson",
-   "toxic epidermal",
-   "ten",
-   "nikolsky",
-   "mucosal sloughing",
-   "desquamation"
-  ],
+  "kw": ["stevens johnson","stevens-johnson","toxic epidermal","nikolsky","mucosal sloughing","epidermal detachment"],
   "label": "Skin \u2014 Stevens-Johnson / TEN",
   "license": "CC BY-SA 3.0",
   "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
@@ -1444,7 +1423,15 @@
   "license": "CC BY-SA 3.0",
   "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
   "page": "https://commons.wikimedia.org/wiki/File:Doppler_ultrasound_image_of_inferior_vena_cava_110314092102_0926500.jpg",
-  "source_title": "File:Doppler ultrasound image of inferior vena cava 110314092102 0926500.jpg"
+  "source_title": "File:Doppler ultrasound image of inferior vena cava 110314092102 0926500.jpg",
+  "video": "media/usv_ivc.webm",
+  "video_poster": "media/usv_ivc.jpg",
+  "video_credit": "Ginghina C, Beladan C, Iancu M, Calin A, Popescu B",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Respiratory-maneuvers-in-echocardiography-a-review-of-clinical-applications-1476-7120-7-42-S8.ogv",
+  "video_title": "File:Respiratory-maneuvers-in-echocardiography-a-review-of-clinical-applications-1476-7120-7-42-S8.ogv",
+  "video_kw": ["inferior vena cava", "ivc"]
  },
  "us_lung_blines": {
   "credit": "Tinss",
@@ -1515,7 +1502,15 @@
   "license": "CC BY-SA 3.0",
   "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
   "page": "https://commons.wikimedia.org/wiki/File:Pericardial_effusion.jpg",
-  "source_title": "File:Pericardial effusion.jpg"
+  "source_title": "File:Pericardial effusion.jpg",
+  "video": "media/usv_pericardial.webm",
+  "video_poster": "media/usv_pericardial.jpg",
+  "video_credit": "Ben Smith",
+  "video_license": "CC BY 4.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/4.0",
+  "video_page": "https://commons.wikimedia.org/wiki/File:UltrasoundCardiacTamponade.webm",
+  "video_title": "File:UltrasoundCardiacTamponade.webm",
+  "video_kw": ["pericardial", "tamponade"]
  },
  "us_plax": {
   "credit": "Kalumet",
@@ -1546,7 +1541,15 @@
   "license": "CC BY-SA 3.0",
   "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
   "page": "https://commons.wikimedia.org/wiki/File:Dilated_cardiomyopathy_M-Mode.jpg",
-  "source_title": "File:Dilated cardiomyopathy M-Mode.jpg"
+  "source_title": "File:Dilated cardiomyopathy M-Mode.jpg",
+  "video": "media/usv_poor_ef.webm",
+  "video_poster": "media/usv_poor_ef.jpg",
+  "video_credit": "Heinonen S, Merentie M, Hedman M, Makinen P, Loponen E, Kholova I, Bosch F, Laakso M, Yla-Herttuala S",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Left-ventricular-dysfunction-with-reduced-functional-cardiac-reserve-in-diabetic-and-non-diabetic-1475-2840-10-59-S1.ogv",
+  "video_title": "File:Left-ventricular-dysfunction-with-reduced-functional-cardiac-reserve-in-diabetic-and-non-diabetic-1475-2840-10-59-S1.ogv",
+  "video_kw": ["ejection fraction", "left ventricular", "left ventricle", "lv dysfunction", "systolic function"]
  },
  "us_soft_tissue_abscess": {
   "credit": "Nevit Dilmen ( talk )",
@@ -1971,5 +1974,47 @@
   "page": "https://commons.wikimedia.org/wiki/File:X-ray_of_the_pelvis_of_an_18_year_old_male_-_case_1_-_anteroposterior.jpg",
   "region": "pelvis",
   "source_title": "File:X-ray of the pelvis of an 18 year old male - case 1 - anteroposterior.jpg"
+ },
+ "derm_mottling": {
+  "credit": "Nantsupawat T et al",
+  "file": "media/derm_mottling.jpg",
+  "kw": [
+   "mottled",
+   "mottling",
+   "livedo"
+  ],
+  "label": "Skin — mottling (livedo reticularis)",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Livedo_reticularis_of_left_leg.jpg",
+  "source_title": "File:Livedo reticularis of left leg.jpg"
+ },
+ "derm_janeway": {
+  "credit": "Warfieldian",
+  "file": "media/derm_janeway.jpg",
+  "kw": [
+   "janeway"
+  ],
+  "label": "Skin — Janeway lesions",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Janeway_lesion.JPG",
+  "source_title": "File:Janeway lesion.JPG"
+ },
+ "derm_impetigo": {
+  "credit": "James Heilman, MD",
+  "file": "media/derm_impetigo.jpg",
+  "kw": [
+   "impetigo",
+   "honey-crusted",
+   "honey crusted",
+   "scabbed lesions",
+   "crusted lesions"
+  ],
+  "label": "Skin — crusted impetigo",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Impetigo2020.jpg",
+  "source_title": "File:Impetigo2020.jpg"
  }
 }
