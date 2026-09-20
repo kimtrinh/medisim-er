@@ -557,7 +557,9 @@ const EXAM_REGIONS = [
   {aliases:['heart','cardiac','cardiovascular','auscultate heart'], system:'Cardiac', normal:'Regular rate and rhythm, no murmurs, rubs, or gallops. Pulses 2+ and symmetric.'},
   {aliases:['lungs','chest','pulmonary','breath sounds','auscultate'], system:'Lungs', normal:'Clear to auscultation bilaterally, no wheezes, rales, or rhonchi. Symmetric expansion.'},
   {aliases:['abdomen','belly','abdominal'], system:'Abdomen', normal:'Soft, non-tender, non-distended. No rebound or guarding. Normal bowel sounds.'},
-  {aliases:['neuro','neurologic','gcs','cranial nerves'], system:'Neuro', normal:'GCS 15. Cranial nerves II–XII intact. Strength 5/5 throughout, sensation intact, no focal deficit.'},
+  // 'neurology': the consult shorthand expands "neuro" to it, so "neuro exam" reaches here as
+  // "neurology exam" — without the alias it matched no region and got the general exam.
+  {aliases:['neuro','neurologic','neurology','gcs','cranial nerves'], system:'Neuro', normal:'GCS 15. Cranial nerves II–XII intact. Strength 5/5 throughout, sensation intact, no focal deficit.'},
   {aliases:['skin'], system:'Skin', normal:'Warm and dry, no rash, no mottling. Capillary refill <2 seconds.'},
   {aliases:['extremities','legs','arms','calf'], system:'Extremities', normal:'No edema, no calf tenderness, no deformity. Distal pulses intact.'},
   {aliases:['rectal exam','rectal'], system:'Rectal', normal:'Normal tone, no gross blood, brown stool, guaiac negative.'},
@@ -825,7 +827,11 @@ const CONSULT_SERVICES = ['pediatrics','hematology','oncology','ophthalmology','
   'child life','chaplain','ethics','cardiology','surgery','gastroenterology','neurology','neurosurgery','orthopedics',
   'urology','obstetrics','gynecology','psychiatry','nephrology','pulmonology','infectious disease',
   'toxicology','poison control','anesthesia','trauma','interventional radiology','ent',
+  // 'general surgery' and 'cardiothoracic surgery' were missing while 'plastic surgery' and
+  // 'vascular surgery' were here, so a responder aliased "general surgery" read as naming no
+  // service at all and any surgical service could take its credit (2026-09-19 audit).
   'pathology','blood bank','radiology','pediatric surgery','pediatric cardiology',
+  'general surgery','cardiothoracic surgery','colorectal surgery','trauma surgery',
   'social work','adult protective services','child protective services','case management','palliative care'];
 // "get pathology on the line" carries no consult verb-token at all. (normalize
 // strips articles, so match with and without "the".)
@@ -836,6 +842,11 @@ const CONSULT_PHRASE_RE = /\bon (the )?(line|phone)\b/;
 // This is a SCHEDULING claim (one pager, one team), not a claim that the two
 // specialties are clinically interchangeable — keep it to services that
 // genuinely share an on-call rota.
+// A service name inside a string of aliases, on word boundaries (the alias text is normalized,
+// so it is lower case with punctuation already stripped to spaces and pipes).
+function namesService(text, service){
+  return new RegExp('(^|[^a-z])' + service.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)').test(text);
+}
 const SERVICE_FAMILY = { obstetrics:'obgyn', gynecology:'obgyn',
   hematology:'hemonc', oncology:'hemonc',
   'internal medicine':'medicine', hospitalist:'medicine' };
@@ -882,6 +893,61 @@ const CONSULT_ADMIT_NOT_RE = /^\s*(watch|avoid|do not|don't|never|after |conside
 function consultAdmits(caText){
   const t = String(caText || '');
   return CONSULT_ADMIT_RE.test(t) && !CONSULT_ADMIT_NOT_RE.test(t);
+}
+// THE CONSULTANT WHO AGREES TAKES THE PATIENT. Kim, 2026-09-18: "when a consult is placed and
+// the consultant agrees with diagnosis and treatment they should admit and the case should
+// finish." On the 167 cases without an authored gate (consult-gates.json), agreeing used to
+// end at "We're on board; call me if anything changes" and the case ran on.
+//
+// "Agrees with the treatment" is read off the case's own checklist: the critical actions a
+// med or procedure responder credits, minus the ones that are not treatment (monitoring,
+// consults, disposition, precautions), the ones phrased as withholding, and the ones written
+// as one branch of a choice ("For warfarin: …", "For dabigatran: …") that nobody does together.
+//
+// ALL of what is left must be done. It was half, measured against nothing; asked of a second
+// opinion on all 167 cases (tools_jev_audit.cjs consult, 2026-09-19), the half-done point was
+// one a consultant would NOT admit from in 94 of 110 cases — the button battery still in the
+// oesophagus, the tension pneumothorax undecompressed. A consultant who agrees with the
+// treatment means the treatment is in.
+const CONDITIONAL_CA_RE = /^\s*(for|if|when|once|in)\b[^:.]{0,40}:/i;
+const NOT_TREATMENT_RE = /\b(admit|admission|consult|disposition|transfer|monitor|monitoring|reassess|re-?evaluat\w*|precautions?|observe|observation|serial|trend|recheck|follow[- ]?up|document|counsel\w*|educat\w*|discuss|notify|involve|call)\b/i;
+const WITHHOLD_CA_RE = /^\s*(avoid|do not|don't|never|withhold|hold|no |not )/i;
+function treatmentActions(pack, criticalActions){
+  const ca = criticalActions || [], out = new Set();
+  for(const r of (pack && pack.responders) || []){
+    if(!Number.isInteger(r.satisfies) || (r.intent !== 'med' && r.intent !== 'procedure')) continue;
+    const t = String(ca[r.satisfies] || '');
+    if(t && !WITHHOLD_CA_RE.test(t) && !NOT_TREATMENT_RE.test(t) && !CONDITIONAL_CA_RE.test(t)) out.add(r.satisfies);
+  }
+  return [...out];
+}
+function treatmentUnderWay(pack, state, criticalActions){
+  const tx = treatmentActions(pack, criticalActions);
+  if(!tx.length) return true;
+  return tx.every(i => ((state && state.satisfied) || []).includes(i));
+}
+// The admission the consultant makes is the case's own disposition action, credited as if the
+// doctor had written it — "admit to the ICU", "admit to an appropriate level of care". A
+// discharge is never credited by a consultant taking the patient.
+const ADMIT_CA_RE = /\b(admit|admission|icu|intensive care|transfer|ward|floor|step-?down|telemetry bed|observation unit|operating room|theatre|theater)\b/i;
+function creditConsultAdmission(pack, state, criticalActions){
+  const ca = criticalActions || [];
+  for(const r of (pack && pack.responders) || []){
+    if(r.intent !== 'disposition' || !Number.isInteger(r.satisfies)) continue;
+    const t = String(ca[r.satisfies] || '');
+    if(ADMIT_CA_RE.test(t) && !/\bdischarg/i.test(t) && !state.satisfied.includes(r.satisfies)) state.satisfied.push(r.satisfies);
+  }
+}
+// What an ungated consultant says once they agree with the diagnosis. Either they take the
+// patient now (state.consultTakes, and the turn ends the case), or they say what they are
+// waiting for — never WHICH treatment, which would read the checklist aloud.
+function consultAgreeLine(Svc, pack, state, opts){
+  if(treatmentUnderWay(pack, state, opts && opts.criticalActions)){
+    if(state){ state.consultTakes = Svc; state.consultWaiting = null; }
+    return `${Svc} — agreed, that fits what I'm seeing, and so does the treatment you've started. We'll take the patient from here — admitting now.`;
+  }
+  if(state) state.consultWaiting = { service: String(Svc).toLowerCase(), needDx: false, needTx: true, at: state.turnCount || 0 };
+  return `${Svc} — agreed, that fits what I'm seeing. Get the treatment under way and we'll take the patient; I'm watching the chart.`;
 }
 const ASSESS_WORDS = ['i think','my diagnosis','this is likely','concern for','i suspect','my assessment','working diagnosis','i believe','working dx','most likely','this looks like','differential is'];
 // "I think we should give aspirin" is an order wearing a hedge; "I think this is
@@ -1123,7 +1189,14 @@ function classifyIntent(clause, rawClause){
   // of a real study order: "trauma ultrasound" is a FAST exam, not a trauma
   // consult (it was routing to the consult team). Whole-word match only, so
   // the short services can't swallow longer words ('ent' vs "enter the room").
-  if(CONSULT_SERVICES.some(s => clause===s || clause.startsWith(s+' '))) return 'consult';
+  //
+  // …but not when an EXAM word follows it. "neuro" expands to "neurology" (the consult
+  // shorthand above), so "neuro exam" arrived here as "neurology exam" and paged Neurology
+  // (Kim, 2026-09-18: "when i order a neuro exam, it understand neuro consult instead").
+  // "ortho exam", "derm exam" and "neuro checks" went the same way. A service with a consult
+  // verb ("call neuro", "neuro consult") was already decided above and is unaffected.
+  if(CONSULT_SERVICES.some(s => clause===s || clause.startsWith(s+' '))
+     && !/\b(exam|examination|examine|checks?|assessment)\b/.test(clause)) return 'consult';
   // exam BEFORE med: an explicit exam verb outranks a fuzzy med-word hit
   // Word boundaries, not substrings: "tranexamic acid" contains "exam", so ordering TXA in
   // a haemorrhaging patient returned a physical exam and the drug was never given.
@@ -1324,7 +1397,7 @@ function matchResponders(pack, clause, flags){
   }
   // non-imaging order → everything that matches EXCEPT imaging-study responders
   // (so "give X" / "examine Y" / "ask Z" never surfaces a stray CT).
-  const hits = scored.filter(keep).filter(h => !responderHasImaging(h.r)).map(h=>h.r);
+  let hits = scored.filter(keep).filter(h => !responderHasImaging(h.r)).map(h=>h.r);
 
   // A BEDSIDE SUGAR IS NOT A CHEMISTRY PANEL.
   //
@@ -1349,14 +1422,47 @@ function matchResponders(pack, clause, flags){
   // e.g. OB≈GYN), even when no alias fuzzy-matched. (Playtest: an emergent OB
   // consult in a ruptured ectopic earned zero credit purely on phrasing.)
   if(CONSULT_WORDS.some(w=>toks.includes(w)) || CONSULT_PHRASE_RE.test(norm) || CONSULT_SERVICES.some(s=>norm.startsWith(s))){
-    const clauseSvc = CONSULT_SERVICES.filter(s=>fuzzyHas(toks, s)).map(s=>SERVICE_FAMILY[s]||s);
+    // A sub-specialty is not its parent. "plastic surgery" names plastic surgery, not surgery:
+    // read as both, it credited "call vascular surgery emergently" and "consult surgery for
+    // appendectomy" (49 pairs). Calling plain "surgery" still reaches a named surgical service —
+    // that way round is the ED's usual shorthand, and the judge scored it acceptable.
+    const named = CONSULT_SERVICES.filter(s=>fuzzyHas(toks, s));
+    const clauseSvc = named.filter(s => !named.some(o => o !== s && o.length > s.length && namesService(o, s)))
+      .map(s=>SERVICE_FAMILY[s]||s);
     if(clauseSvc.length){
       for(const r of pack.responders){
         if(r.intent!=='consult' || hits.includes(r)) continue;
         const aliasText = ((r.match&&r.match.any)||[]).map(a=>normalize(a)).join(' | ');
-        const rSvc = CONSULT_SERVICES.filter(s=>aliasText.includes(s)).map(s=>SERVICE_FAMILY[s]||s);
+        // WHOLE WORDS, not substrings. `aliasText.includes(s)` read the neurosurgeon's aliases
+        // as naming urology and ENT: normalize expands "neuro" to "neurology", and "urology"
+        // sits inside "ne-urology" exactly as "ent" sits inside "interventional" and "surgery"
+        // inside "neurosurgery". So calling urology, ENT or plastic surgery on the subarachnoid
+        // bleed bridged to the neurosurgery responder — the wrong service answered AS
+        // neurosurgery and earned "consult neurosurgery". Found 2026-09-19 by the Jev audit:
+        // 345 of the flagged credit pairs were this one line.
+        const rSvc = CONSULT_SERVICES.filter(s=>namesService(aliasText, s)).map(s=>SERVICE_FAMILY[s]||s);
         if(rSvc.some(s=>clauseSvc.includes(s))) hits.push(r);
       }
+    }
+  }
+  // …and the same rule the other way: NAMING A SERVICE RULES THE OTHERS OUT. Several packs
+  // carry a bare "call surgery" among a named service's aliases (the dissection's
+  // cardiothoracic responder, appendicitis's general surgeons), so "call plastic surgery"
+  // fuzzy-matched the generic alias and took the credit for calling the right surgeons — 24
+  // pairs after the substring fix. A clause that names a specific service keeps only the
+  // consult responders that name that service (or its family); a clause that says plain
+  // "surgery" still reaches any of them, which is how an ED actually talks.
+  const GENERIC_SERVICES = new Set(['surgery', 'medicine', 'radiology', 'icu', 'intensive care']);
+  if(CONSULT_WORDS.some(w=>toks.includes(w)) || CONSULT_PHRASE_RE.test(norm) || CONSULT_SERVICES.some(s=>norm.startsWith(s))){
+    const specific = CONSULT_SERVICES.filter(s=>fuzzyHas(toks, s) && !GENERIC_SERVICES.has(s));
+    if(specific.length){
+      const want = new Set(specific.map(s=>SERVICE_FAMILY[s]||s));
+      hits = hits.filter(r => {
+        if(r.intent !== 'consult') return true;
+        const aliasText = ((r.match&&r.match.any)||[]).map(a=>normalize(a)).join(' | ');
+        const rSvc = CONSULT_SERVICES.filter(s=>namesService(aliasText, s) && !GENERIC_SERVICES.has(s)).map(s=>SERVICE_FAMILY[s]||s);
+        return !rSvc.length || rSvc.some(s=>want.has(s));
+      });
     }
   }
   // PRIVACY bridging: any "get the family out" phrasing reaches the pack's
@@ -2352,8 +2458,7 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       line = `${Svc} — your head-injury concern is documented. Send the neurological examination and available head imaging for review. This acknowledges the referral, not confirmation of a diagnosis.`;
       if(state) state.consultWaiting = null;
     } else if(accepted){
-      line = `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`;
-      if(state) state.consultWaiting = null;
+      line = consultAgreeLine(Svc, pack, state, opts);
     } else if(onChart.length){
       // A diagnosis IS in the box. Kim: "the consultant still asked me for diagnosis, even
       // though it's already put in the diagnosis box." Never say the box is empty: name what
@@ -2386,10 +2491,10 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
       const svcW = state.consultWaiting.service || 'the consultant';
       const SvcW = svcW.charAt(0).toUpperCase() + svcW.slice(1);
       const said = String(rawClause || clause || '');
-      if(diagnosisGrade(said, opts.diagnosis) !== 'wrong'){
-        fb.speech.push({speaker:'consultant', repeat: true,
-          text: `${SvcW} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`});
-        state.consultWaiting = null;
+      if(state.consultWaiting.needTx){
+        // Already agreed on the diagnosis; they are waiting for treatment, not for this.
+      } else if(diagnosisGrade(said, opts.diagnosis) !== 'wrong'){
+        fb.speech.push({speaker:'consultant', repeat: true, text: consultAgreeLine(SvcW, pack, state, opts)});
       } else {
         fb.speech.push({speaker:'consultant', repeat: true,
           text: `${SvcW} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`});
@@ -3610,11 +3715,30 @@ function runTurn(pack, state, action, opts){
       return {kept: list.filter(r => ok.includes(r.intent)),
               removed: list.filter(r => !ok.includes(r.intent)).map(r => pack.responders.indexOf(r))};
     };
+    // AN EXAM IS NOT A PAGE — in every case, strict or not. Kim, 2026-09-18: "when i order a neuro
+    // exam, it understand neuro consult instead." "neuro" expands to "neurology", and the 18
+    // neurology-heavy packs author their consult responder on that word, so the exam came back
+    // WITH the neurologist's line. A clause that says "exam" in so many words and classifies as
+    // an exam is never answered by a consult responder. (blunt-multi's "general surgery" /
+    // "pelvic fixation" consults classify exam but carry no exam word, and keep their answer.)
+    const examOnly = /\b(exam|examination|examine)\b/.test(normalize(rawClause)) && classifyIntent(rawClause, rawClause) === 'exam';
+    const pagedOut = examOnly ? matched.filter(r => r.intent === 'consult').map(r => pack.responders.indexOf(r)) : [];
+    if(examOnly) matched = matched.filter(r => r.intent !== 'consult');
+    // …and the mirror: A PAGE IS NOT AN EXAM. "consult general surgery" carries the word
+    // "general", and the pack's General exam responder answered it alongside the surgeon —
+    // the transcript read the abdominal exam back for a phone call. A clause with a consult
+    // verb that classifies as a consult is never answered by an exam responder.
+    const ntoks = normalize(rawClause).split(' ');
+    const pageOnly = !examOnly && CONSULT_WORDS.some(w => ntoks.includes(w)) && classifyIntent(rawClause, rawClause) === 'consult';
+    if(pageOnly){
+      for(const r of matched) if(r.intent === 'exam') pagedOut.push(pack.responders.indexOf(r));
+      matched = matched.filter(r => r.intent !== 'exam');
+    }
     const firstPass = gateByIntent(matched, rawClause, rawClause);
     matched = firstPass.kept;
     // Declared FROM the first pass, not before it: the old `let gated = []` initializer was dead
     // -- every path overwrote it -- and a dead initializer reads as a third possible value.
-    let gated = firstPass.removed;
+    let gated = pagedOut.concat(firstPass.removed);
     const ctoks = normalize(rawClause).split(' ');
     // Earliest clause position of EACH matched alias, per responder. A responder
     // often aliases several drugs of a class (kayexalate AND lokelma live on one
@@ -3794,13 +3918,16 @@ function runTurn(pack, state, action, opts){
         const svc = state.consultWaiting.service;
         const Svc = svc.charAt(0).toUpperCase()+svc.slice(1);
         const accepted = diagnosisGrade(clause, opts.diagnosis) !== 'wrong';
-        const line = accepted
-          ? `${Svc} — agreed, that fits what I'm seeing. We're on board; call me if anything changes.`
+        // A consultant already agreed on the diagnosis and waiting for TREATMENT is not
+        // re-asked by a second diagnosis clause.
+        const txWait = !!state.consultWaiting.needTx;
+        const line = txWait ? null : accepted
+          ? consultAgreeLine(Svc, pack, state, opts)
           : `${Svc} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`;
-        if(accepted){ state.consultWaiting = null; anyApplied = true; }
-        else state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
+        if(accepted && !txWait) anyApplied = true;
+        else if(!accepted && !txWait) state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
         // …but only ONE consultant answer per turn, same rule as the gated branch above.
-        if(!(out.speech || []).some(s => s.speaker === 'consultant'))
+        if(line && !(out.speech || []).some(s => s.speaker === 'consultant'))
           out.speech.push({ speaker: 'consultant', text: line, repeat: true });
       }
     }
@@ -4030,6 +4157,19 @@ function runTurn(pack, state, action, opts){
            && consultAdmits((opts.criticalActions || [])[r0.satisfies])){
           endedBy = endedBy || 'good';
           if(tc) tc.consultAdmits = true;
+        } else if(r0.intent === 'consult' && !opts.consultGate && !proposing && !reported){
+          // An AUTHORED consultant (the case's own words) answers first; then the same rule as
+          // the generic one. Right diagnosis on the chart → they agree and take the patient, or
+          // wait for the treatment. No diagnosis yet → they wait for it, quietly: their authored
+          // line already spoke, and the diagnosis box will ask.
+          const svcA = CONSULT_SERVICES.filter(s => fuzzyHas(ctoks, s)).sort((a, b) => b.length - a.length)[0] || 'the consultant';
+          const SvcA = svcA.charAt(0).toUpperCase() + svcA.slice(1);
+          const dxOk = assessView(state).concat(diagnosisClause ? [{ text: clause }] : [])
+            .some(a => diagnosisGrade(a.text || a.clause || '', opts.diagnosis) !== 'wrong');
+          if(dxOk && !(state.consultWaiting && state.consultWaiting.needTx))
+            out.speech.push({ speaker: 'consultant', repeat: true, text: consultAgreeLine(SvcA, pack, state, opts) });
+          else if(!dxOk && !state.consultWaiting)
+            state.consultWaiting = { service: svcA, needDx: true, at: state.turnCount || 0, authored: true };
         }
         // Recorded unconditionally: a repeat order still evidences that THIS clause
         // reaches this critical action, which is exactly what the analyzer needs.
@@ -4537,6 +4677,22 @@ function runTurn(pack, state, action, opts){
     trace.stagesFired = state.stagesFired.slice();
     out._trace = trace;
   }
+  // THE CONSULTANT TAKES THE PATIENT (ungated cases). Either this turn's agreement already said
+  // so, or they were waiting for the treatment and this turn got it under way.
+  if(!endedBy && !opts.consultGate && state){
+    let svcT = state.consultTakes;
+    if(!svcT && state.consultWaiting && state.consultWaiting.needTx
+       && treatmentUnderWay(pack, state, opts.criticalActions)){
+      svcT = state.consultWaiting.service.charAt(0).toUpperCase() + state.consultWaiting.service.slice(1);
+      out.speech.push({ speaker: 'consultant', repeat: true,
+        text: `${svcT} — I've seen the treatment go in, and I agree with it. We'll take the patient from here — admitting now.` });
+    }
+    if(svcT){
+      state.consultTakes = null; state.consultWaiting = null;
+      creditConsultAdmission(pack, state, opts.criticalActions);
+      endedBy = 'good';
+    }
+  }
   if(endedBy){ out.isCaseOver = true; out.debrief = buildDebrief(pack, state, opts, endedBy); }
   return out;
 }
@@ -4624,6 +4780,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
+  treatmentActions,      // what an ungated consultant counts as the treatment (tests)
   consultAdmits,   // does this checklist action's own text say the consult IS the admission
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
   fallbackFor, enforceReadRules, panelRows, resolveOrders, inspectOrders,

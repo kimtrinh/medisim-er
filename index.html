@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-IvijX1D6lWzTEwGg1ttICRxD+zgbcFUmlxvj6kwiFGc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-aEYgyHOJSNNGmgPZxisBM/syUhDLYRAhlf2TGWBho40=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1563,6 +1563,22 @@
     background:rgba(2,6,23,.78);color:#e2e8f0;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
   body.cinema.console #rmCam:hover{border-color:rgba(110,231,183,.7);color:#6ee7b7}
   body.cinema.console #roomBox.bedView #rmCam{top:8px}
+  /* Bedside close-up, beside the camera button (placeRmBed writes its left). Emerald, because it
+     is the way IN to the pictures, where the camera button is grey furniture. */
+  #rmBed{display:none}
+  body.phoneFold #rmBed, body.cinema.console #rmBed{display:inline-flex;position:absolute;z-index:12;align-items:center;gap:.35rem;
+    padding:0 .75rem;border-radius:9999px;border:1px solid rgba(52,211,153,.6);background:rgba(4,47,46,.82);
+    color:#a7f3d0;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px);
+    box-shadow:0 8px 22px -10px rgba(16,185,129,.8)}
+  body.phoneFold #rmBed{left:120px;bottom:6px;min-height:36px;font-size:12px!important}
+  body.cinema.console #rmBed{left:120px;top:calc(var(--hdr,66px) + 8px - var(--rt,0px));min-height:32px;font-size:11px}
+  body.cinema.console #roomBox.bedView #rmBed{top:8px}
+  #rmBed:hover{border-color:#6ee7b7;color:#ecfdf5;background:rgba(6,78,59,.9)}
+  #rmBed .rmBedNew{width:8px;height:8px;border-radius:9999px;background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}
+  #rmBed .rmBedNew[hidden]{display:none}
+  @media (prefers-reduced-motion: no-preference){ #rmBed .rmBedNew{animation:rmBedPulse 1.6s ease-in-out infinite} }
+  @keyframes rmBedPulse{0%,100%{box-shadow:0 0 0 2px rgba(251,191,36,.3)}50%{box-shadow:0 0 0 6px rgba(251,191,36,.05)}}
+  body.cinema.roomHide #rmBed .rmBedNew{display:none}
   .roomMenu.camMenu button{min-height:44px;font-size:14px!important}
   .roomMenu.camMenu button[aria-pressed="true"]{color:#6ee7b7;background:rgba(16,185,129,.12)}
   /* landscape: the photo on the left, the column on the right, the bar under the column */
@@ -7780,6 +7796,13 @@ function paintOrderLog(){
 // status line grows and shrinks with each order.
 function fitEdLog(){
   const ed = $('edLog'); if(!ed || getComputedStyle(ed).display === 'none') return;
+  // Under the camera and Bedside buttons, wherever they stand: on a scene they sit under the
+  // header, but at BEDSIDE they ride the corner of the framed close-up, lower down — and the log
+  // was drawn straight over "Back to room".
+  const btn = $('rmBed') || $('rmCam');
+  const br = btn && getComputedStyle(btn).display !== 'none' ? btn.getBoundingClientRect() : null;
+  const host = ed.offsetParent, hr = host ? host.getBoundingClientRect() : { top: 0 };
+  ed.style.top = br && br.height ? Math.round(br.bottom + 8 - hr.top) + 'px' : '';
   const top = ed.getBoundingClientRect().top;
   const fb = $('orderFeedback'), bar = $('orderBar');
   const fbR = fb && !fb.classList.contains('hidden') && getComputedStyle(fb).display !== 'none' ? fb.getBoundingClientRect() : null;
@@ -9774,6 +9797,14 @@ function roomMenuItems(ev, title, items0, key){
   // Electricity from the trolley opens the ladder too, same as the wall and the
   // fallback palette — the joules Kim is prompted for are the case's own, not a
   // default that already fired.
+  // TAPPING THE PATIENT OFFERS THE CLOSER LOOK (2026-09-18, Kim: the bedside view should be
+  // easier to reach) — right after the region's own exam, which stays the first thing offered
+  // (tests/say-again-browser.test.cjs). Only from a room camera; at BEDSIDE you are there.
+  if(['head','chest','abdomen','arm','pelvis','legs','flank'].includes(key) && S.pview !== 'bed'){
+    const at = items.findIndex(([, ord]) => ord === null);
+    const look = ['🔍 Look closer — bedside close-up', '__bedside__'];
+    items = at >= 0 ? items.slice(0, at + 1).concat([look], items.slice(at + 1)) : [look].concat(items);
+  }
   if(key==='defib' && S.codeScript) items = items.map(([lbl, ord]) =>
       /^Defibrillate$/.test(lbl) ? ['Defibrillate … choose joules', '__energy:shock']
     : /^Synchronized cardioversion$/.test(lbl) ? ['Synchronized cardioversion … choose joules', '__energy:sync']
@@ -9794,6 +9825,7 @@ function roomMenuItems(ev, title, items0, key){
     const [lbl,ord]=items[+b.dataset.mi]; closeRoomMenu();
     if(S.loading) return;
     if(ord==='__vitals__') return openVitalsFocus();
+    if(ord==='__bedside__'){ chooseCamera('bed'); renderPatient(); return; }
     // A LOCAL ITEM IS NOT AN ORDER. Same convention the palette already uses for
     // __recap: anything starting "__" is handled here and never reaches an engine.
     if(typeof ord==='string' && ord.startsWith('__repeat:')) return sayAgain(ord.slice(9));
@@ -10935,6 +10967,7 @@ function reconcileTube(r){
   if(S.gear.ett !== want){ S.gear.ett = want; paintGear(); }
 }
 function paintGear(){
+  try{ placeRmBed(); }catch(_){ }
   // Photo-panel equipment overlays follow the gear state.
   [['pt_o2','o2'],['pt_ett','ett'],['pt_ct','ct'],['pt_cvc','cvc'],['pt_pads','pads'],['pt_collar','collar']].forEach(([id,key])=>{
     const el=$(id); if(el) el.setAttribute('opacity', S.gear && S.gear[key] ? '1' : '0'); });
@@ -10998,8 +11031,72 @@ function roomCritHTML(){
 // ROOM scene has no floor zones to walk from). See #rmCam in the styles.
 function roomButtonsHTML(){
   return `<button id="rmHide" type="button" aria-pressed="false" title="Hide everything drawn over the patient (H)"><span id="rmHideIcon">${roomHideIcon(false)}</span><span id="rmHideLab">Hide</span></button>
-     <button id="rmCam" type="button" title="Camera and equipment"><span aria-hidden="true">▣</span><span id="rmCamLab">${esc(cameraLabel(S.pview))}</span><span aria-hidden="true">▾</span></button>`;
+     <button id="rmCam" type="button" title="Camera and equipment"><span aria-hidden="true">▣</span><span id="rmCamLab">${esc(cameraLabel(S.pview))}</span><span aria-hidden="true">▾</span></button>
+     ${bedButtonHTML()}`;
 }
+// THE BEDSIDE CLOSE-UP, ONE PRESS AWAY. Kim, 2026-09-18: "most of the images that were generated
+// were the BEDSIDE view, perhaps create a way to make this view more reachable or obvious to get
+// to from the sim room main view." The faces, the devices on the patient, the injuries and the
+// exam close-ups are all drawn at BEDSIDE, and the only way there was the fourth line of the
+// camera menu. This labelled button stands beside the camera control; at BEDSIDE it goes back.
+// Its dot says there is something at the bedside not yet looked at — the case's injury, or a
+// device placed since the last look.
+function bedButtonHTML(){
+  const atBed = S.pview === 'bed';
+  return `<button id="rmBed" type="button" aria-pressed="${atBed}" title="${atBed ? 'Back to the room view' : 'Look closer: the bedside close-up of the patient'}">`
+    + `<span aria-hidden="true">${atBed ? '◀' : '🔍'}</span><span id="rmBedLab">${atBed ? 'Back to room' : 'Bedside close-up'}</span>`
+    + `<span id="rmBedNew" class="rmBedNew"${!atBed && bedsideHasNews() ? '' : ' hidden'} aria-label="something new at the bedside"></span></button>`;
+}
+// What the bedside shows that the room does not: the case's injury picture and the devices on
+// the patient. Seen once at BEDSIDE, it stops calling until something changes.
+function bedsideKey(){
+  const base = patientBaseFor(S.patient || {});
+  let v = ''; try{ v = (typeof traumaVariantFor === 'function' && traumaVariantFor(base)) || ''; }catch(_){ }
+  const gear = PATIENT_DEVICES.filter(d => S.gear && S.gear[GEAR_FOR_DEVICE[d] || d]).join(',');
+  return v + '|' + gear;
+}
+const GEAR_FOR_DEVICE = { 'c-collar': 'collar', 'central-line': 'cvc', 'chest-tube': 'ct', 'defib-pads': 'pads', 'ett': 'ett', 'o2-mask': 'o2' };
+function bedsideHasNews(){
+  const k = bedsideKey();
+  return k !== '|' && k !== (S.bedSeenKey || '|');
+}
+function placeRmBed(){
+  const c = $('rmCam'), b = $('rmBed'); if(!c || !b) return;
+  if(S.pview === 'bed') S.bedSeenKey = bedsideKey();
+  // The dot is re-decided here, not only when the button is built: the injury pictures' list
+  // arrives after the first paint, and a device can be placed without the scene being rebuilt.
+  const dot = b.querySelector('.rmBedNew'); if(dot) dot.hidden = S.pview === 'bed' || !bedsideHasNews();
+  const cs = getComputedStyle(c);
+  if(cs.display === 'none'){ b.style.removeProperty('left'); return; }
+  let left = c.offsetLeft + c.offsetWidth + 6;
+  // placeRoomToggle can stand Hide / Show all on this same row (at BEDSIDE on a mid-size screen
+  // it sits right after the camera button) — then this goes after it, not on top of it.
+  const h = $('rmHide');
+  if(h && h.offsetParent === b.offsetParent && getComputedStyle(h).display !== 'none'){
+    const cr = c.getBoundingClientRect(), hr = h.getBoundingClientRect();
+    // …only when Hide is where this would go; in the room it stands far right on the same row.
+    if(hr.bottom > cr.top && hr.top < cr.bottom && h.offsetLeft < left + b.offsetWidth && h.offsetLeft + h.offsetWidth > left)
+      left = Math.max(left, h.offsetLeft + h.offsetWidth + 6);
+  }
+  b.style.left = left + 'px'; b.style.removeProperty('top');
+  // No room on that row — the telemetry panel starts where it would end (BEDSIDE on a mid-size
+  // screen) — so it takes a second line under the camera button instead of running beneath it.
+  const mon = $('monBar');
+  if(mon && getComputedStyle(mon).display !== 'none'){
+    const br = b.getBoundingClientRect(), mr = mon.getBoundingClientRect();
+    if(br.right > mr.left - 4 && br.left < mr.right && br.top < mr.bottom && br.bottom > mr.top){
+      b.style.left = c.offsetLeft + 'px';
+      b.style.top = (c.offsetTop + c.offsetHeight + 6) + 'px';
+    }
+  }
+  try{ fitEdLog(); }catch(_){ }
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest && e.target.closest('#rmBed'); if(!b) return;
+  e.preventDefault(); e.stopPropagation(); closeRoomMenu();
+  chooseCamera(S.pview === 'bed' ? 'room' : 'bed');
+  renderPatient();
+}, true);
 // BEDSIDE AS A ROOM CAMERA. The close-up in the room's own box (#roomBox, so Hide / Show all,
 // the camera button, the shock flash and every layout pass that measures the room still find
 // it), with nothing from the scenes drawn over it: no wall monitor to blit (there is no wall in
@@ -12098,7 +12195,7 @@ document.addEventListener('click', e => {
 let _roomLayoutRaf=0;
 function roomLayoutLater(){
   cancelAnimationFrame(_roomLayoutRaf);
-  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles(); });
+  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles(); try{ placeRmBed(); }catch(_){ } });
 }
 // Every drawer, sheet and layout switch is a class on <body>, and they are set from a dozen
 // places. Watching the class is the one hook none of them can forget. sheetFit is ignored
