@@ -1058,6 +1058,53 @@ function clauseRoutes(text){
   const t = String(text || '');
   return Object.keys(ROUTE_PATTERNS).filter(k => ROUTE_PATTERNS[k].test(t));
 }
+// Routes that stand in for each other at the bedside: down a tube or up the rectum is still
+// enteral, and an IO needle is the line you use when there is no vein. A guard built on them
+// refuses only a real contradiction — by mouth when it must go in the vein, or the reverse.
+const ROUTE_FAMILY = { po:'enteral', ng:'enteral', pr:'enteral', iv:'line', io:'line' };
+// How the nurse says each one out loud. The line names the route only — never the drug or the
+// action — so a refusal cannot hand over the answer the player is being graded on.
+const ROUTE_SAID = { line: 'through the line', enteral: 'by mouth or down the tube',
+  im: 'as an intramuscular injection', sc: 'subcutaneously', neb: 'as a nebuliser' };
+const routeFamilies = rs => [...new Set(rs.map(r => ROUTE_FAMILY[r] || r))];
+// THE ROUTE THE CASE'S OWN CHECKLIST ASKS FOR. Read from the critical action this responder
+// credits, so it needs no authoring: "Give broad-spectrum IV antibiotics within 1 hour" wants a
+// line, "Start oral vancomycin (or fidaxomicin) for C. difficile colitis" wants the gut. An
+// action that names two families (or none) wants nothing in particular and never blocks.
+// Only a route stated at the HEAD of the action counts — "Give broad-spectrum IV antibiotics
+// within 1 hour" is an order to put antibiotics in a vein, while "Provide aggressive multimodal
+// analgesia (regional nerve block/epidural or scheduled multimodal IV agents)" mentions IV six
+// words deep, about one option among several, and oral paracetamol is a fair part of it
+// (tests/menu-credits caught exactly that).
+const HEAD_CLASS_RE = /\b(?:antibiotics?|antimicrobials?|antivirals?|antifungals?|analgesia|analgesics?|agents?|fluids?|steroids?|anticoagulation|antiemetics?|sedation|medications?|coverage|therapy)\b/i;
+function actionRouteFamilies(actionText, clauseText){
+  const words = stripNilByMouth(actionText).split(/\s+/);
+  const head = words.slice(0, 6).join(' '), tail = words.slice(6).join(' ');
+  // An action that offers BOTH routes forbids neither: "Replace potassium (oral for mild;
+  // controlled-rate IV for severe/symptomatic)" reads as enteral in its first six words, and
+  // refused the IV potassium the severe half of it asks for (tools_ca_reach caught that).
+  if(routeFamilies(clauseRoutes(stripNilByMouth(actionText))).length > 1) return [];
+  const fams = routeFamilies(clauseRoutes(head));
+  if(fams.length !== 1) return [];
+  // The head's route governs the head's own drug. "Start an epinephrine infusion for
+  // refractory hypotension (glucagon if on beta-blockers)" asks for a drip, but the
+  // glucagon in the brackets is an alternative given as an injection — so when the drug
+  // the player named turns up only after the head, the head's route is not theirs.
+  // Unless the head asks for a CLASS: "Give empiric IV antibiotics immediately (ceftriaxone
+  // + vancomycin)" names the drugs later as examples of the class, all of them in the vein,
+  // so oral vancomycin is still the wrong route there.
+  if(!HEAD_CLASS_RE.test(head)){
+    const h = normalize(head), t = normalize(tail);
+    const named = normalize(clauseText || '').split(/[^a-z]+/).filter(w => w.length >= 5);
+    if(named.some(w => t.includes(w) && !h.includes(w))) return [];
+  }
+  return fams;
+}
+// "Nil by mouth", "nothing by mouth", "NPO" name a route only to forbid it — they are an
+// instruction to give nothing, not an order to give something orally. Read as a route, "keep her
+// nil by mouth" was refused on a case whose action asks for IV fluids (tests/pilot-coverage).
+const NIL_BY_MOUTH_RE = /\b(?:nil|nothing|npo|nbm)\s*(?:by\s*mouth|per\s*os|po)?\b|\bkeep (?:the patient|her|him|them) npo\b/gi;
+function stripNilByMouth(text){ return String(text || '').replace(NIL_BY_MOUTH_RE, ' '); }
 // THE SALT NAMES THE DRUG. "magnesium sulfate", "calcium chloride", "KCl", "MgSO4" are
 // formulations — nobody draws a "magnesium sulfate level" — and with no dose typed beside
 // them findSolo saw no administration evidence, called them levels, and under the intent
@@ -3932,7 +3979,7 @@ function runTurn(pack, state, action, opts){
       }
     }
     if(matched.length){
-      let clauseApplied = false, guardSkipped = false, gateBlocked = false;
+      let clauseApplied = false, guardSkipped = false, gateBlocked = false, routeBlocked = false;
       for(const r0 of matched){
         // A declined action must not be performed or credited. But withholding is often
         // exactly the right move — "hold apixaban", "hold steroids until GI weighs in" and
@@ -3988,7 +4035,26 @@ function runTurn(pack, state, action, opts){
           const said = clauseRoutes(rawClause);
           if(said.length && !said.some(x => r0.route.accepts.includes(x))){
             if(r0.route.elseSpeech) out.speech.push(...r0.route.elseSpeech);
-            guardSkipped = true;
+            guardSkipped = true; routeBlocked = true;
+            continue;
+          }
+        }
+        // …and the same refusal where the CASE'S CHECKLIST names the route and the responder
+        // was never given a route guard of its own. "oral vancomycin" credited "Give
+        // broad-spectrum IV antibiotics within 1 hour" on the septic shock case (found
+        // 2026-09-19 by the Jev audit) — oral vancomycin does not leave the gut, which is
+        // exactly why it is the right answer on the C. difficile case and the wrong one here.
+        // Explicit route.accepts above always wins; an unstated route still just gets the dose
+        // flag; and an action naming both families (or neither) never blocks anything.
+        // Drugs only: a procedure's "route" is not a route ("keep her nil by mouth" is an
+        // instruction to give nothing), and every case this was built for is a medication.
+        if(!r0.route && r0.intent === 'med' && Number.isInteger(r0.satisfies)){
+          const want = actionRouteFamilies((opts.criticalActions || [])[r0.satisfies], rawClause);
+          const said = routeFamilies(clauseRoutes(stripNilByMouth(rawClause)));
+          if(want.length && said.length && !said.some(x => want.includes(x))){
+            out.speech.push({ speaker: 'nurse', text: 'Pharmacy is questioning the route — this one is written to go in '
+              + (ROUTE_SAID[want[0]] || 'by another route') + ', not the way it is written here.' });
+            guardSkipped = true; routeBlocked = true;
             continue;
           }
         }
@@ -4210,11 +4276,14 @@ function runTurn(pack, state, action, opts){
       // one, and whether the case ends cannot depend on whether anybody is watching. Keyed
       // on rawClause, which is what clauseList holds — `clause` may have been rewritten
       // through the catalog by now ("admit to the icu" becomes "admit to intensive care").
-      if(gateBlocked && !clauseApplied) blockedClauses.add(rawClause);
+      if((gateBlocked || routeBlocked) && !clauseApplied) blockedClauses.add(rawClause);
       // A clause whose every match was guard-skipped must still be ANSWERED —
       // the first hyperosmolar order of a herniation case vanished when the
       // pupil-exam guard ate its only match.
-      if(!clauseApplied && guardSkipped && !gateBlocked && !withheld && !conditional && !counseling
+      // …but NOT a clause the route refused. Pharmacy has already answered it, and the generic
+      // answer says the drug went in: "IV vancomycin doesn't reach the colon lumen" was followed
+      // by "Vancomycin is in — pushed and flushed", which is the opposite of what happened.
+      if(!clauseApplied && guardSkipped && !gateBlocked && !routeBlocked && !withheld && !conditional && !counseling
          && !proposing && !reported && !doseWrongHere){
         const fb2 = fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags);
         out.labResults.push(...fb2.labResults);
