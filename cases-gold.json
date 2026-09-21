@@ -7890,6 +7890,7 @@
    "title": "Found unresponsive behind a bus shelter",
    "chiefComplaint": "31-year-old woman found down, no pulse on arrival",
    "diagnosis": "Opioid-associated cardiac arrest — asystole from prolonged respiratory arrest (illicit fentanyl)",
+   "diagnosisAlso": ["opiate overdose", "respiratory arrest"],
    "context": "31-year-old found unresponsive behind a bus shelter. A witness saw her sitting up fifteen minutes earlier. Medics found her apneic with pinpoint pupils and fresh track marks in both antecubital fossae; the initial monitor picture was agonal and by arrival it is ASYSTOLE. True scenario is an OPIOID-ASSOCIATED CARDIAC ARREST: the primary insult is respiratory, and the heart stopped because it ran out of oxygen. CORRECT PATH: confirm asystole in more than one lead, high-quality compressions, effective ventilation (bag-mask with an oral airway at 10 breaths a minute, then an advanced airway), epinephrine 1 mg IV/IO immediately and every 3-5 minutes, naloxone 2 mg IV/IO/IM, waveform capnography, and a glucose. ROSC follows once she has been oxygenated, given epinephrine and reversed. RED HERRINGS: defibrillating asystole; giving naloxone INSTEAD of ventilating; treating the arrest as primarily cardiac. DETERIORATION: without ventilation, epinephrine and reversal she is dead at twenty minutes.",
    "criticalActions": [
     "Confirm asystole in more than one lead, keep compressions going and do not defibrillate",

@@ -806,6 +806,18 @@ const PROCEDURE_WORDS = ['suction','suctioning','yankauer','yankauers','orophary
   'pace','pacing','cpr','reduce','reduction','splint','suture','foley','ng tube','nasogastric',
   'io access','intraosseous','cricothyrotomy','pericardiocentesis','iv access','second iv',
   'two large bore','large bore','hyperventilate','hyperventilation',
+  // KEEPING A PATIENT WARM IS AN ORDER THE ENGINE HAD NO WORD FOR. Kim, 2026-09-20, from a
+  // played opioid arrest: "didn't understand a lot of my order like all the warming stuff."
+  // Four ways of saying it in one run, every one lost. The vocabulary did exist, but only as
+  // generated entries pinned to the hypothermia case, so it worked there and nowhere else —
+  // and the global "Active rewarming" chip sent canonical text the engine could not read
+  // either, which is exactly what the table above says must never happen: the catalog is
+  // minted FROM these words so it can never name an order the engine does not answer.
+  'rewarm','rewarming','active rewarming','warm blankets','warming blanket','heated blanket',
+  'forced warm air','forced air warmer','bair hugger','external rewarming','convective warming',
+  'warm the patient','warm pt','warm her','warm him','remove wet clothing','wet clothes',
+  'prevent hypothermia','prevent heat loss',
+  'warmed fluids','warmed iv fluids','log roll','log rolling',
   // GIVING BLOOD IS AN ORDER THE ENGINE HAD NO WORD FOR. 27 of the 172 packs answer a
   // transfusion and several make it a critical action, but no engine table named it, so
   // classifyIntent called it 'other' and the catalog builder — which mints entries FROM
@@ -3030,7 +3042,33 @@ function joinWants(list){
 // the player typed. "Acute rheumatic fever" is three tokens, so "rheumatic fever"
 // passes and "fever" alone does not. Deliberately approximate: an authored alias
 // exists for packs that need a looser or tighter read.
+// A CASE MAY HAVE MORE THAN ONE RIGHT ANSWER. Kim, 2026-09-20, on the opioid arrest:
+// "it has to accept multiple diagnosis but the main one is opiate overdose and respiratory
+// arrest." Splitting one long authored string could never express that — the string is a
+// sentence, not a list, and "(illicit fentanyl)" is thrown away by the splitter entirely.
+// So a case may hand the grader an ARRAY of acceptable answers instead of one string, and
+// any of them is the right answer. Every existing caller passes a string and is unaffected.
+function dxCandidates(dx){
+  return (Array.isArray(dx) ? dx : [dx]).map(d => String(d || '')).filter(d => d.trim());
+}
 function matchesDiagnosis(text, dx){
+  const all = dxCandidates(dx);
+  // The FIRST candidate is the case's own written diagnosis and keeps its existing grading
+  // exactly — its head word is 'close', not 'correct', which is what tests/dx-close asserts
+  // across the library. Only the answers a case AUTHORS as also-correct match by synonym.
+  return all.some((one, i) => matchesOneDiagnosis(text, one) || (i > 0 && sameDxWords(text, one)));
+}
+// "opiate overdose" and "opioid overdose" are the same answer, but the two halves of this
+// file tokenise differently: dxWords folds synonyms (opiate/opioid/narcotic, overdose/
+// toxicity/poisoning) and moTokens does not, so an authored answer matched only its own
+// spelling. Same words after folding, same answer.
+function sameDxWords(a, b){
+  const x = dxWords(String(a || '').replace(ASSESS_FRAME_RE, '')), y = dxWords(b);
+  if(!x.length || x.length !== y.length) return false;
+  const ys = new Set(y);
+  return x.every(w => ys.has(w));
+}
+function matchesOneDiagnosis(text, dx){
   const parts = diagnosisParts(dx);
   // Naming the same thing by another name is naming it. This is the clause that lets
   // "STEMI" answer "…from acute coronary occlusion", and "VF" answer a ventricular
@@ -3107,6 +3145,9 @@ function dxUmbrellaClose(text, dx){
   return DX_UMBRELLA.some(u => u.broad.some(b => dxWords(b).join(' ') === core) && u.members.test(d) && !u.never.test(d));
 }
 function diagnosisClose(text, dx){
+  return dxCandidates(dx).some(one => diagnosisCloseOne(text, one));
+}
+function diagnosisCloseOne(text, dx){
   if(dxUmbrellaClose(text, dx)) return true;
   const said = dxWords(String(text || '').replace(ASSESS_FRAME_RE, ''));
   if(!said.length) return false;
@@ -3115,8 +3156,16 @@ function diagnosisClose(text, dx){
     // every word said belongs to this part, and at least one of them is a SPECIFIC word
     // of it (not shock/arrest/failure/overdose…): "sepsis" answers "septic shock", "shock"
     // does not; "cardiogenic shock" does not either — "cardiogenic" is not in it.
-    if(!said.every(w => want.includes(w))) continue;
-    if(!said.some(w => !DX_GENERIC_HEAD.has(w))) continue;
+    //
+    // A GENERIC head the diagnosis happens not to use is forgiven (Kim, 2026-09-20, from a
+    // played opioid arrest): the case answer is "Opioid-associated cardiac arrest — asystole",
+    // and "opioid overdose" was graded WRONG, alongside "heroin overdose", because the word
+    // "overdose" appears nowhere in it. Naming the right agent and attaching a plausible head
+    // is a close answer, not a wrong one. This stays safe because the SPECIFIC word must still
+    // be one of the part's own: "cardiogenic shock" is still wrong for septic shock, and bare
+    // "shock" is still wrong, since neither offers a specific word the part contains.
+    if(!said.every(w => want.includes(w) || DX_GENERIC_HEAD.has(w))) continue;
+    if(!said.some(w => !DX_GENERIC_HEAD.has(w) && want.includes(w))) continue;
     return true;
   }
   return false;

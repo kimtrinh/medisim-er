@@ -238,7 +238,15 @@ function runCrash(state, script){
 // not read 92% the same second. A row fires once, when its cause is first treated. Causes
 // still untreated keep their damage: a later crash row on one of them still applies.
 function startRecover(state, script, cause){
-  if(state.ended || !state.pulse) return [];
+  // ROSC IS NOT THE END OF THE RESUSCITATION. `ended` carries two very different meanings:
+  // 'death', after which nothing can improve, and 'rosc', after which almost everything the
+  // player does is post-arrest care. Bailing on both froze the patient at her postRosc
+  // numbers for the rest of the case — Kim, 2026-09-20: "no change in vital when put on
+  // naloxone or drip … never improved her oxygen saturation despite intubation." The page
+  // already draws this distinction for the same reason (codeAnswers: `ended !== 'death'`,
+  // "post-arrest care is the rest of the resuscitation, not an epilogue"); the engine that
+  // moves the numbers did not.
+  if(state.ended === 'death' || !state.pulse) return [];
   const rows = ((script.crash || {}).recover || []).filter(r => r.cause === cause);
   const out = [];
   for(const r of rows){
