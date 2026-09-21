@@ -8,6 +8,15 @@
     531
    ],
    "bleeds": "pulsing"
+  },
+  "eye-injury": {
+   "box": [
+    949,
+    312,
+    1060,
+    412
+   ],
+   "bleeds": "none"
   }
  },
  "young-f": {
@@ -19,6 +28,33 @@
     505
    ],
    "bleeds": "pulsing"
+  },
+  "face-swelling": {
+   "box": [
+    600,
+    303,
+    1069,
+    474
+   ],
+   "bleeds": "none"
+  },
+  "pregnant": {
+   "box": [
+    372,
+    223,
+    729,
+    442
+   ],
+   "bleeds": "none"
+  },
+  "postpartum": {
+   "box": [
+    443,
+    282,
+    788,
+    439
+   ],
+   "bleeds": "none"
   }
  },
  "older-m": {
@@ -30,6 +66,60 @@
     487
    ],
    "bleeds": "pulsing"
+  },
+  "nosebleed": {
+   "box": [
+    868,
+    312,
+    997,
+    556
+   ],
+   "bleeds": "trickle"
+  },
+  "hematemesis": {
+   "box": [
+    818,
+    311,
+    1018,
+    586
+   ],
+   "bleeds": "none"
+  },
+  "face-swelling": {
+   "box": [
+    874,
+    300,
+    1149,
+    482
+   ],
+   "bleeds": "none"
+  },
+  "eye-injury": {
+   "box": [
+    977,
+    324,
+    1058,
+    404
+   ],
+   "bleeds": "none"
+  },
+  "arm-injury": {
+   "box": [
+    228,
+    450,
+    549,
+    531
+   ],
+   "bleeds": "pulsing"
+  },
+  "bite": {
+   "box": [
+    139,
+    310,
+    364,
+    434
+   ],
+   "bleeds": "trickle"
   }
  },
  "young-m-2": {

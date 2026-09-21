@@ -9,7 +9,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-hnEiNeXNwYJ99F9TkDP0awTjBIQB3s0OkoLZCQyfASM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-updp9EJfSx6FlPNmZ72f5kN+5tW9b7h9OAGGEvzMOLw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -10093,7 +10093,9 @@ const ADULT_FINDINGS = ['stab-chest','gsw','seatbelt-sign','flank-bruising','leg
   'rash-petechial','rash-urticaria','rash-morbilliform',
   // 2026-09-14, Kim: "I'd like to see a bleeding leg wound" — eight findings the vignettes
   // describe and the library could not draw (spec docs/superpowers/specs/2026-09-14-realistic-findings-and-motion-design.md).
-  'leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant'
+  'leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant',
+  // 2026-09-21, Kim: "postpartum should show a soft distended belly, not a pregnant dome".
+  'postpartum'
 ];
 const TRAUMA_BASES = {
   'young-m': new Set(ADULT_FINDINGS),
@@ -10177,15 +10179,28 @@ const TRAUMA_VARIANTS = [
   ['face-swelling', /\b(?:angioedema|(?:lip|tongue|facial|face) swelling|swollen (?:lips?|tongue|face))/i],
   // A week count only counts with "gestation" or "pregnant" on it, and only when it is not the
   // baby's own birth: the BRUE infant's brief says "born at full term (39 weeks' gestation)"
-  // and quotes the AAP criterion "gestational age >= 32 weeks". "postpartum-range risk" in the
-  // CVST brief describes her clotting risk, not a delivery, so postpartum must not be hyphenated.
+  // and quotes the AAP criterion "gestational age >= 32 weeks". `postpartum` used to be one of
+  // these alternatives and is now its own finding, directly above.
   // And eclampsia comes through ECLAMPSIA_RE — the one guard, shared with the seizure motion,
   // because both read the same brief and must agree about whose eclampsia it is.
   // Obstetric notation: "34+2 weeks" is 34 weeks and 2 days, and the HELLP brief opens with
   // "a 27-year-old primigravida at 34+2 weeks gestation". "gravid" carries no leading \b so
   // that primigravida and multigravida count too — no other English word contains it.
+  // AFTER THE DELIVERY IS NOT BEFORE IT. Kim (2026-09-21): "postpartum should show a soft
+  // distended belly, not a pregnant dome." `postpartum` was one of the `pregnant` alternatives,
+  // so the postpartum-haemorrhage case — bleeding an hour after a precipitous delivery, with a
+  // boggy, poorly contracted uterus — was being drawn with a 34-week gravid dome, which is a
+  // picture of the wrong moment. It is its own finding now, ranked ABOVE pregnant so a brief
+  // that says both is read as the later event. The `(?!-)` is the CVST guard, kept word for
+  // word: that woman's "postpartum-range risk" is a clotting risk, not a delivery she has had.
+  // The lookbehind refuses the word when it is the tail of a HOW LONG THIS LASTS phrase rather
+  // than something this patient has done. HELLP's brief says the syndrome "can occur in late
+  // pregnancy or up to four weeks postpartum" — a fact about the disease — while the woman it
+  // describes is a primigravida at 34+2 weeks who has not delivered, and a bare \bpostpartum
+  // handed her the soft postnatal belly instead of her own gravid one.
+  ['postpartum',    /(?<!\b(?:up to|within|through)\b[^.;]{0,30})\bpostpartum(?!-)/i],
   ['pregnant',      new RegExp('(?:(?<!\\bborn[^.;]{0,40})\\b(?:2\\d|3\\d|4[0-2])(?:\\+\\d)? weeks(?:\'? gestation|\'? pregnan)|\\bthird trimester\\b|\\bin labou?r\\b|'
-                              + ECLAMPSIA_RE.source + '|\\bpostpartum(?!-)|gravida?\\b)', 'i')],
+                              + ECLAMPSIA_RE.source + '|gravida?\\b)', 'i')],
   // Jaundice and ascites both belong to liver disease and a cirrhotic can have
   // either or both; jaundice is checked first because a yellow patient is the
   // more arresting bedside finding and the one that changes the differential.
@@ -10235,7 +10250,7 @@ function assertsFinding(text, at){
 // The eight 2026-09-14 findings ship one reviewed picture at a time (Kim keeps each one);
 // a finding with no kept picture is not picked, and the next finding in the ranking (or the
 // unmarked photo) shows instead. patient-trauma/manifest.json is the record of what exists.
-const REVIEWED_FINDINGS = new Set(['leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant']);
+const REVIEWED_FINDINGS = new Set(['leg-wound','arm-injury','bite','eye-injury','nosebleed','hematemesis','face-swelling','pregnant','postpartum']);
 let _findingManifest = null;
 let _manifestFetch = null;
 function loadFindingManifest(){
