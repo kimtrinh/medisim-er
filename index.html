@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-f3E361rdEAcZFXLjPJcIi9OIx818Mj2o0EjVZ4M7IfI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-0RQz6IStwg12qWUglS/aAypghUnJ0+Ukzqa4rDPjuFM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -9568,9 +9568,34 @@ function caseSceneImg(view, caseId){
   const v = CASE_VISUALS[String(caseId||'')];
   return view==='room' && v && v.room || null;
 }
+// Reviewed, full-frame treatment states. The tube/pads are part of the patient photo,
+// not positioned cutouts. Keep coverage explicit: an unreviewed patient or camera
+// retains the existing device artwork instead of silently showing a different person.
+const PATIENT_PHOTO_STATES = {
+  'mid-m': {
+    bed: {ett:'patient/mid-m-ett.jpg', pads:'patient/mid-m-pads.jpg', both:'patient/mid-m-ett-pads.jpg'},
+    room: {ett:'scenes/room-mid-m-ett.jpg', pads:'scenes/room-mid-m-pads.jpg', both:'scenes/room-mid-m-ett-pads.jpg'}
+  },
+  'resus-atls-blunt-multi': {
+    bed: {ett:'patient-trauma/case-resus-atls-blunt-multi-ett.jpg'},
+    room: {ett:'scenes/room-case-resus-atls-blunt-multi-ett.jpg'}
+  }
+};
+function patientPhotoState(view, base, caseId, gear, padsActive){
+  const key=CASE_VISUALS[String(caseId||'')] ? String(caseId) : base;
+  const states=PATIENT_PHOTO_STATES[key] && PATIENT_PHOTO_STATES[key][view];
+  const ett=!!(gear&&gear.ett), pads=!!padsActive;
+  if(!states || (!ett&&!pads)) return null;
+  if(ett&&pads&&states.both) return {src:states.both, ett:true, pads:true};
+  if(ett&&states.ett) return {src:states.ett, ett:true, pads:false};
+  if(pads&&states.pads) return {src:states.pads, ett:false, pads:true};
+  return null;
+}
 function roomImgFallback(img){
   const v=ROOM_VIEWS[img.dataset.view]; if(!v) return;
-  if(img.getAttribute('src')!==v.img){ img.onerror=null; img.src=v.img; }
+  const fallback=img.dataset.fallback||v.img;
+  if(img.getAttribute('src')!==fallback){ img.onerror=()=>{img.onerror=null;img.src=v.img;}; img.src=fallback; }
+  else if(fallback!==v.img){img.onerror=null;img.src=v.img;}
 }
 // ---- SIM ROOM CAST: who's present, where they stand, what clicking them says ----
 // See docs/superpowers/specs/2026-08-18-room-cast-design.md. Presence is DERIVED from
@@ -10979,13 +11004,14 @@ function bedsideVariant(base){ return base==='manikin' ? null : traumaVariantFor
 // skin state, sweat droplets, breathing scale, ECG pads) and the same clickable exam regions as
 // polygons over the anatomy.
 function bedsideSceneHTML(base, variant){
+  const photoState=patientPhotoState('bed',base,S.goldId,S.gear,!!(S.gear&&S.gear.pads));
   const overlayEntry = PATIENT_OVERLAYS[base] || PATIENT_OVERLAYS.manikin || {};
   const overlaysHTML = OVERLAY_DEVICES.map(([device,gearKey])=>{
     const d = overlayEntry[device];
     if(!d || !Array.isArray(d.box)) return '';
     const g = overlayBoxToXYWH(d.box);
     return `<image id="pt_${gearKey}" href="patient-overlays/${base}/${device}.png" data-optional-overlay="1" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"
-           opacity="${S.gear&&S.gear[gearKey]?1:0}" style="transition:opacity .5s" pointer-events="none"/>`;
+           opacity="${S.gear&&S.gear[gearKey]&&!(photoState&&photoState[gearKey])?1:0}" style="transition:opacity .5s" pointer-events="none"/>`;
   }).join('');
   // What the vignette says is happening to this patient, and when the bleed started — read
   // once per case, here rather than at case start, because a restored session lands straight
@@ -11006,7 +11032,7 @@ function bedsideSceneHTML(base, variant){
     <g id="pt_body" clip-path="url(#pt_bodyClip)">
     <!-- "chest" by history: this group is the whole photo plus the device overlays, and it is what startBreathing scales; the tap polygons below stay put on purpose -->
     <g id="pt_chest">
-      <image id="pt_photo" href="${casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (variant || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
+      <image id="pt_photo" href="${photoState&&photoState.src || casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (variant || 'patient/'+base+'.jpg'))}" x="0" y="0" width="720" height="409" preserveAspectRatio="xMidYMid slice" style="transition:filter .8s"/>
       <!-- Equipment overlays: patches cut from edits of this same base photo, so
            the fit and lighting are pixel-exact. Feathered edges blend over the
            original; a missing file simply never shows. Placement maps the source
@@ -11110,9 +11136,16 @@ function reconcileTube(r){
 }
 function paintGear(){
   try{ placeRmBed(); }catch(_){ }
+  const base=patientBaseFor(S.patient||{});
+  const bedState=patientPhotoState('bed',base,S.goldId,S.gear,!!(S.gear&&S.gear.pads));
+  const photo=$('pt_photo');
+  if(photo){
+    const src=bedState&&bedState.src || casePatientImg(S.goldId) || (base==='manikin' ? PATIENT_IMG : (bedsideVariant(base)||'patient/'+base+'.jpg'));
+    if(photo.getAttribute('href')!==src) photo.setAttribute('href',src);
+  }
   // Photo-panel equipment overlays follow the gear state.
   [['pt_o2','o2'],['pt_ett','ett'],['pt_ct','ct'],['pt_cvc','cvc'],['pt_pads','pads'],['pt_collar','collar']].forEach(([id,key])=>{
-    const el=$(id); if(el) el.setAttribute('opacity', S.gear && S.gear[key] ? '1' : '0'); });
+    const el=$(id); if(el) el.setAttribute('opacity', S.gear && S.gear[key] && !(bedState&&bedState[key]) ? '1' : '0'); });
   document.querySelectorAll('[data-gear]').forEach(b=>{
     const on=!!(S.gear&&S.gear[b.dataset.gear]);
     b.className='px-2 py-1 rounded-md border text-[9px] font-black uppercase tracking-wider transition '+(on?'border-emerald-600/60 bg-emerald-500/15 text-emerald-300':'border-slate-800 bg-slate-900/40 text-slate-600 hover:text-slate-400');
@@ -11301,10 +11334,13 @@ function fitBedside(){
 // Mount-agnostic: used by the sidebar card AND the full-screen expand overlay.
 function buildRoomScene(mount){
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room', view=ROOM_VIEWS[viewKey], mb=view.monBox;
-  const sceneSrc=caseSceneImg(viewKey, S.goldId)||sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
+  const baseSceneSrc=caseSceneImg(viewKey, S.goldId)||sceneImgFor(viewKey, patientBaseFor(S.patient||{}))||view.img;
+  const st=roomState(), padsActive=!!((S.gear&&S.gear.pads)||(st.defib&&st.defib!=='idle'));
+  const photoState=patientPhotoState(viewKey,patientBaseFor(S.patient||{}),S.goldId,S.gear,padsActive);
+  const sceneSrc=photoState&&photoState.src || baseSceneSrc;
   mount.innerHTML=`
    <div class="relative rounded-2xl border border-slate-800 overflow-hidden select-none" id="roomBox">
-     <img src="${sceneSrc}" data-view="${viewKey}" class="w-full block pointer-events-none" alt="Emergency simulation room, ${esc(view.label||viewKey)} view">
+     <img src="${sceneSrc}" data-fallback="${baseSceneSrc}" data-view="${viewKey}" class="w-full block pointer-events-none" alt="Emergency simulation room, ${esc(view.label||viewKey)} view">
      <!-- NO SECOND MONITOR IN THE ROOM. Kim, 2026-09-18: "You don't need another strip for the
           monitor in the room. Just keep the telemetry strips." The wall monitor used to carry a
           copy of the telemetry trace (#rmMon, blitted every frame); the telemetry panel is the
@@ -11323,7 +11359,7 @@ function buildRoomScene(mount){
           stays click-through — only the figures (.roomCast) opt back into pointer-events,
           and they're positioned to stay clear of the zone polygons underneath. -->
      <div id="rmCast" class="absolute inset-0 pointer-events-none"></div>
-     ${viewKey==='room' ? `<img id="rmOccluder" src="${sceneSrc}" data-view="${viewKey}" alt=""
+     ${viewKey==='room' ? `<img id="rmOccluder" src="${sceneSrc}" data-fallback="${baseSceneSrc}" data-view="${viewKey}" alt=""
         class="absolute inset-0 w-full h-full pointer-events-none" style="clip-path:polygon(${ROOM_BED_CLIP})">` : ''}
      <!-- Live clinical actions belong above the bed occluder: the rescuer's hands must
           visibly land on the patient's chest, while the layer stays click-through. -->
@@ -12960,6 +12996,16 @@ function paintRoom(){
   const ov=$('rmOverlays'); if(!ov){ paintCareStrip(); return; }
   const st=roomState(), reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room';
+  const base=patientBaseFor(S.patient||{});
+  const padsActive=!!((S.gear&&S.gear.pads)||(st.defib&&st.defib!=='idle'));
+  const photoState=patientPhotoState(viewKey,base,S.goldId,S.gear,padsActive);
+  const baseSceneSrc=caseSceneImg(viewKey,S.goldId)||sceneImgFor(viewKey,base)||ROOM_VIEWS[viewKey].img;
+  const sceneSrc=photoState&&photoState.src || baseSceneSrc;
+  const box=$('roomBox');
+  if(box) box.querySelectorAll('img[data-view]').forEach(im=>{
+    im.dataset.fallback=baseSceneSrc;
+    if(im.getAttribute('src')!==sceneSrc) im.setAttribute('src',sceneSrc);
+  });
   const zones=ROOM_VIEWS[viewKey].zones;
   const d=zoneBox(zones,'defib'), iv=zoneBox(zones,'ivpole'),
         aw=zoneBox(zones,'airway'), us=zoneBox(zones,'us'), chest=zoneBox(zones,'chest'), head=zoneBox(zones,'head');
@@ -12998,7 +13044,7 @@ function paintRoom(){
   // Drawn in the close-up's order: the collar under the airway kit, the mask or the tube over it.
   if(S.gear && S.gear.collar) h+=roomArtHTML('collar', viewKey, head);
   if(S.gear && S.gear.o2 && !S.gear.ett) h+=roomArtHTML('o2', viewKey, head);
-  if(S.gear && S.gear.ett) h+=(st.ettPlacement?'':roomArtHTML('ett', viewKey, head)) + roomArtHTML('ventilator', viewKey, head);
+  if(S.gear && S.gear.ett && !(photoState&&photoState.ett)) h+=(st.ettPlacement?'':roomArtHTML('ett', viewKey, head)) + roomArtHTML('ventilator', viewKey, head);
   if(S.gear && S.gear.cvc) h+=roomArtHTML('cvc', viewKey, head);
   if(S.gear && S.gear.ct && !st.ctPlacement) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
   // 'idle' is the defibrillator's RESTING state and it is a truthy string, so `|| st.defib`
@@ -13006,7 +13052,7 @@ function paintRoom(){
   // existed (roomArtHTML draws nothing for a key that is not switched on); the moment one
   // landed, every patient arrived with pads already on their chest. The pads are on when
   // someone has put them on: the gear flag, or the defibrillator actually in use.
-  if((S.gear && S.gear.pads) || (st.defib && st.defib !== 'idle')) h+=roomArtHTML('pads', viewKey, chest);
+  if(padsActive && !(photoState&&photoState.pads)) h+=roomArtHTML('pads', viewKey, chest);
   // IV bags hang off the pole's hook. Sized from the pole's own width and given a
   // fixed aspect-ratio so they stay bag-shaped in the 300px card and full screen alike.
   if(iv){
@@ -13054,7 +13100,7 @@ function paintRoom(){
       actionFx.dataset.fxKey=fxKey;
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
         cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
-        (st.ettPlacement?roomArtHTML('ett',viewKey,head,'rmDevicePlace')+intubationClinicianHTML(viewKey,head):'')+
+        (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
     }
   }
