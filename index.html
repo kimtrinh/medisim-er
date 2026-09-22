@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NAkCpd6ON2ShCXLcEHpPsYPpOy16bHTmzL/y0+suPIg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-fwi4JlsavNRClUUJHGNNi6hDCEgp+6hErqXdC2phDKM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -317,14 +317,21 @@
     body.cinema.console #sideBar #orderLog{display:none}
     /* The transcript drawer opens over this same column; Hide / Show all takes it with the rest. */
     body.cinema.console.feedOpen #edLog,
+    body.cinema.console.resultsOpen #edLog,
+    body.cinema.console.actionBrowserOpen #edLog,
     body.cinema.console.hudClear #edLog{display:none}
     body.cinema.console.roomHide #edLog{visibility:hidden}
-    /* ...and the order menu, open from the first minute now, stops at the patient's head: in
-       every room camera the head and pillow end by x 70% of the photo, so the menu takes the
-       wall to the right of that — narrower on a smaller screen rather than over the patient
-       (at 1280x800 the full 480px reached the sternum). 320px is the floor below which its
-       two-column chips stop being readable. */
-    body.cinema.console #actionBrowser{width:max(320px, min(480px, calc(100vw - (var(--rl) + var(--rw) * .70) - 16px)))}
+    /* The desktop action palette uses the left equipment wall; telemetry shifts right
+       while it is open, keeping HR/BP readable and the airway team in view. */
+    body.cinema.console #actionBrowser{left:8px;right:auto;width:min(430px, max(320px, calc(var(--rl) + var(--rw) * .29 - 16px)))}
+    body.cinema.console.actionBrowserOpen #monBar{left:calc(min(430px, max(320px, calc(var(--rl) + var(--rw) * .29 - 16px))) + 16px);
+      right:var(--gap);width:auto}
+    body.cinema.console #edLog:not(.edExpanded){width:150px;height:31px;max-height:31px;
+      background:rgba(2,6,23,.58);border-color:rgba(148,163,184,.22);
+      -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+    body.cinema.console #edLog:not(.edExpanded) .edList{display:none}
+    body.cinema.console #edLog:not(.edExpanded) .edHead{padding:.3rem .45rem;background:transparent;border:0}
+    body.cinema.console #edLog:not(.edExpanded) .edHead span{font-size:9px;letter-spacing:.08em}
     /* A narrower menu must still show its orders, not only its header: at 1280x800 the
        wrapped order sets took five rows and left the chips a 20px slit. In the room the
        sets are one row that scrolls sideways, and the header drops its how-to line. */
@@ -335,7 +342,9 @@
     body.cinema.console #actionBrowser .actionSets button{flex:none;white-space:nowrap}
   }
   #edLog .edHead{display:flex;align-items:center;justify-content:space-between;gap:.5rem;
-    padding:.45rem .7rem;border-bottom:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.6)}
+    width:100%;padding:.45rem .7rem;border:0;border-bottom:1px solid rgba(148,163,184,.14);
+    background:rgba(15,23,42,.6);color:#e2e8f0;cursor:pointer;text-align:left}
+  #edLog .edHead:focus-visible{outline:2px solid #67e8f9;outline-offset:-2px}
   #edLog .edList{overflow-y:auto;scrollbar-width:thin;min-height:0}
   /* The console's open drawers carry one class more than the fold above, so they won the
      tie and stayed up through a clear. Said again with the class that beats them. */
@@ -594,10 +603,12 @@
      HUD is lifted above #main while a drawer is open, so the clusters painted over the
      drawer AND over its close button. Reading the history through a grid of drug chips is
      what Kim was describing. The wall stands down while the transcript is up; closing it
-     brings the wall straight back. (The chart on the right has no such problem: it opens
-     over empty wall, which is why it can stay open while you give orders.) */
+     brings the wall straight back. Results now shares that left wall, so its open state
+     also folds the order chips until the drawer closes. */
   body.cinema.console.feedOpen #console,
-  body.cinema.console.feedOpen #ribbon{display:none}
+  body.cinema.console.feedOpen #ribbon,
+  body.cinema.console.resultsOpen #console,
+  body.cinema.console.resultsOpen #ribbon{display:none}
   /* An open section owns the wall; the reversible-causes ribbon shares that column. */
   body.cinema.console.secOpen #ribbon{display:none}
   body.cinema.console #obInputRow{margin:0}
@@ -619,7 +630,7 @@
      "Yes, that's the order" — the only way to confirm an order the parser was unsure of —
      sat underneath the drawer and could not be clicked. Same family as every other
      obscured-control report: the control was drawn, and the click landed elsewhere. */
-  body.cinema.console.resultsOpen #readbackChip{right:calc(var(--colR) + var(--gap) + .5rem)}
+  body.cinema.console.resultsOpen #readbackChip{left:calc(var(--colL) + var(--gap) + .5rem)}
   body.cinema.console.feedOpen #readbackChip{left:calc(var(--colL) + var(--gap) + .5rem)}
   /* THE ORDER STATUS LINE STANDS ON THE LEFT WALL, NOT ACROSS THE FOOT OF THE BED.
      Measured 2026-09-10 with it floating across the dock: at 1440x900 it ran 681-753 over
@@ -672,13 +683,13 @@
      #console is pointer-events:none and its chips are behind the drawer either way, so
      raising the HUD costs nothing except putting the tab back within reach. */
   body.cinema.console.resultsOpen #cinemaHud{z-index:46}
-  body.cinema.console.resultsOpen #cinRight{right:calc(var(--colR) + var(--gap) + 2px)}
+  body.cinema.console.resultsOpen #cinRight{display:none}
   body.cinema.console.feedOpen #cinemaHud{z-index:46}
   body.cinema.console.feedOpen #cinLeft{left:calc(var(--colL) + var(--gap) + 2px)}
   /* And a plain close button at the top of the drawer itself, which nothing can cover. */
   body.cinema.console #chartClose{display:flex;position:sticky;top:0}
   body.cinema.console #sideBar{display:none}
-  body.cinema.console.resultsOpen #sideBar{display:block;right:var(--gap);width:var(--colR);
+  body.cinema.console.resultsOpen #sideBar{display:block;left:var(--gap);right:auto;width:var(--colL);
     top:calc(var(--hdr,62px) + 8px);bottom:64px}
   /* Same specificity as body.cinema.hudClear #console, and this block comes later — so
      CLEAR has to say it again here or the console would win the tie and stay up. */
@@ -7955,12 +7966,21 @@ function paintOrderLog(){
   // so the player knows where their orders will be written down.
   const ed = $('edLog');
   if(ed){
-    ed.innerHTML = `<div class="edHead">
-        <span class="text-[10px] font-black uppercase tracking-[.3em] text-sky-300">ED log</span>
-        <span class="text-[10px] font-black tabular-nums text-slate-400">${rows.length ? rows.length + ' order' + (rows.length === 1 ? '' : 's') : ''}</span>
-      </div>
+    const expanded=ed.classList.contains('edExpanded');
+    const unmatched=rows.filter(t=>t.unmatched&&t.unmatched.length).length;
+    ed.innerHTML = `<button type="button" class="edHead" aria-expanded="${expanded}" aria-controls="edLogList" title="${expanded?'Collapse':'Show'} activity">
+        <span class="text-[10px] font-black uppercase tracking-[.3em] text-sky-300">Activity ${expanded?'▾':'▸'}</span>
+        <span class="text-[10px] font-black tabular-nums ${unmatched?'text-amber-300':'text-slate-400'}">${rows.length ? rows.length + ' order' + (rows.length === 1 ? '' : 's') : 'No orders yet'}${unmatched?' · '+unmatched+' not understood':''}</span>
+      </button>
       <div id="edLogList" class="edList divide-y divide-slate-900">${rows.length ? rows.map(line).join('')
         : '<p class="px-3 py-2 text-[11px] leading-snug text-slate-500">Every order you give is written here, with the time.</p>'}</div>`;
+    ed.querySelector('.edHead').onclick=()=>{
+      ed.classList.toggle('edExpanded');
+      ed.querySelector('.edHead').setAttribute('aria-expanded',String(ed.classList.contains('edExpanded')));
+      ed.querySelector('.edHead').setAttribute('title',(ed.classList.contains('edExpanded')?'Collapse':'Show')+' activity');
+      ed.querySelector('.edHead span').textContent='Activity '+(ed.classList.contains('edExpanded')?'▾':'▸');
+      fitEdLog();
+    };
     const l = $('edLogList'); if(l) l.scrollTop = l.scrollHeight;
     fitEdLog();
   }
@@ -12809,14 +12829,14 @@ function adultBvmArtAllowed(){
 // same action at the correct anatomy while the original patient remains unchanged.
 function cprOverlayHTML(viewKey, chest){
   if(!chest || !cprRunning()) return '';
-  const cfg={room:{w:11.5,dx:0},foot:{w:13,dx:0},airway:{w:14.5,dx:0}}[viewKey]||{w:12,dx:0};
+  const cfg={room:{w:11.5,dx:1.2,dy:-1.2},foot:{w:13,dx:0,dy:0},airway:{w:14.5,dx:0,dy:0}}[viewKey]||{w:12,dx:0,dy:0};
   // The source cutout is 2:3. The scene coordinate system is 100 × 56, so its height
   // in scene-percent is width*(100/56)*(3/2). Hands sit at 23%,91% in the source.
   const h=cfg.w*(100/56)*(3/2);
   // Lower-sternum contact is slightly above the geometric centre of the generous
   // clickable chest region. This keeps the palm (rather than the fingertips) on the
   // sternum in all three camera angles.
-  const cx=chest.l+chest.w/2+cfg.dx, cy=chest.t+chest.h*.42;
+  const cx=chest.l+chest.w/2+cfg.dx, cy=chest.t+chest.h*.42+cfg.dy;
   const left=cx-cfg.w*.23, top=cy-h*.91;
   return `<div class="rmCprRig absolute" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
     <span class="rmCprContact"></span>
