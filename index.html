@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-1sxZmDDPooBdMHO7KUwsO700flcGZNu6cfkQPOCHVyo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Yiy4QxkvijuYvXoaffUuqaL1dx7SM2zfC0j3G5F6rQo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -8817,6 +8817,34 @@ async function appVersion(){
   try{ const r = await fetch('version.txt', { cache: 'no-store' }); if(r.ok) _appVersion = (await r.text()).trim().slice(0, 40) || null; }catch(_){}
   return _appVersion || 'unknown';
 }
+// A long-running simulation tab keeps its old JavaScript after a Pages deploy. Do not
+// replace the page during a case; offer a visible, dismissible reload when it is safe.
+let _loadedBuildVersion=null, _buildCheckAt=0;
+async function checkForNewBuild(){
+  if(!PUBLIC_BUILD || document.hidden || Date.now()-_buildCheckAt<60000) return;
+  _buildCheckAt=Date.now();
+  try{
+    const r=await fetch('version.txt?check='+_buildCheckAt,{cache:'no-store'});
+    if(!r.ok) return;
+    const current=(await r.text()).trim().slice(0,40);
+    if(!current) return;
+    if(!_loadedBuildVersion){_loadedBuildVersion=current;return;}
+    if(current===_loadedBuildVersion || $('newBuildNotice')) return;
+    const notice=document.createElement('div');
+    notice.id='newBuildNotice'; notice.setAttribute('role','status');
+    notice.style.cssText='position:fixed;top:5rem;right:1rem;z-index:1000;max-width:18rem;padding:.8rem 1rem;border:1px solid #38bdf8;border-radius:.75rem;background:#0f172a;color:#e2e8f0;box-shadow:0 8px 30px #0009;font:600 13px system-ui';
+    notice.textContent='MediSim has an update. Reload when you finish this case. ';
+    const reload=document.createElement('button'); reload.type='button'; reload.textContent='Reload';
+    reload.style.cssText='margin:.4rem .5rem 0 0;padding:.3rem .7rem;border-radius:.4rem;background:#38bdf8;color:#082f49;font-weight:800';
+    reload.onclick=()=>{if(S.stage!=='play'||confirm('Reload now? This ends the current unsaved case.')) location.reload();};
+    const dismiss=document.createElement('button'); dismiss.type='button'; dismiss.textContent='Later';
+    dismiss.style.cssText='padding:.3rem .6rem;color:#cbd5e1'; dismiss.onclick=()=>notice.remove();
+    notice.append(reload,dismiss); document.body.append(notice);
+  }catch(_){ }
+}
+document.addEventListener('visibilitychange',checkForNewBuild);
+window.addEventListener('focus',checkForNewBuild);
+checkForNewBuild();
 let _fbAbout = null;      // {turn, order, receipt, row} — or null: the whole case
 let _fbLastNote = null;   // what Download saves: the note as built, so the file is what would have been sent
 // Which opening of the form this is. "Sent — thank you" closes the form a moment later; that
@@ -9597,6 +9625,14 @@ const PATIENT_PHOTO_STATES = {
   'mid-m': {
     bed: {ett:'patient/mid-m-ett.jpg', pads:'patient/mid-m-pads.jpg', both:'patient/mid-m-ett-pads.jpg'},
     room: {ett:'scenes/room-mid-m-ett.jpg', pads:'scenes/room-mid-m-pads.jpg', both:'scenes/room-mid-m-ett-pads.jpg'}
+  },
+  'child': {
+    bed: {ett:'patient/child-ett.jpg', pads:'patient/child-pads.jpg', both:'patient/child-ett-pads.jpg'},
+    room: {ett:'scenes/room-child-ett.jpg', pads:'scenes/room-child-pads.jpg', both:'scenes/room-child-ett-pads.jpg'}
+  },
+  'infant': {
+    bed: {ett:'patient/infant-ett.jpg', pads:'patient/infant-pads.jpg', both:'patient/infant-ett-pads.jpg'},
+    room: {ett:'scenes/room-infant-ett.jpg', pads:'scenes/room-infant-pads.jpg', both:'scenes/room-infant-ett-pads.jpg'}
   },
   'resus-atls-blunt-multi': {
     bed: {ett:'patient-trauma/case-resus-atls-blunt-multi-ett.jpg'},
