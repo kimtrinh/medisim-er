@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VDiUUfY6SyNyzvDWEfyhH6/hOcz0Mi/zWjktcvh31Ww=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-NAkCpd6ON2ShCXLcEHpPsYPpOy16bHTmzL/y0+suPIg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -9675,7 +9675,7 @@ function caseSceneImg(view, caseId){
 const PATIENT_PHOTO_STATES = {
   'mid-m': {
     bed: {ett:'patient/mid-m-ett.jpg', pads:'patient/mid-m-pads.jpg', both:'patient/mid-m-ett-pads.jpg'},
-    room: {ett:'scenes/room-mid-m-ett.jpg', pads:'scenes/room-mid-m-pads.jpg', both:'scenes/room-mid-m-ett-pads.jpg'}
+    room: {ett:'scenes/room-mid-m-ett-v2.jpg', pads:'scenes/room-mid-m-pads.jpg', both:'scenes/room-mid-m-ett-pads-v2.jpg'}
   },
   'child': {
     bed: {ett:'patient/child-ett.jpg', pads:'patient/child-pads.jpg', both:'patient/child-ett-pads.jpg'},
