@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-eAHQOmWGFAPNdnU/+AIugd+lsoq7oMsAQDMzQ5kwjuk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-OV35tF41IgG7oa5y5mWnRMJNPHT2sz7T9KCS0rqoQYg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -370,6 +370,16 @@
      may enter it, and tests/room-and-tally.test.cjs measures that it does not. */
   body.cinema.console{--rh:calc(var(--rw) / var(--ra, 1.791));
                       --rt:calc((100vh - var(--rh)) / 2)}
+  /* THE PICTURE IS PLACED, NOT JUST CENTRED (Kim, 2026-09-21: "make the photo sit above the
+     dock"). fitRoomPhoto() writes --rw and --rt inline on <body> when the window is short
+     enough that the overhead strip and the command dock both reach the protected band — see
+     it for the arithmetic. The scene is laid out from the top at --rt so the picture lands
+     where the console's panels (which all read --rt/--rl/--rw) already expect it; with no fit
+     written, --rt is the centred value above and this is exactly the old centring.
+     The scene BOX is moved, not padded: --rt goes negative on a wide window (the picture's
+     top is cut to keep the bed above the dock), and a negative padding is silently dropped,
+     which would leave the picture 30px off the panels drawn over it. */
+  body.cinema.console #cinemaScene{top:var(--rt);bottom:auto;height:var(--rh);align-items:flex-start}
   /* A frame the exact size of the photo, so a cluster is placed in plain percentages of
      the picture. It must never take a click of its own — see the :not(#console) on the
      HUD's pointer-events rule below. */
@@ -467,7 +477,11 @@
      binds them on every renderPlay, and the wall monitor blits from them. */
   /* #monBar is absolute inside #main, which already begins below the header — so `top`
      here is measured from y=--hdr, not from the viewport. */
-  body.cinema.console #monBar{left:var(--rl);width:calc(var(--rw) * .70 - 6px);
+  /* Left edge at the WINDOW's margin, not the photo's: when fitRoomPhoto() makes the photo
+     smaller the strip would otherwise narrow with it, and the who/when row (nowrap) ran off the
+     left edge of the screen — measured at 1400x813, "58 YR OLD" clipped. Its right edge is still
+     the 70%-of-the-photo line where the order menu starts. */
+  body.cinema.console #monBar{left:var(--gap);width:calc(var(--rl) + var(--rw) * .70 - var(--gap) - 6px);
     right:auto;top:4px;padding:.3rem .6rem}
   /* The strip is one band: the code line and the care line run its full width, and the
      rhythm, the numbers and the who/when column stand side by side in the middle. Laying
@@ -8066,6 +8080,7 @@ function closeActionBrowser(rebuilding){
   if(rebuilding !== true) _ordersAtStart = false;   // the player (or another panel) closed it
   const panel=$('actionBrowser'); if(panel) panel.remove();
   document.body.classList.remove('actionBrowserOpen');
+  roomLayoutLater();   // Hide / Show all was placed around the menu; place it again
 }
 function openActionBrowser(){
   hideTypeahead(); closeRoomMenu();
@@ -8115,6 +8130,7 @@ function openActionBrowser(){
     '<div class="actionChoices"></div><div class="actionFoot"><button data-action-type>Type an order / diagnosis</button>'+
     '<button data-action-review>Review</button><button data-action-submit>Back to room</button></div>';
   document.body.appendChild(panel); document.body.classList.add('actionBrowserOpen');
+  roomLayoutLater();   // the menu covers the photo's top-right corner, where Hide / Show all stands
   const show=i=>{
     // The catalogue is fetched when the case starts; pressed in that first moment, the menu
     // has only its order sets and no categories yet — show those rather than throw.
@@ -11705,6 +11721,7 @@ function cinemaMetrics(){
     if(window._monRo) window._monRo.disconnect();
     window._monRo = new ResizeObserver(roomLayoutLater); window._monRo.observe(mb); window._monRoEl = mb;
   }
+  try{ fitRoomPhoto(); }catch(_){ }
   fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles();
 }
 // The phone dock's two rows are pinned to the foot of the viewport, so the toggle row
@@ -11718,8 +11735,50 @@ function cinemaMetrics(){
 // build (#micBtn is public-build-only) or the text change. Runs on every renderPlay
 // because renderPlay replaces both rows, and on every keystroke in #cmd because that
 // is what resizes them.
+// WHERE THE ROOM PHOTO GOES on a short window. Two things must never be drawn over: the
+// standing figures' heads, and the bed. Measured across four cases and all three cameras the
+// highest head is 23.7% down the photo and the bed ends 90% down it (ROOM_BED_CLIP) — so the
+// band [0.237H, 0.90H] has to fit between the bottom of the overhead strip and the top of the
+// command dock. The floor below the bed may sit under the dock; that is furniture, not patient.
+// On a desktop-sized window it fits at full size and nothing moves. On a short laptop window
+// the photo is made just small enough — but never below 85% of its natural size: past that the
+// cost (a picture a quarter smaller) is worse than the dock's scrim over the trolley's feet, and
+// the room falls back to the plain centred layout. Kim asked for the photo above the dock; this
+// is that, everywhere it can be had for a reasonable price.
+function fitRoomPhoto(){
+  const b=document.body, st=b.style;
+  const clear=()=>{ st.removeProperty('--rw'); st.removeProperty('--rt'); };
+  if(!b.classList.contains('cinema') || !b.classList.contains('console')) return clear();
+  // Hide / Show all takes the strip and the dock away. The picture stays exactly where it is
+  // — growing it would move the Hide button out from under the finger that pressed it — unless
+  // the window itself changed size meanwhile.
+  const size=innerWidth+'x'+innerHeight;
+  if(b.classList.contains('roomHide')) return b.dataset.fitAt===size ? undefined : clear();
+  b.dataset.fitAt=size;
+  const strip=$('monBar'), dock=$('orderBar');
+  if(!strip || !dock) return clear();
+  // Measure against the plain layout: the strip's width, and so its height, follows --rw.
+  clear();
+  const ra=parseFloat(getComputedStyle(b).getPropertyValue('--ra'))||1.791;
+  const HEAD=0.237, BED=0.90, M=4;
+  const S=strip.getBoundingClientRect().bottom, D=dock.getBoundingClientRect().top;
+  const natural=Math.min(innerWidth/ra, innerHeight);            // what plain centring gives
+  const H=Math.min(natural, (D - S - 2*M) / (BED - HEAD));
+  const centred=(innerHeight - natural)/2;
+  // Already clear at natural size? Then there is nothing to do — leave the old layout alone.
+  if(centred + HEAD*natural >= S + M && centred + BED*natural <= D - M) return clear();
+  if(H < natural*0.85) return clear();
+  const lo=S + M - HEAD*H, hi=D - M - BED*H;
+  const T=Math.min(Math.max((innerHeight - H)/2, lo), hi);
+  st.setProperty('--rw', Math.round(H*ra) + 'px');
+  st.setProperty('--rt', Math.round(T) + 'px');
+}
 function measureDock(){
   try{ fitOrderFeedback(); }catch(_){ }
+  // A photo that moved leaves the controls placed by measuring it (Hide, the bubbles) behind.
+  const wasFit=document.body.style.getPropertyValue('--rw')+'|'+document.body.style.getPropertyValue('--rt');
+  try{ fitRoomPhoto(); }catch(_){ }
+  if(document.body.style.getPropertyValue('--rw')+'|'+document.body.style.getPropertyValue('--rt') !== wasFit) roomLayoutLater();
   const inp=$('obInputRow'), tog=$('obToggleRow'), st=document.body.style;
   if(!inp || !tog){ st.removeProperty('--obInputH'); st.removeProperty('--obToggleH'); return; }
   // Below md both rows are position:fixed and their heights are real. Above md they are
@@ -11920,7 +11979,9 @@ function placeRoomToggle(){
   const btn=$('rmHide'), box=$('roomBox'); if(!btn || !box || !S.cinema) return;
   if(document.body.classList.contains('roomHide') && btn.dataset.placed) return;
   const B=box.getBoundingClientRect(); if(B.width<60 || B.height<30) return;
-  const PAD=6; let top=PAD, right=PAD;
+  // fitRoomPhoto() can lift the photo's top edge above the window on a wide screen; the
+  // button's first corner is then the window's top, not the photo's.
+  const PAD=6, TOP0=Math.max(PAD, Math.round(PAD - B.top)); let top=TOP0, right=PAD;
   const set=()=>{ btn.style.top=top+'px'; btn.style.right=right+'px'; return btn.getBoundingClientRect(); };
   // The button is a pill: its literal corners are outside its own rounded outline and hit
   // whatever is behind it. Probe inside the curve, and never count the room itself (the
@@ -11947,14 +12008,14 @@ function placeRoomToggle(){
     box.querySelectorAll('.ptRegion').forEach(p=>{ const q=p.getBoundingClientRect();
       body = body ? { left:Math.min(body.left,q.left), top:Math.min(body.top,q.top), right:Math.max(body.right,q.right), bottom:Math.max(body.bottom,q.bottom) } : q; });
     const onBody=r=>!!body && r.right>body.left && r.left<body.right && r.bottom>body.top && r.top<body.bottom;
-    const spots=[[PAD, PAD]];
+    const spots=[[TOP0, PAD]];
     if(cam && cam.offsetWidth){ const c=cam.getBoundingClientRect(); spots.push([Math.round(c.top-B.top), Math.round(B.right-(c.right+PAD+btn.offsetWidth))]); }
     spots.push([Math.round(B.height - btn.offsetHeight - PAD), PAD]);
     for(const [t, rt] of spots){
       top=t; right=rt; const r0=set();
       if(r0.left >= B.left + PAD && !blockerAt(r0) && !onBody(r0)){ btn.dataset.placed='1'; return; }
     }
-    top=PAD; right=PAD;
+    top=TOP0; right=PAD;
   }
   let r=set();
   for(let i=0; i<8; i++){
@@ -11965,7 +12026,7 @@ function placeRoomToggle(){
     if(p.left > B.left + B.width*0.5 && p.height > p.width) right=Math.max(right, Math.round(B.right - p.left + PAD));
     else top=Math.max(top, Math.round(p.bottom - B.top + PAD));
     r=set();
-    if(r.bottom > B.bottom - PAD || r.left < B.left + PAD){ top=PAD; right=PAD; r=set(); break; }
+    if(r.bottom > B.bottom - PAD || r.left < B.left + PAD){ top=TOP0; right=PAD; r=set(); break; }
   }
   btn.dataset.placed='1';
 }
@@ -12302,7 +12363,7 @@ document.addEventListener('click', e => {
 let _roomLayoutRaf=0;
 function roomLayoutLater(){
   cancelAnimationFrame(_roomLayoutRaf);
-  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ stackWall(); }catch(_){ } fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles(); try{ placeRmBed(); }catch(_){ } });
+  _roomLayoutRaf=requestAnimationFrame(()=>{ try{ fitRoomPhoto(); }catch(_){ } try{ stackWall(); }catch(_){ } fitChartRoom(); fitBedside(); placeRoomToggle(); placeRoomBubbles(); try{ placeRmBed(); }catch(_){ } });
 }
 // Every drawer, sheet and layout switch is a class on <body>, and they are set from a dozen
 // places. Watching the class is the one hook none of them can forget. sheetFit is ignored
@@ -12746,12 +12807,52 @@ function zoneBox(zones, key){
 // and tune its placement (w = width in scene %, zx/zy = where on the zone it attaches, ax/ay =
 // the attach point inside the picture). tests/device-overlays-room.test.cjs holds this set to
 // the disk and checks each drawn picture lands on its zone.
+//
+// SLIGHTLY LARGER THAN LIFE (Kim, 2026-09-22). True to scale the tube was 6-7% of the scene and
+// read as a pale loop from across the room; 12% read at a glance. The room is for seeing what is
+// ON the patient, so the small pieces are drawn a size up. Keep that in mind when tuning a width.
+//
+// COLLAR, MASK, CHEST TUBE AND LINE (Kim, 2026-09-22). They match the close-up: a rigid collar
+// round the neck, a non-rebreather over the nose and mouth, a LEFT chest tube mid-axillary with a
+// drainage box hung low on the near bed frame (the box is what you notice across the room, the
+// way the ventilator gives the tube away), and a RIGHT-neck central line. The room camera sees the
+// patient's left side, so the line is on the far side there: hubs over the shoulder. zx/zy measured
+// on scenes/<view>-young-m.jpg; ax/ay are the attach point the picture must be drawn around (see
+// docs/room-art-sitting.md). Nothing here draws until the picture is in ROOM_ART_READY.
 const ROOM_ART = {
   ett:        { zone: 'head',  file: v => 'media/game/room-ett-' + v + '.png',
-                // zx/zy: the MOUTH, measured on scenes/<view>-young-m.jpg (2026-09-18) — the face sits
-                // at the same place in every adult's copy of the scene.
-                at: { room: { w: 7,  zx: .45, zy: .27, ax: .10, ay: .50 }, foot: { w: 6, zx: .48, zy: .50, ax: .50, ay: .10 },
+                // zx/zy: the MOUTH, measured on scenes/<view>-young-m.jpg (2026-09-18). From the foot and
+                // the head the face sits at the same place in every adult's copy; from the side it does
+                // not (ROOM_SCENE_SHIFT). The side-view picture is turned 60° (2026-09-22) so the tube
+                // rises out of the mouth toward the ventilator instead of lying across the cheek.
+                at: { room: { w: 6,  zx: .21, zy: .02, ax: .09, ay: .87 }, foot: { w: 8, zx: .48, zy: .50, ax: .50, ay: .10 },
                       airway: { w: 12, zx: .49, zy: .09, ax: .50, ay: .90 } } },
+  collar:     { zone: 'head',  file: v => 'media/game/room-collar-' + v + '.png',
+                // the middle of the neck, under the chin. Room: Gemini's standing side view turned to lie
+                // head-right (TRANSVERSE); head camera = the foot picture turned half a turn
+                at: { room: { w: 2.2, zx: .46, zy: .51, ax: .5, ay: .5 }, foot: { w: 5.5, zx: .48, zy: .92, ax: .5, ay: .5 },
+                      airway: { w: 10, zx: .49, zy: .02, ax: .5, ay: .5 } } },
+  o2:         { zone: 'head',  file: v => 'media/game/room-o2-' + v + '.png',
+                // the MASK (not the picture's middle) over nose and mouth; the reservoir bag lies on the
+                // chest. Clear plastic keyed with --clear, so the face shows through it
+                at: { room: { w: 5.6, zx: .43, zy: -.02, ax: .87, ay: .14 }, foot: { w: 5, zx: .48, zy: .43, ax: .5, ay: .2 },
+                      airway: { w: 10, zx: .49, zy: .3, ax: .5, ay: .8 } } },
+  cvc:        { zone: 'head',  file: v => 'media/game/room-cvc-' + v + '.png',
+                // right neck / under the right clavicle — far side in the room camera, viewer's left from
+                // the foot, viewer's right from the head. Foot and room pictures are squashed top to
+                // bottom: a line lying on the chest is seen at a grazing angle from there
+                at: { room: { w: 4.2, zx: .2, zy: .55, ax: .83, ay: .8 }, foot: { w: 4.5, zx: .15, zy: 1.19, ax: .83, ay: .7 },
+                      airway: { w: 9, zx: .95, zy: 0, ax: .17, ay: .15 } } },
+  ct:         { zone: 'chest', file: v => 'media/game/room-ct-' + v + '.png',
+                // the DRESSING on the LEFT lateral chest wall; each picture's tube is angled and
+                // lengthened to reach its drain box (see docs/room-art-four.md)
+                at: { room: { w: 10.47, zx: .77, zy: .49, ax: .902, ay: .146 }, foot: { w: 11.36, zx: .84, zy: .58, ax: .086, ay: .176 },
+                      airway: { w: 17.58, zx: .17, zy: .5, ax: .907, ay: .247 } } },
+  drain:      { zone: 'chest', file: v => 'media/game/room-drain-' + v + '.png',
+                // hung by its hooks (ay .04) from the bed frame on the patient's left, clear of the ECG
+                // cables. Face-on from the side; edge-on (narrowed) from the foot and the head
+                at: { room: { w: 5, zx: -.3, zy: 1.29, ax: .5, ay: .04 }, foot: { w: 2.4, zx: 1.3, zy: 1.4, ax: .5, ay: .04 },
+                      airway: { w: 5, zx: -.34, zy: 2.09, ax: .5, ay: .04 } } },
   ventilator: { zone: 'head',  file: () => 'media/game/room-ventilator.png',
                 at: { room: { w: 9,  zx: 1.9, zy: -1.4, ax: .50, ay: .50 }, foot: { w: 8, zx: 1.9, zy: -1.2, ax: .50, ay: .50 },
                       airway: { w: 12, zx: 1.6, zy: -.2, ax: .50, ay: .50 } } },
@@ -12760,8 +12861,30 @@ const ROOM_ART = {
                       airway: { w: 20, zx: .50, zy: .50, ax: .50, ay: .50 } } },
 };
 const ROOM_ART_READY = new Set(['ett-room', 'ett-foot', 'ett-airway',
-  'pads-room', 'pads-foot', 'pads-airway', 'ventilator']);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
-function roomArtKey(kind, view){ return kind === 'ventilator' ? 'ventilator' : kind + '-' + view; }
+  'pads-room', 'pads-foot', 'pads-airway', 'ventilator',
+  'collar-room', 'collar-foot', 'collar-airway', 'o2-room', 'o2-foot', 'o2-airway',
+  'cvc-room', 'cvc-foot', 'cvc-airway', 'ct-room', 'ct-foot', 'ct-airway',
+  'drain-room', 'drain-foot', 'drain-airway']);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
+// WHERE THIS PHOTOGRAPH'S PATIENT LIES, from the side. Kim, 2026-09-22: "fix the trauma rooms
+// too … side view looks a little off." Every room photograph is its own Gemini edit, and from the
+// side the patient is not in the same place in each: the mouth sits up to 1.5% of the photo's
+// height lower for the older patients, and the three trauma rooms (CASE_VISUALS) put the whole
+// patient 1.5-3% higher and further toward the foot. The head and chest spots were measured on
+// young-m, so everything else drew a mask on the chin. [dx % of width, dy % of height], measured
+// at the mouth on scenes/room-<key>.jpg against young-m; the shoulders move with the head. The foot
+// and airway photographs were patched to line up and need none (checked for every adult base).
+const ROOM_SCENE_SHIFT = {
+  'young-m': [0, 0], 'young-m-2': [.3, -.3], 'young-f': [.8, .3], 'young-f-2': [-.3, .3],
+  'mid-m': [.4, .2], 'mid-f': [0, 1], 'older-m': [.5, .9], 'older-f': [.1, .8], 'elder-f': [.2, .4],
+  'case-eb-severe-tbi': [-1.7, -1.2], 'case-resus-atls-blunt-multi': [-2.9, -2.2],
+  'case-resus-atls-penetrating': [-1.2, -2],
+};
+function roomSceneShift(view){
+  if(view !== 'room') return [0, 0];
+  const key = caseSceneImg('room', S.goldId) ? 'case-' + S.goldId : patientBaseFor(S.patient || {});
+  return ROOM_SCENE_SHIFT[key] || [0, 0];
+}
+function roomArtKey(kind, view){ return kind === 'ventilator' ? kind : kind + '-' + view; }
 function roomArtHTML(kind, view, zone){
   const art = ROOM_ART[kind], at = art && art.at[view];
   if(!art || !at || !zone || !ROOM_ART_READY.has(roomArtKey(kind, view))) return '';
@@ -12782,6 +12905,10 @@ function paintRoom(){
   const zones=ROOM_VIEWS[viewKey].zones;
   const d=zoneBox(zones,'defib'), iv=zoneBox(zones,'ivpole'),
         aw=zoneBox(zones,'airway'), us=zoneBox(zones,'us'), chest=zoneBox(zones,'chest'), head=zoneBox(zones,'head');
+  // The patient does not lie in the same place in every room photograph (see ROOM_SCENE_SHIFT),
+  // so the spots the pictures hang on move with this photograph's patient.
+  const shift=roomSceneShift(viewKey);
+  [head, chest].forEach(b=>{ if(b){ b.l+=shift[0]; b.t+=shift[1]; b.hookX+=shift[0]; } });
   // Two layers per piece of kit. A plain translucent wash was tested and rejected: an
   // amber one disappeared BOTH into the cream walls and into the red crash cart it was
   // meant to mark. `mix-blend-mode:screen` only ever lightens, so the equipment visibly
@@ -12810,7 +12937,12 @@ function paintRoom(){
   // Where the head and chest are, for the pictures below and for the tests that check them.
   if(head) h+=`<div data-room-anchor="head" style="position:absolute;left:${head.l}%;top:${head.t}%;width:${head.w}%;height:${head.h}%;pointer-events:none"></div>`;
   if(chest) h+=`<div data-room-anchor="chest" style="position:absolute;left:${chest.l}%;top:${chest.t}%;width:${chest.w}%;height:${chest.h}%;pointer-events:none"></div>`;
+  // Drawn in the close-up's order: the collar under the airway kit, the mask or the tube over it.
+  if(S.gear && S.gear.collar) h+=roomArtHTML('collar', viewKey, head);
+  if(S.gear && S.gear.o2 && !S.gear.ett) h+=roomArtHTML('o2', viewKey, head);
   if(S.gear && S.gear.ett) h+=roomArtHTML('ett', viewKey, head) + roomArtHTML('ventilator', viewKey, head);
+  if(S.gear && S.gear.cvc) h+=roomArtHTML('cvc', viewKey, head);
+  if(S.gear && S.gear.ct) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
   // 'idle' is the defibrillator's RESTING state and it is a truthy string, so `|| st.defib`
   // was true from the first frame of every case. That was invisible while no pads picture
   // existed (roomArtHTML draws nothing for a key that is not switched on); the moment one
