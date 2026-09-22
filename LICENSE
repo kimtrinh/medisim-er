@@ -1,0 +1,47 @@
+Copyright © 2026 Kim Trinh, MD. All rights reserved.
+
+MediSim ER — an emergency-medicine training simulator.
+Created and owned by Kim Trinh, MD.
+
+This work — the source code, the case library, the written clinical content, the
+generated patient and scene imagery, and the design of the simulator — is the
+property of Kim Trinh, MD, and is protected by copyright. It is published so that
+clinicians and students can USE it. It is not published for reuse.
+
+WHAT YOU MAY DO, without asking:
+
+  - Use the simulator to learn, to teach, and to run sessions with students or
+    colleagues, including in a course or a training programme.
+  - Link to it.
+  - Quote short passages for review, comment, teaching or scholarship, with
+    attribution to Kim Trinh, MD.
+
+WHAT YOU MAY NOT DO, without written permission from the copyright holder:
+
+  - Copy, republish, mirror, or redistribute this work or any substantial part of
+    it, including the case library, in any form.
+  - Create derivative or adapted works from it, including translations and
+    re-skinned versions.
+  - Use it, or any part of it, to build or train a competing product or service.
+  - Use it, or any part of it, as training data for a machine-learning model.
+  - Sell it, sublicense it, or charge for access to it.
+  - Remove or obscure this notice, the author credit, or the copyright line shown
+    in the application.
+
+Requests for permission: open an issue on the project's repository.
+
+THIRD-PARTY MATERIAL. Some material shown inside the simulator is not covered by
+this notice and carries its own licence and attribution, displayed in the app
+beside the material itself. This includes the openly-licensed study images (ECGs,
+radiographs and other films drawn from Wikimedia Commons and similar sources) and
+the vendored third-party front-end libraries and fonts, each of which remains
+under its own licence. Nothing here narrows those licences, and nothing there
+widens this one.
+
+NO WARRANTY, AND NOT MEDICAL ADVICE. MediSim ER is a training simulation. Every
+patient in it is fictional. It is not medical advice and not a substitute for
+clinical judgment, supervision, institutional protocol, or current published
+guidance, and it must never be used to make a decision about a real patient. The
+work is provided "as is", without warranty of any kind, express or implied. To the
+fullest extent permitted by law the author is not liable for any claim, damage or
+other liability arising from the work or its use.
