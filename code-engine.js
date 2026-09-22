@@ -284,6 +284,57 @@ function runRecover(state){
   state.ramps = keep;
 }
 
+// POST-ARREST CARE MOVES THE NUMBERS. Kim, 2026-09-22: "When I intubate the patient, I don't
+// see the vitals get better in the cardiac arrest case." After ROSC the monitor belongs to the
+// turn engine, but a tube, a bag or naloxone is still claimed HERE — and this engine answered
+// "Tube is in" and changed nothing, so the opioid arrest sat at sats 93, rate 10 for the rest
+// of the case whatever was done. No case says what post-arrest care does to the numbers, so
+// these are the defaults; `postRosc.care.<kind>` in a script replaces one wholesale.
+//   ett / sga — on the ventilator: FiO2 100%, a set rate for the patient's age
+//   bvm       — bagged at the recommended rate
+//   naloxone  — only in a case where naloxone earns credit (an opioid arrest), and only while
+//               nothing is breathing FOR her: a ventilated patient's rate is the ventilator's
+// A newborn gets no default: NRP oxygen targets run by minute of life and full oxygen is wrong
+// there, so a neonatal case must author its own.
+const POST_ROSC_CARE = {
+  adult:  { ett: { spo2: 98, rr: 16 }, sga: { spo2: 97, rr: 16 }, bvm: { spo2: 96, rr: 10 }, naloxone: { spo2: 95, rr: 14 } },
+  child:  { ett: { spo2: 97, rr: 20 }, sga: { spo2: 97, rr: 20 }, bvm: { spo2: 95, rr: 20 }, naloxone: { spo2: 95, rr: 20 } },
+  infant: { ett: { spo2: 97, rr: 30 }, sga: { spo2: 97, rr: 30 }, bvm: { spo2: 95, rr: 30 }, naloxone: { spo2: 95, rr: 30 } },
+};
+const AIRWAY_RANK = { bvm: 1, sga: 2, ett: 3 };
+function postRoscCareRow(script, kind){
+  const authored = (((script || {}).postRosc || {}).care || {})[kind];
+  if(authored) return authored;
+  const p = (script || {}).patient || {};
+  if(p.neonate) return null;
+  const band = p.child ? ((+p.weightKg || 0) < 10 ? 'infant' : 'child') : 'adult';
+  return POST_ROSC_CARE[band][kind] || null;
+}
+function careText(kind, v){
+  if(kind === 'naloxone') return 'She\'s breathing on her own now — rate ' + v.rr + ', sats ' + v.spo2 + '.';
+  if(kind === 'bvm') return 'Bagging at ' + v.rr + ' a minute — sats up to ' + v.spo2 + '.';
+  return 'On the ventilator, rate ' + v.rr + ', 100% oxygen — sats coming up to ' + v.spo2 + '.';
+}
+function postRoscCare(state, script, before){
+  if(state.ended !== 'rosc' || !state.pulse) return [];
+  let kind = null;
+  if(state.airway !== before.airway && (AIRWAY_RANK[state.airway] || 0) > (AIRWAY_RANK[before.airway] || 0)) kind = state.airway;
+  else if(state.drugs.length > before.drugs){
+    const d = state.drugs[state.drugs.length - 1];
+    if(d && d.name === 'naloxone' && d.ok !== false && script && script.credits && script.credits.naloxone != null
+       && state.airway !== 'ett' && state.airway !== 'sga') kind = 'naloxone';
+  }
+  const row = kind && postRoscCareRow(script, kind);
+  if(!row) return [];
+  const v = {};
+  // Oxygenation only ever improves here — sats already better are not pulled back to a target.
+  if(row.spo2 != null){ v.spo2 = Math.max(state.spo2 || 0, row.spo2); state.spo2 = v.spo2; }
+  if(row.rr != null){ v.rr = row.rr; state.rr = row.rr; }
+  if(row.hr != null){ v.hr = row.hr; state.hr = row.hr; }
+  if(row.bpSys != null){ v.bpSys = row.bpSys; state.bpSys = row.bpSys; state.bpDia = Math.round(row.bpSys * 0.6); }
+  return [ev(state, 'care', row.text || careText(kind, v), { vitals: v, care: kind })];
+}
+
 // One nudge per dose, not one per second. The guard remembers WHICH dose it has
 // already nagged about, so the next epi re-arms it.
 // Authored nudges on a timer, each cancelled by the action it exists to prompt.
@@ -516,6 +567,16 @@ function achieveRosc(state, script, via){
   setRhythm(state, p.rhythm || 'sinus-tachy');
   state.hr = p.hr || 110; state.bpSys = p.bpSys || 95; state.bpDia = p.bpDia || Math.round((p.bpSys || 95) * 0.6);
   state.spo2 = p.spo2 || 94; state.rr = p.rr || 14; state.etco2 = 38; state.cpr = false;
+  // The breathing already being done for her carries across the pulse. Most runs put the tube
+  // in DURING the arrest, and the pulse came back at the authored post-arrest numbers as if
+  // nobody were ventilating — the VF case at sats 94 with a tube in. Same rows as postRoscCare.
+  const vent = AIRWAY_RANK[state.airway] && postRoscCareRow(script, state.airway);
+  if(vent){
+    if(vent.spo2 != null) state.spo2 = Math.max(state.spo2, vent.spo2);
+    if(vent.rr != null) state.rr = vent.rr;
+    if(vent.hr != null) state.hr = vent.hr;
+    if(vent.bpSys != null){ state.bpSys = vent.bpSys; state.bpDia = Math.round(vent.bpSys * 0.6); }
+  }
   state.ended = 'rosc';
   // The moment the arrest ended, kept separately from state.t. Post-arrest orders now
   // advance the clock (see actInner), so reading state.t at summary time would report a
@@ -1221,7 +1282,14 @@ function spokenTime(sec){
 // a trend from the engine. Compares now with a minute ago on the three numbers a nurse
 // would name; `critical` is the app's own threshold set.
 function trendOf(state){
-  const h = state.history || [];
+  // A patient WITH a pulse is never measured against the arrest. At ROSC the minute-ago sample
+  // was asystole — heart rate 0 — so "58, up from 0" scored as a rising heart rate, i.e. WORSE,
+  // and the page drifts a 'worsening' patient down in real time: every ROSC began sliding the
+  // monitor, including the sats a tube had just raised (Kim, 2026-09-22). Pulseless samples are
+  // the ones with no pressure; with none left to compare against, a pulse coming back is better.
+  const all = state.history || [];
+  const h = state.pulse ? all.filter(x => x.bpSys > 0) : all;
+  if(state.pulse && all.length && !h.length) return 'improving';
   const ago = h.filter(x => state.t - x.t >= 60).pop() || h[0];
   const crit = state.spo2 < 88 || state.bpSys < 80 || state.hr > 150 || state.hr < 40 || !state.pulse;
   if(!ago) return crit ? 'critical' : 'stable';
@@ -1320,6 +1388,8 @@ function act(state, script, text, now){
     pacing: !!state.flags.pacing, vagal: !!state.flags.vagal };
   const out = actInner(state, script, text, now);
   if(!out || !out.handled) return out || { handled: false };
+  const cared = postRoscCare(state, script, before);
+  if(cared.length) out.events = (out.events || []).concat(cared);
   const map = (script && script.credits) || {};
   const credits = [];
   for(const k of creditKeysFor(state, script, text, before)){

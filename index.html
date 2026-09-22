@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-0RQz6IStwg12qWUglS/aAypghUnJ0+Ukzqa4rDPjuFM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-1sxZmDDPooBdMHO7KUwsO700flcGZNu6cfkQPOCHVyo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -5684,7 +5684,9 @@ function fireCodeOrder(text, label){
   // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
   // point — the code's state IS the monitor. After it, the turn engine owns them, so a
   // post-arrest order must update the books without rewinding the patient.
-  if(roscHandoffDone) syncCodeFlags(); else applyCodeVitals();
+  // …but post-arrest care the code engine performed (a tube, a bag, naloxone) still has to
+  // reach that monitor: see applyPostRoscCare.
+  if(roscHandoffDone){ syncCodeFlags(); applyPostRoscCare(r.events); } else applyCodeVitals();
   paintCodeStrip();
   // The room is persistent in cinema mode, so a code order does not rebuild it.
   // Repaint explicitly when CPR starts/stops (or a shock resumes it) so the rescuer
@@ -5692,6 +5694,26 @@ function fireCodeOrder(text, label){
   paintRoom();
   renderChat();
   return outcome;
+}
+// POST-ARREST CARE ON THE MONITOR. Kim, 2026-09-22: "When I intubate the patient, I don't see
+// the vitals get better in the cardiac arrest case." After ROSC the turn engine owns S.vitals,
+// but the tube (or bag, or naloxone) is claimed by the code engine and never reaches it — so
+// the order was carried out and the monitor never moved. The code engine now reports what the
+// care did as a `care` event with target numbers (code-engine.js, postRoscCare); they land on
+// S.vitals, and S.shown eases the monitor to them the way it does for every other change.
+function applyPostRoscCare(events){
+  const care = (events || []).filter(e => e && e.kind === 'care' && e.vitals);
+  if(!care.length || !S.vitals) return false;
+  const v = { ...S.vitals };
+  for(const e of care){
+    if(e.vitals.spo2 != null) v.o2 = e.vitals.spo2;
+    if(e.vitals.rr != null) v.rr = e.vitals.rr;
+    if(e.vitals.hr != null) v.hr = e.vitals.hr;
+    if(e.vitals.bpSys != null){ v.bpSystolic = e.vitals.bpSys; v.bpDiastolic = Math.round(e.vitals.bpSys * 0.6); }
+  }
+  S.vitals = normVitals(v); S.vBase = { ...S.vitals };
+  paintVitals();
+  return true;
 }
 // The code record as the receipt sees it, sampled either side of one act() call. The engine
 // builds its OWN `before` inside act() (code-engine.js) over a different field set, and the two
