@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-S5ijPrAJGN3OG0xUSxFFff5ektMgXS6ieavzeiMnK7Y=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-eAHQOmWGFAPNdnU/+AIugd+lsoq7oMsAQDMzQ5kwjuk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -12759,7 +12759,8 @@ const ROOM_ART = {
                 at: { room: { w: 9,  zx: .50, zy: .45, ax: .50, ay: .50 }, foot: { w: 12, zx: .50, zy: .45, ax: .50, ay: .50 },
                       airway: { w: 20, zx: .50, zy: .50, ax: .50, ay: .50 } } },
 };
-const ROOM_ART_READY = new Set(['ett-room', 'ett-foot', 'ett-airway']);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
+const ROOM_ART_READY = new Set(['ett-room', 'ett-foot', 'ett-airway',
+  'pads-room', 'pads-foot', 'pads-airway', 'ventilator']);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
 function roomArtKey(kind, view){ return kind === 'ventilator' ? 'ventilator' : kind + '-' + view; }
 function roomArtHTML(kind, view, zone){
   const art = ROOM_ART[kind], at = art && art.at[view];
@@ -12810,7 +12811,12 @@ function paintRoom(){
   if(head) h+=`<div data-room-anchor="head" style="position:absolute;left:${head.l}%;top:${head.t}%;width:${head.w}%;height:${head.h}%;pointer-events:none"></div>`;
   if(chest) h+=`<div data-room-anchor="chest" style="position:absolute;left:${chest.l}%;top:${chest.t}%;width:${chest.w}%;height:${chest.h}%;pointer-events:none"></div>`;
   if(S.gear && S.gear.ett) h+=roomArtHTML('ett', viewKey, head) + roomArtHTML('ventilator', viewKey, head);
-  if((S.gear && S.gear.pads) || st.defib) h+=roomArtHTML('pads', viewKey, chest);
+  // 'idle' is the defibrillator's RESTING state and it is a truthy string, so `|| st.defib`
+  // was true from the first frame of every case. That was invisible while no pads picture
+  // existed (roomArtHTML draws nothing for a key that is not switched on); the moment one
+  // landed, every patient arrived with pads already on their chest. The pads are on when
+  // someone has put them on: the gear flag, or the defibrillator actually in use.
+  if((S.gear && S.gear.pads) || (st.defib && st.defib !== 'idle')) h+=roomArtHTML('pads', viewKey, chest);
   // IV bags hang off the pole's hook. Sized from the pole's own width and given a
   // fixed aspect-ratio so they stay bag-shaped in the 300px card and full screen alike.
   if(iv){
