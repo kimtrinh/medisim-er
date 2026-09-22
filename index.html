@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-yRhpLl8s/gsXBuVDstV+YLqCIjTh1TPef8UItRbgBOM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-f3E361rdEAcZFXLjPJcIi9OIx818Mj2o0EjVZ4M7IfI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -99,6 +99,20 @@
   .rmDefibNurse--shock{animation:rmDefibPress .55s cubic-bezier(.2,.8,.2,1) 1}
   .rmShockPatient{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
     animation:rmShockPatient .42s cubic-bezier(.2,.8,.2,1) 1;will-change:transform}
+  @keyframes rmIntubate{
+    0%{opacity:0;translate:2% -4%}
+    18%,70%{opacity:1}
+    55%{translate:0 0}
+    100%{opacity:0;translate:-2% -4%}
+  }
+  @keyframes rmDevicePlace{
+    0%{opacity:0;scale:1.12;translate:0 -9%}
+    65%,100%{opacity:1;scale:1;translate:0 0}
+  }
+  .rmIntubationClinician{width:100%;height:100%;object-fit:contain;display:block;
+    filter:drop-shadow(0 5px 4px rgba(2,6,23,.58));animation:rmIntubate 1.6s ease-in-out both}
+  .rmDevicePlace{animation:rmDevicePlace .75s ease-out both}
+  .rmDevicePlace--delayed{animation-delay:.4s}
   .resultCardNew{border-color:rgba(52,211,153,.62)!important;box-shadow:0 0 0 1px rgba(52,211,153,.18),0 12px 30px -24px rgba(52,211,153,.95)}
   .chartNew{animation:chartNew 1.15s ease-in-out infinite}
   @keyframes chartNew{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 0 4px rgba(52,211,153,.25)}}
@@ -127,7 +141,7 @@
     #typeahead.dosePicker .ta-dose{min-height:48px;font-size:15px;padding:.75rem 1rem}
   }
   @media (prefers-reduced-motion:reduce){
-    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient{animation:none!important}
+    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace{animation:none!important}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
     .rmBvmBagPulse{opacity:.32;transform:none}
     .chartNew{animation:none}
@@ -5640,6 +5654,16 @@ function fireCodeOrder(text, label){
   if(S.gear && S.code && S.code.airway === 'ett' && !S.gear.ett){
     S.gear.ett = true;
     S.gear.o2 = false;              // the mask comes off when the tube goes in, as gearAutoHook does
+    startRoomPlacement('ett');
+    paintGear();
+  }
+  // Live trauma code orders bypass roomAutoState. A chest tube appears only when
+  // the code engine records its reversible-cause treatment, never from the words
+  // of a refused or unhandled order.
+  if(S.gear && !S.gear.ct && /\b(chest tube|tube thoracostomy|pigtail catheter)\b/i.test(text)
+      && (r.events || []).some(e => e && e.kind === 'cause')){
+    S.gear.ct = true;
+    startRoomPlacement('ct');
     paintGear();
   }
   S.messages.push({role:'user', content: label || text});
@@ -11081,6 +11105,7 @@ function gearAutoHook(text){
 function reconcileTube(r){
   if(!S.gear || !S.instantState || !r || !r._trace) return;
   const want = !!S._ettBeforeTurn || !!S.instantState.intubated;
+  if(!S._ettBeforeTurn && want) startRoomPlacement('ett');
   if(S.gear.ett !== want){ S.gear.ett = want; paintGear(); }
 }
 function paintGear(){
@@ -12657,7 +12682,9 @@ function cprOverlayHTML(viewKey, chest){
 // The source mask contact is at 16%,80% of the generated 2:3 cutout. Anchor that
 // point to the face rather than positioning the therapist by eye in each camera.
 function bvmOverlayHTML(viewKey, head){
-  if(!head || !ventilationRunning() || !adultBvmArtAllowed()) return '';
+  // Once an ET tube is in, the mask in this artwork would contradict the airway.
+  // The care strip can still correctly say that ventilation continues via ETT.
+  if(!head || (S.gear && S.gear.ett) || !ventilationRunning() || !adultBvmArtAllowed()) return '';
   const cfg={room:{w:15.5,dx:0,dy:.48},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5};
   const h=cfg.w*(100/56)*(3/2), cx=head.l+head.w/2+cfg.dx, cy=head.t+head.h*cfg.dy;
   const left=cx-cfg.w*.16, top=cy-h*.80;
@@ -12665,6 +12692,16 @@ function bvmOverlayHTML(viewKey, head){
     <img class="rmBvmClinician" src="media/game/rt-bvm-cutout-v1.webp" alt="" draggable="false">
     <span class="rmBvmBagPulse"></span>
     <div class="rmActionLabel absolute right-0 top-[5%] whitespace-nowrap rounded-full border border-sky-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-sky-100 shadow-md">BVM · assisted</div>
+  </div>`;
+}
+function intubationClinicianHTML(viewKey, head){
+  if(!head || !roomState().ettPlacement || !adultBvmArtAllowed()) return '';
+  // The generated cutout's working tip sits near 20%, 85% of its 2:3 frame.
+  const width={room:15,foot:15,airway:16}[viewKey]||15;
+  const height=width*(100/56)*(3/2), cx=head.l+head.w*.5, cy=head.t+head.h*.48;
+  const left=cx-width*.20, top=cy-height*.85;
+  return `<div class="absolute" style="z-index:3;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${width}%;aspect-ratio:2/3">
+    <img class="rmIntubationClinician" src="media/game/intubation-clinician-v1.webp" alt="" draggable="false">
   </div>`;
 }
 function defibOperatorHTML(viewKey, defib, state, mode){
@@ -12697,8 +12734,18 @@ function shockPatientOverlayHTML(viewKey, sceneSrc, state){
   }[viewKey];
   return clip ? `<img class="rmShockPatient" src="${esc(sceneSrc)}" alt="" draggable="false" style="z-index:1;clip-path:${clip}">` : '';
 }
-let _defibSeq=[];
-function resetRoomActionTimers(){ _defibSeq.forEach(clearTimeout); _defibSeq=[]; }
+let _defibSeq=[], _roomPlacementTimers={};
+function resetRoomActionTimers(){
+  _defibSeq.forEach(clearTimeout); _defibSeq=[];
+  Object.values(_roomPlacementTimers).forEach(clearTimeout); _roomPlacementTimers={};
+}
+function startRoomPlacement(kind){
+  if(kind!=='ett' && kind!=='ct') return;
+  const key=kind+'Placement', st=roomState();
+  clearTimeout(_roomPlacementTimers[kind]);
+  st[key]=true; paintRoom();
+  _roomPlacementTimers[kind]=setTimeout(()=>{ st[key]=false; paintRoom(); delete _roomPlacementTimers[kind]; },kind==='ett'?1600:1100);
+}
 function startRoomDefibSequence(mode, chargeMs){
   resetRoomActionTimers();
   const st=roomState(); st.defibMode=mode === 'sync' ? 'sync' : 'defib'; st.defib='charging'; paintRoom(); defibCharge();
@@ -12754,6 +12801,7 @@ function roomAutoState(text, trace){
   const dripRx=/\b(drip|infusion|gtt|norepinephrine|vasopressor|levophed|pressor)\b/i;
   const stopVentRx=/\b(stop|hold|pause)\b.*\b(bagging|bvm|ventilat\w*|ppv)\b/i;
   const ventRx=/\b(bagging|bvm|bag[- ]?mask|bag valve mask|manual(?:ly)? ventilat\w*|positive pressure|ppv)\b/i;
+  const chestTubeRx=/\b(chest tube|tube thoracostomy|pigtail catheter)\b/i;
   const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
   const cprRx=/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i;
   const accepted=rx=>roomActionConfirmed(trace,rx);
@@ -12765,6 +12813,9 @@ function roomAutoState(text, trace){
     st.defib='pads'; paintRoom();
   }
   if(dripRx.test(text) && accepted(dripRx)){ st.drip=true; paintRoom(); }
+  if(chestTubeRx.test(text) && accepted(chestTubeRx) && S.gear && S.gear.ct && !st.ctPlacedShown){
+    st.ctPlacedShown=true; startRoomPlacement('ct');
+  }
   if(stopVentRx.test(text) && accepted(stopVentRx)){
     st.ventilation=false; paintRoom();
   } else if(ventRx.test(text) && accepted(ventRx)){
@@ -12892,14 +12943,14 @@ function roomSceneShift(view){
   return ROOM_SCENE_SHIFT[key] || [0, 0];
 }
 function roomArtKey(kind, view){ return kind === 'ventilator' ? kind : kind + '-' + view; }
-function roomArtHTML(kind, view, zone){
+function roomArtHTML(kind, view, zone, cssClass){
   const art = ROOM_ART[kind], at = art && art.at[view];
   if(!art || !at || !zone || !ROOM_ART_READY.has(roomArtKey(kind, view))) return '';
   // x in scene % of width; the zone's t/h are already % of height (zoneBox). Height follows the
   // picture's own aspect, so only the attach point needs placing: shift by ax of the width and
   // ay of the rendered height (translate) so the attach point sits on the zone point.
   const x = zone.l + zone.w * at.zx, y = zone.t + zone.h * at.zy;
-  return `<img data-room-device="${kind}" src="${esc(art.file(view))}" alt="" draggable="false"
+  return `<img data-room-device="${kind}" class="${cssClass||''}" src="${esc(art.file(view))}" alt="" draggable="false"
     style="position:absolute;left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${at.w}%;height:auto;
     transform:translate(${(-at.ax*100).toFixed(1)}%,${(-at.ay*100).toFixed(1)}%);pointer-events:none;z-index:1">`;
 }
@@ -12947,9 +12998,9 @@ function paintRoom(){
   // Drawn in the close-up's order: the collar under the airway kit, the mask or the tube over it.
   if(S.gear && S.gear.collar) h+=roomArtHTML('collar', viewKey, head);
   if(S.gear && S.gear.o2 && !S.gear.ett) h+=roomArtHTML('o2', viewKey, head);
-  if(S.gear && S.gear.ett) h+=roomArtHTML('ett', viewKey, head) + roomArtHTML('ventilator', viewKey, head);
+  if(S.gear && S.gear.ett) h+=(st.ettPlacement?'':roomArtHTML('ett', viewKey, head)) + roomArtHTML('ventilator', viewKey, head);
   if(S.gear && S.gear.cvc) h+=roomArtHTML('cvc', viewKey, head);
-  if(S.gear && S.gear.ct) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
+  if(S.gear && S.gear.ct && !st.ctPlacement) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
   // 'idle' is the defibrillator's RESTING state and it is a truthy string, so `|| st.defib`
   // was true from the first frame of every case. That was invisible while no pads picture
   // existed (roomArtHTML draws nothing for a key that is not switched on); the moment one
@@ -12998,11 +13049,13 @@ function paintRoom(){
     const src=scene && scene.getAttribute('src');
     // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
     // on every update restarts CSS animation at frame zero and makes bagging stutter.
-    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
+    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
-        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib,st.defibMode);
+        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
+        (st.ettPlacement?roomArtHTML('ett',viewKey,head,'rmDevicePlace')+intubationClinicianHTML(viewKey,head):'')+
+        (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
     }
   }
   // A dead thumbnail must not leave a broken-image glyph on the cart — drop its bezel too.
