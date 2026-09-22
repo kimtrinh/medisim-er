@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Yiy4QxkvijuYvXoaffUuqaL1dx7SM2zfC0j3G5F6rQo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VDiUUfY6SyNyzvDWEfyhH6/hOcz0Mi/zWjktcvh31Ww=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -4154,6 +4154,64 @@ function noteCastUnreachable(){
   audioStatus(web ? 'Voice cast unreachable from the web version — browser voice'
                   : 'Voice cast not running — browser voice', 'warn', 9000, 'No voice cast');
 }
+// SPEAK THE FIRST SENTENCE WHILE THE REST IS BUILT. Kim, 2026-09-22: "for the cases, audio
+// taking a long time to generate." The local cast builds speech at about 0.2 s a word, and the
+// page asked for a whole turn as ONE clip, so nothing was heard until all of it was built:
+// 0.7 s for "Tube is in", 7.8 s for a 42-word nurse update, 17.6 s for a 94-word handover. It
+// builds faster than it speaks (29 s of speech in 17.6 s), so a turn is now cut into sentences:
+// the first sentence alone, so it is ready almost at once, then groups of up to ~28 words, never
+// across two speakers. Each is asked for as the one before it finishes building — the cast does
+// one at a time anyway, and asking out of order would only make the first one wait.
+function ttsChunks(segs){
+  const out = [];
+  for(const s of (segs || [])){
+    const text = String(s.text || '').trim();
+    if(!text) continue;
+    // A full stop ends a sentence only when a space and a capital (or the end) follow, and not
+    // after a title like "Dr." — so "0.5 mg" and "Dr. Smith" stay whole.
+    const sents = text.split(/(?<=[.!?…]["')\]]?)\s+(?=["'(\[]?[A-Z0-9])(?<!\b(?:Dr|Mr|Mrs|Ms|St|vs)\.\s+)/).filter(Boolean);
+    let buf = '';
+    const count = x => x.split(/\s+/).filter(Boolean).length;
+    // A piece may be at most ~1.5x everything already queued ahead of it (and never over 28
+    // words): the cast builds at ~0.6x speaking speed and keeps building while earlier pieces
+    // play, so a piece that size is ready before the speaker runs out. The first cut, 10 words
+    // then 28, left a second and a half of silence after the first sentence.
+    const ahead = () => out.reduce((n, c) => n + count(c.text), 0);
+    const room = () => Math.min(28, Math.max(8, Math.round(1.5 * ahead())));
+    for(const sent of sents){
+      if(!out.length && !buf){ out.push({ ...s, text: sent }); continue; }   // the very first sentence, alone
+      if(buf && count(buf) + count(sent) > room()){ out.push({ ...s, text: buf }); buf = sent; }
+      else buf = buf ? buf + ' ' + sent : sent;
+    }
+    if(buf) out.push({ ...s, text: buf });
+  }
+  return out;
+}
+// Plays `chunks` from the local cast in order, each as soon as it is built. 'done', or
+// 'superseded' if a newer line took the floor (nothing more is played OR asked for). Throws if
+// the cast fails before anything was heard — the caller then falls back to the browser voice;
+// a failure after that stops quietly, like the HD path.
+async function kokoroSpeakChunks(chunks, seq){
+  const base = S.ttsURL.replace(/\/+$/, '');
+  const build = c => fetch(base + '/tts_multi', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segments: [c] }) })
+    .then(async r => { if(!r.ok) throw new Error('cast ' + r.status); return URL.createObjectURL(await r.blob()); });
+  const live = () => seq === _ttsSeq && S.tts;
+  const clips = []; let prev = Promise.resolve();
+  for(const c of chunks){
+    const p = prev.then(() => live() ? build(c) : null);
+    clips.push(p); prev = p.catch(() => null);
+  }
+  for(let i = 0; i < clips.length; i++){
+    let url;
+    try{ url = await clips[i]; }
+    catch(e){ if(i === 0) throw e; break; }
+    if(!url || !live()){ if(url) URL.revokeObjectURL(url); clips.slice(i + 1).forEach(p => p.then(u => u && URL.revokeObjectURL(u)).catch(() => {})); return 'superseded'; }
+    if(i === 0) audioStatus(null);   // the chip comes down as the first word plays
+    if(!await playUrlQueued(url, seq)){ clips.slice(i + 1).forEach(p => p.then(u => u && URL.revokeObjectURL(u)).catch(() => {})); return 'superseded'; }
+  }
+  return 'done';
+}
 async function speakSegments(segments, force, opts){
   if(!S.tts && !force) return;   // force = explicit Replay, plays even when muted
   const roleSegs = (segments||[])
@@ -4207,25 +4265,18 @@ async function speakSegments(segments, force, opts){
     // few seconds, and a chip that blinks on every readback is noise in the corner of the eye
     // — and, measured on a phone, a header that churns while you are trying to press Hide.
     if(!status) audioStatus('Generating audio…', 'busy', 0, 'Audio…');
+    // Sentence by sentence (ttsChunks / kokoroSpeakChunks): the first words play while the
+    // rest is built. The line is finished when the last clip has played — or when a newer line
+    // superseded it, in which case storyDone ignores this seq.
     try{
-      const res = await fetch(S.ttsURL.replace(/\/+$/,'')+'/tts_multi', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ segments: segs })
-      });
-      if(res.ok){
-        const url = URL.createObjectURL(await res.blob());
-        if(seq!==_ttsSeq || !S.tts){ URL.revokeObjectURL(url); audioStatus(null); storyDone(seq); return; }  // superseded mid-synthesis
-        if(_curUrl) URL.revokeObjectURL(_curUrl);
-        _curUrl=url; _audioEl.src=url; _audioEl.currentTime=0;
-        // The clip ending is the line ending — the only handler this path ever had was
-        // revoking the blob, so nothing downstream could know the speaker had stopped.
-        _audioEl.onended=()=>{ if(_curUrl===url){ URL.revokeObjectURL(url); _curUrl=null; } storyDone(seq); };
-        _audioEl.onerror=()=>{ audioStatus(null); storyDone(seq); };
-        // The clip is made; the chip comes down as the first word plays, not before.
-        try{ await _audioEl.play(); audioStatus(null); return; }
-        catch(_){ audioStatus('Audio blocked by the browser — click the page, then Replay', 'warn', 9000, 'Audio blocked'); }
-      }
-    }catch(_){ S.ttsServerOK = false; noteCastUnreachable(); /* server unreachable → browser voice */ }
+      await kokoroSpeakChunks(ttsChunks(segs), seq);
+      audioStatus(null); storyDone(seq); return;
+    }catch(e){
+      if(e && e.name === 'NotAllowedError')
+        audioStatus('Audio blocked by the browser — click the page, then Replay', 'warn', 9000, 'Audio blocked');
+      else if(e instanceof TypeError){ S.ttsServerOK = false; noteCastUnreachable(); }   // unreachable → browser voice
+      // the cast answered with an error: the browser voice takes this line, as it always did
+    }
   } else if(S.ttsURL) noteCastUnreachable();
   // roleSegs, not segs: segs carry the Kokoro voice ids, roleSegs carry the speaker.
   if(seq===_ttsSeq && S.tts){
