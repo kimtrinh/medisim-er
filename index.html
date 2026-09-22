@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ktdhnuUsdlz1EsOAIWHOoOd4qMw04wHuSrj70OstKlY=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Ae8SO8mtI3s9RzW6HNp1j/rkkaJjcV2UhoDJvVTsO6U=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -289,7 +289,11 @@
   #edLog{display:none}
   @media(min-width:1024px),(min-width:768px) and (min-height:501px){
     body.cinema.console #edLog{display:flex;flex-direction:column;position:absolute;pointer-events:auto;
-      left:.5rem;top:calc(var(--hdr,66px) + 48px);max-height:var(--edRoom,40vh);
+      /* Below the overhead strip. --mb is its measured height (cinemaMetrics), the same
+         handle the results rail uses. No --hdr term here: this panel's containing block
+         already starts under the header, so adding it again pushed the log a header's
+         worth too low. The order menu below IS position:fixed, so it does need it. */
+      left:.5rem;top:calc(var(--mb,120px) + 18px);max-height:var(--edRoom,40vh);
       width:calc(var(--rl) + var(--rw) * .27 - var(--gap) - 1rem - 8px);
       border:1px solid rgba(148,163,184,.14);border-radius:14px;overflow:hidden;
       background:linear-gradient(180deg,rgba(2,6,23,.9),rgba(3,7,18,.78));
@@ -463,12 +467,39 @@
      binds them on every renderPlay, and the wall monitor blits from them. */
   /* #monBar is absolute inside #main, which already begins below the header — so `top`
      here is measured from y=--hdr, not from the viewport. */
-  body.cinema.console #monBar{left:calc(var(--rl) + var(--rw) * .295);width:calc(var(--rw) * .405);
-    right:auto;top:4px;padding:.3rem .4rem}
-  body.cinema.console #monGrid{display:block}
-  /* Tall enough to read a rhythm off: the room tests pin a 45px floor on #ecg itself,
-     and #ecgBox holds the pleth under it at roughly a 3:2 split. */
+  body.cinema.console #monBar{left:var(--rl);width:calc(var(--rw) * .70 - 6px);
+    right:auto;top:4px;padding:.3rem .6rem}
+  /* The strip is one band: the code line and the care line run its full width, and the
+     rhythm, the numbers and the who/when column stand side by side in the middle. Laying
+     #monMeta beside the readouts rather than under them is worth 26px, and 26px is the
+     difference between clearing the head of the person doing compressions and not. */
+  body.cinema.console #monBar{display:grid;
+    grid-template-columns:minmax(150px,16%) minmax(0,1fr) auto;
+    column-gap:.7rem;row-gap:.1rem;align-items:center;padding-top:.2rem;padding-bottom:.1rem}
+  /* TWO ROWS, not four. The readouts share the first row; the code line and the care line
+     share the second. Stacked one per band the strip was 242px deep — every pixel of that
+     was a pixel of somebody's head. Placed explicitly so DOM order (code line first) does
+     not decide the layout. */
+  body.cinema.console #ecgBox{grid-row:1;grid-column:1}
+  body.cinema.console #vitalsGrid{grid-row:1;grid-column:2 / -1}
+  body.cinema.console #codeStrip{grid-row:2;grid-column:1 / -1;margin:0}
+  body.cinema.console #monMeta{grid-row:3;grid-column:1 / 3}
+  body.cinema.console #careStrip{grid-row:3;grid-column:3;margin:0;justify-self:end}
+  body.cinema.console #v_nextBar{grid-row:4;grid-column:1 / -1;margin:0}
+  /* display:contents dissolves the wrapper so the rhythm, the numbers AND the who/when
+     column are all items of the ONE strip grid — three cells on a single row. Nesting a
+     grid inside it instead left #monMeta outside that row, and wherever it went (under the
+     readouts, or beside them in a narrow column of its own) it added its own height: 26px
+     stacked below, 94-124px squeezed alongside. On one row it costs nothing at all.
+     The Tailwind lg:col-span-4 / lg:col-span-8 on these two are written for the 12-column
+     bar; against this strip they span past the end and drop onto separate rows, which is
+     what kept it 242px deep on the first attempt. Pin them to real columns. */
+  body.cinema.console #monGrid{display:contents}
+  /* Tall enough to read a rhythm off: the room tests pin a 45px floor on #ecg itself, and
+     #ecgBox holds the pleth under it on a 62/38 split — so the box cannot go below ~73px
+     without taking the trace under that floor. 62px did exactly that (the ECG came out 37). */
   body.cinema.console #ecgBox{height:76px}
+  body.cinema.console #vitalsGrid{margin-top:0}
   /* Four across, not two down — a 2x2 grid made the display 364px tall and it reached
      into the bed, which is the one thing this layout may never do. The long vital names
      wrap and cost 40px of height, so the display wears the monitor's own abbreviations. */
@@ -486,7 +517,8 @@
   body.cinema.console #codeStrip{margin-bottom:.1rem}
   body.cinema.console #codeStrip > div{gap:.2rem}
   body.cinema.console #monBar .text-3xl{font-size:clamp(.85rem,1.15vw,1.15rem)}
-  body.cinema.console #monMeta{margin-top:.25rem;font-size:9px}
+  body.cinema.console #monMeta{margin:0;font-size:9px;gap:.5rem;
+    white-space:nowrap;justify-content:flex-end}
   /* The chips live on the wall now; the bar keeps only the command line. */
   body.cinema.console #qaRow,
   body.cinema.console #palWrap,
@@ -1573,11 +1605,14 @@
      behind the glass), at the corner of the framed close-up at BEDSIDE. */
   /* NB it shares the top-left corner with the order wall (#console .cluster, off under tapUI) —
      if the wall ever returns there, this button would be buried under it. */
-  body.cinema.console #rmCam{display:inline-flex;position:absolute;left:10px;top:calc(var(--hdr,66px) + 8px - var(--rt,0px));z-index:12;
+  /* Under the overhead strip, not behind it: the strip runs the full width of the scene
+     now, and at its old offset this control and the Bedside button beside it were drawn
+     underneath it and stopped taking a click at all. --mb is the strip's measured height. */
+  body.cinema.console #rmCam{display:inline-flex;position:absolute;left:10px;top:calc(var(--hdr,66px) + var(--mb,120px) + 12px - var(--rt,0px));z-index:12;
     align-items:center;gap:.35rem;min-height:32px;padding:0 .7rem;border-radius:9999px;border:1px solid rgba(148,163,184,.4);
     background:rgba(2,6,23,.78);color:#e2e8f0;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
   body.cinema.console #rmCam:hover{border-color:rgba(110,231,183,.7);color:#6ee7b7}
-  body.cinema.console #roomBox.bedView #rmCam{top:8px}
+  body.cinema.console #roomBox.bedView #rmCam{top:var(--bedCtlTop,8px)}
   /* Bedside close-up, beside the camera button (placeRmBed writes its left). Emerald, because it
      is the way IN to the pictures, where the camera button is grey furniture. */
   #rmBed{display:none}
@@ -1586,8 +1621,8 @@
     color:#a7f3d0;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px);
     box-shadow:0 8px 22px -10px rgba(16,185,129,.8)}
   body.phoneFold #rmBed{left:120px;bottom:6px;min-height:36px;font-size:12px!important}
-  body.cinema.console #rmBed{left:120px;top:calc(var(--hdr,66px) + 8px - var(--rt,0px));min-height:32px;font-size:11px}
-  body.cinema.console #roomBox.bedView #rmBed{top:8px}
+  body.cinema.console #rmBed{left:120px;top:calc(var(--hdr,66px) + var(--mb,120px) + 12px - var(--rt,0px));min-height:32px;font-size:11px}
+  body.cinema.console #roomBox.bedView #rmBed{top:var(--bedCtlTop,8px)}
   #rmBed:hover{border-color:#6ee7b7;color:#ecfdf5;background:rgba(6,78,59,.9)}
   #rmBed .rmBedNew{width:8px;height:8px;border-radius:9999px;background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}
   #rmBed .rmBedNew[hidden]{display:none}
@@ -9810,6 +9845,13 @@ function _roomMenuAway(e){
   // moment anyone tried to reach the bottom of it.
   const m = document.querySelector('.roomMenu');
   if(m && e && e.target && m.contains(e.target) && (e.type === 'click' || e.type === 'scroll' || e.type === 'wheel')) return;
+  // Nor is a scroll somewhere ELSE on the page the player looking away. Scroll events do not
+  // bubble, but this listener is on window with CAPTURE, so it sees every element's scroll —
+  // and the ED log scrolls itself to the newest line each time an order lands (fitEdLog:
+  // list.scrollTop = list.scrollHeight). Giving an order with the joules ladder open shut the
+  // ladder. Only the PAGE scrolling counts as looking away.
+  if(e && e.type === 'scroll' && e.target !== document && e.target !== window
+     && e.target !== document.scrollingElement && e.target !== document.documentElement) return;
   closeRoomMenu();
 }
 function roomMenu(ev, key){
@@ -11195,9 +11237,16 @@ function fitBedside(){
   if(mon) h=Math.min(h, Math.max(H*0.5, (bottom - (mon.bottom + 4)) / (1 - BODY_TOP)));
   const w=h*AR;
   box.style.position='absolute';
+  const boxTop=Math.round(bottom - h);
   box.style.left=Math.round(left + (W-w)/2)+'px';
-  box.style.top=Math.round(bottom - h)+'px';
+  box.style.top=boxTop+'px';
   box.style.width=Math.round(w)+'px';
+  // The camera control and "Back to room" ride the corner of the close-up, and the top of
+  // the close-up is allowed to sit under the overhead strip (only the BODY, from 30% down,
+  // has to clear it — above that is empty background). Pinned to the corner they went under
+  // the strip with it and stopped taking a click. Measured, because the strip's height
+  // changes with the code line and the care line.
+  box.style.setProperty('--bedCtlTop', (mon ? Math.max(8, Math.round(mon.bottom + 8 - boxTop)) : 8) + 'px');
   box.dataset.fit='1'; box.dataset.fitVp=vp;
 }
 // Mount-agnostic: used by the sidebar card AND the full-screen expand overlay.
@@ -12703,7 +12752,7 @@ const ROOM_ART = {
                 at: { room: { w: 9,  zx: .50, zy: .45, ax: .50, ay: .50 }, foot: { w: 12, zx: .50, zy: .45, ax: .50, ay: .50 },
                       airway: { w: 20, zx: .50, zy: .50, ax: .50, ay: .50 } } },
 };
-const ROOM_ART_READY = new Set([]);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
+const ROOM_ART_READY = new Set(['ett-room', 'ett-foot', 'ett-airway']);   // e.g. 'ett-room', 'ventilator', 'pads-foot' — as each file lands
 function roomArtKey(kind, view){ return kind === 'ventilator' ? 'ventilator' : kind + '-' + view; }
 function roomArtHTML(kind, view, zone){
   const art = ROOM_ART[kind], at = art && art.at[view];
