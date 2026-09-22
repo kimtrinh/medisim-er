@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-OV35tF41IgG7oa5y5mWnRMJNPHT2sz7T9KCS0rqoQYg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-yRhpLl8s/gsXBuVDstV+YLqCIjTh1TPef8UItRbgBOM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -90,8 +90,8 @@
     background:radial-gradient(ellipse,rgba(103,232,249,.52),rgba(14,116,144,.12) 55%,transparent 74%);
     transform-origin:center;animation:rmBagPulse 6s cubic-bezier(.45,0,.55,1) infinite;
     mix-blend-mode:screen;will-change:transform,opacity}
-  @keyframes rmDefibReady{0%,100%{transform:translate3d(0,0,0) scaleX(-1)}50%{transform:translate3d(.5%,.35%,0) scaleX(-1)}}
-  @keyframes rmDefibPress{0%{transform:translate3d(0,0,0) scaleX(-1)}38%{transform:translate3d(1.3%,1%,0) scaleX(-1)}100%{transform:translate3d(0,0,0) scaleX(-1)}}
+  @keyframes rmDefibReady{0%,100%{transform:translate3d(0,0,0) scaleX(-1)}50%{transform:translate3d(.35%,.2%,0) scaleX(-1)}}
+  @keyframes rmDefibPress{0%{transform:translate3d(0,0,0) scaleX(-1)}38%{transform:translate3d(1.1%,.8%,0) scaleX(-1)}100%{transform:translate3d(0,0,0) scaleX(-1)}}
   @keyframes rmShockPatient{0%{transform:translate3d(0,0,0)}30%{transform:translate3d(0,-.55%,0) scale(1.002)}100%{transform:translate3d(0,0,0)}}
   .rmDefibNurse{width:100%;height:100%;object-fit:contain;display:block;transform-origin:50% 91%;
     filter:drop-shadow(0 5px 4px rgba(2,6,23,.62));will-change:transform}
@@ -5654,7 +5654,8 @@ function fireCodeOrder(text, label){
   // must not animate a defibrillation the team never delivered.
   // Read off the engine's events, not the order's words: "place the defib pads" says "defib"
   // and delivers nothing, and the trolley flashed a shock for it anyway.
-  if(outcome.ok && (r.events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) roomDefib();
+  const deliveredShock=(r.events || []).find(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'));
+  if(outcome.ok && deliveredShock) roomDefib(deliveredShock.kind === 'cardiovert' ? 'sync' : 'defib');
   onCodeEvents(r.events);
   // applyCodeVitals writes the engine's numbers over S.vitals. Before ROSC that is the
   // point — the code's state IS the monitor. After it, the turn engine owns them, so a
@@ -6030,8 +6031,8 @@ function energyMenu(ev, kind){
   }, 0);
 }
 // The room's defibrillator prop: charge whine, then the flash, as the rhythm changes.
-function roomDefib(){
-  try{ startRoomDefibSequence(500); }catch(_){ }
+function roomDefib(mode){
+  try{ startRoomDefibSequence(mode === 'sync' ? 'sync' : 'defib', 500); }catch(_){ }
 }
 
 // ONE DEFINITION, EVERY SOURCE. `unparsed === true` is the flag. The engine's own list carries
@@ -12666,16 +12667,22 @@ function bvmOverlayHTML(viewKey, head){
     <div class="rmActionLabel absolute right-0 top-[5%] whitespace-nowrap rounded-full border border-sky-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-sky-100 shadow-md">BVM · assisted</div>
   </div>`;
 }
-function defibOperatorHTML(viewKey, defib, state){
+function defibOperatorHTML(viewKey, defib, state, mode){
   if(!defib || (state!=='charging' && state!=='shock')) return '';
   const cfg={room:{w:12},foot:{w:11.5},airway:{w:11.5}}[viewKey]||{w:12};
-  const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*.52, cy=defib.t+defib.h*.48;
-  // The source is mirrored: its fingertip becomes a 93% anchor, leaving the nurse
+  const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*.52, cy=defib.t+defib.h*.10;
+  // The source is mirrored: its horizontal control fingertip becomes a 94%,59% anchor,
+  // leaving the nurse upright and visible to the left of the machine. Anchoring the old
+  // downward-pointing hand at 91% put the fingertip on a crash-cart drawer, not the control.
   // visible to the LEFT of the cart even when the right-side results drawer is open.
-  const left=cx-cfg.w*.93, top=cy-h*.91;
-  const label=state==='charging'?'CHARGING · STAND CLEAR':'SHOCK DELIVERED';
+  const left=cx-cfg.w*.94, top=cy-h*.59;
+  const sync=mode==='sync';
+  const label=state==='charging'
+    ? (sync?'SYNC ON · CHARGING · CLEAR':'CHARGING · STAND CLEAR')
+    : (sync?'SYNCHRONIZED SHOCK':'SHOCK DELIVERED');
+  const art=state==='shock'?'media/game/defib-nurse-shock-v3.webp':'media/game/defib-nurse-clear-v3.webp';
   return `<div class="absolute" style="z-index:4;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
-    <img class="rmDefibNurse rmDefibNurse--${state}" src="media/game/defib-nurse-cutout-v1.webp" alt="" draggable="false">
+    <img class="rmDefibNurse rmDefibNurse--${state}" src="${art}" alt="" draggable="false">
     <div class="rmActionLabel absolute left-0 top-[4%] whitespace-nowrap rounded-full border border-amber-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">${label}</div>
   </div>`;
 }
@@ -12692,9 +12699,9 @@ function shockPatientOverlayHTML(viewKey, sceneSrc, state){
 }
 let _defibSeq=[];
 function resetRoomActionTimers(){ _defibSeq.forEach(clearTimeout); _defibSeq=[]; }
-function startRoomDefibSequence(chargeMs){
+function startRoomDefibSequence(mode, chargeMs){
   resetRoomActionTimers();
-  const st=roomState(); st.defib='charging'; paintRoom(); defibCharge();
+  const st=roomState(); st.defibMode=mode === 'sync' ? 'sync' : 'defib'; st.defib='charging'; paintRoom(); defibCharge();
   _defibSeq.push(setTimeout(()=>{ st.defib='shock'; paintRoom(); defibShock();
     _defibSeq.push(setTimeout(()=>{ st.defib='pads'; paintRoom(); },700));
   },chargeMs));
@@ -12753,7 +12760,7 @@ function roomAutoState(text, trace){
   if(shockRx.test(text) && accepted(shockRx)){
     // charge → discharge flash → pads still on the chest. Timers are tracked so a
     // second shock ordered mid-sequence restarts it instead of racing the first.
-    startRoomDefibSequence(1200);
+    startRoomDefibSequence(/cardiovert|cardioversion/i.test(text) ? 'sync' : 'defib', 1200);
   } else if(padsRx.test(text) && accepted(padsRx)){
     st.defib='pads'; paintRoom();
   }
@@ -12991,11 +12998,11 @@ function paintRoom(){
     const src=scene && scene.getAttribute('src');
     // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
     // on every update restarts CSS animation at frame zero and makes bagging stutter.
-    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,st.defib,src||''].join('|');
+    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
-        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib);
+        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib,st.defibMode);
     }
   }
   // A dead thumbnail must not leave a broken-image glyph on the cart — drop its bezel too.
