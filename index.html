@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-7GwS1dCeDzKCYtHbfpW5Ank23CVdiEvJPan7NWrFnO4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-dFwA3SHhCiZtA7N9ZKgxcPkNCEcmP0V7ZtJ/PVuXpQI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3750,7 +3750,14 @@ let _ttsSeq=0, _curUrl=null, _blessed=false;
 const _audioEl = new Audio();
 const _SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
 function blessAudio(){
-  try{ if(typeof ensureAudioCtx==='function') ensureAudioCtx(); }catch(_){ }   // unlock WebAudio monitor on first gesture
+  // Unlock the WebAudio monitor on a gesture — but NOT while a character is speaking. Kim,
+  // 2026-09-23, iPhone: "Once I start an order while it is speaking, it will stop speaking."
+  // On a phone the voice is the phone's own speech, and it shares the phone's audio with the
+  // monitor: resuming the monitor's AudioContext mid-line takes that audio back, and the line
+  // stops. Every tap did it, and tapping an order is a tap. The monitor waits for the line to
+  // finish instead (resumeMonitorAfterSpeech, from storyDone).
+  const talking = (typeof voiceHasFloor === 'function' && voiceHasFloor()) || _storyInFlight;
+  try{ if(!talking && typeof ensureAudioCtx==='function') ensureAudioCtx(); }catch(_){ }
   if(_blessed) return; _blessed=true;
   unlockSpeech();
   try{ _audioEl.src=_SILENT; const p=_audioEl.play(); if(p&&p.then) p.then(()=>_audioEl.pause()).catch(()=>{}); }catch(_){ }
@@ -3819,9 +3826,18 @@ function flushStatus(){
 function storyDone(seq){
   if(seq !== _ttsSeq) return;
   _storyInFlight = false;
+  resumeMonitorAfterSpeech();
   const next = _speechQueue.shift();
   if(next){ speakSegments(next, false, { queued: true }); return; }
   flushStatus();
+}
+// The monitor's sound, which a tap no longer wakes mid-line (blessAudio), comes back when the
+// line ends. A moment later, so the phone has handed its audio back; harmless where it is
+// already running, and a no-op if the browser still wants a gesture — the next tap does it.
+function resumeMonitorAfterSpeech(){
+  setTimeout(() => {
+    try{ if(!voiceHasFloor() && !_storyInFlight && typeof ensureAudioCtx === 'function' && audioCtx) ensureAudioCtx(); }catch(_){ }
+  }, 150);
 }
 function stopSpeak(opts){
   if(!opts || !opts.preserveQueue) _speechQueue = [];
