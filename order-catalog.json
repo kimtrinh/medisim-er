@@ -319,7 +319,14 @@
         "get a ck",
         "draw a ck",
         "run a ck"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 140,
+        "label": "CK",
+        "more": true
+      }
     },
     {
       "id": "lab-albumin",
@@ -366,7 +373,14 @@
         "get an ldh",
         "hemolysis marker ldh",
         "run an ldh"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 150,
+        "label": "LDH",
+        "more": true
+      }
     },
     {
       "id": "lab-haptoglobin",
@@ -732,7 +746,14 @@
         "order a tsh",
         "get a tsh",
         "check tsh level"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 160,
+        "label": "TSH",
+        "more": true
+      }
     },
     {
       "id": "lab-magnesium",
@@ -813,7 +834,14 @@
         "crp panel",
         "recheck crp",
         "trend crp"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 130,
+        "label": "CRP",
+        "more": true
+      }
     },
     {
       "id": "lab-esr",
@@ -861,7 +889,14 @@
         "acetaminophen level stat",
         "check apap",
         "tylenol overdose panel"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 170,
+        "label": "Acetaminophen level",
+        "more": true
+      }
     },
     {
       "id": "lab-salicylate",
@@ -885,7 +920,14 @@
         "tox asa level",
         "send asa level",
         "check salicylate"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 180,
+        "label": "Salicylate level",
+        "more": true
+      }
     },
     {
       "id": "lab-ethanol",
@@ -1486,7 +1528,14 @@
         "us pelvis",
         "tvs",
         "transvaginal sono"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 190,
+        "label": "Pelvic ultrasound",
+        "more": true
+      }
     },
     {
       "id": "imaging-renal-ultrasound",
@@ -1588,7 +1637,14 @@
         "brain imaging mri",
         "mri of the brain",
         "order head mri"
-      ]
+      ],
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 120,
+        "label": "MRI brain",
+        "more": true
+      }
     },
     {
       "id": "med-aspirin",
@@ -1979,7 +2035,14 @@
           "perKg": 10
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 70,
+        "label": "Ibuprofen",
+        "more": true
+      }
     },
     {
       "id": "med-ceftriaxone",
@@ -2833,7 +2896,14 @@
           "text": "KVO"
         }
       ],
-      "sentence": "Run {name} {dose}."
+      "sentence": "Run {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Fluids",
+        "order": 30,
+        "label": "Judicious fluids",
+        "more": true
+      }
     },
     {
       "id": "med-bolus",
@@ -3272,7 +3342,14 @@
           "text": "2 mg/min IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 70,
+        "label": "Labetalol",
+        "more": true
+      }
     },
     {
       "id": "med-esmolol",
@@ -3311,7 +3388,14 @@
           "text": "50 mcg/kg/min IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 90,
+        "label": "Esmolol",
+        "more": true
+      }
     },
     {
       "id": "med-nicardipine",
@@ -3342,7 +3426,14 @@
           "default": true
         }
       ],
-      "sentence": "Start {name} at {dose}."
+      "sentence": "Start {name} at {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 80,
+        "label": "Nicardipine",
+        "more": true
+      }
     },
     {
       "id": "med-hydralazine",
@@ -3416,7 +3507,14 @@
           "text": "80 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 100,
+        "label": "Furosemide",
+        "more": true
+      }
     },
     {
       "id": "med-lasix",
@@ -3553,7 +3651,14 @@
           "default": true
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 70,
+        "label": "Dexamethasone",
+        "more": true
+      }
     },
     {
       "id": "med-prednisone",
@@ -3665,7 +3770,14 @@
           "perKg": 0.9
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 50,
+        "label": "Alteplase",
+        "more": true
+      }
     },
     {
       "id": "med-tenecteplase",
@@ -3857,7 +3969,14 @@
           "text": "50 mcg/kg/min"
         }
       ],
-      "sentence": "Start {name} at {dose}."
+      "sentence": "Start {name} at {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 60,
+        "label": "Propofol",
+        "more": true
+      }
     },
     {
       "id": "med-etomidate",
@@ -4004,7 +4123,14 @@
         "tdap booster",
         "td im",
         "tetanus im"
-      ]
+      ],
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 180,
+        "label": "Tetanus",
+        "more": true
+      }
     },
     {
       "id": "med-glucagon",
@@ -4158,7 +4284,14 @@
           "text": "50 mcg/hr IV infusion"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 80,
+        "label": "Octreotide",
+        "more": true
+      }
     },
     {
       "id": "med-pantoprazole",
@@ -4193,7 +4326,14 @@
           "text": "40 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 90,
+        "label": "Pantoprazole",
+        "more": true
+      }
     },
     {
       "id": "med-famotidine",
@@ -4249,7 +4389,14 @@
           "text": "0.625 mg IV"
         }
       ],
-      "sentence": "Give {name} {dose}."
+      "sentence": "Give {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 80,
+        "label": "Droperidol",
+        "more": true
+      }
     },
     {
       "id": "med-haloperidol",
@@ -4887,7 +5034,14 @@
         "simv mode",
         "pressure support settings",
         "tweak the vent"
-      ]
+      ],
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 170,
+        "label": "Vent settings",
+        "more": true
+      }
     },
     {
       "id": "procedure-mechanical-ventilation",
@@ -6076,7 +6230,14 @@
         "eye team",
         "ophtho",
         "optho"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 180,
+        "label": "Ophthalmology",
+        "more": true
+      }
     },
     {
       "id": "consult-dermatology",
@@ -6588,7 +6749,14 @@
         "urologist consult",
         "bladder specialist consult",
         "gu consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 190,
+        "label": "Urology",
+        "more": true
+      }
     },
     {
       "id": "consult-obstetrics",
@@ -6721,7 +6889,14 @@
         "renal team",
         "dialysis team consult",
         "crrt consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 210,
+        "label": "Nephrology",
+        "more": true
+      }
     },
     {
       "id": "consult-pulmonology",
@@ -6929,7 +7104,14 @@
         "vascular ir consult",
         "ir for drain placement",
         "angio suite consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 200,
+        "label": "IR",
+        "more": true
+      }
     },
     {
       "id": "consult-ent",
@@ -6953,7 +7135,14 @@
         "ent attending",
         "otolaryngologist",
         "head and neck consult"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 170,
+        "label": "ENT",
+        "more": true
+      }
     },
     {
       "id": "consult-pathology",
@@ -7055,7 +7244,14 @@
         "get social work involved",
         "need sw eval",
         "consult social work"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 230,
+        "label": "Social work",
+        "more": true
+      }
     },
     {
       "id": "consult-adult-protective-services",
@@ -7071,7 +7267,14 @@
         "call adult protective",
         "file an aps report",
         "report to aps"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 250,
+        "label": "Adult protection",
+        "more": true
+      }
     },
     {
       "id": "consult-child-protective-services",
@@ -7087,7 +7290,14 @@
         "call child welfare",
         "report to cps",
         "file a cps report"
-      ]
+      ],
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 240,
+        "label": "Child protection",
+        "more": true
+      }
     },
     {
       "id": "consult-case-management",
@@ -7149,7 +7359,14 @@
           "text": "at 0.8 mg/hr"
         }
       ],
-      "sentence": "Start a {name} {dose}."
+      "sentence": "Start a {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 100,
+        "label": "Naloxone drip",
+        "more": true
+      }
     },
     {
       "id": "med-epinephrine-infusion",
@@ -7192,7 +7409,14 @@
           "text": "at 0.1 mcg/kg/min"
         }
       ],
-      "sentence": "Start an {name} {dose}."
+      "sentence": "Start an {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pressors & rate control",
+        "order": 50,
+        "label": "Epinephrine drip",
+        "more": true
+      }
     },
     {
       "id": "med-racemic-epinephrine",
@@ -7282,7 +7506,14 @@
           "text": "at 5 mcg/kg/min"
         }
       ],
-      "sentence": "Start a {name} {dose}."
+      "sentence": "Start a {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Pressors & rate control",
+        "order": 40,
+        "label": "Dobutamine",
+        "more": true
+      }
     },
     {
       "id": "med-procainamide",
@@ -7333,7 +7564,14 @@
           "text": "at 0.1 mcg/kg/min"
         }
       ],
-      "sentence": "Start {name} {dose}."
+      "sentence": "Start {name} {dose}.",
+      "menu": {
+        "group": "Treat",
+        "row": "Heart",
+        "order": 110,
+        "label": "Prostaglandin E1",
+        "more": true
+      }
     },
     {
       "id": "med-lipid-emulsion",
@@ -18029,6 +18267,4210 @@
         "group": "Treat",
         "row": "Blood & clotting",
         "order": 40
+      }
+    },
+    {
+      "id": "btn-keep-calm-and-upright",
+      "label": "Keep calm & upright",
+      "category": "procedure",
+      "canonical": "keep the child calm and upright with the parent",
+      "aliases": [
+        "keep the child calm and upright with the parent"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-epiglottitis",
+          "action": 1
+        },
+        {
+          "case": "peds-airway-emergency",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Airway",
+        "order": 90,
+        "label": "Keep calm & upright",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-pacer-pads",
+      "label": "Pacer pads",
+      "category": "procedure",
+      "canonical": "apply pacer pads",
+      "aliases": [
+        "apply pacer pads"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-complete-heart-block",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 160,
+        "label": "Pacer pads",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-pace-with-sedation",
+      "label": "Pace with sedation",
+      "category": "procedure",
+      "canonical": "transcutaneous pacing",
+      "aliases": [
+        "transcutaneous pacing"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-complete-heart-block",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 170,
+        "label": "Pace with sedation",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-permissive-hypotension",
+      "label": "Permissive hypotension",
+      "category": "procedure",
+      "canonical": "permissive hypotension",
+      "aliases": [
+        "permissive hypotension"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-ruptured-aaa",
+          "action": 4
+        },
+        {
+          "case": "eb-hemorrhagic-shock",
+          "action": 3
+        },
+        {
+          "case": "neuro-lvo-stroke",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Circulation",
+        "order": 180,
+        "label": "Permissive hypotension",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-core-temperature",
+      "label": "Core temperature",
+      "category": "exam",
+      "canonical": "core temperature",
+      "aliases": [
+        "core temperature"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "env-heat-stroke",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 40,
+        "label": "Core temperature",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ice-water-immersion",
+      "label": "Ice-water immersion",
+      "category": "procedure",
+      "canonical": "ice water immersion",
+      "aliases": [
+        "ice water immersion"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "env-heat-stroke",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 50,
+        "label": "Ice-water immersion",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-active-cooling",
+      "label": "Active cooling",
+      "category": "procedure",
+      "canonical": "active cooling",
+      "aliases": [
+        "active cooling"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-methamphetamine-tox",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 60,
+        "label": "Active cooling",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-stop-cooling-at-39",
+      "label": "Stop cooling at 39°",
+      "category": "procedure",
+      "canonical": "stop cooling at 39 degrees",
+      "aliases": [
+        "stop cooling at 39 degrees"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "env-heat-stroke",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 70,
+        "label": "Stop cooling at 39°",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-handle-gently",
+      "label": "Handle gently",
+      "category": "procedure",
+      "canonical": "handle the patient gently",
+      "aliases": [
+        "handle the patient gently"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "env-hypothermia",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 80,
+        "label": "Handle gently",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-spinal-precautions",
+      "label": "Spinal precautions",
+      "category": "procedure",
+      "canonical": "maintain spinal precautions and the collar",
+      "aliases": [
+        "maintain spinal precautions and the collar"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-seatbelt-sign-chance-fracture",
+          "action": 3
+        },
+        {
+          "case": "trauma-unstable-cspine",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Resuscitate",
+        "row": "Exposure",
+        "order": 90,
+        "label": "Spinal precautions",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-travel-and-exposures",
+      "label": "Travel & exposures",
+      "category": "history",
+      "canonical": "travel and exposure history",
+      "aliases": [
+        "travel and exposure history"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-malaria-traveler",
+          "action": 0
+        },
+        {
+          "case": "id-viral-hemorrhagic-fever",
+          "action": 0
+        },
+        {
+          "case": "id-mosquito-borne-illness",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 50,
+        "label": "Travel & exposures",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-social-history",
+      "label": "Social history",
+      "category": "history",
+      "canonical": "social history",
+      "aliases": [
+        "social history"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-malignant-otitis-externa",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 60,
+        "label": "Social history",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-past-surgeries",
+      "label": "Past surgeries",
+      "category": "history",
+      "canonical": "prior surgeries or grafts",
+      "aliases": [
+        "prior surgeries or grafts"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "gi-aortoenteric-fistula",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 70,
+        "label": "Past surgeries",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-last-dose-taken",
+      "label": "Last dose taken",
+      "category": "history",
+      "canonical": "when was the last dose",
+      "aliases": [
+        "when was the last dose"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-hemophilia-bleed",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 80,
+        "label": "Last dose taken",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-last-known-well",
+      "label": "Last known well",
+      "category": "history",
+      "canonical": "last known well time",
+      "aliases": [
+        "last known well time"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-posterior-circulation-stroke",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 90,
+        "label": "Last known well",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-recent-infections",
+      "label": "Recent infections",
+      "category": "history",
+      "canonical": "recent strep throat or impetigo",
+      "aliases": [
+        "recent strep throat or impetigo"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-hematuria",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 100,
+        "label": "Recent infections",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bladder-and-saddle",
+      "label": "Bladder & saddle",
+      "category": "history",
+      "canonical": "ask about urinary retention and saddle numbness",
+      "aliases": [
+        "ask about urinary retention and saddle numbness"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-cauda-equina",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 110,
+        "label": "Bladder & saddle",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-feeding-history",
+      "label": "Feeding history",
+      "category": "history",
+      "canonical": "feeding history",
+      "aliases": [
+        "feeding history"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-electrolyte-emergency",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 120,
+        "label": "Feeding history",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-rabies-risk",
+      "label": "Rabies risk",
+      "category": "history",
+      "canonical": "rabies risk assessment",
+      "aliases": [
+        "rabies risk assessment"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-dog-bite-facial",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 130,
+        "label": "Rabies risk",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-child-seen-alone",
+      "label": "Child seen alone",
+      "category": "history",
+      "canonical": "interview the child with the caregiver out of the room",
+      "aliases": [
+        "interview the child with the caregiver out of the room"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-medical-child-abuse",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 140,
+        "label": "Child seen alone",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-outside-records",
+      "label": "Outside records",
+      "category": "history",
+      "canonical": "request outside hospital records",
+      "aliases": [
+        "request outside hospital records"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-medical-child-abuse",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 150,
+        "label": "Outside records",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-document-account",
+      "label": "Document account",
+      "category": "history",
+      "canonical": "document the caregiver account verbatim",
+      "aliases": [
+        "document the caregiver account verbatim"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "geri-elder-abuse-neglect",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "History",
+        "order": 160,
+        "label": "Document account",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bp-both-arms",
+      "label": "BP both arms",
+      "category": "exam",
+      "canonical": "bp in each arm",
+      "aliases": [
+        "bp in each arm"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-aortic-dissection",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 120,
+        "label": "BP both arms",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-4-limb-bp-and-sats",
+      "label": "4-limb BP & sats",
+      "category": "exam",
+      "canonical": "four extremity blood pressures and pre and post ductal saturations",
+      "aliases": [
+        "four extremity blood pressures and pre and post ductal saturations"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-ductal-dependent-chd",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 130,
+        "label": "4-limb BP & sats",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-meningism-check",
+      "label": "Meningism check",
+      "category": "exam",
+      "canonical": "check for meningismus and a bulging fontanelle",
+      "aliases": [
+        "check for meningismus and a bulging fontanelle"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-complex-febrile-seizure",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 140,
+        "label": "Meningism check",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cranial-nerves",
+      "label": "Cranial nerves",
+      "category": "exam",
+      "canonical": "cranial nerve exam",
+      "aliases": [
+        "cranial nerve exam"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-necrotizing-otitis-externa",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 150,
+        "label": "Cranial nerves",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-reflexes",
+      "label": "Reflexes",
+      "category": "exam",
+      "canonical": "check deep tendon reflexes",
+      "aliases": [
+        "check deep tendon reflexes"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "ob-eclampsia",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 160,
+        "label": "Reflexes",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-airway-assessment",
+      "label": "Airway assessment",
+      "category": "exam",
+      "canonical": "difficult airway assessment",
+      "aliases": [
+        "difficult airway assessment"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "core-failed-airway",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 170,
+        "label": "Airway assessment",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-genital-exam",
+      "label": "Genital exam",
+      "category": "exam",
+      "canonical": "examine scrotum and perineum",
+      "aliases": [
+        "examine scrotum and perineum"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-fourniers-gangrene",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 180,
+        "label": "Genital exam",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-fetal-heart-tones",
+      "label": "Fetal heart tones",
+      "category": "exam",
+      "canonical": "fetal heart tones",
+      "aliases": [
+        "fetal heart tones"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "ob-eclampsia",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 190,
+        "label": "Fetal heart tones",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-tourniquet-test",
+      "label": "Tourniquet test",
+      "category": "exam",
+      "canonical": "tourniquet test",
+      "aliases": [
+        "tourniquet test"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-mosquito-borne-illness",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 200,
+        "label": "Tourniquet test",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-mark-swelling-edge",
+      "label": "Mark swelling edge",
+      "category": "procedure",
+      "canonical": "mark the leading edge of swelling",
+      "aliases": [
+        "mark the leading edge of swelling"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-snake-envenomation",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 210,
+        "label": "Mark swelling edge",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-compartment-pressures",
+      "label": "Compartment pressures",
+      "category": "procedure",
+      "canonical": "measure intracompartmental pressure",
+      "aliases": [
+        "measure intracompartmental pressure"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-snake-envenomation",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 220,
+        "label": "Compartment pressures",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-access-thrill",
+      "label": "Access thrill",
+      "category": "exam",
+      "canonical": "check the fistula for a thrill",
+      "aliases": [
+        "check the fistula for a thrill"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-dialysis-access-hemorrhage",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 230,
+        "label": "Access thrill",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-eye-movements",
+      "label": "Eye movements",
+      "category": "exam",
+      "canonical": "extraocular movements",
+      "aliases": [
+        "extraocular movements"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-orbital-cellulitis",
+          "action": 0
+        },
+        {
+          "case": "trauma-orbital-blowout-entrapment",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 240,
+        "label": "Eye movements",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-eye-pressure",
+      "label": "Eye pressure",
+      "category": "exam",
+      "canonical": "tonometry",
+      "aliases": [
+        "tonometry"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-orbital-compartment-syndrome",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 250,
+        "label": "Eye pressure",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-fundoscopy",
+      "label": "Fundoscopy",
+      "category": "exam",
+      "canonical": "fundoscopic exam",
+      "aliases": [
+        "fundoscopic exam"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-pseudotumor-cerebri",
+          "action": 0
+        },
+        {
+          "case": "neuro-thunderclap-headache-secondary",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 260,
+        "label": "Fundoscopy",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-eardrums",
+      "label": "Eardrums",
+      "category": "exam",
+      "canonical": "examine the tympanic membranes",
+      "aliases": [
+        "examine the tympanic membranes"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-primary-blast-lung",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 270,
+        "label": "Eardrums",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-mouth-and-neck",
+      "label": "Mouth & neck",
+      "category": "exam",
+      "canonical": "oropharynx and cervical lymph nodes",
+      "aliases": [
+        "oropharynx and cervical lymph nodes"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-malignant-otitis-externa",
+          "action": 2
+        },
+        {
+          "case": "id-lemierre-syndrome",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 280,
+        "label": "Mouth & neck",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-hand-exam",
+      "label": "Hand exam",
+      "category": "exam",
+      "canonical": "hand exam for flexor tenosynovitis",
+      "aliases": [
+        "hand exam for flexor tenosynovitis"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-mammalian-bite-infection",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 290,
+        "label": "Hand exam",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-clenched-fist-exam",
+      "label": "Clenched-fist exam",
+      "category": "exam",
+      "canonical": "reexamine the hand with the fist clenched",
+      "aliases": [
+        "reexamine the hand with the fist clenched"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-high-pressure-injection-hand",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 300,
+        "label": "Clenched-fist exam",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-snuffbox",
+      "label": "Snuffbox",
+      "category": "exam",
+      "canonical": "palpate the anatomic snuffbox",
+      "aliases": [
+        "palpate the anatomic snuffbox"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-scaphoid-fracture",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 310,
+        "label": "Snuffbox",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-thumb-axial-load",
+      "label": "Thumb axial load",
+      "category": "exam",
+      "canonical": "axial load the thumb",
+      "aliases": [
+        "axial load the thumb"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-scaphoid-fracture",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 320,
+        "label": "Thumb axial load",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ankle-joint-line",
+      "label": "Ankle joint line",
+      "category": "exam",
+      "canonical": "palpate the anterolateral ankle joint line",
+      "aliases": [
+        "palpate the anterolateral ankle joint line"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-tillaux-fracture",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 330,
+        "label": "Ankle joint line",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-neurovascular-check",
+      "label": "Neurovascular check",
+      "category": "exam",
+      "canonical": "distal neurovascular exam",
+      "aliases": [
+        "distal neurovascular exam"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-scaphoid-fracture",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 340,
+        "label": "Neurovascular check",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-nihss",
+      "label": "NIHSS",
+      "category": "assessment",
+      "canonical": "nihss",
+      "aliases": [
+        "nihss"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-lvo-stroke",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 350,
+        "label": "NIHSS",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-abcd2",
+      "label": "ABCD2",
+      "category": "assessment",
+      "canonical": "abcd2 score",
+      "aliases": [
+        "abcd2 score"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-tia",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 360,
+        "label": "ABCD2",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-lytic-checklist",
+      "label": "Lytic checklist",
+      "category": "assessment",
+      "canonical": "screen for contraindications",
+      "aliases": [
+        "screen for contraindications"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-posterior-circulation-stroke",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 370,
+        "label": "Lytic checklist",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cows",
+      "label": "COWS",
+      "category": "assessment",
+      "canonical": "cows score",
+      "aliases": [
+        "cows score"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-opioid-withdrawal-buprenorphine",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 380,
+        "label": "COWS",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-confusion-cam",
+      "label": "Confusion (CAM)",
+      "category": "assessment",
+      "canonical": "confusion assessment method",
+      "aliases": [
+        "confusion assessment method"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "geri-delirium-vs-dementia",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 390,
+        "label": "Confusion (CAM)",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-brue-criteria",
+      "label": "BRUE criteria",
+      "category": "assessment",
+      "canonical": "apply the brue low risk criteria",
+      "aliases": [
+        "apply the brue low risk criteria"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-brue",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 400,
+        "label": "BRUE criteria",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-jones-criteria",
+      "label": "Jones criteria",
+      "category": "assessment",
+      "canonical": "jones criteria",
+      "aliases": [
+        "jones criteria"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-acute-rheumatic-fever",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 410,
+        "label": "Jones criteria",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-lrinec",
+      "label": "LRINEC",
+      "category": "assessment",
+      "canonical": "lrinec score",
+      "aliases": [
+        "lrinec score"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-nec-fasciitis",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Exam",
+        "order": 420,
+        "label": "LRINEC",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-serial-ecgs",
+      "label": "Serial ECGs",
+      "category": "imaging",
+      "canonical": "repeat ecg",
+      "aliases": [
+        "repeat ecg"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-acute-coronary-occlusion",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 50,
+        "label": "Serial ECGs",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-serial-abdo-exams",
+      "label": "Serial abdo exams",
+      "category": "exam",
+      "canonical": "reassess the abdomen",
+      "aliases": [
+        "reassess the abdomen"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-seatbelt-sign-chance-fracture",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 60,
+        "label": "Serial abdo exams",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-serial-neuro-checks",
+      "label": "Serial neuro checks",
+      "category": "exam",
+      "canonical": "reassess as the alcohol wears off",
+      "aliases": [
+        "reassess as the alcohol wears off"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-unstable-cspine",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 70,
+        "label": "Serial neuro checks",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-recheck-orientation",
+      "label": "Recheck orientation",
+      "category": "exam",
+      "canonical": "retest orientation",
+      "aliases": [
+        "retest orientation"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-transient-global-amnesia",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 80,
+        "label": "Recheck orientation",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-recheck-eye-pressure",
+      "label": "Recheck eye pressure",
+      "category": "exam",
+      "canonical": "repeat tonometry",
+      "aliases": [
+        "repeat tonometry"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-orbital-compartment-syndrome",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 90,
+        "label": "Recheck eye pressure",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-fvc-nif",
+      "label": "FVC / NIF",
+      "category": "procedure",
+      "canonical": "bedside spirometry fvc and nif",
+      "aliases": [
+        "bedside spirometry fvc and nif"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-myasthenic-crisis",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 100,
+        "label": "FVC / NIF",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-review-monitor-log",
+      "label": "Review monitor log",
+      "category": "exam",
+      "canonical": "review the cardiorespiratory monitor tracings",
+      "aliases": [
+        "review the cardiorespiratory monitor tracings"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-medical-child-abuse",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 110,
+        "label": "Review monitor log",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-recheck-potassium",
+      "label": "Recheck potassium",
+      "category": "lab",
+      "canonical": "follow potassium",
+      "aliases": [
+        "follow potassium"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-hypokalemia",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 120,
+        "label": "Recheck potassium",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-recheck-sodium",
+      "label": "Recheck sodium",
+      "category": "lab",
+      "canonical": "repeat sodium",
+      "aliases": [
+        "repeat sodium"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-symptomatic-hyponatremia",
+          "action": 3
+        },
+        {
+          "case": "peds-electrolyte-emergency",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 130,
+        "label": "Recheck sodium",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-repeat-coags",
+      "label": "Repeat coags",
+      "category": "lab",
+      "canonical": "repeat coagulation studies",
+      "aliases": [
+        "repeat coagulation studies"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-snake-envenomation",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 140,
+        "label": "Repeat coags",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-serial-hb-hct",
+      "label": "Serial Hb / Hct",
+      "category": "lab",
+      "canonical": "serial hemoglobin and hematocrit",
+      "aliases": [
+        "serial hemoglobin and hematocrit"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-blunt-renal-injury",
+          "action": 2
+        },
+        {
+          "case": "id-mosquito-borne-illness",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Assess",
+        "row": "Reassess",
+        "order": 150,
+        "label": "Serial Hb / Hct",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-right-sided-ecg",
+      "label": "Right-sided ECG",
+      "category": "imaging",
+      "canonical": "right sided ecg",
+      "aliases": [
+        "right sided ecg"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-inferior-stemi-rv",
+          "action": 1
+        },
+        {
+          "case": "eb-acute-coronary-occlusion",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 80,
+        "label": "Right-sided ECG",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-compare-old-ecg",
+      "label": "Compare old ECG",
+      "category": "imaging",
+      "canonical": "compare with a prior ecg",
+      "aliases": [
+        "compare with a prior ecg"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "cv-pacemaker-malfunction",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 90,
+        "label": "Compare old ECG",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bladder-scan-pvr",
+      "label": "Bladder scan (PVR)",
+      "category": "lab",
+      "canonical": "post void residual",
+      "aliases": [
+        "post void residual"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-cauda-equina",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Bedside",
+        "order": 100,
+        "label": "Bladder scan (PVR)",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-toxic-alcohols",
+      "label": "Toxic alcohols",
+      "category": "lab",
+      "canonical": "toxic alcohol levels with anion and osmolar gaps",
+      "aliases": [
+        "toxic alcohol levels with anion and osmolar gaps"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-toxic-alcohol",
+          "action": 1
+        },
+        {
+          "case": "tox-methanol-poisoning",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 190,
+        "label": "Toxic alcohols",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cyanide-level",
+      "label": "Cyanide level",
+      "category": "lab",
+      "canonical": "cyanide level",
+      "aliases": [
+        "cyanide level"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-co-poisoning",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 200,
+        "label": "Cyanide level",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cortisol",
+      "label": "Cortisol",
+      "category": "lab",
+      "canonical": "cortisol level",
+      "aliases": [
+        "cortisol level"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "endo-adrenal-crisis",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 210,
+        "label": "Cortisol",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-stool-studies",
+      "label": "Stool studies",
+      "category": "lab",
+      "canonical": "stool studies",
+      "aliases": [
+        "stool studies"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-ehec-hus",
+          "action": 0
+        },
+        {
+          "case": "colitis-newonset-uc-megacolon",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 220,
+        "label": "Stool studies",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-c-diff-test",
+      "label": "C. diff test",
+      "category": "lab",
+      "canonical": "c difficile pcr",
+      "aliases": [
+        "c difficile pcr"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-cdiff-fulminant",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 230,
+        "label": "C. diff test",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-gc-chlamydia-naat",
+      "label": "GC/chlamydia NAAT",
+      "category": "lab",
+      "canonical": "gonorrhea and chlamydia naat",
+      "aliases": [
+        "gonorrhea and chlamydia naat"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-sti-proctitis",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 240,
+        "label": "GC/chlamydia NAAT",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-hiv-test",
+      "label": "HIV test",
+      "category": "lab",
+      "canonical": "hiv test",
+      "aliases": [
+        "hiv test"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-sti-proctitis",
+          "action": 3
+        },
+        {
+          "case": "id-hiv-opportunistic-infection",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 250,
+        "label": "HIV test",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-rpr",
+      "label": "RPR",
+      "category": "lab",
+      "canonical": "rpr",
+      "aliases": [
+        "rpr"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-neurosyphilis",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 260,
+        "label": "RPR",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-treponemal-test",
+      "label": "Treponemal test",
+      "category": "lab",
+      "canonical": "confirmatory treponemal test",
+      "aliases": [
+        "confirmatory treponemal test"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-neurosyphilis",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 270,
+        "label": "Treponemal test",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-adamts13",
+      "label": "ADAMTS13",
+      "category": "lab",
+      "canonical": "adamts13 activity",
+      "aliases": [
+        "adamts13 activity"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "heme-ttp",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 280,
+        "label": "ADAMTS13",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-malaria-smears",
+      "label": "Malaria smears",
+      "category": "lab",
+      "canonical": "malaria smear",
+      "aliases": [
+        "malaria smear"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-malaria-traveler",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 290,
+        "label": "Malaria smears",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-repeat-smears",
+      "label": "Repeat smears",
+      "category": "lab",
+      "canonical": "repeat malaria smears",
+      "aliases": [
+        "repeat malaria smears"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-malaria-traveler",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 300,
+        "label": "Repeat smears",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-afb-smears",
+      "label": "AFB smears",
+      "category": "lab",
+      "canonical": "afb smears for tuberculosis",
+      "aliases": [
+        "afb smears for tuberculosis"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-hiv-opportunistic-infection",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 310,
+        "label": "AFB smears",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-aso-titer",
+      "label": "ASO titer",
+      "category": "lab",
+      "canonical": "aso titer and anti dnase b",
+      "aliases": [
+        "aso titer and anti dnase b"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-acute-rheumatic-fever",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 320,
+        "label": "ASO titer",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-split-bilirubin",
+      "label": "Split bilirubin",
+      "category": "lab",
+      "canonical": "fractionated bilirubin",
+      "aliases": [
+        "fractionated bilirubin"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-biliary-atresia",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 330,
+        "label": "Split bilirubin",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-clotting-workup",
+      "label": "Clotting workup",
+      "category": "lab",
+      "canonical": "hypercoagulable panel",
+      "aliases": [
+        "hypercoagulable panel"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-cvst",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 340,
+        "label": "Clotting workup",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-corporal-blood-gas",
+      "label": "Corporal blood gas",
+      "category": "lab",
+      "canonical": "corporal blood gas",
+      "aliases": [
+        "corporal blood gas"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-priapism",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Labs",
+        "order": 350,
+        "label": "Corporal blood gas",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cta-head-and-neck",
+      "label": "CTA head & neck",
+      "category": "imaging",
+      "canonical": "cta head and neck",
+      "aliases": [
+        "cta head and neck"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-tia",
+          "action": 1
+        },
+        {
+          "case": "id-lemierre-syndrome",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 70,
+        "label": "CTA head & neck",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ct-orbits",
+      "label": "CT orbits",
+      "category": "imaging",
+      "canonical": "ct orbits",
+      "aliases": [
+        "ct orbits"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-open-globe",
+          "action": 5
+        },
+        {
+          "case": "eb-orbital-cellulitis",
+          "action": 2
+        },
+        {
+          "case": "trauma-orbital-blowout-entrapment",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 80,
+        "label": "CT orbits",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ct-venogram",
+      "label": "CT venogram",
+      "category": "imaging",
+      "canonical": "ct venogram",
+      "aliases": [
+        "ct venogram"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-cvst",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 90,
+        "label": "CT venogram",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ct-temporal-bone",
+      "label": "CT temporal bone",
+      "category": "imaging",
+      "canonical": "ct temporal bone",
+      "aliases": [
+        "ct temporal bone"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-necrotizing-otitis-externa",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 100,
+        "label": "CT temporal bone",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ct-ankle",
+      "label": "CT ankle",
+      "category": "imaging",
+      "canonical": "ct ankle",
+      "aliases": [
+        "ct ankle"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-tillaux-fracture",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 110,
+        "label": "CT ankle",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-mri-spine",
+      "label": "MRI spine",
+      "category": "imaging",
+      "canonical": "mri spine",
+      "aliases": [
+        "mri spine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-cord-compression",
+          "action": 2
+        },
+        {
+          "case": "eb-peds-discitis",
+          "action": 3
+        },
+        {
+          "case": "neuro-cauda-equina",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 130,
+        "label": "MRI spine",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-hand-x-ray",
+      "label": "Hand X-ray",
+      "category": "imaging",
+      "canonical": "hand x-ray",
+      "aliases": [
+        "hand x-ray"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-high-pressure-injection-hand",
+          "action": 2
+        },
+        {
+          "case": "id-mammalian-bite-infection",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 140,
+        "label": "Hand X-ray",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ankle-x-ray",
+      "label": "Ankle X-ray",
+      "category": "imaging",
+      "canonical": "ankle x-ray",
+      "aliases": [
+        "ankle x-ray"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-tillaux-fracture",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 150,
+        "label": "Ankle X-ray",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-skeletal-survey",
+      "label": "Skeletal survey",
+      "category": "imaging",
+      "canonical": "skeletal survey",
+      "aliases": [
+        "skeletal survey"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-sentinel-injury-nat",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 160,
+        "label": "Skeletal survey",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-shunt-series",
+      "label": "Shunt series",
+      "category": "imaging",
+      "canonical": "shunt series",
+      "aliases": [
+        "shunt series"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-vp-shunt-malfunction",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 170,
+        "label": "Shunt series",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-scrotal-doppler",
+      "label": "Scrotal Doppler",
+      "category": "imaging",
+      "canonical": "scrotal doppler ultrasound",
+      "aliases": [
+        "scrotal doppler ultrasound"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "gu-testicular-torsion",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 180,
+        "label": "Scrotal Doppler",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-meckel-s-scan",
+      "label": "Meckel's scan",
+      "category": "imaging",
+      "canonical": "meckels scan",
+      "aliases": [
+        "meckels scan"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-meckel-diverticulum",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Investigate",
+        "row": "Imaging",
+        "order": 200,
+        "label": "Meckel's scan",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-capsaicin-cream",
+      "label": "Capsaicin cream",
+      "category": "med",
+      "canonical": "topical capsaicin cream",
+      "aliases": [
+        "topical capsaicin cream"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-cannabinoid-hyperemesis",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 90,
+        "label": "Capsaicin cream",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-npo",
+      "label": "NPO",
+      "category": "procedure",
+      "canonical": "keep npo",
+      "aliases": [
+        "keep npo"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-button-battery",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Pain & nausea",
+        "order": 100,
+        "label": "NPO",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-amox-clav",
+      "label": "Amox-clav",
+      "category": "med",
+      "canonical": "amoxicillin clavulanate",
+      "aliases": [
+        "amoxicillin clavulanate"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-mammalian-bite-infection",
+          "action": 4
+        },
+        {
+          "case": "peds-dog-bite-facial",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 160,
+        "label": "Amox-clav",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-oral-vancomycin",
+      "label": "Oral vancomycin",
+      "category": "med",
+      "canonical": "oral vancomycin",
+      "aliases": [
+        "oral vancomycin"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-cdiff-fulminant",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 170,
+        "label": "Oral vancomycin",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-stop-culprit-drug",
+      "label": "Stop culprit drug",
+      "category": "med",
+      "canonical": "stop the offending medication",
+      "aliases": [
+        "stop the offending medication"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-cdiff-fulminant",
+          "action": 3
+        },
+        {
+          "case": "tox-serotonin-syndrome",
+          "action": 1
+        },
+        {
+          "case": "peds-pseudotumor-cerebri",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 190,
+        "label": "Stop culprit drug",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ivig",
+      "label": "IVIG",
+      "category": "med",
+      "canonical": "ivig",
+      "aliases": [
+        "ivig"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-toxic-shock",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Infection",
+        "order": 200,
+        "label": "IVIG",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-c1-inhibitor-icatibant",
+      "label": "C1-inhibitor / icatibant",
+      "category": "med",
+      "canonical": "icatibant or c1 esterase inhibitor",
+      "aliases": [
+        "icatibant or c1 esterase inhibitor"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "resp-ace-angioedema",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 60,
+        "label": "C1-inhibitor / icatibant",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-incentive-spirometry",
+      "label": "Incentive spirometry",
+      "category": "procedure",
+      "canonical": "incentive spirometry",
+      "aliases": [
+        "incentive spirometry"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "heme-acute-chest-syndrome",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Breathing",
+        "order": 70,
+        "label": "Incentive spirometry",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-nimodipine",
+      "label": "Nimodipine",
+      "category": "med",
+      "canonical": "nimodipine",
+      "aliases": [
+        "nimodipine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-sah",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 50,
+        "label": "Nimodipine",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-calm-and-reorient",
+      "label": "Calm & reorient",
+      "category": "procedure",
+      "canonical": "reorientation and calming measures",
+      "aliases": [
+        "reorientation and calming measures"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "geri-delirium-vs-dementia",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Brain & seizures",
+        "order": 80,
+        "label": "Calm & reorient",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-honey-sucralfate",
+      "label": "Honey / sucralfate",
+      "category": "med",
+      "canonical": "honey",
+      "aliases": [
+        "honey"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-button-battery",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 70,
+        "label": "Honey / sucralfate",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bicarb-drip",
+      "label": "Bicarb drip",
+      "category": "med",
+      "canonical": "bicarbonate infusion",
+      "aliases": [
+        "bicarbonate infusion"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-salicylate",
+          "action": 2
+        },
+        {
+          "case": "tox-methanol-poisoning",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 80,
+        "label": "Bicarb drip",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bicarb-bolus",
+      "label": "Bicarb bolus",
+      "category": "med",
+      "canonical": "bicarbonate bolus",
+      "aliases": [
+        "bicarbonate bolus"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-tca",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 90,
+        "label": "Bicarb bolus",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-charcoal",
+      "label": "Charcoal",
+      "category": "med",
+      "canonical": "activated charcoal",
+      "aliases": [
+        "activated charcoal"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-acetaminophen",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 110,
+        "label": "Charcoal",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-nac",
+      "label": "NAC",
+      "category": "med",
+      "canonical": "n-acetylcysteine",
+      "aliases": [
+        "n-acetylcysteine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-acetaminophen",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 120,
+        "label": "NAC",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-fomepizole",
+      "label": "Fomepizole",
+      "category": "med",
+      "canonical": "fomepizole",
+      "aliases": [
+        "fomepizole"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-toxic-alcohol",
+          "action": 2
+        },
+        {
+          "case": "tox-methanol-poisoning",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 130,
+        "label": "Fomepizole",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-folinic-acid",
+      "label": "Folinic acid",
+      "category": "med",
+      "canonical": "folinic acid",
+      "aliases": [
+        "folinic acid"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-methanol-poisoning",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 140,
+        "label": "Folinic acid",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-thiamine-and-b6",
+      "label": "Thiamine & B6",
+      "category": "med",
+      "canonical": "thiamine and pyridoxine",
+      "aliases": [
+        "thiamine and pyridoxine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-toxic-alcohol",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 150,
+        "label": "Thiamine & B6",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-cyproheptadine",
+      "label": "Cyproheptadine",
+      "category": "med",
+      "canonical": "cyproheptadine",
+      "aliases": [
+        "cyproheptadine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-serotonin-syndrome",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 160,
+        "label": "Cyproheptadine",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-antivenom",
+      "label": "Antivenom",
+      "category": "med",
+      "canonical": "antivenom",
+      "aliases": [
+        "antivenom"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-snake-envenomation",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 170,
+        "label": "Antivenom",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-buprenorphine",
+      "label": "Buprenorphine",
+      "category": "med",
+      "canonical": "buprenorphine",
+      "aliases": [
+        "buprenorphine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-opioid-withdrawal-buprenorphine",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Poisoning",
+        "order": 180,
+        "label": "Buprenorphine",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-hydrocortisone",
+      "label": "Hydrocortisone",
+      "category": "med",
+      "canonical": "hydrocortisone",
+      "aliases": [
+        "hydrocortisone"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "endo-adrenal-crisis",
+          "action": 1
+        },
+        {
+          "case": "eb-myxedema-coma",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 50,
+        "label": "Hydrocortisone",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-iv-levothyroxine",
+      "label": "IV levothyroxine",
+      "category": "med",
+      "canonical": "iv levothyroxine",
+      "aliases": [
+        "iv levothyroxine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-myxedema-coma",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 60,
+        "label": "IV levothyroxine",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ptu",
+      "label": "PTU",
+      "category": "med",
+      "canonical": "ptu",
+      "aliases": [
+        "ptu"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "endo-thyroid-storm",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 70,
+        "label": "PTU",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-iodine-sski",
+      "label": "Iodine (SSKI)",
+      "category": "med",
+      "canonical": "iodine sski",
+      "aliases": [
+        "iodine sski"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "endo-thyroid-storm",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 80,
+        "label": "Iodine (SSKI)",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ddavp",
+      "label": "DDAVP",
+      "category": "med",
+      "canonical": "ddavp",
+      "aliases": [
+        "ddavp"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-symptomatic-hyponatremia",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 90,
+        "label": "DDAVP",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-uterotonics",
+      "label": "Uterotonics",
+      "category": "med",
+      "canonical": "uterotonics oxytocin",
+      "aliases": [
+        "uterotonics oxytocin"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "ob-postpartum-hemorrhage",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 100,
+        "label": "Uterotonics",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-feed-the-patient",
+      "label": "Feed the patient",
+      "category": "med",
+      "canonical": "feed the patient",
+      "aliases": [
+        "feed the patient"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "metab-sulfonylurea-hypoglycemia",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Sugar & salts",
+        "order": 110,
+        "label": "Feed the patient",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-reverse-anticoagulant",
+      "label": "Reverse anticoagulant",
+      "category": "med",
+      "canonical": "reverse the anticoagulant",
+      "aliases": [
+        "reverse the anticoagulant"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-anticoag-ich",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 60,
+        "label": "Reverse anticoagulant",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-idarucizumab",
+      "label": "Idarucizumab",
+      "category": "med",
+      "canonical": "idarucizumab",
+      "aliases": [
+        "idarucizumab"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-anticoag-ich",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Blood & clotting",
+        "order": 70,
+        "label": "Idarucizumab",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-small-bolus",
+      "label": "Small bolus",
+      "category": "med",
+      "canonical": "small fluid bolus",
+      "aliases": [
+        "small fluid bolus"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-ductal-dependent-chd",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Treat",
+        "row": "Fluids",
+        "order": 40,
+        "label": "Small bolus",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-airway-prep",
+      "label": "Airway prep",
+      "category": "procedure",
+      "canonical": "prepare for intubation",
+      "aliases": [
+        "prepare for intubation"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-airway-emergency",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 80,
+        "label": "Airway prep",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-backup-airway-kit",
+      "label": "Backup airway kit",
+      "category": "procedure",
+      "canonical": "open the backup airway kit",
+      "aliases": [
+        "open the backup airway kit"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "core-failed-airway",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 90,
+        "label": "Backup airway kit",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-double-setup",
+      "label": "Double setup",
+      "category": "procedure",
+      "canonical": "double setup awake fiberoptic",
+      "aliases": [
+        "double setup awake fiberoptic"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "resp-ace-angioedema",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 100,
+        "label": "Double setup",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ramp-and-preoxygenate",
+      "label": "Ramp & preoxygenate",
+      "category": "procedure",
+      "canonical": "ramp the patient upright",
+      "aliases": [
+        "ramp the patient upright"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "core-failed-airway",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 110,
+        "label": "Ramp & preoxygenate",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-head-of-bed-30",
+      "label": "Head of bed 30°",
+      "category": "procedure",
+      "canonical": "elevate the head of the bed",
+      "aliases": [
+        "elevate the head of the bed"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-severe-tbi",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 120,
+        "label": "Head of bed 30°",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-shoulder-roll",
+      "label": "Shoulder roll",
+      "category": "procedure",
+      "canonical": "shoulder roll",
+      "aliases": [
+        "shoulder roll"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-airway-emergency",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 130,
+        "label": "Shoulder roll",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-apnea-standby",
+      "label": "Apnea standby",
+      "category": "procedure",
+      "canonical": "prepare for apnea",
+      "aliases": [
+        "prepare for apnea"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-ductal-dependent-chd",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 140,
+        "label": "Apnea standby",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-ketamine-rsi",
+      "label": "Ketamine RSI",
+      "category": "procedure",
+      "canonical": "intubate with ketamine",
+      "aliases": [
+        "intubate with ketamine"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "resp-status-asthmaticus",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 150,
+        "label": "Ketamine RSI",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-disconnect-the-vent",
+      "label": "Disconnect the vent",
+      "category": "procedure",
+      "canonical": "disconnect the ventilator circuit",
+      "aliases": [
+        "disconnect the ventilator circuit"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "resp-status-asthmaticus",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Airway & chest",
+        "order": 160,
+        "label": "Disconnect the vent",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-irrigate-and-debride",
+      "label": "Irrigate & debride",
+      "category": "procedure",
+      "canonical": "irrigate and debride the wound",
+      "aliases": [
+        "irrigate and debride the wound"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-high-pressure-injection-hand",
+          "action": 3
+        },
+        {
+          "case": "peds-dog-bite-facial",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 60,
+        "label": "Irrigate & debride",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-leave-wound-open",
+      "label": "Leave wound open",
+      "category": "procedure",
+      "canonical": "leave the wound open",
+      "aliases": [
+        "leave the wound open"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-mammalian-bite-infection",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 70,
+        "label": "Leave wound open",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-close-primarily",
+      "label": "Close primarily",
+      "category": "procedure",
+      "canonical": "primary closure",
+      "aliases": [
+        "primary closure"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-dog-bite-facial",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 80,
+        "label": "Close primarily",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-thumb-spica",
+      "label": "Thumb spica",
+      "category": "procedure",
+      "canonical": "thumb spica splint",
+      "aliases": [
+        "thumb spica splint"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-scaphoid-fracture",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 90,
+        "label": "Thumb spica",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-eye-shield",
+      "label": "Eye shield",
+      "category": "procedure",
+      "canonical": "rigid eye shield",
+      "aliases": [
+        "rigid eye shield"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-open-globe",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 100,
+        "label": "Eye shield",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-canthotomy",
+      "label": "Canthotomy",
+      "category": "procedure",
+      "canonical": "lateral canthotomy and cantholysis",
+      "aliases": [
+        "lateral canthotomy and cantholysis"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-orbital-compartment-syndrome",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 110,
+        "label": "Canthotomy",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-surgical-drainage",
+      "label": "Surgical drainage",
+      "category": "procedure",
+      "canonical": "surgical drainage",
+      "aliases": [
+        "surgical drainage"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-orbital-cellulitis",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 120,
+        "label": "Surgical drainage",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-emergent-endoscopy",
+      "label": "Emergent endoscopy",
+      "category": "procedure",
+      "canonical": "emergent endoscopy",
+      "aliases": [
+        "emergent endoscopy"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "gi-variceal-bleed",
+          "action": 6
+        },
+        {
+          "case": "eb-button-battery",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 130,
+        "label": "Emergent endoscopy",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-plasma-exchange",
+      "label": "Plasma exchange",
+      "category": "procedure",
+      "canonical": "plasma exchange",
+      "aliases": [
+        "plasma exchange"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "heme-ttp",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 140,
+        "label": "Plasma exchange",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-emergent-dialysis",
+      "label": "Emergent dialysis",
+      "category": "procedure",
+      "canonical": "emergent hemodialysis",
+      "aliases": [
+        "emergent hemodialysis"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-methanol-poisoning",
+          "action": 5
+        },
+        {
+          "case": "metab-hyperkalemia",
+          "action": 3
+        },
+        {
+          "case": "tox-salicylate",
+          "action": 6
+        },
+        {
+          "case": "tox-toxic-alcohol",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 150,
+        "label": "Emergent dialysis",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-pelvic-packing",
+      "label": "Pelvic packing",
+      "category": "procedure",
+      "canonical": "pelvic packing",
+      "aliases": [
+        "pelvic packing"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-pelvic-fracture-hemorrhage",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 160,
+        "label": "Pelvic packing",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-air-enema",
+      "label": "Air enema",
+      "category": "procedure",
+      "canonical": "air enema",
+      "aliases": [
+        "air enema"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-intussusception",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 170,
+        "label": "Air enema",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-manual-detorsion",
+      "label": "Manual detorsion",
+      "category": "procedure",
+      "canonical": "manual detorsion",
+      "aliases": [
+        "manual detorsion"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "gu-testicular-torsion",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 180,
+        "label": "Manual detorsion",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-corporal-aspiration",
+      "label": "Corporal aspiration",
+      "category": "procedure",
+      "canonical": "corporal aspiration and irrigation",
+      "aliases": [
+        "corporal aspiration and irrigation"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-priapism",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 190,
+        "label": "Corporal aspiration",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-fundal-massage",
+      "label": "Fundal massage",
+      "category": "procedure",
+      "canonical": "fundal massage",
+      "aliases": [
+        "fundal massage"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "ob-postpartum-hemorrhage",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 200,
+        "label": "Fundal massage",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-bakri-balloon",
+      "label": "Bakri balloon",
+      "category": "procedure",
+      "canonical": "bakri balloon",
+      "aliases": [
+        "bakri balloon"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "ob-postpartum-hemorrhage",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Procedures",
+        "row": "Other",
+        "order": 210,
+        "label": "Bakri balloon",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-genetics-metabolic",
+      "label": "Genetics / metabolic",
+      "category": "consult",
+      "canonical": "metabolic genetics consult",
+      "aliases": [
+        "metabolic genetics consult"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-nonconvulsive-status-epilepticus",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 220,
+        "label": "Genetics / metabolic",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-stroke-alert",
+      "label": "Stroke alert",
+      "category": "procedure",
+      "canonical": "activate a stroke alert",
+      "aliases": [
+        "activate a stroke alert"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-lvo-stroke",
+          "action": 0
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 260,
+        "label": "Stroke alert",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-animal-control",
+      "label": "Animal control",
+      "category": "consult",
+      "canonical": "10 day observation of the dog through animal control",
+      "aliases": [
+        "10 day observation of the dog through animal control"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-dog-bite-facial",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Consults",
+        "order": 270,
+        "label": "Animal control",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-contact-precautions",
+      "label": "Contact precautions",
+      "category": "procedure",
+      "canonical": "contact precautions",
+      "aliases": [
+        "contact precautions"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-cdiff-fulminant",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 90,
+        "label": "Contact precautions",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-droplet-isolation",
+      "label": "Droplet isolation",
+      "category": "procedure",
+      "canonical": "droplet isolation",
+      "aliases": [
+        "droplet isolation"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-bacterial-meningitis",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 100,
+        "label": "Droplet isolation",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-airborne-isolation",
+      "label": "Airborne isolation",
+      "category": "procedure",
+      "canonical": "airborne isolation room",
+      "aliases": [
+        "airborne isolation room"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-covid-silent-hypoxemia",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 110,
+        "label": "Airborne isolation",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-strict-isolation",
+      "label": "Strict isolation",
+      "category": "procedure",
+      "canonical": "strict contact and droplet isolation",
+      "aliases": [
+        "strict contact and droplet isolation"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-viral-hemorrhagic-fever",
+          "action": 1
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 120,
+        "label": "Strict isolation",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-full-ppe",
+      "label": "Full PPE",
+      "category": "procedure",
+      "canonical": "full ppe",
+      "aliases": [
+        "full ppe"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "id-viral-hemorrhagic-fever",
+          "action": 2
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 130,
+        "label": "Full PPE",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-notify-public-health",
+      "label": "Notify public health",
+      "category": "assessment",
+      "canonical": "report to the health department",
+      "aliases": [
+        "report to the health department"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "neuro-bacterial-meningitis",
+          "action": 6
+        },
+        {
+          "case": "id-viral-hemorrhagic-fever",
+          "action": 3
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 140,
+        "label": "Notify public health",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-return-precautions",
+      "label": "Return precautions",
+      "category": "disposition",
+      "canonical": "return precautions",
+      "aliases": [
+        "return precautions"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-bronchiolitis",
+          "action": 5
+        },
+        {
+          "case": "peds-brue",
+          "action": 5
+        },
+        {
+          "case": "id-covid-silent-hypoxemia",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 150,
+        "label": "Return precautions",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-explain-to-family",
+      "label": "Explain to family",
+      "category": "assessment",
+      "canonical": "explain to the family",
+      "aliases": [
+        "explain to the family"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "peds-neonatal-testicular-torsion",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 160,
+        "label": "Explain to family",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-partner-notification",
+      "label": "Partner notification",
+      "category": "assessment",
+      "canonical": "partner notification and testing",
+      "aliases": [
+        "partner notification and testing"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "colitis-sti-proctitis",
+          "action": 6
+        },
+        {
+          "case": "id-neurosyphilis",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 170,
+        "label": "Partner notification",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-activity-restriction",
+      "label": "Activity restriction",
+      "category": "assessment",
+      "canonical": "activity restriction",
+      "aliases": [
+        "activity restriction"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-myopericarditis",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 180,
+        "label": "Activity restriction",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-non-weight-bearing",
+      "label": "Non-weight-bearing",
+      "category": "disposition",
+      "canonical": "non weight bearing and follow up",
+      "aliases": [
+        "non weight bearing and follow up"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "trauma-scaphoid-fracture",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 190,
+        "label": "Non-weight-bearing",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-take-home-naloxone",
+      "label": "Take-home naloxone",
+      "category": "med",
+      "canonical": "overdose rescue kit",
+      "aliases": [
+        "overdose rescue kit"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-opioid-overdose",
+          "action": 6
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 200,
+        "label": "Take-home naloxone",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-warm-handoff",
+      "label": "Warm handoff",
+      "category": "disposition",
+      "canonical": "warm handoff to addiction treatment",
+      "aliases": [
+        "warm handoff to addiction treatment"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "tox-opioid-withdrawal-buprenorphine",
+          "action": 4
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 210,
+        "label": "Warm handoff",
+        "more": true
+      }
+    },
+    {
+      "id": "btn-observe-before-discharge",
+      "label": "Observe before discharge",
+      "category": "disposition",
+      "canonical": "observe for delayed deterioration",
+      "aliases": [
+        "observe for delayed deterioration"
+      ],
+      "sendCanonical": true,
+      "for": [
+        {
+          "case": "eb-opioid-overdose",
+          "action": 4
+        },
+        {
+          "case": "eb-drowning",
+          "action": 5
+        }
+      ],
+      "by": "ca-buttons",
+      "menu": {
+        "group": "Call & move",
+        "row": "Dispositions",
+        "order": 220,
+        "label": "Observe before discharge",
+        "more": true
       }
     }
   ]

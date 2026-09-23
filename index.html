@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-lGLWQI2bug1nfb/lkQvpPhoOvcv+8gjR4S+maGkv1z4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-7GwS1dCeDzKCYtHbfpW5Ank23CVdiEvJPan7NWrFnO4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -29,6 +29,9 @@
 <style>
   @keyframes clocktick{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
   .clock-tick{animation:clocktick .5s ease}
+  /* A chip folded under its row's "More" stays hidden whatever display its classes give it. */
+  [data-more-of][hidden]{display:none!important}
+  body.phoneFold #phoneOrders .menuMoreBtn{min-height:44px;font-size:12px!important}
 </style>
 <style>
   body { font-family:'Inter',sans-serif; background:#020617; color:#e2e8f0; }
@@ -6619,7 +6622,11 @@ function nextHint(){
     // Every place is reached through the Choose an action button, so the path starts there — or,
     // on a phone, through the ORDERS section, which is where the same chips fold.
     const top = (typeof mobileWorkspace === 'function' && mobileWorkspace()) ? 'Orders' : 'Choose an action';
-    const where = h.where && (top + ' › ' + h.where.replace(/^Choose an action › /, ''));
+    let path = h.where && h.where.replace(/^Choose an action › /, '');
+    // The phone list has no row headings, and one "More" per group: "Investigate › More".
+    if(path && top === 'Orders') path = path.replace(/^([^›]+) › [^›]+ › More$/, '$1 › More');
+    const where = path && (top + ' › ' + path);
+    if(h.shown) return { next: h.order, how: 'No button for this one — it is reasoning, and it is credited once you have ' + h.shown + '.' };
     return { next: h.order,
       how: where ? 'Find it under ' + where + (h.typed ? ', or type "' + h.typed + '" in the order box' : '')
                    : 'Type "' + (h.typed || h.order) + '" in the order box (Search every action)' };
@@ -7996,15 +8003,17 @@ function buildSections(){
     // second copy is just the same chip twice with nothing to tell them apart. First place
     // wins, so the survivor's position is the menu's own order and does not depend on
     // iteration luck. The menu proper is untouched: it still shows both.
-    const seen = new Set();
+    const seen = new Set(), more = [];
     for(const r of g.rows) for(const chip of r.chips){
       if(seen.has(chip.id)) continue;
       const o = entryOrder(chip, null);
       if(!o || !o.text) continue;
       seen.add(chip.id);
-      items.push([(OM ? OM.chipLabel(chip) : chip.label) || chip.label, o.text]);
+      // Chips behind a row's "More" are kept apart: the surfaces that flatten a group show
+      // `items`; the phone list offers `more` behind one "More" per group (2026-09-23).
+      (chip.menu && chip.menu.more ? more : items).push([(OM ? OM.chipLabel(chip) : chip.label) || chip.label, o.text]);
     }
-    if(items.length) out[sectionKeyFor(g.group)] = { label: g.group, items };
+    if(items.length) out[sectionKeyFor(g.group)] = { label: g.group, items, more };
   }
   return out;
 }
@@ -8366,6 +8375,35 @@ function menuRowHeadingHTML(row){
   return '<h3 style="grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.12em;' +
     'text-transform:uppercase;color:#64748b;margin:4px 0 0">'+esc(row)+'</h3>';
 }
+// ONE ROW: its everyday chips, then its rarer ones behind "More". Kim, 2026-09-23, after every
+// critical action got a button (177 chips became 380): "too many buttons". The menu looks as
+// it did; the ~200 added chips carry `more` on their menu place and open with one more tap.
+function moreToggleHTML(key, n){
+  return '<button type="button" data-more-toggle="'+esc(key)+'" aria-expanded="false" ' +
+    'class="menuMoreBtn px-1.5 py-1 rounded-md border border-dashed border-slate-600 bg-transparent text-[10px] font-black ' +
+    'uppercase tracking-wider whitespace-nowrap text-sky-300 hover:text-sky-100 hover:border-sky-500 transition">More\u2026 '+n+'</button>';
+}
+function moreChipsHTML(key, htmls){
+  return htmls.map(h => h.replace(/^<button /, '<button data-more-of="'+esc(key)+'" hidden ')).join('');
+}
+function menuRowHTML(r){
+  const main = r.chips.filter(c => !(c.menu && c.menu.more)), more = r.chips.filter(c => c.menu && c.menu.more);
+  return menuRowHeadingHTML(r.row) + main.map(menuChipHTML).join('') +
+    (more.length ? moreToggleHTML(r.row, more.length) + moreChipsHTML(r.row, more.map(menuChipHTML)) : '');
+}
+document.addEventListener('click', e => {
+  const t = e.target && e.target.closest && e.target.closest('[data-more-toggle]');
+  if(!t) return;
+  e.stopPropagation();
+  const open = t.getAttribute('aria-expanded') !== 'true';
+  const key = t.dataset.moreToggle;
+  const box = t.parentElement;
+  const chips = [...box.querySelectorAll('[data-more-of]')].filter(b => b.dataset.moreOf === key);
+  chips.forEach(b => { b.hidden = !open; });
+  t.setAttribute('aria-expanded', String(open));
+  t.textContent = open ? 'Fewer' : 'More\u2026 ' + chips.length;
+  if(open && chips[0] && chips[0].scrollIntoView) try{ chips[0].scrollIntoView({ block: 'nearest' }); }catch(_){ }
+});
 // A catalogue chip. It carries its ENTRY ID, not an order sentence: the click looks the
 // entry up and walks the order box's own path with it, so the two doors cannot drift.
 // `data-lab` is what the search haystack reads (see searchAll), and the quiet "· dose"
@@ -8471,8 +8509,7 @@ function openActionBrowser(){
   // what makes a group of forty chips readable — Resuscitate reads A, B, C, D, E down the
   // page, which is the order the hands work in.
   for(const g of catalogMenu())
-    groups.push({name:g.group, html:g.rows.map(r =>
-      menuRowHeadingHTML(r.row) + r.chips.map(menuChipHTML).join('')).join('')});
+    groups.push({name:g.group, html:g.rows.map(menuRowHTML).join('')});
   let selected=groups.findIndex(g=>g.name===actionCategory);
   if(selected<0) selected=0;
   panel.innerHTML='<div class="actionHead"><div><h2>Choose an action</h2><p>'+ (codeActive()?'Resuscitation actions run when tapped. Search finds anything you could type.':'Tap to add, then submit together. Search finds anything you could type in the order box.') +
@@ -8515,7 +8552,9 @@ function openActionBrowser(){
     for(const g of groups){
       const box = document.createElement('div'); box.innerHTML = g.html;
       // Row headings are not chips; only buttons are searchable.
-      for(const b of [...box.children].filter(el => el.tagName === 'BUTTON')){
+      for(const b of [...box.children].filter(el => el.tagName === 'BUTTON' && !el.dataset.moreToggle)){
+        // A chip folded under "More" is found like any other, and shown.
+        b.hidden = false; b.removeAttribute('data-more-of');
         let hay = ((b.textContent||'') + ' ' + (b.dataset.pal||'') + ' ' + (b.dataset.os||'')).toLowerCase();
         if(b.dataset.entry){
           const e = (_catalog||[]).find(x => x.id === b.dataset.entry);
@@ -12712,7 +12751,8 @@ function phoneOrdersKey(){
 function paintPhoneOrders(po){
   po = po || $('phoneOrders'); if(!po) return;
   po.dataset.key = phoneOrdersKey();
-  const group = (label, chips) => chips.length ? '<div class="foldGroup">' + label + '</div><div class="foldRow">' + chips.join('') + '</div>' : '';
+  const group = (label, chips, more) => chips.length ? '<div class="foldGroup" data-g="' + label + '">' + label + '</div><div class="foldRow">' + chips.join('') +
+    ((more && more.length) ? moreToggleHTML(label, more.length) + moreChipsHTML(label, more) : '') + '</div>' : '';
   const chip = (lab, order, tone) => consoleChip(lab, order, null, null, tone || 'border-slate-700 text-slate-200');
   const parts = [];
   if(codeAnswers()){
@@ -12739,14 +12779,24 @@ function paintPhoneOrders(po){
     for(const key of Object.keys(SECTIONS)){
       const sec = SECTIONS[key];
       parts.push(group(esc(sec.label), sec.items.map(it =>
-        chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1]))));
+        chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1])),
+        (sec.more || []).map(it => chip(it[0], it[1]))));
     }
   }
   // The dock's Hint button is hidden on a phone (it took the order box's width); it heads the list here.
-  parts.unshift('<div class="foldRow"><button data-hint="1" class="pal rounded-md border border-amber-500/40 text-amber-200 font-bold uppercase tracking-wider">Hint — what next?</button></div>');
+  // Then a jump to each group: since 2026-09-23 every critical action has a button (Kim: "all
+  // critical actions should be available in the orders section"), which doubled this list to
+  // some twenty screens; every button stays in it, and these take you to the group you want.
+  const jumps = Object.values(SECTIONS).map(sec => '<button data-jump="' + esc(sec.label) + '" class="pal rounded-md border border-slate-600 text-slate-300 font-bold">' + esc(sec.label) + '</button>');
+  parts.unshift('<div class="foldRow"><button data-hint="1" class="pal rounded-md border border-amber-500/40 text-amber-200 font-bold uppercase tracking-wider">Hint — what next?</button></div>' +
+    (codeAnswers() ? '' : '<div class="foldRow foldJumps">' + jumps.join('') + '</div>'));
   po.innerHTML = parts.join('');
   wirePalChips(po);
   po.querySelectorAll('[data-hint]').forEach(b => b.onclick = async () => { await loadCaHints(); showHint(); });
+  po.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
+    const g = [...po.querySelectorAll('.foldGroup')].find(x => x.dataset.g === b.dataset.jump);
+    if(g) po.scrollTo({ top: po.scrollTop + g.getBoundingClientRect().top - po.getBoundingClientRect().top - 4 });
+  });
   po.querySelectorAll('.oset').forEach(b => b.onclick = () => basketAddSet(b.dataset.os));
   if(S.code) try{ paintCodeStrip(); }catch(_){ }   // the drug chips' faces carry their live doses
 }
@@ -14345,6 +14395,7 @@ function evidenceRows(rules, receipts, debrief){
     return { label: o.label, met: true, basis,
       said: basis === 'abstained' ? 'correctly avoided — nothing was ordered'
           : basis === 'provedByMgmt' ? 'credited from your management'
+          : basis === 'shown' ? 'shown by what you did — the orders and diagnosis that prove this reasoning'
           : 'credited by the checklist (no order record for this kind of objective)' };
   });
 }

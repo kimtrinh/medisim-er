@@ -5493,6 +5493,11 @@
       "aliases": []
     },
     {
+      "canonical": "document the caregiver account verbatim",
+      "label": "Document the caregiver account verbatim",
+      "aliases": []
+    },
+    {
       "canonical": "document the discrepancy",
       "label": "Document the discrepancy",
       "aliases": []
@@ -6260,6 +6265,11 @@
     {
       "canonical": "explain prognosis",
       "label": "Explain prognosis",
+      "aliases": []
+    },
+    {
+      "canonical": "explain to the family",
+      "label": "Explain to the family",
       "aliases": []
     },
     {

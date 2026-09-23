@@ -9,14 +9,14 @@
     "typed": "rectal exam"
    },
    {
-    "order": "Send NAAT for Neisseria gonorrhoeae",
-    "where": null,
-    "typed": "naat"
+    "order": "GC/chlamydia NAAT",
+    "where": "Investigate › Labs › More",
+    "typed": "gonorrhea and chlamydia naat"
    },
    {
-    "order": "Screen for co-infections",
-    "where": null,
-    "typed": "hiv"
+    "order": "HIV test",
+    "where": "Investigate › Labs › More",
+    "typed": "hiv test"
    },
    {
     "order": "Ceftriaxone",
@@ -25,16 +25,16 @@
    },
    null,
    {
-    "order": "Counsel on partner notification/treatment",
-    "where": null,
-    "typed": "partner"
+    "order": "Notify public health",
+    "where": "Call & move › Dispositions › More",
+    "typed": "report to the health department"
    },
    null
   ],
   "colitis-ehec-hus": [
    {
-    "order": "Send stool studies including Shiga toxin / E. coli O157",
-    "where": null,
+    "order": "Stool studies",
+    "where": "Investigate › Labs › More",
     "typed": "stool studies"
    },
    {
@@ -63,19 +63,19 @@
     "typed": "clindamycin"
    },
    {
-    "order": "Send Clostridioides difficile stool testing",
-    "where": null,
-    "typed": "c. diff"
+    "order": "C. diff test",
+    "where": "Investigate › Labs › More",
+    "typed": "c difficile pcr"
    },
    {
-    "order": "Start oral vancomycin",
-    "where": null,
+    "order": "Oral vancomycin",
+    "where": "Treat › Infection › More",
     "typed": "oral vancomycin"
    },
    {
-    "order": "Stop the offending/unnecessary antibiotic",
-    "where": null,
-    "typed": "stop antibiotics"
+    "order": "Stop culprit drug",
+    "where": "Treat › Infection › More",
+    "typed": "stop the offending medication"
    },
    {
     "order": "CT abd/pelvis",
@@ -84,8 +84,8 @@
    },
    null,
    {
-    "order": "Institute contact precautions",
-    "where": null,
+    "order": "Contact precautions",
+    "where": "Call & move › Dispositions › More",
     "typed": "contact precautions"
    },
    {
@@ -102,8 +102,8 @@
     "typed": "computed tomography abdomen pelvis"
    },
    {
-    "order": "Send stool studies including Shiga toxin / E. coli O157",
-    "where": null,
+    "order": "Stool studies",
+    "where": "Investigate › Labs › More",
     "typed": "stool studies"
    },
    {
@@ -201,9 +201,9 @@
   ],
   "cv-aortic-dissection": [
    {
-    "order": "Measure blood pressure in both arms",
-    "where": null,
-    "typed": "both arms"
+    "order": "BP both arms",
+    "where": "Assess › Exam › More",
+    "typed": "bp in each arm"
    },
    {
     "order": "Metoprolol",
@@ -211,9 +211,9 @@
     "typed": "metoprolol"
    },
    {
-    "order": "Target HR <60 and SBP 100-120 mmHg",
-    "where": null,
-    "typed": "target heart rate"
+    "order": "Esmolol",
+    "where": "Treat › Heart › More",
+    "typed": "esmolol"
    },
    {
     "order": "Morphine",
@@ -261,7 +261,7 @@
    },
    {
     "order": "Alteplase",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "alteplase"
    },
    null
@@ -309,8 +309,8 @@
     "typed": "massive transfusion protocol"
    },
    {
-    "order": "Practice permissive hypotension",
-    "where": null,
+    "order": "Permissive hypotension",
+    "where": "Resuscitate › Circulation › More",
     "typed": "permissive hypotension"
    },
    {
@@ -327,9 +327,9 @@
   "cv-complete-heart-block": [
    null,
    {
-    "order": "Apply pacer pads and monitor",
-    "where": null,
-    "typed": "pacer pads"
+    "order": "Pacer pads",
+    "where": "Resuscitate › Circulation › More",
+    "typed": "apply pacer pads"
    },
    {
     "order": "Atropine",
@@ -337,13 +337,13 @@
     "typed": "atropine"
    },
    {
-    "order": "Initiate transcutaneous pacing with sedation",
-    "where": null,
-    "typed": "pace him"
+    "order": "Pace with sedation",
+    "where": "Resuscitate › Circulation › More",
+    "typed": "transcutaneous pacing"
    },
    {
-    "order": "Epinephrine infusion",
-    "where": null,
+    "order": "Epinephrine drip",
+    "where": "Treat › Pressors & rate control › More",
     "typed": "epinephrine infusion"
    },
    {
@@ -364,8 +364,8 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Obtain right-sided leads",
-    "where": null,
+    "order": "Right-sided ECG",
+    "where": "Investigate › Bedside › More",
     "typed": "right sided ecg"
    },
    {
@@ -471,14 +471,14 @@
     "typed": "epinephrine"
    },
    {
-    "order": "If intubating, use ketamine, low rate,",
-    "where": null,
+    "order": "Ketamine RSI",
+    "where": "Procedures › Airway & chest › More",
     "typed": "intubate with ketamine"
    },
    {
-    "order": "Manage sudden post-intubation hypotension",
-    "where": null,
-    "typed": "disconnect the circuit"
+    "order": "Disconnect the vent",
+    "where": "Procedures › Airway & chest › More",
+    "typed": "disconnect the ventilator circuit"
    }
   ],
   "resp-anaphylaxis": [
@@ -526,9 +526,9 @@
     "typed": "oral airway"
    },
    {
-    "order": "Prepare for a difficult airway with a double setup",
-    "where": null,
-    "typed": "prepare difficult airway"
+    "order": "Double setup",
+    "where": "Procedures › Airway & chest › More",
+    "typed": "double setup awake fiberoptic"
    },
    {
     "order": "Intubate",
@@ -541,9 +541,9 @@
     "typed": "epinephrine"
    },
    {
-    "order": "Arrange urgent plasma exchange",
-    "where": null,
-    "typed": "plasma exchange"
+    "order": "C1-inhibitor / icatibant",
+    "where": "Treat › Breathing › More",
+    "typed": "icatibant or c1 esterase inhibitor"
    },
    {
     "order": "Anesthesia",
@@ -553,9 +553,9 @@
   ],
   "neuro-lvo-stroke": [
    {
-    "order": "Activate a stroke alert",
-    "where": null,
-    "typed": "stroke alert"
+    "order": "Last known well",
+    "where": "Assess › History › More",
+    "typed": "last known well time"
    },
    {
     "order": "Glucose",
@@ -563,8 +563,8 @@
     "typed": "fingerstick glucose"
    },
    {
-    "order": "Perform an NIH Stroke Scale assessment",
-    "where": null,
+    "order": "NIHSS",
+    "where": "Assess › Exam › More",
     "typed": "nihss"
    },
    {
@@ -574,17 +574,17 @@
    },
    {
     "order": "Alteplase",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "alteplase"
    },
    {
-    "order": "Interventional Radiology",
-    "where": null,
+    "order": "IR",
+    "where": "Call & move › Consults › More",
     "typed": "interventional radiology"
    },
    {
-    "order": "Practice permissive hypotension",
-    "where": null,
+    "order": "Permissive hypotension",
+    "where": "Resuscitate › Circulation › More",
     "typed": "permissive hypotension"
    },
    null
@@ -607,8 +607,8 @@
     "typed": "morphine"
    },
    {
-    "order": "Give nimodipine to reduce vasospasm-related morbidity",
-    "where": null,
+    "order": "Nimodipine",
+    "where": "Treat › Brain & seizures › More",
     "typed": "nimodipine"
    },
    {
@@ -634,9 +634,9 @@
     "typed": "blood cultures"
    },
    {
-    "order": "Steroids",
-    "where": null,
-    "typed": "steroids"
+    "order": "Dexamethasone",
+    "where": "Treat › Brain & seizures › More",
+    "typed": "dexamethasone"
    },
    {
     "order": "CT head",
@@ -649,14 +649,14 @@
     "typed": "lumbar puncture"
    },
    {
-    "order": "Institute contact precautions",
-    "where": null,
-    "typed": "contact precautions"
+    "order": "Spinal precautions",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "maintain spinal precautions and the collar"
    },
    {
     "order": "Notify public health",
-    "where": null,
-    "typed": "report to health department"
+    "where": "Call & move › Dispositions › More",
+    "typed": "report to the health department"
    }
   ],
   "neuro-status-epilepticus": [
@@ -700,8 +700,8 @@
     "typed": "neuro exam"
    },
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -825,7 +825,7 @@
    },
    {
     "order": "Octreotide",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "octreotide"
    },
    {
@@ -835,7 +835,7 @@
    },
    {
     "order": "Pantoprazole",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "pantoprazole"
    },
    {
@@ -844,16 +844,16 @@
     "typed": "intubate"
    },
    {
-    "order": "Arrange emergent endoscopy for band ligation",
-    "where": null,
-    "typed": "endoscopy"
+    "order": "Emergent endoscopy",
+    "where": "Procedures › Other › More",
+    "typed": "emergent endoscopy"
    }
   ],
   "gu-testicular-torsion": [
    null,
    {
     "order": "Urology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "urology"
    },
    {
@@ -862,13 +862,13 @@
     "typed": "morphine"
    },
    {
-    "order": "Obtain Doppler ultrasound only if it does not delay surgery",
-    "where": null,
-    "typed": "doppler ultrasound"
+    "order": "Scrotal Doppler",
+    "where": "Investigate › Imaging › More",
+    "typed": "scrotal doppler ultrasound"
    },
    {
-    "order": "Attempt manual detorsion as a temporizing measure if surgery is delayed",
-    "where": null,
+    "order": "Manual detorsion",
+    "where": "Procedures › Other › More",
     "typed": "manual detorsion"
    },
    null,
@@ -886,8 +886,8 @@
     "typed": "morphine"
    },
    {
-    "order": "Pelvic Ultrasound",
-    "where": null,
+    "order": "Pelvic ultrasound",
+    "where": "Investigate › Imaging › More",
     "typed": "transvaginal ultrasound"
    },
    null,
@@ -910,14 +910,14 @@
     "typed": "metoprolol"
    },
    {
-    "order": "Give a thionamide",
-    "where": null,
+    "order": "PTU",
+    "where": "Treat › Sugar & salts › More",
     "typed": "ptu"
    },
    {
-    "order": "Give iodine",
-    "where": null,
-    "typed": "iodine"
+    "order": "Iodine (SSKI)",
+    "where": "Treat › Sugar & salts › More",
+    "typed": "iodine sski"
    },
    {
     "order": "Methylprednisolone",
@@ -943,8 +943,8 @@
   "endo-adrenal-crisis": [
    null,
    {
-    "order": "Give IV hydrocortisone immediately",
-    "where": null,
+    "order": "Hydrocortisone",
+    "where": "Treat › Sugar & salts › More",
     "typed": "hydrocortisone"
    },
    {
@@ -964,9 +964,9 @@
    },
    null,
    {
-    "order": "Draw a cortisol level if it does not delay treatment",
-    "where": null,
-    "typed": "cortisol"
+    "order": "Cortisol",
+    "where": "Investigate › Labs › More",
+    "typed": "cortisol level"
    }
   ],
   "metab-hyperkalemia": [
@@ -987,12 +987,12 @@
    },
    {
     "order": "Nephrology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "nephrology"
    },
    {
     "order": "Furosemide",
-    "where": null,
+    "where": "Treat › Heart › More",
     "typed": "furosemide"
    },
    {
@@ -1018,26 +1018,25 @@
     "typed": "dextrose"
    },
    {
-    "order": "Feed the patient once alert",
-    "where": null,
-    "typed": "feed her"
+    "order": "Feed the patient",
+    "where": "Treat › Sugar & salts › More",
+    "typed": "feed the patient"
    },
    null,
    {
     "order": "Octreotide",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "octreotide"
    },
    {
     "order": "Investigate contributors",
-    "where": null,
-    "typed": "contributing factors"
+    "shown": "checked renal function and named sulfonylurea hypoglycaemia"
    }
   ],
   "tox-acetaminophen": [
    {
     "order": "Acetaminophen level",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "acetaminophen"
    },
    {
@@ -1046,19 +1045,18 @@
     "typed": "basic metabolic panel"
    },
    {
-    "order": "Give activated charcoal if within ~1-2 hours",
-    "where": null,
+    "order": "Charcoal",
+    "where": "Treat › Poisoning › More",
     "typed": "activated charcoal"
    },
    {
-    "order": "Start N-acetylcysteine if above the treatment line, timing…",
-    "where": null,
+    "order": "NAC",
+    "where": "Treat › Poisoning › More",
     "typed": "n-acetylcysteine"
    },
    {
     "order": "Treat empirically when in doubt",
-    "where": null,
-    "typed": "don't wait for the level"
+    "shown": "started N-acetylcysteine"
    },
    {
     "order": "Psych",
@@ -1070,13 +1068,13 @@
   "tox-salicylate": [
    {
     "order": "Salicylate level",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "salicylate"
    },
    null,
    {
-    "order": "Start a sodium bicarbonate infusion for serum/urine alkalinization",
-    "where": null,
+    "order": "Bicarb drip",
+    "where": "Treat › Poisoning › More",
     "typed": "bicarbonate infusion"
    },
    {
@@ -1092,7 +1090,7 @@
    null,
    {
     "order": "Nephrology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "nephrology"
    }
   ],
@@ -1103,8 +1101,8 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Give sodium bicarbonate boluses for QRS >100 ms, dysrhythmia, or…",
-    "where": null,
+    "order": "Bicarb bolus",
+    "where": "Treat › Poisoning › More",
     "typed": "bicarbonate bolus"
    },
    {
@@ -1180,9 +1178,9 @@
     "typed": "troponin"
    },
    {
-    "order": "Consider concurrent cyanide toxicity in fire/smoke victims",
-    "where": null,
-    "typed": "cyanide"
+    "order": "Cyanide level",
+    "where": "Investigate › Labs › More",
+    "typed": "cyanide level"
    },
    null,
    {
@@ -1194,9 +1192,9 @@
   "tox-serotonin-syndrome": [
    null,
    {
-    "order": "Stop all serotonergic agents",
-    "where": null,
-    "typed": "stop the ssri"
+    "order": "Stop culprit drug",
+    "where": "Treat › Infection › More",
+    "typed": "stop the offending medication"
    },
    {
     "order": "Lorazepam",
@@ -1209,8 +1207,8 @@
     "typed": "normal saline"
    },
    {
-    "order": "Consider cyproheptadine for moderate-to-severe cases",
-    "where": null,
+    "order": "Cyproheptadine",
+    "where": "Treat › Poisoning › More",
     "typed": "cyproheptadine"
    },
    {
@@ -1219,22 +1217,21 @@
     "typed": "intubate"
    },
    {
-    "order": "Distinguish it from neuroleptic malignant syndrome",
-    "where": null,
-    "typed": "rule out nms"
+    "order": "Distinguish it from neuroleptic malignant syndrome and anticholinergic toxidrome",
+    "shown": "committed serotonin syndrome, or stopped the serotonergic drugs and gave cyproheptadine"
    }
   ],
   "tox-toxic-alcohol": [
    null,
    {
-    "order": "Send toxic alcohol levels",
-    "where": null,
-    "typed": "toxic alcohol level"
+    "order": "Toxic alcohols",
+    "where": "Investigate › Labs › More",
+    "typed": "toxic alcohol levels with anion and osmolar gaps"
    },
    {
-    "order": "Give fomepizole early",
-    "where": null,
-    "typed": "ethanol drip"
+    "order": "Fomepizole",
+    "where": "Treat › Poisoning › More",
+    "typed": "fomepizole"
    },
    {
     "order": "Bicarbonate",
@@ -1242,32 +1239,32 @@
     "typed": "bicarbonate"
    },
    {
-    "order": "Give cofactors",
-    "where": null,
-    "typed": "thiamine"
+    "order": "Folinic acid",
+    "where": "Treat › Poisoning › More",
+    "typed": "folinic acid"
    },
    {
     "order": "Nephrology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "nephrology"
    },
    null
   ],
   "env-heat-stroke": [
    {
-    "order": "Measure a core",
-    "where": null,
-    "typed": "rectal temperature"
+    "order": "Core temperature",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "core temperature"
    },
    {
-    "order": "Begin immediate aggressive cooling",
-    "where": null,
+    "order": "Ice-water immersion",
+    "where": "Resuscitate › Exposure › More",
     "typed": "ice water immersion"
    },
    {
-    "order": "Stop active cooling around 38.5-39°C to avoid overshoot",
-    "where": null,
-    "typed": "stop cooling"
+    "order": "Stop cooling at 39°",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "stop cooling at 39 degrees"
    },
    {
     "order": "Normal Saline",
@@ -1293,9 +1290,9 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Handle the patient gently to avoid precipitating ventricular…",
-    "where": null,
-    "typed": "handle gently"
+    "order": "Handle gently",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "handle the patient gently"
    },
    {
     "order": "Active rewarming",
@@ -1331,7 +1328,7 @@
    },
    {
     "order": "Labetalol",
-    "where": null,
+    "where": "Treat › Heart › More",
     "typed": "labetalol"
    },
    {
@@ -1340,9 +1337,9 @@
     "typed": "oxygen"
    },
    {
-    "order": "Monitor for magnesium toxicity",
-    "where": null,
-    "typed": "deep tendon reflexes"
+    "order": "Reflexes",
+    "where": "Assess › Exam › More",
+    "typed": "check deep tendon reflexes"
    },
    {
     "order": "OB/Gyn",
@@ -1350,8 +1347,8 @@
     "typed": "obstetrics"
    },
    {
-    "order": "Monitor the fetus",
-    "where": null,
+    "order": "Fetal heart tones",
+    "where": "Assess › Exam › More",
     "typed": "fetal heart tones"
    },
    {
@@ -1367,13 +1364,13 @@
     "typed": "type and screen"
    },
    {
-    "order": "Perform uterine fundal massage",
-    "where": null,
+    "order": "Fundal massage",
+    "where": "Procedures › Other › More",
     "typed": "fundal massage"
    },
    {
-    "order": "Prostaglandin E1 infusion",
-    "where": null,
+    "order": "Prostaglandin E1",
+    "where": "Treat › Heart › More",
     "typed": "prostaglandin"
    },
    {
@@ -1387,9 +1384,9 @@
     "typed": "coagulation panel"
    },
    {
-    "order": "Escalate to balloon tamponade",
-    "where": null,
-    "typed": "bakri"
+    "order": "Bakri balloon",
+    "where": "Procedures › Other › More",
+    "typed": "bakri balloon"
    },
    {
     "order": "Surgery",
@@ -1410,9 +1407,9 @@
     "typed": "morphine"
    },
    {
-    "order": "Encourage incentive spirometry",
-    "where": null,
-    "typed": "incentive spirometry"
+    "order": "FVC / NIF",
+    "where": "Assess › Reassess › More",
+    "typed": "bedside spirometry fvc and nif"
    },
    {
     "order": "Ceftriaxone",
@@ -1420,8 +1417,8 @@
     "typed": "ceftriaxone"
    },
    {
-    "order": "Iv Fluids",
-    "where": null,
+    "order": "Judicious fluids",
+    "where": "Treat › Fluids › More",
     "typed": "iv fluids"
    },
    {
@@ -1434,17 +1431,17 @@
    null,
    {
     "order": "LDH",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "lactate dehydrogenase"
    },
    {
-    "order": "Send ADAMTS13 activity",
-    "where": null,
-    "typed": "adamts13"
+    "order": "ADAMTS13",
+    "where": "Investigate › Labs › More",
+    "typed": "adamts13 activity"
    },
    {
-    "order": "Arrange urgent plasma exchange",
-    "where": null,
+    "order": "Plasma exchange",
+    "where": "Procedures › Other › More",
     "typed": "plasma exchange"
    },
    {
@@ -1455,8 +1452,7 @@
    null,
    {
     "order": "Distinguish TTP from DIC",
-    "where": null,
-    "typed": "not dic"
+    "shown": "confirmed haemolysis with normal coags and sent ADAMTS13, or checked coags and committed TTP"
    }
   ],
   "onc-febrile-neutropenia": [
@@ -1503,9 +1499,9 @@
    },
    null,
    {
-    "order": "Send supportive labs",
-    "where": null,
-    "typed": "lrinec"
+    "order": "LRINEC",
+    "where": "Assess › Exam › More",
+    "typed": "lrinec score"
    },
    null
   ],
@@ -1528,8 +1524,8 @@
     "typed": "vancomycin"
    },
    {
-    "order": "Consider IVIG for severe or refractory cases",
-    "where": null,
+    "order": "IVIG",
+    "where": "Treat › Infection › More",
     "typed": "ivig"
    },
    {
@@ -1556,8 +1552,8 @@
     "typed": "pediatrics"
    },
    {
-    "order": "Perform an air",
-    "where": null,
+    "order": "Air enema",
+    "where": "Procedures › Other › More",
     "typed": "air enema"
    },
    {
@@ -1571,7 +1567,7 @@
    null,
    {
     "order": "CRP",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "crp"
    },
    {
@@ -1586,8 +1582,7 @@
    },
    {
     "order": "Treat within 10 days of fever onset to reduce coronary aneurysm risk",
-    "where": null,
-    "typed": "treat within 10 days"
+    "shown": "gave IVIG and aspirin"
    },
    null,
    null
@@ -1595,9 +1590,9 @@
   "peds-epiglottitis": [
    null,
    {
-    "order": "Keep the child calm and upright",
-    "where": null,
-    "typed": "keep him calm"
+    "order": "Keep calm & upright",
+    "where": "Resuscitate › Airway › More",
+    "typed": "keep the child calm and upright with the parent"
    },
    null,
    {
@@ -1654,7 +1649,7 @@
    null,
    {
     "order": "Acetaminophen level",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "acetaminophen"
    },
    {
@@ -1681,9 +1676,8 @@
   ],
   "eb-peds-discitis": [
    {
-    "order": "Treat pediatric back pain as a red flag",
-    "where": null,
-    "typed": "red flag back pain"
+    "order": "Treat pediatric back pain as a red flag and take a careful history for…",
+    "shown": "worked the back pain up — neuro exam or inflammatory markers, and MRI"
    },
    {
     "order": "Neuro exam",
@@ -1696,8 +1690,8 @@
     "typed": "blood cultures"
    },
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -1715,9 +1709,9 @@
   "eb-myasthenic-crisis": [
    null,
    {
-    "order": "Encourage incentive spirometry",
-    "where": null,
-    "typed": "incentive spirometry"
+    "order": "FVC / NIF",
+    "where": "Assess › Reassess › More",
+    "typed": "bedside spirometry fvc and nif"
    },
    {
     "order": "Intubate",
@@ -1741,18 +1735,18 @@
    null,
    {
     "order": "TSH",
-    "where": null,
+    "where": "Investigate › Labs › More",
     "typed": "tsh"
    },
    {
-    "order": "Give IV hydrocortisone immediately",
-    "where": null,
+    "order": "Hydrocortisone",
+    "where": "Treat › Sugar & salts › More",
     "typed": "hydrocortisone"
    },
    {
-    "order": "Give IV thyroid hormone",
-    "where": null,
-    "typed": "levothyroxine"
+    "order": "IV levothyroxine",
+    "where": "Treat › Sugar & salts › More",
+    "typed": "iv levothyroxine"
    },
    {
     "order": "Oxygen",
@@ -1775,7 +1769,7 @@
    },
    {
     "order": "Propofol",
-    "where": null,
+    "where": "Treat › Brain & seizures › More",
     "typed": "propofol"
    },
    {
@@ -1803,9 +1797,9 @@
    null,
    null,
    {
-    "order": "Obtain CT venography or MR venography to confirm",
-    "where": null,
-    "typed": "ctv"
+    "order": "CT venogram",
+    "where": "Investigate › Imaging › More",
+    "typed": "ct venogram"
    },
    {
     "order": "Heparin",
@@ -1823,26 +1817,26 @@
     "typed": "neurology"
    },
    {
-    "order": "Investigate the underlying prothrombotic cause",
-    "where": null,
+    "order": "Clotting workup",
+    "where": "Investigate › Labs › More",
     "typed": "hypercoagulable panel"
    }
   ],
   "eb-malaria-traveler": [
    {
-    "order": "Take a detailed travel/exposure history",
-    "where": null,
-    "typed": "travel history"
+    "order": "Travel & exposures",
+    "where": "Assess › History › More",
+    "typed": "travel and exposure history"
    },
    {
-    "order": "Send thick and thin blood smears",
-    "where": null,
-    "typed": "rapid antigen test"
+    "order": "Malaria smears",
+    "where": "Investigate › Labs › More",
+    "typed": "malaria smear"
    },
    {
-    "order": "Repeat smears if initially negative before excluding malaria",
-    "where": null,
-    "typed": "repeat smear"
+    "order": "Repeat smears",
+    "where": "Investigate › Labs › More",
+    "typed": "repeat malaria smears"
    },
    null,
    {
@@ -1870,14 +1864,14 @@
    },
    null,
    {
-    "order": "Monitor serum sodium frequently during correction",
-    "where": null,
+    "order": "Recheck sodium",
+    "where": "Assess › Reassess › More",
     "typed": "repeat sodium"
    },
    null,
    {
-    "order": "Treat overcorrection with free water and/or DDAVP if sodium rises too…",
-    "where": null,
+    "order": "DDAVP",
+    "where": "Treat › Sugar & salts › More",
     "typed": "ddavp"
    },
    {
@@ -1938,8 +1932,8 @@
    null,
    null,
    {
-    "order": "Provide clear return precautions if discharged",
-    "where": null,
+    "order": "Return precautions",
+    "where": "Call & move › Dispositions › More",
     "typed": "return precautions"
    }
   ],
@@ -1980,13 +1974,13 @@
     "typed": "aspirin"
    },
    {
-    "order": "Obtain serial/repeat ECGs",
-    "where": null,
+    "order": "Serial ECGs",
+    "where": "Assess › Reassess › More",
     "typed": "repeat ecg"
    },
    {
-    "order": "Obtain right-sided leads",
-    "where": null,
+    "order": "Right-sided ECG",
+    "where": "Investigate › Bedside › More",
     "typed": "right sided ecg"
    },
    {
@@ -2046,18 +2040,18 @@
     "typed": "morphine"
    },
    {
-    "order": "Obtain a corporal blood gas to confirm ischemia",
-    "where": null,
+    "order": "Corporal blood gas",
+    "where": "Investigate › Labs › More",
     "typed": "corporal blood gas"
    },
    {
-    "order": "Perform corporal aspiration with irrigation",
-    "where": null,
-    "typed": "aspirate"
+    "order": "Corporal aspiration",
+    "where": "Procedures › Other › More",
+    "typed": "corporal aspiration and irrigation"
    },
    {
     "order": "Urology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "urology"
    },
    {
@@ -2067,8 +2061,7 @@
    },
    {
     "order": "Distinguish ischemic from non-ischemic",
-    "where": null,
-    "typed": "high flow priapism"
+    "shown": "sent a corporal blood gas"
    }
   ],
   "eb-cardiac-arrest": [
@@ -2131,14 +2124,13 @@
     "typed": "surgery"
    },
    {
-    "order": "Monitor the access for thrombosis after hemostasis",
-    "where": null,
-    "typed": "check thrill"
+    "order": "Access thrill",
+    "where": "Assess › Exam › More",
+    "typed": "check the fistula for a thrill"
    },
    {
     "order": "Keep the broader dialysis differential in mind",
-    "where": null,
-    "typed": "broader differential"
+    "shown": "checked the potassium and looked at the heart or chest"
    }
   ],
   "eb-opioid-overdose": [
@@ -2153,8 +2145,8 @@
     "typed": "naloxone"
    },
    {
-    "order": "Naloxone infusion",
-    "where": null,
+    "order": "Naloxone drip",
+    "where": "Treat › Poisoning › More",
     "typed": "naloxone infusion"
    },
    {
@@ -2163,9 +2155,9 @@
     "typed": "fingerstick glucose"
    },
    {
-    "order": "Observe adequately for re-sedation after naloxone wears off before…",
-    "where": null,
-    "typed": "observe"
+    "order": "Observe before discharge",
+    "where": "Call & move › Dispositions › More",
+    "typed": "observe for delayed deterioration"
    },
    {
     "order": "Portable CXR",
@@ -2173,8 +2165,8 @@
     "typed": "chest x ray"
    },
    {
-    "order": "Provide take-home naloxone",
-    "where": null,
+    "order": "Buprenorphine",
+    "where": "Treat › Poisoning › More",
     "typed": "buprenorphine"
    }
   ],
@@ -2185,8 +2177,8 @@
     "typed": "lorazepam"
    },
    {
-    "order": "Actively cool the hyperthermic patient",
-    "where": null,
+    "order": "Active cooling",
+    "where": "Resuscitate › Exposure › More",
     "typed": "active cooling"
    },
    {
@@ -2219,13 +2211,13 @@
     "typed": "potassium"
    },
    {
-    "order": "Apply topical capsaicin cream for symptom control",
-    "where": null,
-    "typed": "capsaicin"
+    "order": "Droperidol",
+    "where": "Treat › Pain & nausea › More",
+    "typed": "droperidol"
    },
    {
     "order": "Droperidol",
-    "where": null,
+    "where": "Treat › Pain & nausea › More",
     "typed": "droperidol"
    },
    {
@@ -2247,9 +2239,9 @@
     "typed": "morphine"
    },
    {
-    "order": "Mark and serially monitor the leading edge of swelling",
-    "where": null,
-    "typed": "mark the leading edge"
+    "order": "Mark swelling edge",
+    "where": "Assess › Exam › More",
+    "typed": "mark the leading edge of swelling"
    },
    {
     "order": "CBC",
@@ -2257,8 +2249,8 @@
     "typed": "complete blood count"
    },
    {
-    "order": "Give antivenom for indicated cases",
-    "where": null,
+    "order": "Antivenom",
+    "where": "Treat › Poisoning › More",
     "typed": "antivenom"
    },
    {
@@ -2267,23 +2259,23 @@
     "typed": "poison control"
    },
    {
-    "order": "Distinguish subcutaneous swelling from true compartment syndrome",
-    "where": null,
-    "typed": "compartment pressure"
+    "order": "Compartment pressures",
+    "where": "Assess › Exam › More",
+    "typed": "measure intracompartmental pressure"
    },
    {
-    "order": "Monitor for recurrent/delayed coagulopathy",
-    "where": null,
-    "typed": "repeat labs"
+    "order": "Repeat coags",
+    "where": "Assess › Reassess › More",
+    "typed": "repeat coagulation studies"
    }
   ],
   "eb-open-globe": [
    null,
    null,
    {
-    "order": "Keep the child calm and upright",
-    "where": null,
-    "typed": "keep him calm"
+    "order": "Head of bed 30°",
+    "where": "Procedures › Airway & chest › More",
+    "typed": "elevate the head of the bed"
    },
    {
     "order": "Morphine",
@@ -2296,9 +2288,9 @@
     "typed": "vancomycin"
    },
    {
-    "order": "Obtain CT of the orbits",
-    "where": null,
-    "typed": "ct orbit"
+    "order": "CT orbits",
+    "where": "Investigate › Imaging › More",
+    "typed": "ct orbits"
    },
    {
     "order": "Surgery",
@@ -2313,8 +2305,8 @@
     "typed": "coagulation panel"
    },
    {
-    "order": "Reverse the anticoagulant immediately",
-    "where": null,
+    "order": "Reverse anticoagulant",
+    "where": "Treat › Blood & clotting › More",
     "typed": "reverse the anticoagulant"
    },
    {
@@ -2323,13 +2315,13 @@
     "typed": "four factor prothrombin complex concentrate"
    },
    {
-    "order": "For dabigatran",
-    "where": null,
+    "order": "Idarucizumab",
+    "where": "Treat › Blood & clotting › More",
     "typed": "idarucizumab"
    },
    {
     "order": "Labetalol",
-    "where": null,
+    "where": "Treat › Heart › More",
     "typed": "labetalol"
    },
    {
@@ -2346,23 +2338,23 @@
   "eb-ductal-dependent-chd": [
    null,
    {
-    "order": "Check 4-extremity blood pressures, pre/post-ductal saturations,",
-    "where": null,
-    "typed": "four extremity blood pressure"
+    "order": "4-limb BP & sats",
+    "where": "Assess › Exam › More",
+    "typed": "four extremity blood pressures and pre and post ductal saturations"
    },
    {
-    "order": "Prostaglandin E1 infusion",
-    "where": null,
+    "order": "Prostaglandin E1",
+    "where": "Treat › Heart › More",
     "typed": "prostaglandin"
    },
    {
-    "order": "Anticipate PGE1-induced apnea",
-    "where": null,
+    "order": "Apnea standby",
+    "where": "Procedures › Airway & chest › More",
     "typed": "prepare for apnea"
    },
    {
-    "order": "Give cautious fluids in small aliquots",
-    "where": null,
+    "order": "Small bolus",
+    "where": "Treat › Fluids › More",
     "typed": "small fluid bolus"
    },
    {
@@ -2421,9 +2413,9 @@
     "typed": "intubate"
    },
    {
-    "order": "Emphasize ventilation/rescue breathing in submersion arrest",
-    "where": null,
-    "typed": "bag mask ventilation"
+    "order": "Bag-mask",
+    "where": "Resuscitate › Airway",
+    "typed": "bag mask"
    },
    null,
    {
@@ -2432,8 +2424,8 @@
     "typed": "prevent hypothermia with warm blankets and a forced-air warmer"
    },
    {
-    "order": "Observe symptomatic patients for delayed pulmonary deterioration",
-    "where": null,
+    "order": "Observe before discharge",
+    "where": "Call & move › Dispositions › More",
     "typed": "observe for delayed deterioration"
    },
    null
@@ -2508,18 +2500,18 @@
     "typed": "chest x ray"
    },
    {
-    "order": "Arrange emergent endoscopy for band ligation",
-    "where": null,
-    "typed": "endoscopy"
+    "order": "Emergent endoscopy",
+    "where": "Procedures › Other › More",
+    "typed": "emergent endoscopy"
    },
    {
-    "order": "Give honey",
-    "where": null,
+    "order": "Honey / sucralfate",
+    "where": "Treat › Poisoning › More",
     "typed": "honey"
    },
    {
-    "order": "Iv Fluids",
-    "where": null,
+    "order": "Judicious fluids",
+    "where": "Treat › Fluids › More",
     "typed": "iv fluids"
    },
    {
@@ -2529,14 +2521,13 @@
    },
    {
     "order": "Monitor for and recognize complications",
-    "where": null,
-    "typed": "watch for fistula"
+    "shown": "arranged emergent removal and brought GI/ENT/surgery in"
    }
   ],
   "eb-orbital-cellulitis": [
    {
-    "order": "Distinguish orbital",
-    "where": null,
+    "order": "Eye movements",
+    "where": "Assess › Exam › More",
     "typed": "extraocular movements"
    },
    {
@@ -2545,9 +2536,9 @@
     "typed": "check the pupils"
    },
    {
-    "order": "Obtain CT of the orbits",
-    "where": null,
-    "typed": "ct orbit"
+    "order": "CT orbits",
+    "where": "Investigate › Imaging › More",
+    "typed": "ct orbits"
    },
    {
     "order": "Ceftriaxone",
@@ -2556,7 +2547,7 @@
    },
    {
     "order": "Ophthalmology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "ophthalmology"
    },
    {
@@ -2565,8 +2556,8 @@
     "typed": "admit to the icu"
    },
    {
-    "order": "Arrange surgical drainage for abscess or vision compromise",
-    "where": null,
+    "order": "Surgical drainage",
+    "where": "Procedures › Other › More",
     "typed": "surgical drainage"
    }
   ],
@@ -2579,18 +2570,18 @@
     "typed": "examine the skin"
    },
    {
-    "order": "Pursue an age-appropriate occult-injury workup",
-    "where": null,
+    "order": "Skeletal survey",
+    "where": "Investigate › Imaging › More",
     "typed": "skeletal survey"
    },
    {
-    "order": "Social Work",
-    "where": null,
+    "order": "Social work",
+    "where": "Call & move › Consults › More",
     "typed": "social work"
    },
    {
-    "order": "Child Protective Services",
-    "where": null,
+    "order": "Child protection",
+    "where": "Call & move › Consults › More",
     "typed": "child protective services"
    },
    {
@@ -2602,8 +2593,8 @@
   "eb-biliary-atresia": [
    null,
    {
-    "order": "Obtain a fractionated",
-    "where": null,
+    "order": "Split bilirubin",
+    "where": "Investigate › Labs › More",
     "typed": "fractionated bilirubin"
    },
    null,
@@ -2647,21 +2638,20 @@
     "typed": "coagulation panel"
    },
    {
-    "order": "Ent",
-    "where": null,
+    "order": "ENT",
+    "where": "Call & move › Consults › More",
     "typed": "ent"
    },
    {
-    "order": "Interventional Radiology",
-    "where": null,
+    "order": "IR",
+    "where": "Call & move › Consults › More",
     "typed": "interventional radiology"
    }
   ],
   "eb-hypertensive-emergency": [
    {
     "order": "Confirm hypertensive emergency by identifying acute target-organ damage",
-    "where": null,
-    "typed": "hypertensive emergency"
+    "shown": "looked for target-organ damage — neuro exam, fundi, ECG/troponin, renal function"
    },
    {
     "order": "UA",
@@ -2670,18 +2660,16 @@
    },
    {
     "order": "Labetalol",
-    "where": null,
+    "where": "Treat › Heart › More",
     "typed": "labetalol"
    },
    {
     "order": "For hypertensive encephalopathy, reduce MAP ~10-20%",
-    "where": null,
-    "typed": "reduce map"
+    "shown": "lowered the pressure with a titratable drip and committed hypertensive encephalopathy"
    },
    {
-    "order": "Tailor the target",
-    "where": null,
-    "typed": "rule out dissection"
+    "order": "Tailor the target and agent to the specific syndrome",
+    "shown": "looked for the organ at risk, then chose a titratable agent"
    },
    null,
    null
@@ -2693,9 +2681,9 @@
     "typed": "fingerstick glucose"
    },
    {
-    "order": "Obtain neuroimaging including vascular imaging",
-    "where": null,
-    "typed": "cta of the head and neck"
+    "order": "CTA head & neck",
+    "where": "Investigate › Imaging › More",
+    "typed": "cta head and neck"
    },
    {
     "order": "Repeat ECG",
@@ -2703,9 +2691,9 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Risk-stratify",
-    "where": null,
-    "typed": "abcd2"
+    "order": "ABCD2",
+    "where": "Assess › Exam › More",
+    "typed": "abcd2 score"
    },
    {
     "order": "Aspirin",
@@ -2737,7 +2725,7 @@
    },
    {
     "order": "Ibuprofen",
-    "where": null,
+    "where": "Treat › Pain & nausea › More",
     "typed": "ibuprofen"
    },
    {
@@ -2747,8 +2735,8 @@
    },
    null,
    {
-    "order": "Advise activity restriction",
-    "where": null,
+    "order": "Activity restriction",
+    "where": "Call & move › Dispositions › More",
     "typed": "activity restriction"
    }
   ],
@@ -2764,13 +2752,13 @@
     "typed": "normal saline"
    },
    {
-    "order": "Vent Settings",
-    "where": null,
+    "order": "Vent settings",
+    "where": "Procedures › Airway & chest › More",
     "typed": "vent settings"
    },
    {
-    "order": "Place a rigid eye shield",
-    "where": null,
+    "order": "Head of bed 30°",
+    "where": "Procedures › Airway & chest › More",
     "typed": "elevate the head of the bed"
    },
    {
@@ -2802,8 +2790,8 @@
     "typed": "ceftriaxone"
    },
    {
-    "order": "Practice permissive hypotension",
-    "where": null,
+    "order": "Permissive hypotension",
+    "where": "Resuscitate › Circulation › More",
     "typed": "permissive hypotension"
    },
    {
@@ -2841,9 +2829,9 @@
    null,
    null,
    {
-    "order": "Monitor for recurrent/delayed coagulopathy",
-    "where": null,
-    "typed": "repeat labs"
+    "order": "Recheck potassium",
+    "where": "Assess › Reassess › More",
+    "typed": "follow potassium"
    }
   ],
   "cv-adhf-cardiogenic-shock": [
@@ -2854,8 +2842,8 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Dobutamine infusion",
-    "where": null,
+    "order": "Dobutamine",
+    "where": "Treat › Pressors & rate control › More",
     "typed": "dobutamine infusion"
    },
    {
@@ -2876,14 +2864,13 @@
   ],
   "peds-acute-rheumatic-fever": [
    {
-    "order": "Keep acute rheumatic fever on the differential for migratory…",
-    "where": null,
-    "typed": "social history"
+    "order": "Keep acute rheumatic fever on the differential for migratory polyarthritis…",
+    "shown": "looked for evidence of strep, or committed rheumatic fever"
    },
    {
-    "order": "Obtain evidence of antecedent GAS infection",
-    "where": null,
-    "typed": "aso"
+    "order": "ASO titer",
+    "where": "Investigate › Labs › More",
+    "typed": "aso titer and anti dnase b"
    },
    {
     "order": "Repeat ECG",
@@ -2891,8 +2878,8 @@
     "typed": "electrocardiogram"
    },
    {
-    "order": "Apply the Jones criteria",
-    "where": null,
+    "order": "Jones criteria",
+    "where": "Assess › Exam › More",
     "typed": "jones criteria"
    },
    {
@@ -2908,9 +2895,9 @@
   ],
   "neuro-cauda-equina": [
    {
-    "order": "Directly ask about urinary retention/incontinence",
-    "where": null,
-    "typed": "urinary retention"
+    "order": "Bladder & saddle",
+    "where": "Assess › History › More",
+    "typed": "ask about urinary retention and saddle numbness"
    },
    {
     "order": "Rectal exam",
@@ -2918,13 +2905,13 @@
     "typed": "rectal exam"
    },
    {
-    "order": "Obtain a post-void residual bladder volume",
-    "where": null,
+    "order": "Bladder scan (PVR)",
+    "where": "Investigate › Bedside › More",
     "typed": "post void residual"
    },
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -2964,19 +2951,19 @@
   ],
   "peds-medical-child-abuse": [
    {
-    "order": "Obtain history and perform part of the exam with the caregiver…",
-    "where": null,
-    "typed": "separate mom and eli"
+    "order": "Child seen alone",
+    "where": "Assess › History › More",
+    "typed": "interview the child with the caregiver out of the room"
    },
    {
-    "order": "Request and review records from other EDs/hospitals the family has used…",
-    "where": null,
-    "typed": "outside records"
+    "order": "Outside records",
+    "where": "Assess › History › More",
+    "typed": "request outside hospital records"
    },
    {
-    "order": "Correlate reported spells with continuous cardiorespiratory monitor data",
-    "where": null,
-    "typed": "cardiorespiratory monitor"
+    "order": "Review monitor log",
+    "where": "Assess › Reassess › More",
+    "typed": "review the cardiorespiratory monitor tracings"
    },
    null,
    {
@@ -2988,9 +2975,9 @@
   ],
   "trauma-unstable-cspine": [
    {
-    "order": "Maintain rigid cervical collar",
-    "where": null,
-    "typed": "maintain the collar"
+    "order": "Spinal precautions",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "maintain spinal precautions and the collar"
    },
    null,
    {
@@ -3009,9 +2996,9 @@
     "typed": "surgery"
    },
    {
-    "order": "Reassess neurologic status serially as intoxication clears before ever…",
-    "where": null,
-    "typed": "reassess him now that he's calmer"
+    "order": "Serial neuro checks",
+    "where": "Assess › Reassess › More",
+    "typed": "reassess as the alcohol wears off"
    }
   ],
   "neuro-epidural-hematoma-lucid": [
@@ -3046,14 +3033,14 @@
     "typed": "venous blood gas"
    },
    {
-    "order": "Screen for co-infections",
-    "where": null,
-    "typed": "hiv"
+    "order": "HIV test",
+    "where": "Investigate › Labs › More",
+    "typed": "hiv test"
    },
    {
-    "order": "Initiate respiratory isolation",
-    "where": null,
-    "typed": "afb smear"
+    "order": "AFB smears",
+    "where": "Investigate › Labs › More",
+    "typed": "afb smears for tuberculosis"
    },
    {
     "order": "Methylprednisolone",
@@ -3085,8 +3072,7 @@
    },
    {
     "order": "Classify as submassive/intermediate-risk",
-    "where": null,
-    "typed": "submassive pe"
+    "shown": "risk-stratified (troponin, bedside echo) and confirmed or named the PE"
    },
    {
     "order": "Recheck vitals",
@@ -3102,14 +3088,14 @@
    },
    null,
    {
-    "order": "Pin down the exact last-known-well time",
-    "where": null,
-    "typed": "last known well"
+    "order": "Last known well",
+    "where": "Assess › History › More",
+    "typed": "last known well time"
    },
    {
-    "order": "Screen for thrombolytic contraindications",
-    "where": null,
-    "typed": "contraindications"
+    "order": "Lytic checklist",
+    "where": "Assess › Exam › More",
+    "typed": "screen for contraindications"
    },
    {
     "order": "Neurology",
@@ -3124,9 +3110,9 @@
   ],
   "trauma-primary-blast-lung": [
    {
-    "order": "Inspect both tympanic membranes as a marker of blast overpressure…",
-    "where": null,
-    "typed": "ears"
+    "order": "Eardrums",
+    "where": "Assess › Exam › More",
+    "typed": "examine the tympanic membranes"
    },
    {
     "order": "Portable CXR",
@@ -3146,15 +3132,13 @@
    },
    {
     "order": "Distinguish the occult primary",
-    "where": null,
-    "typed": "primary blast injury"
+    "shown": "checked the eardrums and imaged the chest"
    }
   ],
   "peds-seatbelt-sign-chance-fracture": [
    {
-    "order": "Maintain high suspicion for intra-abdominal",
-    "where": null,
-    "typed": "high suspicion"
+    "order": "Maintain high suspicion for intra-abdominal and spinal injury despite a…",
+    "shown": "imaged the abdomen and the spine, or re-examined the abdomen"
    },
    {
     "order": "CT abd/pelvis",
@@ -3167,14 +3151,14 @@
     "typed": "computed tomography cervical spine"
    },
    {
-    "order": "Maintain spinal precautions until the spine is definitively cleared",
-    "where": null,
-    "typed": "spinal precautions"
+    "order": "Spinal precautions",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "maintain spinal precautions and the collar"
    },
    {
-    "order": "Perform serial abdominal examinations",
-    "where": null,
-    "typed": "reassess abdomen"
+    "order": "Serial abdo exams",
+    "where": "Assess › Reassess › More",
+    "typed": "reassess the abdomen"
    },
    {
     "order": "Peds",
@@ -3195,18 +3179,18 @@
     "typed": "coagulation panel"
    },
    {
-    "order": "Document the discrepancy between the EMS-reported mechanism",
-    "where": null,
-    "typed": "document the discrepancy"
+    "order": "Document account",
+    "where": "Assess › History › More",
+    "typed": "document the caregiver account verbatim"
    },
    {
-    "order": "Adult Protective Services",
-    "where": null,
+    "order": "Adult protection",
+    "where": "Call & move › Consults › More",
     "typed": "adult protective services"
    },
    {
-    "order": "Social Work",
-    "where": null,
+    "order": "Social work",
+    "where": "Call & move › Consults › More",
     "typed": "social work"
    }
   ],
@@ -3217,9 +3201,8 @@
     "typed": "surgery"
    },
    {
-    "order": "Reason about the bullet's likely trajectory rather than relying on…",
-    "where": null,
-    "typed": "trajectory"
+    "order": "Reason about the bullet's likely trajectory rather than relying on wound size…",
+    "shown": "imaged both cavities the bullet could have crossed, or went to CT/theatre"
    },
    null,
    {
@@ -3240,9 +3223,8 @@
   ],
   "peds-hemophilia-bleed": [
    {
-    "order": "Treat any head trauma in a child with hemophilia as a potential…",
-    "where": null,
-    "typed": "concern for intracranial hemorrhage"
+    "order": "Treat any head trauma in a child with hemophilia as a potential intracranial…",
+    "shown": "gave factor IX before the CT"
    },
    {
     "order": "PCC",
@@ -3250,9 +3232,9 @@
     "typed": "four factor prothrombin complex concentrate"
    },
    {
-    "order": "Confirm timing of the last prophylactic factor dose to recognize trough…",
-    "where": null,
-    "typed": "last dose"
+    "order": "Last dose taken",
+    "where": "Assess › History › More",
+    "typed": "when was the last dose"
    },
    null,
    {
@@ -3274,18 +3256,18 @@
     "typed": "ceftriaxone"
    },
    {
-    "order": "Keep the child calm and upright",
-    "where": null,
-    "typed": "keep him calm"
+    "order": "Keep calm & upright",
+    "where": "Resuscitate › Airway › More",
+    "typed": "keep the child calm and upright with the parent"
    },
    {
-    "order": "Position for the large pediatric occiput",
-    "where": null,
+    "order": "Shoulder roll",
+    "where": "Procedures › Airway & chest › More",
     "typed": "shoulder roll"
    },
    {
-    "order": "Prepare thoroughly before any airway attempt",
-    "where": null,
+    "order": "Airway prep",
+    "where": "Procedures › Airway & chest › More",
     "typed": "prepare for intubation"
    },
    {
@@ -3312,9 +3294,9 @@
     "typed": "ceftriaxone"
    },
    {
-    "order": "Involve metabolic/genetics specialists early to guide protein…",
-    "where": null,
-    "typed": "genetics"
+    "order": "Genetics / metabolic",
+    "where": "Call & move › Consults › More",
+    "typed": "metabolic genetics consult"
    },
    {
     "order": "Neuro exam",
@@ -3325,29 +3307,29 @@
   "tox-methanol-poisoning": [
    null,
    {
-    "order": "Send toxic alcohol levels",
-    "where": null,
-    "typed": "toxic alcohol level"
+    "order": "Toxic alcohols",
+    "where": "Investigate › Labs › More",
+    "typed": "toxic alcohol levels with anion and osmolar gaps"
    },
    {
-    "order": "Give fomepizole early",
-    "where": null,
-    "typed": "ethanol drip"
+    "order": "Fomepizole",
+    "where": "Treat › Poisoning › More",
+    "typed": "fomepizole"
    },
    {
-    "order": "Start a sodium bicarbonate infusion for serum/urine alkalinization",
-    "where": null,
+    "order": "Bicarb drip",
+    "where": "Treat › Poisoning › More",
     "typed": "bicarbonate infusion"
    },
    {
-    "order": "Administer folate",
-    "where": null,
-    "typed": "folate"
+    "order": "Folinic acid",
+    "where": "Treat › Poisoning › More",
+    "typed": "folinic acid"
    },
    {
-    "order": "Arrange emergent hemodialysis for severe acidosis, high methanol level,…",
-    "where": null,
-    "typed": "hemodialysis"
+    "order": "Emergent dialysis",
+    "where": "Procedures › Other › More",
+    "typed": "emergent hemodialysis"
    }
   ],
   "neuro-thunderclap-headache-secondary": [
@@ -3357,9 +3339,9 @@
     "typed": "basic metabolic panel"
    },
    {
-    "order": "Arrange emergent endoscopy for band ligation",
-    "where": null,
-    "typed": "endoscopy"
+    "order": "Eye movements",
+    "where": "Assess › Exam › More",
+    "typed": "extraocular movements"
    },
    {
     "order": "CT head",
@@ -3368,8 +3350,8 @@
    },
    null,
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -3391,8 +3373,7 @@
    },
    {
     "order": "Screen for and exclude head trauma within the preceding 72 hours, known…",
-    "where": null,
-    "typed": "head trauma"
+    "shown": "took the witnessed history and did the full neuro exam"
    },
    {
     "order": "Glucose",
@@ -3400,9 +3381,9 @@
     "typed": "fingerstick glucose"
    },
    {
-    "order": "Confirm the patient remains oriented to person",
-    "where": null,
-    "typed": "reassess her memory"
+    "order": "Recheck orientation",
+    "where": "Assess › Reassess › More",
+    "typed": "retest orientation"
    },
    null
   ],
@@ -3442,8 +3423,8 @@
     "typed": "collateral history from the family"
    },
    {
-    "order": "Apply a validated bedside screening tool such as the Confusion…",
-    "where": null,
+    "order": "Confusion (CAM)",
+    "where": "Assess › Exam › More",
     "typed": "confusion assessment method"
    },
    {
@@ -3457,31 +3438,31 @@
     "typed": "heparin"
    },
    {
-    "order": "Manage agitation with nonpharmacologic measures first-line, reserving…",
-    "where": null,
-    "typed": "reorientation"
+    "order": "Recheck orientation",
+    "where": "Assess › Reassess › More",
+    "typed": "retest orientation"
    }
   ],
   "id-viral-hemorrhagic-fever": [
    {
-    "order": "Take a detailed travel/exposure history",
-    "where": null,
-    "typed": "travel history"
+    "order": "Travel & exposures",
+    "where": "Assess › History › More",
+    "typed": "travel and exposure history"
    },
    {
-    "order": "Institute droplet isolation",
-    "where": null,
+    "order": "Droplet isolation",
+    "where": "Call & move › Dispositions › More",
     "typed": "droplet isolation"
    },
    {
-    "order": "Don appropriate PPE",
-    "where": null,
-    "typed": "ppe"
+    "order": "Full PPE",
+    "where": "Call & move › Dispositions › More",
+    "typed": "full ppe"
    },
    {
     "order": "Notify public health",
-    "where": null,
-    "typed": "report to health department"
+    "where": "Call & move › Dispositions › More",
+    "typed": "report to the health department"
    },
    {
     "order": "Blood cultures ×2",
@@ -3497,23 +3478,22 @@
   "trauma-high-pressure-injection-hand": [
    {
     "order": "Actively screen for an occult clenched-fist",
-    "where": null,
-    "typed": "fight bite"
+    "shown": "examined with the fist clenched, or imaged and washed out the wound"
    },
    {
-    "order": "Re-examine and image the hand with the fist re-clenched to trace the…",
-    "where": null,
-    "typed": "reclench the fist"
+    "order": "Clenched-fist exam",
+    "where": "Assess › Exam › More",
+    "typed": "reexamine the hand with the fist clenched"
    },
    {
-    "order": "Obtain 3-view hand radiographs to look for a retained tooth fragment or…",
-    "where": null,
+    "order": "Hand X-ray",
+    "where": "Investigate › Imaging › More",
     "typed": "hand x-ray"
    },
    {
-    "order": "Irrigate the wound under pressure, debride devitalized tissue,",
-    "where": null,
-    "typed": "irrigate the wound"
+    "order": "Irrigate & debride",
+    "where": "Procedures › Other › More",
+    "typed": "irrigate and debride the wound"
    },
    {
     "order": "Ceftriaxone",
@@ -3553,14 +3533,14 @@
   "id-malignant-otitis-externa": [
    null,
    {
-    "order": "Keep acute rheumatic fever on the differential for migratory…",
-    "where": null,
+    "order": "Social history",
+    "where": "Assess › History › More",
     "typed": "social history"
    },
    {
-    "order": "Perform a full head",
-    "where": null,
-    "typed": "oropharynx"
+    "order": "Mouth & neck",
+    "where": "Assess › Exam › More",
+    "typed": "oropharynx and cervical lymph nodes"
    },
    {
     "order": "Jaw thrust",
@@ -3569,8 +3549,8 @@
    },
    null,
    {
-    "order": "Ent",
-    "where": null,
+    "order": "ENT",
+    "where": "Call & move › Consults › More",
     "typed": "ent"
    }
   ],
@@ -3582,9 +3562,9 @@
     "typed": "norepinephrine"
    },
    {
-    "order": "Compare to a prior ECG to confirm this is a new loss of capture, not…",
-    "where": null,
-    "typed": "prior ecg"
+    "order": "Compare old ECG",
+    "where": "Investigate › Bedside › More",
+    "typed": "compare with a prior ecg"
    },
    {
     "order": "BMP",
@@ -3644,9 +3624,8 @@
   ],
   "peds-vp-shunt-malfunction": [
    {
-    "order": "Maintain high suspicion for shunt malfunction in any child with a VP…",
-    "where": null,
-    "typed": "shunt malfunction"
+    "order": "Maintain high suspicion for shunt malfunction in any child with a VP shunt and…",
+    "shown": "got the head CT against the old one, or the shunt series"
    },
    {
     "order": "CT head",
@@ -3654,8 +3633,8 @@
     "typed": "computed tomography head"
    },
    {
-    "order": "Order a complete shunt series",
-    "where": null,
+    "order": "Shunt series",
+    "where": "Investigate › Imaging › More",
     "typed": "shunt series"
    },
    {
@@ -3694,8 +3673,7 @@
    null,
    {
     "order": "Actively screen for subtle indicators of organ dysfunction",
-    "where": null,
-    "typed": "sepsis screen"
+    "shown": "sent a lactate"
    },
    {
     "order": "Lactate",
@@ -3716,14 +3694,13 @@
   ],
   "gi-aortoenteric-fistula": [
    {
-    "order": "Specifically ask about any history of aortic aneurysm repair, aortic…",
-    "where": null,
-    "typed": "aortic aneurysm"
+    "order": "Past surgeries",
+    "where": "Assess › History › More",
+    "typed": "prior surgeries or grafts"
    },
    {
-    "order": "Treat any GI bleed in a patient with a prior aortic graft as an…",
-    "where": null,
-    "typed": "aortoenteric fistula"
+    "order": "Treat any GI bleed in a patient with a prior aortic graft as an aortoenteric…",
+    "shown": "got the CT angiogram with vascular surgery"
    },
    {
     "order": "IV access",
@@ -3749,48 +3726,47 @@
   "tox-opioid-withdrawal-buprenorphine": [
    null,
    {
-    "order": "Calculate an objective COWS score before considering any buprenorphine…",
-    "where": null,
-    "typed": "cows"
+    "order": "COWS",
+    "where": "Assess › Exam › More",
+    "typed": "cows score"
    },
    {
-    "order": "Confirm at least moderate objective withdrawal severity is present…",
-    "where": null,
-    "typed": "moderate to severe withdrawal"
+    "order": "Confirm at least moderate objective withdrawal severity is present before…",
+    "shown": "scored the withdrawal (COWS) first"
    },
    {
-    "order": "Provide take-home naloxone",
-    "where": null,
+    "order": "Buprenorphine",
+    "where": "Treat › Poisoning › More",
     "typed": "buprenorphine"
    },
    {
-    "order": "Arrange a warm handoff with direct linkage to outpatient MOUD treatment…",
-    "where": null,
-    "typed": "warm handoff"
+    "order": "Warm handoff",
+    "where": "Call & move › Dispositions › More",
+    "typed": "warm handoff to addiction treatment"
    },
    null
   ],
   "id-mammalian-bite-infection": [
    null,
    {
-    "order": "Examine for Kanavel signs of flexor tenosynovitis",
-    "where": null,
-    "typed": "hand exam"
+    "order": "Hand exam",
+    "where": "Assess › Exam › More",
+    "typed": "hand exam for flexor tenosynovitis"
    },
    {
-    "order": "Leave the puncture wound open",
-    "where": null,
+    "order": "Leave wound open",
+    "where": "Procedures › Other › More",
     "typed": "leave the wound open"
    },
    {
-    "order": "Obtain 3-view hand radiographs to look for a retained tooth fragment or…",
-    "where": null,
+    "order": "Hand X-ray",
+    "where": "Investigate › Imaging › More",
     "typed": "hand x-ray"
    },
    {
-    "order": "Start empiric antibiotics with anti-Pasteurella activity",
-    "where": null,
-    "typed": "amoxicillin-clavulanate"
+    "order": "Amox-clav",
+    "where": "Treat › Infection › More",
+    "typed": "amoxicillin clavulanate"
    },
    {
     "order": "Surgery",
@@ -3800,20 +3776,20 @@
   ],
   "id-mosquito-borne-illness": [
    {
-    "order": "Take a detailed travel/exposure history",
-    "where": null,
-    "typed": "travel history"
+    "order": "Travel & exposures",
+    "where": "Assess › History › More",
+    "typed": "travel and exposure history"
    },
    null,
    {
-    "order": "Perform a tourniquet test",
-    "where": null,
+    "order": "Tourniquet test",
+    "where": "Assess › Exam › More",
     "typed": "tourniquet test"
    },
    {
-    "order": "Order CBC with platelet count",
-    "where": null,
-    "typed": "trend hematocrit"
+    "order": "Serial Hb / Hct",
+    "where": "Assess › Reassess › More",
+    "typed": "serial hemoglobin and hematocrit"
    },
    null,
    {
@@ -3849,13 +3825,13 @@
   "id-necrotizing-otitis-externa": [
    null,
    {
-    "order": "Perform a full cranial nerve exam, specifically screening for facial…",
-    "where": null,
+    "order": "Cranial nerves",
+    "where": "Assess › Exam › More",
     "typed": "cranial nerve exam"
    },
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -3869,8 +3845,8 @@
     "typed": "cefepime"
    },
    {
-    "order": "Ent",
-    "where": null,
+    "order": "ENT",
+    "where": "Call & move › Consults › More",
     "typed": "ent"
    }
   ],
@@ -3897,8 +3873,8 @@
     "typed": "surgery"
    },
    {
-    "order": "Reassess vitals",
-    "where": null,
+    "order": "Pelvic packing",
+    "where": "Procedures › Other › More",
     "typed": "pelvic packing"
    }
   ],
@@ -3925,9 +3901,8 @@
     "typed": "morphine"
    },
    {
-    "order": "Actively exclude AAA, ovarian torsion,",
-    "where": null,
-    "typed": "rule out aaa"
+    "order": "Actively exclude AAA, ovarian torsion, and appendicitis as life-threatening…",
+    "shown": "got the CT abdomen/pelvis"
    }
   ],
   "heme-sickle-stroke": [
@@ -3956,18 +3931,18 @@
   ],
   "peds-tillaux-fracture": [
    {
-    "order": "Palpate specifically over the anterolateral joint line/distal tibial…",
-    "where": null,
-    "typed": "anterolateral joint line"
+    "order": "Ankle joint line",
+    "where": "Assess › Exam › More",
+    "typed": "palpate the anterolateral ankle joint line"
    },
    {
-    "order": "Obtain a dedicated 3-view ankle series",
-    "where": null,
+    "order": "Ankle X-ray",
+    "where": "Investigate › Imaging › More",
     "typed": "ankle x-ray"
    },
    {
-    "order": "Order CT ankle when exam or plain films raise concern for a…",
-    "where": null,
+    "order": "CT ankle",
+    "where": "Investigate › Imaging › More",
     "typed": "ct ankle"
    },
    {
@@ -3984,14 +3959,14 @@
   ],
   "core-failed-airway": [
    {
-    "order": "Perform a systematic difficult-airway assessment",
-    "where": null,
-    "typed": "airway assessment"
+    "order": "Airway assessment",
+    "where": "Assess › Exam › More",
+    "typed": "difficult airway assessment"
    },
    {
-    "order": "Assemble and open backup airway equipment",
-    "where": null,
-    "typed": "open the airway kit"
+    "order": "Backup airway kit",
+    "where": "Procedures › Airway & chest › More",
+    "typed": "open the backup airway kit"
    },
    {
     "order": "Anesthesia",
@@ -3999,9 +3974,9 @@
     "typed": "anesthesia"
    },
    {
-    "order": "Place a rigid eye shield",
-    "where": null,
-    "typed": "elevate the head of the bed"
+    "order": "Ramp & preoxygenate",
+    "where": "Procedures › Airway & chest › More",
+    "typed": "ramp the patient upright"
    },
    null,
    null
@@ -4033,9 +4008,9 @@
   "id-fourniers-gangrene": [
    null,
    {
-    "order": "Perform a full genital",
-    "where": null,
-    "typed": "scrotal exam"
+    "order": "Genital exam",
+    "where": "Assess › Exam › More",
+    "typed": "examine scrotum and perineum"
    },
    null,
    {
@@ -4053,9 +4028,9 @@
   "id-lemierre-syndrome": [
    null,
    {
-    "order": "CTA Head/Neck",
-    "where": null,
-    "typed": "ct angiography head neck"
+    "order": "Mouth & neck",
+    "where": "Assess › Exam › More",
+    "typed": "oropharynx and cervical lymph nodes"
    },
    {
     "order": "Blood cultures ×2",
@@ -4063,9 +4038,9 @@
     "typed": "blood cultures"
    },
    {
-    "order": "Obtain neuroimaging including vascular imaging",
-    "where": null,
-    "typed": "cta of the head and neck"
+    "order": "CTA head & neck",
+    "where": "Investigate › Imaging › More",
+    "typed": "cta head and neck"
    },
    {
     "order": "Ceftriaxone",
@@ -4096,8 +4071,8 @@
     "typed": "right upper quadrant ultrasound"
    },
    {
-    "order": "Order a technetium-99m pertechnetate",
-    "where": null,
+    "order": "Meckel's scan",
+    "where": "Investigate › Imaging › More",
     "typed": "meckels scan"
    },
    {
@@ -4133,15 +4108,15 @@
   "id-neurosyphilis": [
    null,
    {
-    "order": "Order RPR/VDRL screening for syphilis given an atypical…",
-    "where": null,
+    "order": "RPR",
+    "where": "Investigate › Labs › More",
     "typed": "rpr"
    },
    null,
    {
-    "order": "Arrange confirmatory treponemal testing with reliable follow-up if…",
-    "where": null,
-    "typed": "fta-abs"
+    "order": "Treponemal test",
+    "where": "Investigate › Labs › More",
+    "typed": "confirmatory treponemal test"
    },
    {
     "order": "Ceftriaxone",
@@ -4149,20 +4124,20 @@
     "typed": "ceftriaxone"
    },
    {
-    "order": "Discuss and facilitate partner notification and testing for her husband",
-    "where": null,
-    "typed": "partner testing"
+    "order": "Partner notification",
+    "where": "Call & move › Dispositions › More",
+    "typed": "partner notification and testing"
    }
   ],
   "trauma-orbital-blowout-entrapment": [
    {
-    "order": "Obtain CT of the orbits",
-    "where": null,
-    "typed": "ct orbit"
+    "order": "CT orbits",
+    "where": "Investigate › Imaging › More",
+    "typed": "ct orbits"
    },
    {
-    "order": "Distinguish orbital",
-    "where": null,
+    "order": "Eye movements",
+    "where": "Assess › Exam › More",
     "typed": "extraocular movements"
    },
    null,
@@ -4173,8 +4148,7 @@
    },
    {
     "order": "Screen for concomitant ocular",
-    "where": null,
-    "typed": "ruled out globe injury"
+    "shown": "imaged the head or cervical spine"
    },
    null
   ],
@@ -4204,13 +4178,13 @@
   ],
   "peds-pseudotumor-cerebri": [
    {
-    "order": "Arrange emergent endoscopy for band ligation",
-    "where": null,
-    "typed": "endoscopy"
+    "order": "Fundoscopy",
+    "where": "Assess › Exam › More",
+    "typed": "fundoscopic exam"
    },
    {
-    "order": "MRI Brain",
-    "where": null,
+    "order": "MRI brain",
+    "where": "Investigate › Imaging › More",
     "typed": "magnetic resonance imaging brain"
    },
    {
@@ -4225,9 +4199,9 @@
    },
    null,
    {
-    "order": "Discontinue the doxycycline",
-    "where": null,
-    "typed": "stop doxycycline"
+    "order": "Stop culprit drug",
+    "where": "Treat › Infection › More",
+    "typed": "stop the offending medication"
    }
   ],
   "trauma-blunt-renal-injury": [
@@ -4238,9 +4212,9 @@
    },
    null,
    {
-    "order": "Trend serial vital signs",
-    "where": null,
-    "typed": "serial hemoglobin"
+    "order": "Serial Hb / Hct",
+    "where": "Assess › Reassess › More",
+    "typed": "serial hemoglobin and hematocrit"
    },
    {
     "order": "Surgery",
@@ -4281,28 +4255,27 @@
     "typed": "listen to the heart"
    },
    {
-    "order": "Explicitly apply all six 2016 AAP low-risk BRUE criteria",
-    "where": null,
-    "typed": "apply brue criteria"
+    "order": "BRUE criteria",
+    "where": "Assess › Exam › More",
+    "typed": "apply the brue low risk criteria"
    },
    null,
    null,
    {
-    "order": "Provide clear return precautions if discharged",
-    "where": null,
+    "order": "Return precautions",
+    "where": "Call & move › Dispositions › More",
     "typed": "return precautions"
    }
   ],
   "id-covid-silent-hypoxemia": [
    {
     "order": "Trust the pulse oximeter over the patient's reported comfort",
-    "where": null,
-    "typed": "recheck pulse ox"
+    "shown": "escalated the oxygen, or admitted on the saturation"
    },
    {
-    "order": "Don appropriate PPE",
-    "where": null,
-    "typed": "ppe"
+    "order": "Airborne isolation",
+    "where": "Call & move › Dispositions › More",
+    "typed": "airborne isolation room"
    },
    {
     "order": "Lung ultrasound",
@@ -4320,16 +4293,15 @@
     "typed": "admit to the icu"
    },
    {
-    "order": "Provide clear return precautions if discharged",
-    "where": null,
+    "order": "Return precautions",
+    "where": "Call & move › Dispositions › More",
     "typed": "return precautions"
    }
   ],
   "neuro-cervical-artery-dissection": [
    {
-    "order": "Activate a stroke alert",
-    "where": null,
-    "typed": "stroke alert"
+    "order": "Keep cervical artery dissection and stroke on the differential for a young…",
+    "shown": "looked for Horner's, or called the stroke code with vessel imaging"
    },
    {
     "order": "Pupils",
@@ -4343,7 +4315,7 @@
    },
    {
     "order": "Alteplase",
-    "where": null,
+    "where": "Treat › Blood & clotting › More",
     "typed": "alteplase"
    },
    {
@@ -4359,34 +4331,34 @@
   ],
   "peds-dog-bite-facial": [
    {
-    "order": "Irrigate the wound under pressure, debride devitalized tissue,",
-    "where": null,
-    "typed": "irrigate the wound"
+    "order": "Irrigate & debride",
+    "where": "Procedures › Other › More",
+    "typed": "irrigate and debride the wound"
    },
    {
-    "order": "Close the facial wound primarily rather than leaving it open, given the…",
-    "where": null,
+    "order": "Close primarily",
+    "where": "Procedures › Other › More",
     "typed": "primary closure"
    },
    {
-    "order": "Start empiric antibiotics with anti-Pasteurella activity",
-    "where": null,
-    "typed": "amoxicillin-clavulanate"
+    "order": "Amox-clav",
+    "where": "Treat › Infection › More",
+    "typed": "amoxicillin clavulanate"
    },
    {
     "order": "Tetanus",
-    "where": null,
+    "where": "Treat › Infection › More",
     "typed": "tetanus"
    },
    {
-    "order": "Perform a structured rabies risk assessment",
-    "where": null,
+    "order": "Rabies risk",
+    "where": "Assess › History › More",
     "typed": "rabies risk assessment"
    },
    {
-    "order": "Arrange 10-day observation of the known, healthy-appearing dog through…",
-    "where": null,
-    "typed": "10 day observation"
+    "order": "Animal control",
+    "where": "Call & move › Consults › More",
+    "typed": "10 day observation of the dog through animal control"
    }
   ],
   "peds-complex-febrile-seizure": [
@@ -4401,9 +4373,9 @@
     "typed": "neuro exam"
    },
    {
-    "order": "Antibiotics",
-    "where": null,
-    "typed": "antibiotics"
+    "order": "Meningism check",
+    "where": "Assess › Exam › More",
+    "typed": "check for meningismus and a bulging fontanelle"
    },
    null,
    null,
@@ -4425,18 +4397,18 @@
     "typed": "urinalysis"
    },
    {
-    "order": "Ask specifically about a preceding throat or skin infection",
-    "where": null,
-    "typed": "sore throat"
+    "order": "Recent infections",
+    "where": "Assess › History › More",
+    "typed": "recent strep throat or impetigo"
    },
    {
-    "order": "Creatine Kinase",
-    "where": null,
+    "order": "CK",
+    "where": "Investigate › Labs › More",
     "typed": "creatine kinase"
    },
    {
     "order": "Nicardipine",
-    "where": null,
+    "where": "Treat › Heart › More",
     "typed": "nicardipine"
    },
    {
@@ -4448,14 +4420,14 @@
   "trauma-orbital-compartment-syndrome": [
    null,
    {
-    "order": "Measure intraocular pressure by bedside tonometry",
-    "where": null,
-    "typed": "tonometry"
+    "order": "Compartment pressures",
+    "where": "Assess › Exam › More",
+    "typed": "measure intracompartmental pressure"
    },
    {
-    "order": "Perform emergent bedside lateral canthotomy",
-    "where": null,
-    "typed": "lateral canthotomy"
+    "order": "Canthotomy",
+    "where": "Procedures › Other › More",
+    "typed": "lateral canthotomy and cantholysis"
    },
    {
     "order": "Morphine",
@@ -4464,25 +4436,25 @@
    },
    {
     "order": "Ophthalmology",
-    "where": null,
+    "where": "Call & move › Consults › More",
     "typed": "ophthalmology"
    },
    {
-    "order": "Reassess visual acuity",
-    "where": null,
-    "typed": "recheck vision"
+    "order": "Recheck eye pressure",
+    "where": "Assess › Reassess › More",
+    "typed": "repeat tonometry"
    }
   ],
   "trauma-scaphoid-fracture": [
    {
-    "order": "Palpate the anatomic snuffbox",
-    "where": null,
-    "typed": "snuffbox"
+    "order": "Snuffbox",
+    "where": "Assess › Exam › More",
+    "typed": "palpate the anatomic snuffbox"
    },
    {
-    "order": "Test for pain with axial loading",
-    "where": null,
-    "typed": "axial load"
+    "order": "Thumb axial load",
+    "where": "Assess › Exam › More",
+    "typed": "axial load the thumb"
    },
    {
     "order": "Portable CXR",
@@ -4490,19 +4462,19 @@
     "typed": "chest x ray"
    },
    {
-    "order": "Apply a thumb spica splint presumptively even though the initial x-ray…",
-    "where": null,
-    "typed": "thumb spica"
+    "order": "Thumb spica",
+    "where": "Procedures › Other › More",
+    "typed": "thumb spica splint"
    },
    {
-    "order": "Keep the patient non-weight-bearing on the hand",
-    "where": null,
-    "typed": "non-weight bearing"
+    "order": "Non-weight-bearing",
+    "where": "Call & move › Dispositions › More",
+    "typed": "non weight bearing and follow up"
    },
    {
-    "order": "Document a neurovascular exam of the hand distal to the injury",
-    "where": null,
-    "typed": "neurovascular"
+    "order": "Neurovascular check",
+    "where": "Assess › Exam › More",
+    "typed": "distal neurovascular exam"
    }
   ],
   "peds-electrolyte-emergency": [
@@ -4518,13 +4490,13 @@
     "typed": "normal saline"
    },
    {
-    "order": "Monitor serum sodium frequently during correction",
-    "where": null,
+    "order": "Recheck sodium",
+    "where": "Assess › Reassess › More",
     "typed": "repeat sodium"
    },
    {
-    "order": "Take a careful feeding-preparation history to uncover improperly",
-    "where": null,
+    "order": "Feeding history",
+    "where": "Assess › History › More",
     "typed": "feeding history"
    },
    null
@@ -4543,13 +4515,12 @@
    },
    {
     "order": "Distinguish prenatal",
-    "where": null,
-    "typed": "was he like this at birth"
+    "shown": "committed torsion, or called urology and counselled on salvage"
    },
    {
-    "order": "Counsel the family that testicular salvage is time-dependent",
-    "where": null,
-    "typed": "explain to the parents"
+    "order": "Explain to family",
+    "where": "Call & move › Dispositions › More",
+    "typed": "explain to the family"
    },
    {
     "order": "To the OR",

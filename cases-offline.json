@@ -307,6 +307,7 @@
      "intent": "lab",
      "match": {
       "any": [
+       "c difficile pcr",
        "c diff",
        "c. diff",
        "cdiff",
@@ -666,6 +667,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "stop the offending medication",
        "stop antibiotics",
        "discontinue clindamycin",
        "stop clindamycin",
@@ -3333,6 +3335,7 @@
    }
   },
   "core-afebrile-elderly-sepsis": {
+   "shownBy": {"1":[["seen:^lactate$"]]},
    "startState": {
     "sepsisWorkupSent": false
    },
@@ -5580,6 +5583,7 @@
      "intent": "procedure",
      "match": {
       "any": [
+       "ramp the patient upright",
        "sit him up",
        "keep him upright",
        "ramped position",
@@ -8836,6 +8840,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "esmolol",
        "target heart rate",
        "hr less than 60",
        "titrate to hr",
@@ -14968,6 +14973,7 @@
    }
   },
   "cv-submassive-pe": {
+   "shownBy": {"4":[[1,2],[1,"dx"]]},
    "startState": {
     "anticoagulated": false
    },
@@ -26394,6 +26400,7 @@
    ]
   },
   "eb-button-battery": {
+   "shownBy": {"6":[[2,5]]},
    "startState": {
     "canSwallowSafely": false
    },
@@ -27873,6 +27880,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "droperidol",
        "capsaicin",
        "capsaicin cream",
        "topical capsaicin",
@@ -27909,6 +27917,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "topical capsaicin cream",
        "haloperidol",
        "haldol",
        "droperidol",
@@ -31388,6 +31397,7 @@
    }
   },
   "eb-dialysis-access-hemorrhage": {
+   "shownBy": {"6":[["seen:^potassium$","seen:12-lead ecg|bedside echo|chest x-ray"]]},
    "startState": {
     "pressureApplied": false,
     "hemostasisAchieved": false
@@ -32917,6 +32927,7 @@
      "intent": "procedure",
      "match": {
       "any": [
+       "bag mask",
        "bag him",
        "bag mask ventilation",
        "bag-valve-mask",
@@ -36439,6 +36450,7 @@
    }
   },
   "eb-hypertensive-emergency": {
+   "shownBy": {"0":[[1]],"3":[[2,"dx"]],"4":[[1,2]]},
    "responders": [
     {
      "intent": "history",
@@ -47018,6 +47030,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "overdose rescue kit",
        "take-home naloxone",
        "naloxone kit",
        "buprenorphine",
@@ -48043,6 +48056,7 @@
    }
   },
   "eb-peds-discitis": {
+   "shownBy": {"0":[[1,3],[2,3]]},
    "startState": {
     "bloodCulturesSent": false
    },
@@ -49837,6 +49851,7 @@
    }
   },
   "eb-priapism": {
+   "shownBy": {"6":[[2]]},
    "startState": {
     "ischemiaConfirmed": false
    },
@@ -61790,6 +61805,7 @@
      "intent": "assessment",
      "match": {
       "any": [
+       "document the caregiver account verbatim",
        "document the discrepancy",
        "chart the discrepancy",
        "note the inconsistency",
@@ -62047,6 +62063,7 @@
    }
   },
   "gi-aortoenteric-fistula": {
+   "shownBy": {"1":[[4]]},
    "startState": {
     "vascularConsulted": false
    },
@@ -62095,6 +62112,7 @@
      "intent": "history",
      "match": {
       "any": [
+       "prior surgeries or grafts",
        "aortic aneurysm",
        "aaa repair",
        "aortic graft",
@@ -67639,6 +67657,7 @@
    }
   },
   "gu-obstructing-stone-pyonephrosis": {
+   "shownBy": {"5":[[0]]},
    "startState": {
     "culturesSent": false
    },
@@ -72075,6 +72094,7 @@
    }
   },
   "heme-ttp": {
+   "shownBy": {"6":[[1,2],["dx","seen:^inr$|^pt$|^ptt$|fibrinogen"]]},
    "startState": {},
    "responders": [
     {
@@ -73091,6 +73111,7 @@
    }
   },
   "id-covid-silent-hypoxemia": {
+   "shownBy": {"0":[[3],[4]]},
    "startState": {
     "isolated": false,
     "o2Started": false,
@@ -76169,6 +76190,7 @@
      "intent": "exam",
      "match": {
       "any": [
+       "oropharynx and cervical lymph nodes",
        "neck",
        "neck exam",
        "cervical exam",
@@ -78826,6 +78848,7 @@
      "intent": "lab",
      "match": {
       "any": [
+       "serial hemoglobin and hematocrit",
        "repeat cbc",
        "trend hematocrit",
        "serial hematocrit",
@@ -83143,6 +83166,7 @@
      "intent": "history",
      "match": {
       "any": [
+       "travel and exposure history",
        "travel history",
        "recent travel",
        "have you traveled",
@@ -85333,6 +85357,7 @@
    }
   },
   "metab-sulfonylurea-hypoglycemia": {
+   "shownBy": {"5":[["seen:^creatinine$|^bun$","dx"]]},
    "startState": {
     "dextroseGiven": false
    },
@@ -85905,6 +85930,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "feed the patient",
        "feed her",
        "give her food",
        "offer a meal",
@@ -87943,6 +87969,7 @@
    }
   },
   "neuro-cervical-artery-dissection": {
+   "shownBy": {"0":[[1],[2]]},
    "startState": {
     "ctHeadDone": false,
     "strokeCodeActivated": false
@@ -96350,6 +96377,7 @@
    }
   },
   "neuro-transient-global-amnesia": {
+   "shownBy": {"2":[[0,1]]},
    "startState": {
     "neuroExamDone": false,
     "redFlagScreenDone": false,
@@ -101027,6 +101055,7 @@
    }
   },
   "peds-acute-rheumatic-fever": {
+   "shownBy": {"0":[[1],["dx"]]},
    "startState": {
     "cardiacEval": false
    },
@@ -108211,6 +108240,7 @@
    }
   },
   "peds-hemophilia-bleed": {
+   "shownBy": {"0":[[1]]},
    "responders": [
     {
      "intent": "history",
@@ -109823,6 +109853,7 @@
    ]
   },
   "peds-kawasaki": {
+   "shownBy": {"4":[[3]]},
    "responders": [
     {
      "intent": "history",
@@ -111807,6 +111838,7 @@
      "intent": "history",
      "match": {
       "any": [
+       "interview the child with the caregiver out of the room",
        "separate mom and eli",
        "have mom step out",
        "interview eli alone",
@@ -113551,6 +113583,7 @@
    }
   },
   "peds-neonatal-testicular-torsion": {
+   "shownBy": {"3":[["dx"],[1,4]]},
    "startState": {
     "urologyConsulted": false,
     "onsetTimingKnown": false
@@ -114092,6 +114125,7 @@
      "intent": "assessment",
      "match": {
       "any": [
+       "explain to the family",
        "counsel the family",
        "explain to the parents",
        "talk to mom",
@@ -114956,6 +114990,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "stop the offending medication",
        "stop doxycycline",
        "discontinue doxycycline",
        "hold doxycycline",
@@ -115092,6 +115127,7 @@
    }
   },
   "peds-seatbelt-sign-chance-fracture": {
+   "shownBy": {"0":[[1,2],[1,4]]},
    "responders": [
     {
      "intent": "history",
@@ -117598,6 +117634,7 @@
    }
   },
   "peds-vp-shunt-malfunction": {
+   "shownBy": {"0":[[1],[2]]},
    "startState": {
     "baselineCompared": false
    },
@@ -125011,6 +125048,7 @@
    }
   },
   "tox-acetaminophen": {
+   "shownBy": {"4":[[3]]},
    "startState": {
     "privateInterview": false
    },
@@ -128712,6 +128750,7 @@
    }
   },
   "tox-opioid-withdrawal-buprenorphine": {
+   "shownBy": {"2":[[1]]},
    "startState": {
     "cowsScored": false,
     "buprenorphineGiven": false,
@@ -131347,6 +131386,7 @@
    }
   },
   "tox-serotonin-syndrome": {
+   "shownBy": {"6":[["dx"],[1,4]]},
    "responders": [
     {
      "intent": "history",
@@ -131752,6 +131792,7 @@
      "intent": "med",
      "match": {
       "any": [
+       "stop the offending medication",
        "stop the ssri",
        "discontinue tramadol",
        "hold the ssri",
@@ -136247,6 +136288,7 @@
    }
   },
   "trauma-gunshot-occult-injury": {
+   "shownBy": {"1":[[5],["seen:chest x-ray","seen:ct abdomen|pelvis x-ray|abdominal x-ray"]]},
    "startState": {
     "traumaActivated": false,
     "fastDone": false
@@ -137342,6 +137384,7 @@
    }
   },
   "trauma-high-pressure-injection-hand": {
+   "shownBy": {"0":[[1],[2,3]]},
    "startState": {
     "jointExamined": false
    },
@@ -137526,6 +137569,7 @@
      "intent": "exam",
      "match": {
       "any": [
+       "reexamine the hand with the fist clenched",
        "reclench the fist",
        "clench the fist",
        "position of injury",
@@ -138175,6 +138219,7 @@
    }
   },
   "trauma-orbital-blowout-entrapment": {
+   "shownBy": {"4":[["seen:ct head|ct cervical spine"]]},
    "startState": {
     "eomTested": false,
     "ctDone": false,
@@ -140965,6 +141010,7 @@
    }
   },
   "trauma-primary-blast-lung": {
+   "shownBy": {"5":[[0,1]]},
    "responders": [
     {
      "intent": "history",

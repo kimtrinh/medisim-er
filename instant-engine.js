@@ -3374,8 +3374,44 @@ function codeDeathSentence(pack, opts){
   return '';
 }
 
+// REASONING SHOWN BY WHAT WAS DONE. Kim, 2026-09-23: some critical actions are thinking, not
+// orders — "Distinguish TTP from DIC", "Maintain high suspicion for spinal injury despite a
+// reassuring exam". A button that names the right thought is the answer handed over, so they
+// get none; instead the pack says what proves the thought (`shownBy`), and doing that earns it.
+//   "shownBy": { "<ca index>": [ [2, 5], ["dx"] ] }
+// Any one alternative is enough; every item in it must be met. An integer is another critical
+// action of the same case; "dx" is a committed working diagnosis graded correct; "seen:<regex>"
+// is anything already ordered and answered — a lab, a study, an exam finding, a consult, a drug —
+// whose name matches (e.g. "seen:potassium|ecg" for keeping hyperkalaemia in mind). Saying the
+// reasoning out loud still earns it through the pack's own responder, as before.
+function creditShownReasoning(pack, state){
+  const map = pack && pack.shownBy;
+  if(!map || !state) return [];
+  state.satisfied = state.satisfied || [];
+  state.shownBy = state.shownBy || [];
+  const dx = (state.assessments || []).some(a => a && a.correct);
+  const done = Object.keys(state.labsSeen || {}).concat(Object.keys(state.reportsSeen || {}),
+    Object.keys(state.examSeen || {}), Object.keys(state.consulted || {}), state.medsGiven || []);
+  const seen = t => { try{ const re = new RegExp(t.slice(5), 'i'); return done.some(k => re.test(k)); }catch(_){ return false; } };
+  const added = [];
+  // Repeat until nothing changes: one shown step may be the proof of another.
+  for(let pass = 0, moved = true; moved && pass < 4; pass++){
+    moved = false;
+    for(const [k, alts] of Object.entries(map)){
+      const i = Number(k);
+      if(!Number.isInteger(i) || state.satisfied.includes(i) || !Array.isArray(alts)) continue;
+      const ok = alts.some(alt => Array.isArray(alt) && alt.length && alt.every(t =>
+        t === 'dx' ? dx : (typeof t === 'string' && t.startsWith('seen:')) ? seen(t)
+          : (Number.isInteger(t) && t !== i && state.satisfied.includes(t))));
+      if(ok){ state.satisfied.push(i); state.shownBy.push(i); added.push(i); moved = true; }
+    }
+  }
+  return added;
+}
+
 function buildDebrief(pack, state, opts, outcome){
   const CA = opts.criticalActions || [];
+  creditShownReasoning(pack, state);
   const total = CA.length || 1;
   const met = state.satisfied.slice().sort((a,b)=>a-b);
   // "Actionable" = the CAs you prove by DOING something (not recognition, not
@@ -3434,6 +3470,7 @@ function buildDebrief(pack, state, opts, outcome){
   // An item credited only by inference marks a pack with thin responder coverage.
   const creditBasis = {};
   met.forEach(i => { creditBasis[i] = 'responder'; });
+  (state.shownBy || []).forEach(i => { if(met.includes(i)) creditBasis[i] = 'shown'; });
   abstained.forEach(i => { creditBasis[i] = 'abstained'; });
   recognized.forEach(i => { creditBasis[i] = 'provedByMgmt'; });
   const metS = metAll.map(i=>CA[i]).filter(Boolean);
@@ -4790,6 +4827,7 @@ function runTurn(pack, state, action, opts){
             && !state.spokenSeen['nurse|' + hint]) out.speech.push({speaker:'nurse', text:hint});
   }
   for(const sp of out.speech) if(sp.speaker !== 'patient') state.spokenSeen[sp.speaker + '|' + sp.text] = true;
+  creditShownReasoning(pack, state);
   if(trace){
     trace.satisfiedAfter = state.satisfied.slice().sort((a,b)=>a-b);
     trace.stagesFired = state.stagesFired.slice();
@@ -4896,7 +4934,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
   statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
-  runTurn, buildDebrief, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
+  runTurn, buildDebrief, creditShownReasoning, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
   treatmentActions,      // what an ungated consultant counts as the treatment (tests)
   consultAdmits,   // does this checklist action's own text say the consult IS the admission
