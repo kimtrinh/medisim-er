@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-FU5ucX4DMEzFr7c1NhWBWPRpTf3SQ8ccbOtULdzmIw0=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-EgRL2dawM0poWvLT/9z1knxkCy3VDEt0H2QplsLs3oo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1908,6 +1908,7 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
           <select id="voicePick" class="flex-1 px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200"></select>
           <button id="voiceTest" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition">Test</button>
         </div>
+        <p id="voiceTestResult" class="text-[11px] leading-relaxed text-amber-300 mb-2" aria-live="polite"></p>
         <p id="voiceHelp" class="text-[11px] leading-relaxed text-slate-500 mb-2"></p>
         <div class="flex items-center gap-2 mb-2">
           <span id="ttsDot" class="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0"></span>
@@ -3978,6 +3979,33 @@ function browserSpeak(segments, onDone){
     done();
   }, BROWSER_START_TIMEOUT_MS);
 }
+// WHAT DID THE PHONE SAY? Kim, 2026-09-22, iPhone + Arc: the characters were silent and nothing
+// here could tell why. The Settings Test button, when the phone's own voice is in use, speaks one
+// line from the tap and reports the answer in the audio chip: no speech in this browser; N voices;
+// started and finished; refused with the phone's reason; or accepted and never started (a frozen
+// voice). The monitor's audio state is in the line too. Kim reads it out; we fix what it names.
+function voiceSelfTest(waitMs){
+  // Written under the Test button too: on a phone the header chip only has room for "Voice test".
+  const show = (msg, tone, hold, short) => {
+    audioStatus(msg, tone, hold, short);
+    try{ const el = document.getElementById('voiceTestResult'); if(el) el.textContent = msg; }catch(_){ }
+  };
+  const beep = 'beep ' + ((typeof audioCtx !== 'undefined' && audioCtx) ? audioCtx.state : 'off');
+  if(!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined'){
+    show('Voice test: no speech in this browser · ' + beep, 'warn', 20000, 'No speech'); return;
+  }
+  const n = (refreshVoices() || []).length, head = 'Voice test: ' + n + ' voices · ' + beep + ' · ';
+  let started = false, over = false;
+  const report = (msg, tone) => { if(over) return; over = true; show(head + msg, tone || 'warn', 20000, 'Voice test'); };
+  try{ speechSynthesis.cancel(); speechSynthesis.resume(); }catch(_){ }
+  const u = new SpeechSynthesisUtterance('No pulse. Rhythm is up on the monitor, doctor. What is it?');
+  u.onstart = () => { started = true; show(head + 'speaking…', 'busy', 0, 'Voice test'); };
+  u.onend = () => report(started ? 'started and finished' : 'finished without starting');
+  u.onerror = e => report('refused: ' + ((e && e.error) || 'unknown'));
+  try{ speechSynthesis.speak(u); }catch(e){ report('refused: ' + (e && e.message || e)); return; }
+  show(head + 'waiting for the phone…', 'busy', 0, 'Voice test');
+  setTimeout(() => { if(!started) report('never started (the phone\'s voice is frozen or blocked)'); }, waitMs || 5000);
+}
 // The first tap unlocks speech, as it unlocks the <audio> element (blessAudio): Safari's engine
 // speaks only once a tap has started speech. A silent utterance, cancelled at once, so nothing is
 // left pending for speechBusy() to mistake for a speaker holding the floor.
@@ -4411,8 +4439,13 @@ function _baseline(type, now){
 
 // ---- monitor audio (WebAudio) ----
 let audioCtx=null, _alarmAt=-99;
+// Resumed from ANY state but running. Safari's engine has 'interrupted' as well as 'suspended' —
+// set when another sound (the speech voice, a call, another app) takes the phone's audio — and
+// resuming only from 'suspended' left the first interruption silencing the monitor for good. Kim,
+// 2026-09-22, iPhone: "the monitor beep only is temporary in the mobile version." blessAudio
+// calls this on every tap, so a tap brings it back where a timer cannot.
 function ensureAudioCtx(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(_){ } }
-  if(audioCtx && audioCtx.state==='suspended'){ try{ audioCtx.resume(); }catch(_){ } } return audioCtx; }
+  if(audioCtx && audioCtx.state!=='running' && audioCtx.state!=='closed'){ try{ const p=audioCtx.resume(); if(p&&p.catch) p.catch(()=>{}); }catch(_){ } } return audioCtx; }
 function stopMonitorSound(){ /* beeps/alarms are transient one-shots; nothing sustained to stop */ }
 function _tone(freq,type,dur,vol,at){ const c=ensureAudioCtx(); if(!c) return;
   const t0=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
@@ -14884,6 +14917,11 @@ $('voicePick').addEventListener('change',e=>{
 // pressing Test is asking to hear something.
 $('voiceTest').addEventListener('click',()=>{
   stopSpeak();
+  // With no cast and no HD voices, the phone's own voice is the one in use: speak the test line
+  // straight from this tap and SAY what the phone answered (voiceSelfTest), because a silent
+  // phone cannot be diagnosed from anywhere else.
+  const hd = !useInstant() && S.geminiKey && S.hdVoices && /^AIza/.test(S.geminiKey);
+  if(!(S.ttsURL && S.ttsServerOK) && !hd){ voiceSelfTest(); return; }
   speakSegments([{speaker:'nurse', text:'No pulse. Rhythm is up on the monitor, doctor \u2014 what is it?'}], true);
 });
 $('ttsURL').addEventListener('change',e=>{
