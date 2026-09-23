@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-fwi4JlsavNRClUUJHGNNi6hDCEgp+6hErqXdC2phDKM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-FU5ucX4DMEzFr7c1NhWBWPRpTf3SQ8ccbOtULdzmIw0=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3691,6 +3691,7 @@ const _SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAA
 function blessAudio(){
   try{ if(typeof ensureAudioCtx==='function') ensureAudioCtx(); }catch(_){ }   // unlock WebAudio monitor on first gesture
   if(_blessed) return; _blessed=true;
+  unlockSpeech();
   try{ _audioEl.src=_SILENT; const p=_audioEl.play(); if(p&&p.then) p.then(()=>_audioEl.pause()).catch(()=>{}); }catch(_){ }
 }
 window.addEventListener('pointerdown', blessAudio, true);
@@ -3930,15 +3931,28 @@ const BROWSER_PITCH = { narrator:1, nurse:1.08, consultant:0.9, medic:0.96,
 // onDone fires when the LAST utterance of the batch ends — the only moment at which the
 // whole line is over. It has to fire on the empty and the failed batch too: a callout that
 // waited on a batch which never spoke would wait for the rest of the case.
+// A FROZEN PHONE VOICE MUST NOT SILENCE THE REST OF THE CASE. Kim, 2026-09-22, on an iPhone
+// (Arc — Safari's engine underneath): "No voice in the mobile version. It's lost." It had worked
+// earlier that day. Safari's engine freezes speech synthesis after the phone is locked, another
+// app takes the audio, or a line is cancelled mid-word: utterances are accepted and never start —
+// no sound, no 'start', no 'end'. speechBusy() counts that pending synth as a person speaking, so
+// every later story line queued behind a speaker who never finished, and the rest of the session
+// was silent. So the synth is woken (resume) before every batch, and a batch that has not STARTED
+// within BROWSER_START_TIMEOUT_MS is cancelled and reported done, which releases the floor for the
+// next line. A line that did start is never cut short, however long it runs. Not reproduced on a
+// phone here — this is the known Safari behaviour matching the report.
+const BROWSER_START_TIMEOUT_MS = 4000;
 function browserSpeak(segments, onDone){
-  const done = typeof onDone === 'function' ? onDone : function(){ };
+  let reported = false;
+  const done = () => { if(reported) return; reported = true; if(typeof onDone === 'function') onDone(); };
   if(!('speechSynthesis' in window)){ done(); return; }
+  try{ speechSynthesis.resume(); }catch(_){ }
   const segs = Array.isArray(segments) ? segments
              : [{ role:'narrator', text:String(segments || '') }];
   const list = refreshVoices();
   const lang = (navigator && navigator.language) || 'en';
   const only = new Set(list.map(v => v.name)).size <= 1;
-  let last = null;
+  let last = null; const batch = [];
   for(const seg of segs){
     const text = String((seg && seg.text) || '').trim();
     if(!text) continue;
@@ -3950,11 +3964,28 @@ function browserSpeak(segments, onDone){
     // Only lean on pitch when the voices cannot do the work themselves.
     u.pitch = only ? (BROWSER_PITCH[role] || 1) : 1;
     speechSynthesis.speak(u);
+    batch.push(u);
     last = u;
   }
   if(!last){ done(); return; }
   last.onend = done;
   last.onerror = done;   // headless and locked-down browsers answer 'not-allowed' instead of speaking
+  let started = false;
+  for(const u of batch) u.onstart = () => { started = true; };
+  setTimeout(() => {
+    if(started || reported) return;
+    try{ speechSynthesis.cancel(); }catch(_){ }
+    done();
+  }, BROWSER_START_TIMEOUT_MS);
+}
+// The first tap unlocks speech, as it unlocks the <audio> element (blessAudio): Safari's engine
+// speaks only once a tap has started speech. A silent utterance, cancelled at once, so nothing is
+// left pending for speechBusy() to mistake for a speaker holding the floor.
+let _speechUnlocked = false;
+function unlockSpeech(){
+  if(_speechUnlocked || !('speechSynthesis' in window)) return;
+  _speechUnlocked = true;
+  try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); speechSynthesis.cancel(); }catch(_){ }
 }
 // IS THE LOCAL CAST RUNNING? kokoro_tts_server.py has always exposed /health and the app
 // has never called it: the per-turn POST was fired blind and its failure swallowed, so a
