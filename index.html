@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-nYewOsXTOYOmrnJx6bZ9j5FSHGTjLr6b7n97G/pTp5A=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-h8KwKajGUdqo9tRzXKqlNr3QYmhTmuzkMeCFX6kLHaU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -690,7 +690,7 @@
   body.cinema.console #chartClose{display:flex;position:sticky;top:0}
   body.cinema.console #sideBar{display:none}
   body.cinema.console.resultsOpen #sideBar{display:block;left:var(--gap);right:auto;width:var(--colL);
-    top:calc(var(--hdr,62px) + 8px);bottom:64px}
+    top:calc(var(--hdr,62px) + 8px);bottom:var(--dockUp,64px)}
   /* Same specificity as body.cinema.hudClear #console, and this block comes later — so
      CLEAR has to say it again here or the console would win the tie and stay up. */
   body.cinema.console.hudClear #console,
@@ -1652,8 +1652,33 @@
     background:rgba(2,6,23,.78);color:#e2e8f0;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
   body.cinema.console #rmCam:hover{border-color:rgba(110,231,183,.7);color:#6ee7b7}
   body.cinema.console #roomBox.bedView #rmCam{top:var(--bedCtlTop,8px)}
+  /* Results now open on the LEFT wall (the room-ui layout, Kim's choice 2026-09-22), and during a
+     code they are open — so the drawer, with the CPR/shock tally in it, stood on the camera and
+     Bedside buttons and took their clicks. With the drawer open, the controls start at its right
+     edge; placeRmBed puts Bedside after the camera button as ever. */
+  body.cinema.console.resultsOpen #rmCam{left:calc(var(--gap,8px) + var(--colL,320px) + 10px)}
+  /* …and the order palette opens on that same wall at the start of every case (its width is the
+     one written in the #actionBrowser rule). Both open: past whichever reaches further. */
+  body.cinema.console.actionBrowserOpen #rmCam{left:calc(min(430px, max(320px, calc(var(--rl) + var(--rw) * .29 - 16px))) + 18px)}
+  /* The dock's Room / Orders / History / Results stand under the left wall's palette. While it is
+     open they start past its right edge (same width expression as #actionBrowser), so they keep
+     taking clicks and the palette keeps the height it needs to show its orders. */
+  @media (min-width:768px){
+    body.cinema.console.actionBrowserOpen #obToggleRow{padding-left:calc(min(430px, max(320px, calc(var(--rl) + var(--rw) * .29 - 16px))) + 10px)}
+  }
+  body.cinema.console.actionBrowserOpen.resultsOpen #rmCam{left:max(calc(var(--gap,8px) + var(--colL,320px) + 10px),
+    calc(min(430px, max(320px, calc(var(--rl) + var(--rw) * .29 - 16px))) + 18px))}
   /* Bedside close-up, beside the camera button (placeRmBed writes its left). Emerald, because it
      is the way IN to the pictures, where the camera button is grey furniture. */
+  /* The Hint box (showHint): above the dock, on top of the room, until it is closed. */
+  #hintBox{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(var(--dockUp,150px) + 8px);
+    width:min(520px,calc(100vw - 24px));padding:.7rem .9rem;border-radius:14px;border:1px solid rgba(251,191,36,.55);
+    background:rgba(28,20,4,.94);color:#fde68a;box-shadow:0 18px 40px -18px rgba(0,0,0,.9);backdrop-filter:blur(6px)}
+  #hintBox .hintHead{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:900;
+    letter-spacing:.2em;text-transform:uppercase;color:#fbbf24;margin-bottom:.25rem}
+  #hintBox .hintHead button{min-width:28px;min-height:28px;color:#fcd34d}
+  #hintBox .hintNext{font-size:14px;font-weight:800;color:#fff7ed;line-height:1.35}
+  #hintBox .hintHow{font-size:12px;color:#fcd34d;margin-top:.25rem;line-height:1.4}
   #rmBed{display:none}
   body.phoneFold #rmBed, body.cinema.console #rmBed{display:inline-flex;position:absolute;z-index:12;align-items:center;gap:.35rem;
     padding:0 .75rem;border-radius:9999px;border:1px solid rgba(52,211,153,.6);background:rgba(4,47,46,.82);
@@ -1706,6 +1731,8 @@
        dock keeps the three that must be there and Re-evaluate steps out; it is still one tap
        away in Assess > Reassess, and in the action menu, on this layout as on every other. */
     body.phoneFold #reevalBtn{display:none!important}
+    /* Hint steps out of the phone dock for the same reason; it heads the Orders list instead. */
+    body.phoneFold #hintBtn{display:none!important}
     body.phoneFold #obInputRow button, body.phoneFold #phoneOrders .pal, body.phoneFold #phoneOrders .oset, body.phoneFold .foldHead{min-height:44px}
   }
   /* THE HEADERS AS A ROW OF TABS. Five stacked 44px headers do not fit a short screen:
@@ -3327,7 +3354,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false; _ordersAtStart = true;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.hintsUsed = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false; _ordersAtStart = true;
     S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, caps: runCaps(), goldId: null,
@@ -6513,6 +6540,79 @@ async function loadConsultGates(){
   try{ _consultGates = await (await fetch('consult-gates.json')).json(); }catch(_){ _consultGates = {}; }
   return _consultGates;
 }
+// THE HINT. Kim, 2026-09-22: "I want to add a hint section because I think this is a bit of a
+// complex program and it may not be clear how to enter in diagnosis or admissions, etc. So for
+// example, if the patient has had everything done and just need to be admitted, the hint, if you
+// click hint, it will say: order to admit the patient." Her calls: the next step AND where to find
+// it; every hint is listed in the debrief; no score penalty.
+//
+// The next step is the first critical action not yet earned that is something you order.
+// Ordinary cases read ca-hints.json (tools_build_hints.cjs: the order that earns each action, and
+// its place in the menu when it has one); a live code reads its own script (codeHintFor). With
+// every such action done it is the diagnosis, then the disposition — the two things the report
+// said were hardest to find.
+let _caHints = null;
+async function loadCaHints(){
+  if(_caHints) return _caHints;
+  try{ _caHints = ((await (await fetch('ca-hints.json')).json()) || {}).cases || {}; }catch(_){ _caHints = {}; }
+  return _caHints;
+}
+const CODE_KEY_CHIP = { cpr:['Start CPR','CPR, airway & access'], bvm:['Bag-mask','CPR, airway & access'],
+  ett:['Intubate','CPR, airway & access'], sga:['Supraglottic','CPR, airway & access'],
+  capnography:['Capnography','CPR, airway & access'], access:['IV access','CPR, airway & access'],
+  io:['IO access','CPR, airway & access'], shock:['Defibrillate','Rhythm'], defib:['Defibrillate','Rhythm'],
+  sync:['Sync cardiovert','Rhythm'], cardiovert:['Sync cardiovert','Rhythm'], pacing:['Pacing','Rhythm'], vagal:['Vagal','Rhythm'] };
+function codeHintFor(i){
+  const sc = S.codeScript; if(!sc) return null;
+  const keys = Object.entries(sc.credits || {}).filter(([, n]) => n === i).map(([k]) => k);
+  if(!keys.length) return null;
+  const mine = codeCaseActions(sc, S.criticalActions), acts = (sc.causes && sc.causes.actions) || {};
+  for(const k of keys){
+    if(CODE_KEY_CHIP[k]) return { order: CODE_KEY_CHIP[k][0], where: 'Choose an action › ' + CODE_KEY_CHIP[k][1], typed: null };
+    if(sc.drugs && k in sc.drugs) return { order: k.charAt(0).toUpperCase() + k.slice(1), where: 'Choose an action › Meds', typed: k };
+    const first = (acts[k] || [])[0];
+    const step = mine.steps.find(x => x[1] === first), cause = mine.causes.find(x => x[1] === first);
+    if(step) return { order: step[0], where: 'Choose an action › CPR, airway & access', typed: first };
+    if(cause) return { order: cause[0], where: 'Choose an action › Treat the cause', typed: first };
+  }
+  const k = keys.find(k => acts[k]);
+  return k ? { order: acts[k][0], where: null, typed: acts[k][0] } : null;
+}
+function nextHint(){
+  const done = new Set(((S.instantState || {}).satisfied) || []);
+  const list = S.criticalActions || [], table = (_caHints || {})[S.goldId] || [];
+  for(let i = 0; i < list.length; i++){
+    if(done.has(i)) continue;
+    const h = (S.codeScript && S.code) ? codeHintFor(i) : table[i];
+    if(!h) continue;
+    // Every place is reached through the Choose an action button, so the path starts there — or,
+    // on a phone, through the ORDERS section, which is where the same chips fold.
+    const top = (typeof mobileWorkspace === 'function' && mobileWorkspace()) ? 'Orders' : 'Choose an action';
+    const where = h.where && (top + ' › ' + h.where.replace(/^Choose an action › /, ''));
+    return { next: h.order,
+      how: where ? 'Find it under ' + where + (h.typed ? ', or type "' + h.typed + '" in the order box' : '')
+                   : 'Type "' + (h.typed || h.order) + '" in the order box (Search every action)' };
+  }
+  const dx = (((S.instantState || {}).assessments) || []).length || S.dxSaid;
+  if(!dx) return { next: 'Commit your working diagnosis', how: 'Use the DIAGNOSIS box beside Submit (or type "Working diagnosis: …")' };
+  return { next: 'Decide the disposition — admit, transfer or discharge',
+           how: 'Find it under Choose an action › Call & move › Dispositions (ICU, Ward, Observation, Discharge…)' };
+}
+function showHint(){
+  if(S.stage !== 'play') return;
+  // Exam mode means unassisted, as the coach already has it (TrainingCoach: "in exam mode the
+  // clock runs continuously and hints are off").
+  const h = trainingMode() === 'exam'
+    ? { next: 'Hints are off in exam mode', how: 'Switch to training mode in Settings to use hints.' , exam: true }
+    : nextHint();
+  if(!h) return;
+  if(!h.exam) (S.hintsUsed = S.hintsUsed || []).push({ min: Math.round(S.simMin || 0), text: h.next });
+  let box = $('hintBox');
+  if(!box){ box = document.createElement('div'); box.id = 'hintBox'; box.setAttribute('role', 'status'); document.body.appendChild(box); }
+  box.innerHTML = '<div class="hintHead"><span>Hint</span><button type="button" aria-label="Close the hint" data-hint-close>✕</button></div>' +
+    '<div class="hintNext">' + esc(h.next) + '</div><div class="hintHow">' + esc(h.how) + '</div>';
+  box.querySelector('[data-hint-close]').onclick = () => box.remove();
+}
 function focusDxBox(){
   const i = $('dxInput');
   if(i){ i.focus(); i.select(); return true; }
@@ -7391,7 +7491,7 @@ async function loadGoldCase(seed, opts){
   S.goldId = seed.id || null; S.instantState = null;   // fresh Instant-Mode pack + state for this case
   S.generatedPack = S.goldId ? null : InstantEngine.buildGeneratedPack(S.criticalActions,
     {catalog: await loadOrderCatalog()});
-  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false;
+  S.simMin=0; S.caseLabel=seed.article||seed.title||''; S.timeline=[]; S.hintsUsed = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false;
   S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
   if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
     model: useInstant()?null:S.model, difficulty: S.difficulty, caps: runCaps(), goldId: S.goldId,
@@ -7641,6 +7741,45 @@ const CALL_IT_PERFUSING = [
 // Hs & Ts row silently invisible above 768px for weeks. So the two renderers read the
 // same SOURCES (CODE_PALETTE, the script's drugs and causes, CALL_IT_*) and a test
 // asserts they offer the same chips; drift is caught rather than designed away.
+// WHAT THIS CASE'S CODE CAN DO BEYOND THE STANDARD CHIPS. Kim, 2026-09-22, in the newborn code:
+// "I couldn't find a MR SOPA order or a Warm, dry, stimulate and position the newborn in the first
+// 30 seconds of life order." The engine credited both; the palette offered an authored action only
+// when its FIRST phrase appeared word for word in a critical action ("warm dry and stimulate" is not
+// in "Warm, dry, stimulate and position…") and filed what it did offer under Treat the cause. The
+// wall strip used a looser rule, so the two disagreed. One picker for both now:
+//   - an authored action the case requires, or whose words the checklist uses, as before;
+//   - PLUS every critical action the script credits through an authored action, unless a standard
+//     chip already earns it — so no credited critical action is left without a control;
+//   - steps of the resuscitation (CODE_STEP_LABEL) come back as `steps`, under plain names, to sit
+//     with CPR, airway & access; the rest are `causes`, for Treat the cause.
+const CODE_STEP_LABEL = { initialSteps:'Warm, dry & stimulate', ppv:'PPV', mrsopa:'MR SOPA',
+  maskAdjust:'Adjust the mask', reposition:'Reposition the head', suction:'Suction', openMouth:'Open the mouth',
+  pressureUp:'Increase pressure', altAirway:'Laryngeal mask', compressions:'3:1 compressions', uvc:'UVC',
+  reassess:'Reassess heart rate', oximetry:'Pulse oximetry', trachealSuction:'Tracheal suction' };
+function codeCaseActions(sc, criticalActions){
+  const acts = (sc && sc.causes && sc.causes.actions) || {}, cr = (sc && sc.credits) || {};
+  const req = new Set((sc && sc.causes && sc.causes.required) || []);
+  const caText = (criticalActions || []).join(' ').toLowerCase();
+  const wanted = new Set(req);
+  for(const [key, list] of Object.entries(acts))
+    if((list || []).some(a => a && caText.includes(String(a).toLowerCase()))) wanted.add(key);
+  // Standard chips (CPR, bag-mask, tube, access, the drugs) already earn these critical actions.
+  const STD = /^(cpr|bvm|ett|sga|capnography|access|io|shock|defib|sync|cardiovert|pacing|vagal)$/;
+  const covered = new Set(Object.entries(cr).filter(([k, i]) => Number.isInteger(i) && (STD.test(k) || (sc.drugs && k in sc.drugs))).map(([, i]) => i));
+  const earned = new Set([...wanted].map(k => cr[k]).filter(Number.isInteger));
+  for(const [key, i] of Object.entries(cr)){
+    if(!(key in acts) || !Number.isInteger(i) || covered.has(i) || earned.has(i)) continue;
+    wanted.add(key); earned.add(i);
+  }
+  const causes = [], steps = [];
+  for(const key of wanted){
+    const order = (acts[key] || [])[0]; if(!order) continue;
+    const step = key in CODE_STEP_LABEL && !req.has(key);
+    const lab = step ? CODE_STEP_LABEL[key] : order.charAt(0).toUpperCase() + order.slice(1);
+    (step ? steps : causes).push([lab, order]);
+  }
+  return { causes, steps };
+}
 function codeChipGroups(){
   const sc = S.codeScript, c = S.code;
   if(!sc || !c) return null;
@@ -7665,14 +7804,11 @@ function codeChipGroups(){
   // Once the arrest is over the shock ladder is finished with; post-arrest care takes its
   // place on the wall.
   if(c.ended === 'rosc') out.postrosc = POST_ARREST.map(x => [x[0], x[1]]);
-  const acts = (sc.causes && sc.causes.actions) || {};
-  const caText=(S.criticalActions||[]).join(' ').toLowerCase();
-  const wanted=new Set((sc.causes && sc.causes.required) || []);
-  for(const [key,list] of Object.entries(acts)){
-    if((list||[]).some(a=>a && caText.includes(String(a).toLowerCase()))) wanted.add(key);
-  }
-  out.causes = [...wanted]
-    .map(k => (acts[k] || [])[0]).filter(Boolean).map(a => [a, a]);
+  // The case's own actions (codeCaseActions): reversible causes on the causes row, the steps of
+  // this resuscitation beside the airway and CPR chips they belong with.
+  const mine = codeCaseActions(sc, S.criticalActions);
+  out.causes = mine.causes;
+  for(const [lab, order] of mine.steps) (AIRWAY_LABELS.test(lab + ' ' + order) || /sopa|suction|mouth|head|pressure|laryng/i.test(lab) ? out.airway : out.cpr).push([lab, order]);
   return out;
 }
 function consoleChip(lab, order, id, drug, tone){
@@ -8262,6 +8398,10 @@ function fitActionPanel(){
   if(!row){ panel.style.removeProperty('bottom'); return; }
   const r=row.getBoundingClientRect();
   if(!r.height){ panel.style.removeProperty('bottom'); return; }
+  // On the LEFT wall (the room-ui layout, 2026-09-22) the dock's own buttons move out from under
+  // it (#obToggleRow under actionBrowserOpen) rather than the palette shrinking: stopping it above
+  // the order receipt as well squeezed it to no visible orders on a laptop. The palette closes
+  // when an order is sent, which is when the receipt and its Report problem appear.
   panel.style.bottom = Math.max(16, Math.round(innerHeight - r.top) + 10) + 'px';
 }
 if(typeof window !== 'undefined') addEventListener('resize', () => { try{ fitActionPanel(); }catch(_){ } });
@@ -8463,6 +8603,9 @@ function paletteBodyHTML(){
       ['Defibrillate ' + codeShockJoules(sc2, c2) + ' J', codeShockOrder(sc2, c2), 'codePalDefib'],
       ['Sync cardiovert ' + codeSyncJoules(sc2) + ' J', codeSyncOrder(sc2)],
       ['Pacing','Start transcutaneous pacing'],['Vagal','Try vagal maneuvers']] });
+    // This case's own resuscitation steps (MR SOPA, warm-dry-stimulate, UVC…) with the hands-on work.
+    const steps = codeCaseActions(sc2, S.criticalActions).steps;
+    if(steps.length) groups['CPR, airway & access'] = (groups['CPR, airway & access'] || []).concat(steps);
   }
   // A phone cannot afford four labelled rows: measured at 375x812 they left the
   // transcript at 96px against its 120px floor. Below 768px the action rows collapse
@@ -8526,25 +8669,15 @@ function paletteBodyHTML(){
     // CA2. A critical action with no control is unreachable by clicking.
     //
     // Offering the full authored set is also the smaller spoiler, for the same reason.
-    const acts = S.codeScript.causes.actions || {};
-    // ...plus any authored cause the case makes a CRITICAL ACTION. Offering only the
-    // required list left the crush case with no tourniquet chip — its FIRST critical
-    // action, "stop the external bleeding first" — and the blunt-trauma case with no
-    // pelvic binder, which is CA2. A critical action with no control is unreachable by
-    // clicking, which is the bar Task 9 set.
-    //
-    // Tied to the checklist rather than offering every authored cause, because the NRP
-    // scripts list their whole MR SOPA ladder as causes and a twelve-button wall is not a
-    // palette. The required ones are always offered.
-    const caText = (S.criticalActions || []).join(' ').toLowerCase();
-    const wanted = new Set(S.codeScript.causes.required || []);
-    for(const [key, list] of Object.entries(acts)){
-      const a0 = String((list || [])[0] || '').toLowerCase();
-      if(a0 && caText.includes(a0)) wanted.add(key);
-    }
-    const chips = [...wanted]
-      .map(c => (acts[c] || [])[0]).filter(Boolean)
-      .map(a => `<button data-pal="${esc(a)}" data-lab="${esc(a)}" class="pal px-2 py-1 bg-slate-900/60 border border-amber-500/30 rounded-md text-[10px] text-amber-300/90 hover:text-amber-200 hover:border-amber-400/50 transition">${esc(a.charAt(0).toUpperCase()+a.slice(1))}</button>`);
+    // ...plus any authored cause the case makes a CRITICAL ACTION, and every critical action the
+    // script credits through an authored action (codeCaseActions — shared with the wall strip).
+    // Offering only the required list left the crush case with no tourniquet chip and the blunt-
+    // trauma case with no pelvic binder; matching only an action's first phrase left the newborn
+    // code with no Warm, dry & stimulate. A critical action with no control is unreachable by
+    // clicking, which is the bar Task 9 set. The resuscitation STEPS it returns join the CPR,
+    // airway & access group above; only the reversible causes make this row.
+    const chips = codeCaseActions(S.codeScript, S.criticalActions).causes
+      .map(([lab, a]) => `<button data-pal="${esc(a)}" data-lab="${esc(lab)}" class="pal px-2 py-1 bg-slate-900/60 border border-amber-500/30 rounded-md text-[10px] text-amber-300/90 hover:text-amber-200 hover:border-amber-400/50 transition">${esc(lab)}</button>`);
     if(chips.length) causes = narrow
       ? chips.join('')   // folded into the single Actions row below
       : row('Hs &amp; Ts', 'amber-500/70', chips);
@@ -9111,6 +9244,7 @@ function fitOrderFeedback(){
   b.style.setProperty('--fbRoom', Math.max(LINE, room)+'px');
   b.style.setProperty('--fbLift', Math.max(0, LINE - room)+'px');
   b.classList.add('fbStrip');
+  try{ measureDockReach(); }catch(_){ }   // the receipt is part of what the results drawer clears
 }
 function renderBasket(){
   refreshActionSelection();
@@ -9313,6 +9447,8 @@ function renderPlay(){
                case without a reassessment. It stands in the dock beside Submit now, on every
                layout, in and out of a code. KEEP the id: the phone rules and the dock
                measurement select this row's buttons, and the tests hit it by id. -->
+          <!-- Kim, 2026-09-22: a Hint button — the next step and where to find it (showHint). -->
+          <button id="hintBtn" aria-label="Hint: the next step and where to find it" class="px-3 py-3 rounded-2xl bg-amber-950/60 border border-amber-800 text-amber-300 hover:text-amber-100 hover:border-amber-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="What to do next, and where to find it">Hint</button>
           <button id="reevalBtn" aria-label="Re-evaluate the patient" class="px-3 py-3 rounded-2xl bg-sky-950/70 border border-sky-800 text-sky-300 hover:text-sky-100 hover:border-sky-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Re-examine the patient and read the monitor again">Re-evaluate</button>
           <button id="dxBtn" class="px-3 py-3 rounded-2xl bg-violet-950/70 border border-violet-800 text-violet-300 hover:text-violet-100 hover:border-violet-500 transition text-[10px] font-black uppercase tracking-widest shrink-0" title="Commit the text as your working diagnosis">Dx</button>
           <button id="sendBtn" aria-label="Submit selected orders, diagnoses, and free text together" title="Submit selected orders, diagnoses, and free text together" class="min-h-[46px] px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition text-[10px] font-black uppercase tracking-widest shrink-0">
@@ -9433,6 +9569,7 @@ function renderPlay(){
   // single order, so a handler bound once at startup belongs to a button that no longer exists.
   // It sends the same order the wall's old full-width button sent, so the packs answer it
   // exactly as before — it is only standing somewhere a person can find it.
+  if($('hintBtn')) $('hintBtn').onclick=async()=>{ await loadCaHints(); showHint(); };
   if($('reevalBtn')) $('reevalBtn').onclick=()=>{
     if(S.stage !== 'play' || S.loading) return;
     hideTypeahead(); closeActionBrowser();
@@ -11461,7 +11598,9 @@ function placeRmBed(){
   const mon = $('monBar');
   if(mon && getComputedStyle(mon).display !== 'none'){
     const br = b.getBoundingClientRect(), mr = mon.getBoundingClientRect();
-    if(br.right > mr.left - 4 && br.left < mr.right && br.top < mr.bottom && br.bottom > mr.top){
+    // A real overlap, not a shared edge: at BEDSIDE the camera row ends exactly where the strip
+    // begins, and a fraction of a pixel sent "Back to room" to a second line UNDER the strip.
+    if(br.right > mr.left - 4 && br.left < mr.right && br.top < mr.bottom - 1 && br.bottom > mr.top + 1){
       b.style.left = c.offsetLeft + 'px';
       b.style.top = (c.offsetTop + c.offsetHeight + 6) + 'px';
     }
@@ -11515,7 +11654,14 @@ function fitBedside(){
   const AR=PT_PHOTO_W/PT_PHOTO_H, BODY_TOP=0.30, GAP=10;   // the box is the photo's shape — see #roomBox.bedView
   const hdr=document.querySelector('header'), bar=shownRect($('orderBar')), side=shownRect($('sideBar')), mon=shownRect($('monBar'));
   const top=(hdr ? hdr.getBoundingClientRect().bottom : 0) + 6, bottom=(bar ? bar.top : innerHeight) - 6;
-  const left=GAP, right=(side ? side.left : innerWidth) - GAP;
+  // The results drawer can stand on either wall. Since the room-ui layout (2026-09-22) it opens on
+  // the LEFT, and this measured the room as "from the left edge to the drawer": a negative width,
+  // so the function gave up, the close-up was never fitted, and it filled the screen under the
+  // header and the strip — taking "Back to room" with it. The room is what lies between the walls.
+  // The order palette opens on the left wall too; the close-up fits past whatever is open there.
+  const walls=[side, shownRect($('actionBrowser'))].filter(Boolean);
+  const onLeft=walls.filter(r => r.left < innerWidth / 2), onRight=walls.filter(r => r.left >= innerWidth / 2);
+  const left=Math.max(0, ...onLeft.map(r => r.right)) + GAP, right=Math.min(innerWidth, ...onRight.map(r => r.left)) - GAP;
   const W=right-left, H=bottom-top; if(W < 120 || H < 80) return;
   let h=Math.min(W/AR, H);
   if(mon) h=Math.min(h, Math.max(H*0.5, (bottom - (mon.bottom + 4)) / (1 - BODY_TOP)));
@@ -12009,7 +12155,25 @@ function cinemaMetrics(){
 // cost (a picture a quarter smaller) is worse than the dock's scrim over the trolley's feet, and
 // the room falls back to the plain centred layout. Kim asked for the photo above the dock; this
 // is that, everywhere it can be had for a reasonable price.
+// HOW HIGH THE DOCK REACHES, for the panels on the LEFT wall. The room-ui layout (2026-09-22) put
+// the order palette and the results drawer on the left, running down to 20px and 64px from the
+// bottom — over the dock's own Room / Orders / History / Results buttons, which then took no click.
+// They now stop 8px above the dock, measured, because the dock's height changes with its contents.
+// The receipt that pops up over the dock after an order (#orderFeedback, with its Report problem
+// button) counts as dock: a left-wall panel stopping at the dock itself still covered it.
+function dockTopY(){
+  const shown=e=>{ if(!e || getComputedStyle(e).display==='none') return null; const r=e.getBoundingClientRect();
+    return (r.height >= 2 && r.top > 0 && r.top < innerHeight) ? r : null; };
+  const tops=[shown($('orderBar')), shown($('orderFeedback'))].filter(Boolean).map(r => r.top);
+  return tops.length ? Math.min(...tops) : null;
+}
+function measureDockReach(){
+  const st=document.body.style, top=dockTopY();
+  if(top == null){ st.removeProperty('--dockUp'); return; }
+  st.setProperty('--dockUp', Math.round(innerHeight - top + 8) + 'px');
+}
 function fitRoomPhoto(){
+  try{ measureDockReach(); }catch(_){ }
   const b=document.body, st=b.style;
   const clear=()=>{ st.removeProperty('--rw'); st.removeProperty('--rt'); };
   if(!b.classList.contains('cinema') || !b.classList.contains('console')) return clear();
@@ -12546,8 +12710,11 @@ function paintPhoneOrders(po){
         chip(it[0] === 'Extremities' && typeof examChipLabel === 'function' ? examChipLabel() : it[0], it[1]))));
     }
   }
+  // The dock's Hint button is hidden on a phone (it took the order box's width); it heads the list here.
+  parts.unshift('<div class="foldRow"><button data-hint="1" class="pal rounded-md border border-amber-500/40 text-amber-200 font-bold uppercase tracking-wider">Hint — what next?</button></div>');
   po.innerHTML = parts.join('');
   wirePalChips(po);
+  po.querySelectorAll('[data-hint]').forEach(b => b.onclick = async () => { await loadCaHints(); showHint(); });
   po.querySelectorAll('.oset').forEach(b => b.onclick = () => basketAddSet(b.dataset.os));
   if(S.code) try{ paintCodeStrip(); }catch(_){ }   // the drug chips' faces carry their live doses
 }
@@ -14222,6 +14389,7 @@ function renderDebrief(){
       ${timingTableHTML()}
       ${ev.length?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Critical Events</h3>${ev.map(e=>`<div class="p-4 bg-slate-900/40 border border-slate-800 rounded-xl border-l-4 ${e.type==='positive'?'border-l-emerald-600':e.type==='negative'?'border-l-red-600':'border-l-slate-600'}"><div class="text-sm font-bold ${e.type==='positive'?'text-emerald-400':e.type==='negative'?'text-red-400':'text-slate-300'}">${esc(e.event)}</div><p class="text-xs text-slate-400 mt-1">${esc(e.feedback)}</p></div>`).join('')}</div>`:''}
       ${arrSec('Missed Opportunities','red',d.missedOpportunities)}
+      ${(S.hintsUsed||[]).length ? arrSec('Hints used (no effect on the score)','amber',S.hintsUsed.map(h=>'T+'+h.min+' min — '+h.text)) : ''}
       ${arrSec('Learning Points','emerald',d.learningPoints&&d.learningPoints.length?d.learningPoints:S.learningPoints)}
       <div class="bg-slate-900/50 border border-emerald-900/50 rounded-2xl p-5 space-y-3">
         <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -14564,6 +14732,9 @@ These earned no effect and no credit. That is the simulator's blind spot, not
 necessarily yours — check them against the critical actions before you conclude
 you missed something.
 ${d.unrecognizedOrders.map(x=>'? '+x).join('\n')}${d.unrecognizedOrdersDropped?'\n(and '+d.unrecognizedOrdersDropped+' more the simulator stopped listing)':''}
+
+`:''}${(S.hintsUsed||[]).length?`HINTS USED (no effect on the score)
+${S.hintsUsed.map(h=>`T+${String(h.min).padStart(3)} min  ${h.text}`).join('\n')}
 
 `:''}MISSED OPPORTUNITIES
 ${(d.missedOpportunities||[]).map(x=>'- '+x).join('\n')}
