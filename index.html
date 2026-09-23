@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-h8KwKajGUdqo9tRzXKqlNr3QYmhTmuzkMeCFX6kLHaU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-lGLWQI2bug1nfb/lkQvpPhoOvcv+8gjR4S+maGkv1z4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -99,6 +99,32 @@
   .rmDefibNurse--shock{animation:rmDefibPress .55s cubic-bezier(.2,.8,.2,1) 1}
   .rmShockPatient{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
     animation:rmShockPatient .42s cubic-bezier(.2,.8,.2,1) 1;will-change:transform}
+  /* Short clinical consequences, not another permanent HUD over the patient. */
+  .rmClinicalCue{position:absolute;right:1.5%;bottom:10%;z-index:9;pointer-events:none;
+    width:min(25%,190px);min-width:126px;padding:8px 10px;border-radius:12px;
+    border:1px solid rgba(110,231,183,.6);background:rgba(2,20,27,.88);
+    color:#d1fae5;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 20px rgba(16,185,129,.2);
+    font-size:11px;font-weight:700;text-align:center;backdrop-filter:blur(5px);
+    animation:rmCueIn .32s ease-out both}
+  .rmClinicalCue small{display:block;font-size:9px;font-weight:500;color:#a7f3d0}
+  .rmClinicalCue svg{display:block;width:100%;height:56px;margin:3px auto}
+  .rmClinicalCue .rmLung{transform-box:fill-box;transform-origin:center;
+    animation:rmLungOpen 2.1s ease-out both}
+  .rmClinicalCue .rmAir{animation:rmPleuralAir 1.45s ease-out both}
+  .rmClinicalCue .rmAir:nth-of-type(2){animation-delay:.14s}
+  .rmClinicalCue .rmAir:nth-of-type(3){animation-delay:.28s}
+  .rmClinicalCue--rosc{width:auto;min-width:150px;font-size:14px;letter-spacing:.07em;
+    animation:rmCueIn .32s ease-out both,rmRoscGlow 1s ease-in-out 2}
+  @media(max-width:767px){
+    .rmClinicalCue{min-width:0;width:110px;padding:5px 6px;font-size:9px;bottom:12%}
+    .rmClinicalCue svg{height:34px;margin:1px auto}
+    .rmClinicalCue small{font-size:8px}
+    .rmClinicalCue--rosc{width:auto;max-width:145px;font-size:11px}
+  }
+  @keyframes rmCueIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  @keyframes rmLungOpen{from{transform:scale(.48,.73);opacity:.48}to{transform:scale(1);opacity:1}}
+  @keyframes rmPleuralAir{from{transform:translateX(-9px);opacity:.9}to{transform:translateX(13px);opacity:0}}
+  @keyframes rmRoscGlow{50%{box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 28px rgba(16,185,129,.7)}}
   @keyframes rmIntubate{
     0%{opacity:0;translate:2% -4%}
     18%,70%{opacity:1}
@@ -141,7 +167,7 @@
     #typeahead.dosePicker .ta-dose{min-height:48px;font-size:15px;padding:.75rem 1rem}
   }
   @media (prefers-reduced-motion:reduce){
-    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace{animation:none!important}
+    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir{animation:none!important}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
     .rmBvmBagPulse{opacity:.32;transform:none}
     .chartNew{animation:none}
@@ -291,7 +317,8 @@
      measuring them (placeRoomBubbles), and a laid-out but unpainted bubble can still be
      measured — it also takes no clicks, so the zones under a figure's strip are reachable. */
   body.cinema.roomHide #rmCast,
-  body.cinema.roomHide #rmActionFx{visibility:hidden}
+  body.cinema.roomHide #rmActionFx,
+  body.cinema.roomHide #rmClinicalCue{visibility:hidden}
   body.cinema.console.roomHide #orderFeedback{visibility:hidden}
   /* THE ED LOG ON THE LEFT. Kim, 2026-09-18: "the ED log of all the orders should be on the
      left side at a separate area. You should still be able to see the patient." It used to
@@ -3518,6 +3545,7 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     let viaInstant = await willUseInstant();
     S.usedInstant = viaInstant;
     let r;
+    const beforeTreatmentVitals = { ...S.vitals };
     try{
       r = viaInstant
         ? await instantTurn(action)
@@ -3587,6 +3615,8 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     // long as the player was reading a hint.
     if(!codeActive())
       S.trend = ['stable','improving','worsening','critical'].includes(r.vitalTrend)?r.vitalTrend:'stable';
+    if(lungResponseFromTurn(action, r._trace, beforeTreatmentVitals, S.vitals, S.diagnosis))
+      startClinicalCue('lung');
     snapVitalsToTurn();   // monitor + telemetry respond THE INSTANT the order lands, in sync with the spoken result — not 10+s behind it
     // repeat:true rows/cards (instant engine re-orders) REPLACE their originals
     // instead of stacking duplicates in the workspace; everything else appends.
@@ -5556,9 +5586,10 @@ function onCodeEvents(events){
   const story = evs.filter(e => !STATUS_KINDS.has(e.kind));
   const status = evs.filter(e => STATUS_KINDS.has(e.kind));
   if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
+  if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')) startClinicalCue('lung');
   if(story.length) codeSay(story);
   for(const e of (events || [])){
-    if(e.kind === 'rosc'){ endCode('rosc'); return; }
+    if(e.kind === 'rosc'){ startClinicalCue('rosc'); endCode('rosc'); return; }
     if(e.kind === 'death'){ endCode('death'); return; }
   }
   if(story.length){ renderChat(); narrate(story.map(e=>({speaker:'nurse', text:e.text,
@@ -11712,6 +11743,7 @@ function buildRoomScene(mount){
      <!-- Live clinical actions belong above the bed occluder: the rescuer's hands must
           visibly land on the patient's chest, while the layer stays click-through. -->
      <div id="rmActionFx" class="absolute inset-0 pointer-events-none" style="z-index:8" aria-hidden="true"></div>
+     <div id="rmClinicalCue" aria-live="polite"></div>
      <button id="rmExpand" title="Play inside the room (cinema mode)" class="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md bg-black/40 text-slate-200 text-xs hover:bg-black/70">⤢</button>
      ${roomButtonsHTML()}
      <div id="rmFoot" class="absolute bottom-0 left-0 right-0 px-1.5 pb-1 pt-4 pointer-events-none" style="background:linear-gradient(transparent,rgba(0,0,0,.72))">
@@ -13024,6 +13056,46 @@ document.addEventListener('keydown', e=>{
 // kit. Kept in S.room so the state survives walking to another position and
 // switching tabs (both rebuild the scene from scratch).
 function roomState(){ if(!S.room) S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; return S.room; }
+// The shock artifact already lives on telemetry. The missing piece is a brief, truthful
+// consequence when the engine actually records ROSC or a responding decompressed chest.
+function lungResponseFromTurn(action, trace, before, after, diagnosis){
+  const procedure=/\b(needle decompression|needle thoracostomy|needle decompress|decompress (?:the |left |right )?chest|chest tube|tube thoracostomy|pigtail catheter|chest drain)\b/i;
+  if(!/pneumothorax|pneumothoraces/i.test(String(diagnosis||'')) || !procedure.test(String(action||''))) return false;
+  if(trace && !roomActionConfirmed(trace,procedure)) return false;
+  const a=after||{}, b=before||{};
+  return (Number.isFinite(+a.o2) && Number.isFinite(+b.o2) && +a.o2>=+b.o2+2)
+      || (Number.isFinite(+a.bpSystolic) && Number.isFinite(+b.bpSystolic) && +a.bpSystolic>=+b.bpSystolic+5);
+}
+function clinicalCueHTML(kind){
+  if(kind==='rosc') return '<div class="rmClinicalCue rmClinicalCue--rosc" role="status">♥ PULSE RETURNED<small>Post-arrest care continues</small></div>';
+  if(kind==='lung') return `<div class="rmClinicalCue rmClinicalCue--lung" role="status">
+    <svg viewBox="0 0 120 62" aria-hidden="true" focusable="false">
+      <path d="M60 4v19m0-3-12 10m12-10 12 10" fill="none" stroke="#a7f3d0" stroke-width="3" stroke-linecap="round"/>
+      <path d="M49 29C40 20 31 20 25 27 17 36 17 52 23 57c12 5 24-5 26-17Z" fill="#155e75" stroke="#67e8f9" stroke-width="2"/>
+      <path class="rmLung" d="M71 29c9-9 18-9 24-2 8 9 8 25 2 30-12 5-24-5-26-17Z" fill="#0891b2" stroke="#a7f3d0" stroke-width="2"/>
+      <circle class="rmAir" cx="98" cy="35" r="2" fill="#bae6fd"/>
+      <circle class="rmAir" cx="102" cy="42" r="1.5" fill="#bae6fd"/>
+      <circle class="rmAir" cx="99" cy="48" r="1" fill="#bae6fd"/>
+      <path d="M103 31h12m-6-6 6 6-6 6" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Chest decompressed<small>Watch the monitor and reassess</small></div>`;
+  return '';
+}
+function paintClinicalCue(){
+  const host=$('rmClinicalCue'); if(!host) return;
+  const cue=roomState().clinicalCue;
+  const kind=cue && cue.until>Date.now() ? cue.kind : '';
+  if(host.dataset.kind===kind) return;
+  host.dataset.kind=kind;
+  host.innerHTML=clinicalCueHTML(kind);
+}
+function startClinicalCue(kind){
+  if(kind!=='rosc' && kind!=='lung') return;
+  const cue={kind,until:Date.now()+(kind==='rosc'?4200:3600)};
+  roomState().clinicalCue=cue;
+  paintClinicalCue();
+  setTimeout(()=>{ if(S.room && S.room.clinicalCue===cue){ S.room.clinicalCue=null; paintClinicalCue(); } },cue.until-Date.now()+10);
+}
 function cprRunning(){
   return codeActive() ? !!(S.code && S.code.cpr) : !!roomState().cpr;
 }
@@ -13473,6 +13545,7 @@ function paintRoom(){
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
     }
   }
+  paintClinicalCue();
   // A dead thumbnail must not leave a broken-image glyph on the cart — drop its bezel too.
   const im=ov.querySelector('img'); if(im) im.onerror=()=>{ (im.parentElement||im).remove(); };
   paintCareStrip();
