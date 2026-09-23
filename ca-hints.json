@@ -357,6 +357,24 @@
     "typed": "cardiology"
    }
   ],
+  "cv-unstable-vt": [
+   null,
+   null,
+   null,
+   {
+    "order": "Repeat ECG",
+    "where": "Assess › Reassess",
+    "typed": "electrocardiogram"
+   },
+   null,
+   null,
+   null,
+   {
+    "order": "Cardiology",
+    "where": "Call & move › Consults",
+    "typed": "cardiology"
+   }
+  ],
   "cv-inferior-stemi-rv": [
    {
     "order": "Repeat ECG",
@@ -4526,6 +4544,340 @@
     "order": "To the OR",
     "where": "Call & move › Dispositions",
     "typed": "to the operating room"
+   }
+  ],
+  "resus-acls-vf": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Repeat ECG",
+    "where": "Assess › Reassess",
+    "typed": "electrocardiogram"
+   },
+   {
+    "order": "Cooling (TTM)",
+    "where": "Resuscitate › Exposure",
+    "typed": "targeted temperature management"
+   }
+  ],
+  "resus-acls-pea-tension": [
+   null,
+   null,
+   null,
+   {
+    "order": "Work the Hs and Ts out loud and name the cause this procedure can create",
+    "where": null,
+    "typed": "hs and ts"
+   },
+   null,
+   null,
+   {
+    "order": "Portable CXR",
+    "where": "Investigate › Imaging",
+    "typed": "chest x ray"
+   },
+   {
+    "order": "ICU",
+    "where": "Call & move › Dispositions",
+    "typed": "admit to the icu"
+   }
+  ],
+  "resus-acls-asystole-opioid": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Glucose",
+    "where": "Resuscitate › Disability",
+    "typed": "fingerstick glucose"
+   },
+   {
+    "order": "ICU",
+    "where": "Call & move › Dispositions",
+    "typed": "admit to the icu"
+   }
+  ],
+  "resus-acls-brady-chb": [
+   null,
+   {
+    "order": "Name the bradycardia unstable",
+    "where": null,
+    "typed": "this is unstable"
+   },
+   null,
+   null,
+   {
+    "order": "Morphine",
+    "where": "Treat › Pain & nausea",
+    "typed": "morphine"
+   },
+   null,
+   {
+    "order": "Look for a reversible cause",
+    "where": null,
+    "typed": "why is she blocked"
+   },
+   {
+    "order": "Cardiology",
+    "where": "Call & move › Consults",
+    "typed": "cardiology"
+   }
+  ],
+  "resus-acls-unstable-tachy": [
+   null,
+   {
+    "order": "Name the bradycardia unstable",
+    "where": null,
+    "typed": "this is unstable"
+   },
+   {
+    "order": "Ketamine",
+    "where": "Treat › Pain & nausea",
+    "typed": "ketamine"
+   },
+   null,
+   {
+    "order": "Keep adenosine and AV nodal blockers away from an irregularly irregular…",
+    "where": null,
+    "typed": "irregularly irregular"
+   },
+   {
+    "order": "Serial neuro checks",
+    "where": "Assess › Reassess › More",
+    "typed": "reassess as the alcohol wears off"
+   },
+   {
+    "order": "Admit to a monitored bed",
+    "where": null,
+    "typed": "admit to a monitored bed"
+   }
+  ],
+  "resus-acls-stable-svt": [
+   null,
+   {
+    "order": "Confirm the tachycardia is regular",
+    "where": null,
+    "typed": "regular and narrow"
+   },
+   null,
+   null,
+   null,
+   {
+    "order": "Look for the trigger",
+    "where": null,
+    "typed": "what triggered this"
+   },
+   {
+    "order": "Cardiology",
+    "where": "Call & move › Consults",
+    "typed": "cardiology"
+   }
+  ],
+  "resus-acls-torsades": [
+   null,
+   null,
+   {
+    "order": "Repeat ECG",
+    "where": "Assess › Reassess",
+    "typed": "electrocardiogram"
+   },
+   {
+    "order": "Potassium",
+    "where": "Treat › Sugar & salts",
+    "typed": "potassium"
+   },
+   null,
+   null,
+   null,
+   {
+    "order": "Admit to a monitored bed",
+    "where": null,
+    "typed": "admit to a monitored bed"
+   }
+  ],
+  "resus-atls-penetrating": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Surgery",
+    "where": "Call & move › Consults",
+    "typed": "surgery"
+   },
+   {
+    "order": "To the OR",
+    "where": "Call & move › Dispositions",
+    "typed": "to the operating room"
+   }
+  ],
+  "resus-atls-blunt-multi": [
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Neuro exam",
+    "where": "Assess › Exam",
+    "typed": "neuro exam"
+   },
+   null,
+   null,
+   {
+    "order": "CT head",
+    "where": "Investigate › Imaging",
+    "typed": "computed tomography head"
+   }
+  ],
+  "resus-atls-traumatic-arrest": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Surgery",
+    "where": "Call & move › Consults",
+    "typed": "surgery"
+   }
+  ],
+  "resus-pals-vf-child": [
+   null,
+   null,
+   {
+    "order": "Escalate to 4 J/kg",
+    "where": null,
+    "typed": "96 joules"
+   },
+   null,
+   null,
+   null,
+   {
+    "order": "Chaplain",
+    "where": null,
+    "typed": "chaplain"
+   },
+   {
+    "order": "Bedside Echo",
+    "where": "Investigate › Bedside",
+    "typed": "echocardiogram"
+   }
+  ],
+  "resus-pals-brady-hypoxia": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Name the bradycardia as hypoxic rather than vagal or a primary block",
+    "where": null,
+    "typed": "this is hypoxic bradycardia"
+   },
+   {
+    "order": "Dexamethasone",
+    "where": "Treat › Brain & seizures › More",
+    "typed": "dexamethasone"
+   },
+   {
+    "order": "ICU",
+    "where": "Call & move › Dispositions",
+    "typed": "admit to the icu"
+   }
+  ],
+  "resus-pals-svt-infant": [
+   {
+    "order": "Call it SVT rather than sinus tachycardia",
+    "where": null,
+    "typed": "narrow complex tachycardia"
+   },
+   {
+    "order": "Repeat ECG",
+    "where": "Assess › Reassess",
+    "typed": "electrocardiogram"
+   },
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "ICU",
+    "where": "Call & move › Dispositions",
+    "typed": "admit to the icu"
+   }
+  ],
+  "resus-pals-resp-arrest": [
+   {
+    "order": "Albuterol",
+    "where": "Resuscitate › Breathing",
+    "typed": "albuterol"
+   },
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Normal Saline",
+    "where": "Treat › Fluids",
+    "typed": "normal saline"
+   },
+   null,
+   {
+    "order": "ICU",
+    "where": "Call & move › Dispositions",
+    "typed": "admit to the icu"
+   }
+  ],
+  "resus-nrp-apneic-term": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "resus-nrp-meconium": [
+   null,
+   null,
+   {
+    "order": "Choose immediate ventilation over routine tracheal suctioning in a…",
+    "where": null,
+    "typed": "should we suction"
+   },
+   null,
+   null,
+   null,
+   {
+    "order": "Check the temperature",
+    "where": null,
+    "typed": "admit to nicu"
+   }
+  ],
+  "resus-nrp-hypovolemic": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "order": "Active cooling",
+    "where": "Resuscitate › Exposure › More",
+    "typed": "active cooling"
    }
   ]
  }

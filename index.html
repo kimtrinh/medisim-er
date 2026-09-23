@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-dFwA3SHhCiZtA7N9ZKgxcPkNCEcmP0V7ZtJ/PVuXpQI=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LB6rWbBNAHxzULQ2iE9djCdNEMls1ifoWEmtfkeSRxg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -67,6 +67,9 @@
     42%,58%{opacity:.68;transform:translate(-50%,-50%) scale(1.08)}
   }
   .rmCprRig{perspective:650px;perspective-origin:23% 91%}
+  /* Pulse check: hands still, off the chest (startCprPause). */
+  .rmCprPaused .rmCprClinician{animation:none}
+  .rmCprPaused .rmCprContact{animation:none;opacity:0}
   .rmCprClinician{width:100%;height:100%;object-fit:contain;display:block;transform-origin:23% 91%;
     animation:rmCprClinician .545s cubic-bezier(.45,0,.55,1) infinite;
     filter:drop-shadow(0 5px 4px rgba(2,6,23,.58));will-change:transform}
@@ -4019,6 +4022,10 @@ const BROWSER_PITCH = { narrator:1, nurse:1.08, consultant:0.9, medic:0.96,
 // next line. A line that did start is never cut short, however long it runs. Not reproduced on a
 // phone here — this is the known Safari behaviour matching the report.
 const BROWSER_START_TIMEOUT_MS = 4000;
+// The outer limit on a phone line that started (browserSpeak): ~14 characters a second is a brisk
+// speaking voice, so 150 ms a character is more than twice that — never cuts off a line that is
+// really being spoken, and a stalled one gives the floor back within seconds of when it should have.
+const BROWSER_MS_PER_CHAR = 150;
 function browserSpeak(segments, onDone){
   let reported = false;
   const done = () => { if(reported) return; reported = true; if(typeof onDone === 'function') onDone(); };
@@ -4054,6 +4061,20 @@ function browserSpeak(segments, onDone){
     try{ speechSynthesis.cancel(); }catch(_){ }
     done();
   }, BROWSER_START_TIMEOUT_MS);
+  // A LINE THAT STARTED AND NEVER ENDED. Kim, 2026-09-23, iPhone: "After a defibrillator sound I
+  // don't hear any sounds or beeps. I don't hear the medication orders." When another sound takes
+  // the phone's audio mid-line, the phone's speech stops and never says so: no 'end', no 'error',
+  // and speechSynthesis reports itself busy. Every later line waited behind it (speechBusy) and the
+  // beep, which waits for the voice (voiceHasFloor), never came back — silence for the rest of the
+  // case. So the batch has an outer limit, generous for its length (about twice the time a line of
+  // this many words takes at this rate); past it, the line is over, the phone is cleared, and the
+  // floor goes back.
+  const chars = batch.reduce((n, u) => n + String(u.text || '').length, 0);
+  setTimeout(() => {
+    if(reported) return;
+    try{ speechSynthesis.cancel(); }catch(_){ }
+    done();
+  }, BROWSER_START_TIMEOUT_MS + Math.round(chars * BROWSER_MS_PER_CHAR));
 }
 // WHAT DID THE PHONE SAY? Kim, 2026-09-22, iPhone + Arc: the characters were silent and nothing
 // here could tell why. The Settings Test button, when the phone's own voice is in use, speaks one
@@ -5606,6 +5627,7 @@ function onCodeEvents(events){
   const status = evs.filter(e => STATUS_KINDS.has(e.kind));
   if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
   if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')) startClinicalCue('lung');
+  if(evs.some(e => e.kind === 'check')) startCprPause();   // the 2-minute check, or one the player ordered
   if(story.length) codeSay(story);
   for(const e of (events || [])){
     if(e.kind === 'rosc'){ startClinicalCue('rosc'); endCode('rosc'); return; }
@@ -6611,7 +6633,7 @@ const CODE_KEY_CHIP = { cpr:['Start CPR','CPR, airway & access'], bvm:['Bag-mask
   ett:['Intubate','CPR, airway & access'], sga:['Supraglottic','CPR, airway & access'],
   capnography:['Capnography','CPR, airway & access'], access:['IV access','CPR, airway & access'],
   io:['IO access','CPR, airway & access'], shock:['Defibrillate','Rhythm'], defib:['Defibrillate','Rhythm'],
-  sync:['Sync cardiovert','Rhythm'], cardiovert:['Sync cardiovert','Rhythm'], pacing:['Pacing','Rhythm'], vagal:['Vagal','Rhythm'] };
+  sync:['Sync cardiovert','Rhythm'], cardiovert:['Sync cardiovert','Rhythm'], cardioversion:['Sync cardiovert','Rhythm'], pacing:['Pacing','Rhythm'], vagal:['Vagal','Rhythm'] };
 function codeHintFor(i){
   const sc = S.codeScript; if(!sc) return null;
   const keys = Object.entries(sc.credits || {}).filter(([, n]) => n === i).map(([k]) => k);
@@ -6628,12 +6650,66 @@ function codeHintFor(i){
   const k = keys.find(k => acts[k]);
   return k ? { order: acts[k][0], where: null, typed: acts[k][0] } : null;
 }
+// IS THIS STEP DUE YET? Kim, 2026-09-23: the hint "recommends amiodarone right after the first
+// shock." The checklist is not a sequence; the algorithm is. In a shockable arrest (AHA ACLS):
+// shock, two minutes of CPR, shock, then epinephrine (and every 3-5 min), shock, then
+// amiodarone or lidocaine. A shock is only due in a shockable rhythm; post-ROSC care only after
+// ROSC. Anything not due is skipped, and nextHint says what is due now instead.
+const CODE_SHOCKABLE = new Set(['VF', 'pVT', 'torsades']);
+function codeStepDue(i){
+  const c = S.code, sc = S.codeScript;
+  if(!c || !sc) return true;
+  const arrest = !c.ended && !c.pulse;
+  const text = String((S.criticalActions || [])[i] || '');
+  if(/\bafter rosc\b|post-?arrest|post-?rosc|survivor/i.test(text)) return !arrest;
+  const keys = Object.entries(sc.credits || {}).filter(([, n]) => n === i).map(([k]) => k);
+  const shockable = arrest && CODE_SHOCKABLE.has(c.rhythm);
+  const shocks = (c.shocks || []).filter(x => !x.sync).length;
+  if(keys.some(k => k === 'shock' || k === 'defib') && !keys.some(k => k === 'sync' || k === 'cardiovert')) return shockable;
+  // Compressions are for no pulse — or, in a child or newborn (PALS, NRP), a heart rate under 60
+  // with poor perfusion despite ventilation. Not for unstable VT with a pulse (cardioversion).
+  if(keys.includes('cpr')) return arrest || (/-(pals|nrp)-/.test(S.goldId || '') && (c.hr || 0) < 60);
+  if(shockable && keys.includes('epinephrine')) return shocks >= 2;
+  if(shockable && keys.some(k => k === 'amiodarone' || k === 'lidocaine')) return shocks >= 3;
+  return true;
+}
+// Nothing on the checklist is due: say what the team should be doing now.
+function codeHoldHint(){
+  const c = S.code; if(!c || c.ended || c.pulse) return null;
+  const cyc = (window.CodeEngine && CodeEngine.CYCLE_SEC) || 120;
+  const left = Math.max(0, Math.round(cyc - (c.cycleT || 0)));
+  const shockable = CODE_SHOCKABLE.has(c.rhythm), shocks = (c.shocks || []).filter(x => !x.sync).length;
+  const next = !c.cpr ? 'Start compressions' : 'Keep compressions going';
+  const then = shockable
+    ? (shocks < 2 ? 'shock again if still VF/pVT; epinephrine comes after the second shock'
+                  : 'shock again if still VF/pVT; the antiarrhythmic comes after the third shock')
+    : 'check for a pulse and treat the reversible causes';
+  return { next, how: 'Next rhythm check in about ' + left + ' seconds — then ' + then + '.' };
+}
+// A shockable rhythm at a rhythm check: shock, whatever the checklist says. The checklist box
+// for defibrillation was ticked by the FIRST shock, so without this the hint at the two-minute
+// check in persistent VF was "Intubate". A shock resets the cycle clock (code-engine.js), so a
+// last shock older than the current cycle means a check has come since.
+function codeShockNow(){
+  const c = S.code; if(!c || c.ended || c.pulse || !CODE_SHOCKABLE.has(c.rhythm)) return false;
+  const defibs = (c.shocks || []).filter(x => !x.sync);
+  const last = defibs[defibs.length - 1];
+  return !!last && last.t < (c.t || 0) - (c.cycleT || 0) - 1;
+}
 function nextHint(){
   const done = new Set(((S.instantState || {}).satisfied) || []);
   const list = S.criticalActions || [], table = (_caHints || {})[S.goldId] || [];
+  if(S.codeScript && codeShockNow()){
+    const top = (typeof mobileWorkspace === 'function' && mobileWorkspace()) ? 'Orders' : 'Choose an action';
+    return { next: 'Defibrillate — still ' + (S.code.rhythm === 'VF' ? 'VF' : 'a shockable rhythm') + ' at the rhythm check',
+             how: 'Find it under ' + top + ' › ' + CODE_KEY_CHIP.shock[1] + ', then straight back on the chest.' };
+  }
   for(let i = 0; i < list.length; i++){
     if(done.has(i)) continue;
-    const h = (S.codeScript && S.code) ? codeHintFor(i) : table[i];
+    // In a live code the script's own controls first, then the ordinary orders that earn the rest
+    // (the post-ROSC ECG, the Hs and Ts), and only once the algorithm says the step is due.
+    if(S.codeScript && S.code && !codeStepDue(i)) continue;
+    const h = (S.codeScript && S.code) ? (codeHintFor(i) || table[i]) : table[i];
     if(!h) continue;
     // Every place is reached through the Choose an action button, so the path starts there — or,
     // on a phone, through the ORDERS section, which is where the same chips fold.
@@ -6647,6 +6723,8 @@ function nextHint(){
       how: where ? 'Find it under ' + where + (h.typed ? ', or type "' + h.typed + '" in the order box' : '')
                    : 'Type "' + (h.typed || h.order) + '" in the order box (Search every action)' };
   }
+  const hold = (S.codeScript && S.code) ? codeHoldHint() : null;
+  if(hold) return hold;
   const dx = (((S.instantState || {}).assessments) || []).length || S.dxSaid;
   if(!dx) return { next: 'Commit your working diagnosis', how: 'Use the DIAGNOSIS box beside Submit (or type "Working diagnosis: …")' };
   return { next: 'Decide the disposition — admit, transfer or discharge',
@@ -13165,12 +13243,24 @@ function startClinicalCue(kind){
 function cprRunning(){
   return codeActive() ? !!(S.code && S.code.cpr) : !!roomState().cpr;
 }
+// HANDS OFF FOR THE PULSE CHECK. Kim, 2026-09-23: "During pulse check the cpr animation should
+// stop." The engine keeps compressions on through a check and charges the pause to the
+// compression fraction (five seconds, code-engine.js tick()); the room now shows it — the
+// rescuer stays at the chest with hands still, the tag reads Pulse check — then they resume.
+const CPR_CHECK_PAUSE_MS = 5000;
+function cprPaused(){ const u = S.room && S.room.cprPauseUntil; return !!(u && u > Date.now()); }
+function startCprPause(){
+  if(!cprRunning()) return;
+  const st = roomState(), until = Date.now() + CPR_CHECK_PAUSE_MS;
+  st.cprPauseUntil = until; paintRoom();
+  setTimeout(() => { if(S.room && S.room.cprPauseUntil === until){ S.room.cprPauseUntil = 0; paintRoom(); } }, CPR_CHECK_PAUSE_MS + 20);
+}
 function ventilationRunning(){
   return codeActive() ? !!(S.code && S.code.flags && S.code.flags.ppv) : !!roomState().ventilation;
 }
 function careInProgressItems(){
   const st=roomState(), c=S.code||null, out=[];
-  if(cprRunning()) out.push({label:'CPR',tone:'emerald'});
+  if(cprRunning()) out.push(cprPaused() ? {label:'Pulse check',tone:'amber'} : {label:'CPR',tone:'emerald'});
   if(ventilationRunning()){
     const via=c&&c.airway ? String(c.airway).toUpperCase() : 'BVM';
     out.push({label:'Ventilating · '+via,tone:'sky'});
@@ -13216,10 +13306,11 @@ function cprOverlayHTML(viewKey, chest){
   // sternum in all three camera angles.
   const cx=chest.l+chest.w/2+cfg.dx, cy=chest.t+chest.h*.42+cfg.dy;
   const left=cx-cfg.w*.23, top=cy-h*.91;
-  return `<div class="rmCprRig absolute" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
+  const paused=cprPaused();
+  return `<div class="rmCprRig absolute${paused?' rmCprPaused':''}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
     <span class="rmCprContact"></span>
     <img class="rmCprClinician" src="media/game/cpr-clinician-cutout-v1.webp" alt="" draggable="false">
-    <div class="rmActionLabel absolute right-0 top-[8%] whitespace-nowrap rounded-full border border-cyan-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-100 shadow-md">CPR · 110/min</div>
+    <div class="rmActionLabel absolute right-0 top-[8%] whitespace-nowrap rounded-full border ${paused?'border-amber-300/45 text-amber-100':'border-cyan-300/45 text-cyan-100'} bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider shadow-md">${paused?'Pulse check · hands off':'CPR · 110/min'}</div>
   </div>`;
 }
 // The source mask contact is at 16%,80% of the generated 2:3 cutout. Anchor that
@@ -13300,7 +13391,9 @@ function startRoomDefibSequence(mode, chargeMs){
 // A real defib winds UP as the capacitor charges, then thumps. Rising sawtooth for
 // the whine, low sine + noise burst for the discharge. Respects the sound toggle.
 function defibCharge(){
-  if(!S.sound) return; const c=ensureAudioCtx(); if(!c) return;
+  // Waits for the phone's voice like the beep does (voiceHasFloor): Kim, 2026-09-23, iPhone — "after a
+  // defibrillator sound I don't hear any sounds or beeps." The shock is when the nurse is talking.
+  if(!S.sound || voiceHasFloor()) return; const c=ensureAudioCtx(); if(!c) return;
   try{
     const t0=c.currentTime, o=c.createOscillator(), g=c.createGain();
     o.type='sawtooth';
@@ -13312,7 +13405,7 @@ function defibCharge(){
 }
 function defibShock(){
   roomFlash();
-  if(!S.sound) return; const c=ensureAudioCtx(); if(!c) return;
+  if(!S.sound || voiceHasFloor()) return; const c=ensureAudioCtx(); if(!c) return;
   try{
     _tone(70,'sine',0.28,0.34); _tone(140,'square',0.09,0.12);
     const len=Math.floor(c.sampleRate*0.14), buf=c.createBuffer(1,len,c.sampleRate), ch=buf.getChannelData(0);
@@ -13602,7 +13695,7 @@ function paintRoom(){
     const src=scene && scene.getAttribute('src');
     // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
     // on every update restarts CSS animation at frame zero and makes bagging stutter.
-    const fxKey=[viewKey,cprRunning()?1:0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
+    const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
@@ -14257,7 +14350,7 @@ function openFlagPanel(btn){
 function celebrateMode(){ return localStorage.getItem('ms_celebrate')||'full'; }
 
 function gjBlip(freq, when){         // tiny WebAudio blip, gated on both settings
-  if(!S.sound || celebrateMode()!=='full') return;
+  if(!S.sound || celebrateMode()!=='full' || voiceHasFloor()) return;
   try{
     const ctx=ensureAudioCtx(); const o=ctx.createOscillator(), g=ctx.createGain();
     o.type='square'; o.frequency.value=freq;
