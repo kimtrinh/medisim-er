@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-ryg1BQqnVwvBHSnZMc6eU6Q37IOjSnzMcOEnFxv+tmA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-YGMzAWYXN/Uci9a820HzmQLrOoPuZtnyRgKN1EU9wG8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -4042,7 +4042,16 @@ const BROWSER_START_TIMEOUT_MS = 4000;
 // speaking voice, so 150 ms a character is more than twice that — never cuts off a line that is
 // really being spoken, and a stalled one gives the floor back within seconds of when it should have.
 const BROWSER_MS_PER_CHAR = 150;
+// A TIMER CANCELS ONLY ITS OWN LINE. Measured in Chrome, 2026-09-24 (Kim, Arc: "no monitor no
+// voice"): a newer line cancels the one waiting (stopSpeak), and Chrome reports that only for the
+// utterance it was speaking — the queued ones get no 'error' and no 'end', so the old batch was
+// never reported done. Its start timer then fired four seconds later and called
+// speechSynthesis.cancel() on the NEW line, which was speaking fine. In a case with a handover, a
+// nurse and callouts every few seconds, the voice kept being cut off. Each batch now carries its
+// generation; a timer from a batch that has been replaced reports it done and cancels nothing.
+let _browserGen = 0;
 function browserSpeak(segments, onDone){
+  const gen = ++_browserGen;
   let reported = false;
   const done = () => { if(reported) return; reported = true; if(typeof onDone === 'function') onDone(); };
   if(!('speechSynthesis' in window)){ done(); return; }
@@ -4053,10 +4062,17 @@ function browserSpeak(segments, onDone){
   const lang = (navigator && navigator.language) || 'en';
   const only = new Set(list.map(v => v.name)).size <= 1;
   let last = null; const batch = [];
+  // ONE SENTENCE PER UTTERANCE. Kim, 2026-09-24, Arc on the Mac: "the audio isn't loading, i
+  // can't hear anything, no monitor no voice". Measured in Chrome: the voices picked here are
+  // Google's online ones, and those stop partway through a long utterance and never say so —
+  // 'start', then no 'end'. The paramedic's handover is long enough; speechSynthesis then reports
+  // itself speaking for the length of the whole batch, and the monitor, which gives way to a
+  // speaking voice (voiceHasFloor), stayed silent with it. Each sentence is short, and ends.
+  // Split only at a space after a sentence's end, so "3.85 ng/mL" stays whole.
+  const sentences = t => String(t).split(/(?<=[.!?\u2026]["'\u201d\u2019)]*)\s+/).map(x => x.trim()).filter(Boolean);
   for(const seg of segs){
-    const text = String((seg && seg.text) || '').trim();
-    if(!text) continue;
     const role = (seg && seg.role) || 'narrator';
+    for(const text of sentences(String((seg && seg.text) || '').trim())){
     const u = new SpeechSynthesisUtterance(text);
     const v = pickVoice(list, role, lang, S.ttsVoice);
     if(v) u.voice = v;
@@ -4066,6 +4082,7 @@ function browserSpeak(segments, onDone){
     speechSynthesis.speak(u);
     batch.push(u);
     last = u;
+    }
   }
   if(!last){ done(); return; }
   last.onend = done;
@@ -4074,7 +4091,7 @@ function browserSpeak(segments, onDone){
   for(const u of batch) u.onstart = () => { started = true; };
   setTimeout(() => {
     if(started || reported) return;
-    try{ speechSynthesis.cancel(); }catch(_){ }
+    if(gen === _browserGen){ try{ speechSynthesis.cancel(); }catch(_){ } }
     done();
   }, BROWSER_START_TIMEOUT_MS);
   // A LINE THAT STARTED AND NEVER ENDED. Kim, 2026-09-23, iPhone: "After a defibrillator sound I
@@ -4088,7 +4105,7 @@ function browserSpeak(segments, onDone){
   const chars = batch.reduce((n, u) => n + String(u.text || '').length, 0);
   setTimeout(() => {
     if(reported) return;
-    try{ speechSynthesis.cancel(); }catch(_){ }
+    if(gen === _browserGen){ try{ speechSynthesis.cancel(); }catch(_){ } }
     done();
   }, BROWSER_START_TIMEOUT_MS + Math.round(chars * BROWSER_MS_PER_CHAR));
 }
@@ -4156,7 +4173,18 @@ function ttsCandidates(){
   // no point asking, and asking logs a scary console error on every probe.
   return secure ? list.filter(u => /^https:/i.test(u)) : list;
 }
+// ONLY A PLAYER WITH A CAST IS ASKED ABOUT THEIR LOCAL NETWORK. Chrome and Arc now ask the
+// visitor's permission before a public page may reach their own machine ("Local Network
+// Access"), so probing localhost on load put that prompt in front of every visitor, and a player
+// who dismissed it lost the cast without a word (Kim, 2026-09-24). The public site asks only
+// when this browser has a cast: an address saved in Settings, or a cast that answered here
+// before. A local copy of the app always looks. Typing an address in Settings asks ('ask').
+function castMayProbe(){
+  if(!PUBLIC_BUILD) return true;
+  try{ return !!(localStorage.getItem('ms_ttsURL') || localStorage.getItem('ms_castSeen')); }catch(_){ return false; }
+}
 async function probeTtsServer(force){
+  if(force !== 'ask' && !castMayProbe()){ S.ttsServerOK = false; paintVoiceStatus(); return false; }
   if(_ttsProbe && !force) return _ttsProbe;
   _ttsProbe = (async () => {
     S.ttsServerOK = false;
@@ -4169,7 +4197,9 @@ async function probeTtsServer(force){
         if(r && r.ok){
           // Remember the one that answered for this session, so the POST goes to the same
           // place. Not written to localStorage: the player's own setting is theirs.
-          S.ttsURL = url; S.ttsServerOK = true; break;
+          S.ttsURL = url; S.ttsServerOK = true;
+          try{ localStorage.setItem('ms_castSeen', '1'); }catch(_){ }
+          break;
         }
       }catch(_){ /* try the next candidate */ }
     }
@@ -4186,7 +4216,9 @@ function paintVoiceStatus(){
   const ok = !!S.ttsServerOK;
   dot.className = 'w-1.5 h-1.5 rounded-full shrink-0 ' + (ok ? 'bg-emerald-400' : 'bg-slate-600');
   st.textContent = ok ? 'Voice cast: running — all twelve voices'
-    : (location.protocol === 'https:'
+    : (!castMayProbe()
+        ? 'Voice cast: not checked — type your voice server address below (e.g. https://localhost:7070) and allow local network access when the browser asks'
+        : location.protocol === 'https:'
         ? 'Voice cast: not reachable — this page is https, so the cast must serve https too (start-tts.sh does it when ~/.medisim/certs holds a mkcert certificate)'
         : 'Voice cast: not running — ./voice-server/install.sh then ./start-tts.sh');
   st.className = 'text-[10px] font-black uppercase tracking-widest ' + (ok ? 'text-emerald-400' : 'text-slate-500');
@@ -13412,7 +13444,8 @@ function careInProgressItems(){
     const via=c&&c.airway ? String(c.airway).toUpperCase() : 'BVM';
     out.push({label:'Ventilating · '+via,tone:'sky'});
   }
-  if(c&&c.ivAccess) out.push({label:String(c.ivAccess).toUpperCase()+' access',tone:'emerald'});
+  // ivAccess is true/false (code-engine.js); c.io says which. It printed "TRUE access" (2026-09-24).
+  if(c&&c.ivAccess) out.push({label:(c.io?'IO':'IV')+' access',tone:'emerald'});
   else if(S.gear&&S.gear.iv) out.push({label:'IV access',tone:'emerald'});
   if(st.drip) out.push({label:'Infusion running',tone:'amber'});
   if(c&&c.capnography) out.push({label:'Capnography',tone:'sky'});
@@ -15486,7 +15519,7 @@ $('voiceTest').addEventListener('click',()=>{
 });
 $('ttsURL').addEventListener('change',e=>{
   S.ttsURL=e.target.value.trim(); localStorage.setItem('ms_ttsURL',S.ttsURL);
-  probeTtsServer(true);
+  probeTtsServer('ask');   // the player named a cast: this is the moment to ask for the network
 });
 $('celebrateSel').addEventListener('change',e=>{ localStorage.setItem('ms_celebrate',e.target.value); });
 $('temp').addEventListener('input',e=>{ S.temperature=parseFloat(e.target.value); $('tempVal').textContent=S.temperature; localStorage.setItem('ms_temp',S.temperature); });
