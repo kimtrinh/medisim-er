@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LB6rWbBNAHxzULQ2iE9djCdNEMls1ifoWEmtfkeSRxg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VYBP5Gw/nYHOyzovGLnfkpfdoERGPgfTTOZBtr6HCtw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1706,7 +1706,9 @@
   /* The Hint box (showHint): above the dock, on top of the room, until it is closed. */
   #hintBox{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(var(--dockUp,150px) + 8px);
     width:min(520px,calc(100vw - 24px));padding:.7rem .9rem;border-radius:14px;border:1px solid rgba(251,191,36,.55);
-    background:rgba(28,20,4,.94);color:#fde68a;box-shadow:0 18px 40px -18px rgba(0,0,0,.9);backdrop-filter:blur(6px)}
+    background:rgba(28,20,4,.94);color:#fde68a;box-shadow:0 18px 40px -18px rgba(0,0,0,.9);backdrop-filter:blur(6px);
+    pointer-events:none}   /* taps go through to the orders underneath (Kim, 2026-09-23); only the ✕ takes them */
+  #hintBox [data-hint-close]{pointer-events:auto}
   #hintBox .hintHead{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:900;
     letter-spacing:.2em;text-transform:uppercase;color:#fbbf24;margin-bottom:.25rem}
   #hintBox .hintHead button{min-width:28px;min-height:28px;color:#fcd34d}
@@ -6745,6 +6747,32 @@ function showHint(){
     '<div class="hintNext">' + esc(h.next) + '</div><div class="hintHow">' + esc(h.how) + '</div>';
   box.querySelector('[data-hint-close]').onclick = () => box.remove();
 }
+// EVERY HINT BUTTON, ONE HANDLER. Kim, 2026-09-23: "Both Hint buttons should work" — the dock's and
+// the one heading the phone's Orders list. Delegated from the document, so no repaint can unwire them.
+// And the box gets out of the way: "the hint box should be dismissed if an order is ordered. Bc the
+// hint box prevent order to be entered unless you click the close X button." It lets taps through
+// (pointer-events, above), and any tap elsewhere or any typing in the order box closes it.
+function hideHint(){ const b = $('hintBox'); if(b) b.remove(); }
+document.addEventListener('click', e => {
+  const t = e.target && e.target.closest && e.target.closest('#hintBtn, [data-hint], [data-jump]');
+  if(!t) return;
+  if(t.dataset.jump){
+    const po = $('phoneOrders'); if(!po) return;
+    const g = [...po.querySelectorAll('.foldGroup')].find(x => x.dataset.g === t.dataset.jump);
+    if(g) po.scrollTo({ top: po.scrollTop + g.getBoundingClientRect().top - po.getBoundingClientRect().top - 4 });
+    return;
+  }
+  e.stopPropagation();
+  openHintFrom();
+}, true);
+async function openHintFrom(){ await loadCaHints(); showHint(); }
+document.addEventListener('pointerdown', e => {
+  if(!$('hintBox')) return;
+  const t = e.target;
+  if(t && t.closest && t.closest('#hintBox [data-hint-close], #hintBtn, [data-hint]')) return;
+  hideHint();
+}, true);
+document.addEventListener('input', e => { if(e.target && e.target.id === 'cmd') hideHint(); }, true);
 function focusDxBox(){
   const i = $('dxInput');
   if(i){ i.focus(); i.select(); return true; }
@@ -8030,7 +8058,7 @@ function wirePalChips(root){
   // path. Skipped here rather than merely overwritten afterwards, so the two wirings cannot
   // start depending on which one ran last.
   for(const b of root.querySelectorAll('.pal')){
-    if(b.dataset.entry) continue;
+    if(b.dataset.entry || b.dataset.hint || b.dataset.jump) continue;   // not orders: see openHintFrom
     b.onclick = ev => (b.dataset.pal === '__recap') ? showRecap() : palChipClick(b, ev);
   }
 }
@@ -9733,7 +9761,7 @@ function renderPlay(){
   // single order, so a handler bound once at startup belongs to a button that no longer exists.
   // It sends the same order the wall's old full-width button sent, so the packs answer it
   // exactly as before — it is only standing somewhere a person can find it.
-  if($('hintBtn')) $('hintBtn').onclick=async()=>{ await loadCaHints(); showHint(); };
+  // #hintBtn is answered by the one delegated handler below (openHintFrom), like the list's own Hint.
   if($('reevalBtn')) $('reevalBtn').onclick=()=>{
     if(S.stage !== 'play' || S.loading) return;
     hideTypeahead(); closeActionBrowser();
@@ -12886,11 +12914,9 @@ function paintPhoneOrders(po){
     (codeAnswers() ? '' : '<div class="foldRow foldJumps">' + jumps.join('') + '</div>'));
   po.innerHTML = parts.join('');
   wirePalChips(po);
-  po.querySelectorAll('[data-hint]').forEach(b => b.onclick = async () => { await loadCaHints(); showHint(); });
-  po.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
-    const g = [...po.querySelectorAll('.foldGroup')].find(x => x.dataset.g === b.dataset.jump);
-    if(g) po.scrollTo({ top: po.scrollTop + g.getBoundingClientRect().top - po.getBoundingClientRect().top - 4 });
-  });
+  // The Hint and the group jumps are answered by delegated handlers (openHintFrom), not wired here:
+  // a later repaint of the code chips re-wired every .pal in this list as an order chip, and after
+  // ROSC the Hint did nothing (Kim, 2026-09-23: "stops working after a while when pt regains pulse").
   po.querySelectorAll('.oset').forEach(b => b.onclick = () => basketAddSet(b.dataset.os));
   if(S.code) try{ paintCodeStrip(); }catch(_){ }   // the drug chips' faces carry their live doses
 }
