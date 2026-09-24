@@ -8153,11 +8153,7 @@
      "diagnosticReports": [
       {
        "title": "12-Lead ECG",
-       "body": "",
-       "image": {
-        "type": "ekg",
-        "query": "12-lead ECG old anterior Q waves nonspecific ST-T changes no acute ST elevation"
-       }
+       "body": "Q waves in the anterior leads; nonspecific ST-T changes; no acute ST elevation. No picture of this tracing is on file."
       }
      ],
      "satisfies": 1
@@ -19188,11 +19184,7 @@
      "diagnosticReports": [
       {
        "title": "12-Lead ECG",
-       "body": "",
-       "image": {
-        "type": "ekg",
-        "query": "tall broad hyperacute T waves precordial leads subtle ST elevation reciprocal depression non-diagnostic 12-lead ECG"
-       }
+       "body": "Sinus rhythm. Tall, broad, symmetric T waves across the precordial leads, large for the size of the QRS; subtle ST-segment change with reciprocal ST depression. No picture of this tracing is on file."
       }
      ]
     },
@@ -19229,11 +19221,7 @@
      "diagnosticReports": [
       {
        "title": "Repeat 12-Lead ECG",
-       "body": "",
-       "image": {
-        "type": "ekg",
-        "query": "repeat ECG evolving T wave changes deepening ST depression dynamic change compared to prior tracing"
-       }
+       "body": "Compared with the prior tracing: evolving T-wave changes and deeper ST depression, a dynamic change. No picture of this tracing is on file."
       }
      ],
      "satisfies": 2
@@ -19272,19 +19260,11 @@
      "diagnosticReports": [
       {
        "title": "Posterior ECG (V7-V9)",
-       "body": "",
-       "image": {
-        "type": "ekg",
-        "query": "posterior leads V7 V8 V9 no ST elevation ruling out posterior extension"
-       }
+       "body": "Posterior leads V7-V9: no ST elevation. No picture of these leads is on file."
       },
       {
        "title": "Right-Sided ECG (V4R)",
-       "body": "",
-       "image": {
-        "type": "ekg",
-        "query": "right-sided ECG V4R no ST elevation ruling out right ventricular involvement"
-       }
+       "body": "Right-sided leads (V4R): no ST elevation. No picture of these leads is on file."
       }
      ],
      "satisfies": 3
@@ -90950,7 +90930,7 @@
        "body": "",
        "image": {
         "type": "ekg",
-        "query": "irregularly irregular rhythm absent P waves atrial fibrillation 12-lead ECG"
+        "query": "atrial fibrillation 12-lead ECG irregularly irregular rhythm absent P waves"
        }
       }
      ]

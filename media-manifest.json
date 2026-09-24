@@ -979,7 +979,7 @@
   "source_title": "File:EKG Asystole.jpg"
  },
  "ekg_brady": {
-  "credit": "Andrewmeyerson",
+  "credit": "Glenlarson",
   "file": "media/ekg_brady.jpg",
   "kw": [
    "bradycardia",
@@ -987,10 +987,10 @@
    "slow rate"
   ],
   "label": "ECG \u2014 sinus bradycardia",
-  "license": "CC BY-SA 3.0",
-  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
-  "page": "https://commons.wikimedia.org/wiki/File:Sinus_Bradycardia.jpg",
-  "source_title": "File:Sinus Bradycardia.jpg"
+  "license": "Public domain",
+  "license_url": "",
+  "page": "https://commons.wikimedia.org/wiki/File:12_lead_sinus_bradycardia.JPG",
+  "source_title": "File:12 lead sinus bradycardia.JPG"
  },
  "ekg_brugada": {
   "credit": "Wikimedia Commons",
@@ -1052,8 +1052,7 @@
   "file": "media/ekg_long_qt.jpg",
   "kw": [
    "long qt",
-   "prolonged qt",
-   "qtc"
+   "prolonged qt"
   ],
   "label": "ECG \u2014 prolonged QT",
   "license": "CC BY-SA 3.0",
@@ -2016,5 +2015,101 @@
   "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
   "page": "https://commons.wikimedia.org/wiki/File:Impetigo2020.jpg",
   "source_title": "File:Impetigo2020.jpg"
+ },
+ "ekg_inferior_rv_stemi": {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_inferior_rv_stemi.jpg",
+  "kw": [
+   "inferior st elevation",
+   "inferior st-elevation",
+   "inferior stemi",
+   "inferior mi",
+   "inferior myocardial infarction",
+   "inferior wall",
+   "ii iii avf",
+   "ii, iii, avf",
+   "ii, iii and avf",
+   "ii, iii, and avf",
+   "iii avf",
+   "iii, avf",
+   "iii and avf",
+   "v4r",
+   "right-sided ecg",
+   "right sided ecg",
+   "right-sided leads",
+   "right sided leads",
+   "right ventricular infarction",
+   "right ventricular mi",
+   "rv infarction",
+   "rv involvement",
+   "stemi",
+   "st elevation",
+   "st-elevation",
+   "st segment elevation",
+   "acute injury"
+  ],
+  "label": "ECG — inferior and right ventricular ST-elevation MI",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:IandRStemi.JPG",
+  "source_title": "File:IandRStemi.JPG"
+ },
+ "ekg_pericarditis": {
+  "credit": "James Heilman, MD",
+  "file": "media/ekg_pericarditis.jpg",
+  "kw": [
+   "pericarditis",
+   "pr depression",
+   "pr-segment depression",
+   "pr segment depression",
+   "diffuse st elevation",
+   "saddle-shaped"
+  ],
+  "label": "ECG — acute pericarditis",
+  "license": "CC BY-SA 3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:PericarditisECG.JPG",
+  "source_title": "File:PericarditisECG.JPG"
+ },
+ "ekg_pe_strain": {
+  "credit": "R.W.Koster",
+  "file": "media/ekg_pe_strain.jpg",
+  "kw": [
+   "s1q3t3",
+   "s1 q3 t3",
+   "right heart strain",
+   "right ventricular strain",
+   "rv strain",
+   "pulmonary embolism",
+   "anterior t-wave inversions",
+   "anterior t wave inversions",
+   "precordial t wave inversions",
+   "t wave inversions v1",
+   "t-wave inversions v1",
+   "deep s wave lead i",
+   "right axis deviation"
+  ],
+  "label": "ECG — pulmonary embolism, S1Q3T3 and right heart strain",
+  "license": "CC BY 3.0",
+  "license_url": "https://creativecommons.org/licenses/by/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Pulm_embolism.jpg",
+  "source_title": "File:Pulm embolism.jpg"
+ },
+ "ekg_hypothermia": {
+  "credit": "WikiSysop",
+  "file": "media/ekg_hypothermia.jpg",
+  "kw": [
+   "osborn",
+   "j wave",
+   "j waves",
+   "j-wave",
+   "hypothermia",
+   "hypothermic"
+  ],
+  "label": "ECG — hypothermia, Osborn J waves",
+  "license": "CC BY 3.0",
+  "license_url": "https://creativecommons.org/licenses/by/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:HypothermiaECG.jpg",
+  "source_title": "File:HypothermiaECG.jpg"
  }
 }
