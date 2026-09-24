@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VYBP5Gw/nYHOyzovGLnfkpfdoERGPgfTTOZBtr6HCtw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-wjOLI+fT4CWhTdCOkgJaMYeyoEYg4hSEcWS8hOEeKBo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -32,6 +32,20 @@
   /* A chip folded under its row's "More" stays hidden whatever display its classes give it. */
   [data-more-of][hidden]{display:none!important}
   body.phoneFold #phoneOrders .menuMoreBtn{min-height:44px;font-size:12px!important}
+  /* The voices are being built before the case starts (gateOnCaseAudio). */
+  #caseAudioGate{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;
+    background:rgba(2,6,23,.72);backdrop-filter:blur(3px);padding:16px}
+  #caseAudioGate .cagCard{width:min(420px,100%);background:#0f172a;border:1px solid rgba(52,211,153,.4);border-radius:16px;
+    padding:1.1rem 1.2rem;box-shadow:0 24px 60px -24px rgba(0,0,0,.9);color:#e2e8f0}
+  #caseAudioGate .cagTitle{font-size:15px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#6ee7b7}
+  #caseAudioGate .cagSub{font-size:13px;color:#94a3b8;margin-top:.3rem}
+  #caseAudioGate .cagBar{height:8px;border-radius:999px;background:#1e293b;margin-top:.9rem;overflow:hidden}
+  #caseAudioGate .cagBar span{display:block;height:100%;width:0;background:#34d399;transition:width .3s}
+  #caseAudioGate .cagCount{font-size:13px;color:#cbd5e1;margin-top:.5rem;font-variant-numeric:tabular-nums}
+  #caseAudioGate button{margin-top:.9rem;min-height:40px;padding:0 .9rem;border-radius:10px;border:1px solid #334155;
+    background:transparent;color:#94a3b8;font-size:12px;font-weight:800;letter-spacing:.04em}
+  #caseAudioGate button:hover{color:#e2e8f0;border-color:#64748b}
+  @media (prefers-reduced-motion: reduce){ #caseAudioGate .cagBar span{transition:none} }
 </style>
 <style>
   body { font-family:'Inter',sans-serif; background:#020617; color:#e2e8f0; }
@@ -3389,7 +3403,7 @@ async function generateCase(userContent, hint, label){
     // fallback. Results remain generic until a clinician authors a full pack.
     S.generatedPack = InstantEngine.buildGeneratedPack(S.criticalActions,
       {catalog: await loadOrderCatalog()});
-    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.hintsUsed = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false; _ordersAtStart = true;
+    S.simMin = 0; S.caseLabel = label || ''; S.timeline = []; S.hintsUsed = []; S.receipts = []; S.runReceipts = []; S.lastReceipts = null; S.gear = gearDefaults(); S.motion = null; S.basket = []; S.chartSeen=0; S.resultFocusCount=0; S.resultsNewOnly=false; _orderMin = true; _palOpen = false; _ordersAtStart = true; _keepMenuThroughTurn = false;
     S.caps = capsForNewRun(S.goldId);   // pinned for the whole run — see RUN_CAPS
     if(loggingOn()) RUNLOG.start({source: PUBLIC_BUILD?'public':'local', engine: useInstant()?'instant':'llm',
       model: useInstant()?null:S.model, difficulty: S.difficulty, caps: runCaps(), goldId: null,
@@ -4360,11 +4374,89 @@ function ttsChunks(segs){
 // 'superseded' if a newer line took the floor (nothing more is played OR asked for). Throws if
 // the cast fails before anything was heard — the caller then falls back to the browser voice;
 // a failure after that stops quietly, like the HD path.
-async function kokoroSpeakChunks(chunks, seq){
-  const base = S.ttsURL.replace(/\/+$/, '');
-  const build = c => fetch(base + '/tts_multi', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+const _castCache = new Map();   // JSON of a chunk -> Promise<object URL>, filled by prepareCaseAudio
+function castBuild(base, c){
+  return fetch(base + '/tts_multi', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ segments: [c] }) })
     .then(async r => { if(!r.ok) throw new Error('cast ' + r.status); return URL.createObjectURL(await r.blob()); });
+}
+// THE CASE WAITS FOR ITS VOICES. Kim, 2026-09-23: "I would like the case not to start until the
+// audio is generated. Right now it starts with no audio and people might be confused and may
+// think that there's no audio with this case. Maybe you can start a countdown until the audio is
+// fully generated." With the local cast every handover sentence is built before it can play, so
+// the first seconds of a case were silent. The opening lines are built first, behind a panel that
+// counts them down, and only then does the case (its handover, and a code's clock) begin. The
+// phone's own voice needs no building, and muted cases need none, so those start at once.
+// Resolves 'ready' | 'skipped' | 'none' | 'failed'. `onProgress(done, total, msPerLine)`;
+// `cancelled()` stops asking for more (what was not built is built as it plays, as before).
+async function prepareCaseAudio(speech, onProgress, cancelled){
+  if(!S.tts || !Array.isArray(speech) || !speech.length) return 'none';
+  // An automated browser (the test suites' headless Chrome) has nobody to hear the handover; it
+  // must not wait behind a panel for a cast that happens to be running on the same machine.
+  try{ if(navigator.webdriver || /HeadlessChrome/.test(navigator.userAgent || '')) return 'none'; }catch(_){ }
+  if(!useInstant() && S.geminiKey && S.hdVoices && /^AIza/.test(S.geminiKey)) return 'none';   // HD voices stream their own way
+  try{ await probeTtsServer(); }catch(_){ }
+  if(!(S.ttsURL && S.ttsServerOK)) return 'none';                                             // the phone's own voice: nothing to build
+  const roleSegs = speech.map(x => ({ role: normalizeSpeaker(x.speaker), text: sanitizeSeg(x.text) })).filter(x => x.text);
+  const chunks = ttsChunks(roleSegs.map(x => ({ ...segVoice(x.role), text: x.text })));
+  if(!chunks.length) return 'none';
+  const base = S.ttsURL.replace(/\/+$/, ''), t0 = Date.now();
+  for(let i = 0; i < chunks.length; i++){
+    if(cancelled()) return 'skipped';
+    const p = castBuild(base, chunks[i]);
+    _castCache.set(JSON.stringify(chunks[i]), p);
+    try{ await p; }catch(_){ _castCache.delete(JSON.stringify(chunks[i])); return 'failed'; }
+    onProgress(i + 1, chunks.length, (Date.now() - t0) / (i + 1));
+  }
+  return 'ready';
+}
+const CASE_AUDIO_MAX_MS = 60000;   // a cast that stalls does not hold the case hostage
+// The panel over the room while the voices are built; resolves when the case may start.
+function gateOnCaseAudio(speech){
+  return new Promise(resolve => {
+    let over = false, shown = false, gate = null;
+    const finish = (why) => {
+      if(over) return; over = true;
+      if(gate) gate.remove();
+      if(why === 'failed' || why === 'timeout')
+        audioStatus('The voices are slow to build — starting now; the lines play as they are ready', 'warn', 8000, 'Voices slow');
+      resolve(why);
+    };
+    // Only show the panel when there is something to wait for (a quick check first).
+    const show = () => {
+      if(over || shown) return; shown = true;
+      gate = document.createElement('div'); gate.id = 'caseAudioGate'; gate.setAttribute('role', 'dialog');
+      gate.setAttribute('aria-label', 'Getting the voices ready');
+      gate.innerHTML = '<div class="cagCard"><div class="cagTitle">Getting the voices ready</div>' +
+        '<div class="cagSub">The case starts as soon as the handover can be heard.</div>' +
+        '<div class="cagBar"><span id="cagFill"></span></div><div class="cagCount" id="cagCount">Preparing…</div>' +
+        '<button type="button" id="cagSkip">Start now without waiting</button></div>';
+      document.body.appendChild(gate);
+      gate.querySelector('#cagSkip').onclick = () => finish('skipped');
+    };
+    const showTimer = setTimeout(show, 400);
+    const cap = setTimeout(() => finish('timeout'), CASE_AUDIO_MAX_MS);
+    prepareCaseAudio(speech, (done, total, per) => {
+      show();
+      const fill = $('cagFill'), count = $('cagCount');
+      if(fill) fill.style.width = Math.round(100 * done / total) + '%';
+      const left = Math.max(0, Math.ceil(per * (total - done) / 1000));
+      if(count) count.textContent = done < total
+        ? done + ' of ' + total + ' lines ready · about ' + left + ' s'
+        : 'All ' + total + ' lines ready — starting';
+    }, () => over).then(r => {
+      clearTimeout(showTimer); clearTimeout(cap);
+      // A moment on "ready" so the count is read, never when nothing was shown.
+      if(r === 'ready' && shown) setTimeout(() => finish('ready'), 600); else finish(r);
+    });
+  });
+}
+async function kokoroSpeakChunks(chunks, seq){
+  const base = S.ttsURL.replace(/\/+$/, '');
+  // A clip the case start already built (prepareCaseAudio) is taken from the cache, once.
+  const build = c => { const k = JSON.stringify(c), hit = _castCache.get(k);
+    if(hit){ _castCache.delete(k); return hit; }
+    return castBuild(base, c); };
   const live = () => seq === _ttsSeq && S.tts;
   const clips = []; let prev = Promise.resolve();
   for(const c of chunks){
@@ -5743,6 +5835,7 @@ function splitTextIntents(list, OI, catalog){
   }));
 }
 async function dispatchOrders(action, label, intents){
+  _keepMenuThroughTurn = false;   // an ordinary order closes the menu as it always has (renderPlay)
   // A DOUBLE-TAP ON SIGN PERFORMS ONCE. progress() guards itself with S.loading, but a
   // code-engine order does not go through progress at all, so a second tap could fire a
   // second shock. The whole batch is frozen instead.
@@ -6787,6 +6880,7 @@ function commitDiagnosis(raw){
   const framed = /^\s*(?:i think(?:\s+this\s+is)?|i suspect|i believe|my (?:working )?(?:diagnosis|assessment)(?:\s+is)?|working (?:diagnosis|dx)(?:\s+is)?|this (?:is likely|looks like)|most likely|concern for|differential is)\b/i.test(t)
     ? t : 'Working diagnosis: ' + t;
   S.dxSaid = t;
+  _keepMenuThroughTurn = !!$('actionBrowser');   // naming it is not a reason to close the menu (renderPlay)
   const box = $('dxInput'); if(box) box.value = '';
   paintDxBox();
   progress(framed, 'Working diagnosis: ' + t);
@@ -7663,7 +7757,7 @@ async function loadGoldCase(seed, opts){
   S.labs=[]; S.reports=[]; S.exam=[]; S.trend='stable'; S.stage='play'; S.runSeed=newRunSeed();
   startCoachSession();
   try{ resetRoomActionTimers(); }catch(_){ }
-  S.gear=gearDefaults(); S.motion=null; S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false; _ordersAtStart = true;   // fresh kit, room props AND an empty order basket for a new case
+  S.gear=gearDefaults(); S.motion=null; S.room={defib:'idle', drip:false, cpr:false, ventilation:false}; S.basket=[]; _orderMin = true; _palOpen = false; _ordersAtStart = true; _keepMenuThroughTurn = false;   // fresh kit, room props AND an empty order basket for a new case
   document.body.classList.remove('roomHide'); try{ applyRoomHide(); }catch(_){ }   // a new patient starts with everything showing
   // ...and, on a phone, with the Monitor open and the other sections folded (Kim's choice).
   if(mobileWorkspace()){ panelState().activePanel = 'monitor'; panelState().expanded = false; }
@@ -7674,14 +7768,20 @@ async function loadGoldCase(seed, opts){
   openAtCaseCamera();      // a case with a drawn injury opens at the camera that shows it
   renderPlay();
   openRoomIfPreferred();   // the case opens at the bedside, not on a chat log
-  narrate(seed.speech, seed.intro);
-  // A case whose pack carries a code script starting at arrival opens as a running
-  // resuscitation, not a conversation: the clock is already going when you walk in.
-  (async()=>{ try{
-    const packs = await loadOfflinePacks();
-    const p = packs && packs[S.goldId];
-    if(p && p.codeScript && p.codeScript.trigger === 'start') enterCodeMode(p.codeScript);
-  }catch(_){ } })();
+  // The handover and a code's clock wait for the voices (gateOnCaseAudio); a new case started
+  // meanwhile wins, and this one never begins behind it.
+  const startedAs = S.goldId;
+  gateOnCaseAudio(seed.speech).then(() => {
+    if(S.goldId !== startedAs || S.stage !== 'play') return;
+    narrate(seed.speech, seed.intro);
+    // A case whose pack carries a code script starting at arrival opens as a running
+    // resuscitation, not a conversation: the clock is already going when you walk in.
+    (async()=>{ try{
+      const packs = await loadOfflinePacks();
+      const p = packs && packs[S.goldId];
+      if(p && p.codeScript && p.codeScript.trigger === 'start' && S.goldId === startedAs) enterCodeMode(p.codeScript);
+    }catch(_){ } })();
+  });
 }
 // Launches a gold case by id alone — the Department's tiles only carry an id (never a
 // title or diagnosis, to keep unplayed tiles spoiler-free). Looks the seed up in the
@@ -8599,7 +8699,7 @@ if(typeof window !== 'undefined') addEventListener('resize', () => { try{ fitAct
 function closeActionBrowser(rebuilding){
   // Only a literal true means "the play screen is being rebuilt": wired straight to a button,
   // this receives the click EVENT, which is truthy — and the menu came straight back.
-  if(rebuilding !== true) _ordersAtStart = false;   // the player (or another panel) closed it
+  if(rebuilding !== true){ _ordersAtStart = false; _keepMenuThroughTurn = false; }   // the player (or another panel) closed it
   const panel=$('actionBrowser'); if(panel) panel.remove();
   document.body.classList.remove('actionBrowserOpen');
   roomLayoutLater();   // Hide / Show all was placed around the menu; place it again
@@ -9499,8 +9599,20 @@ let _palOpen=false;   // keep the order-set palette open across turns once expan
 // Not on a phone: there the menu is a sheet over the patient.
 let _ordersAtStart = false;
 let _orderMin = true;  // slim order bar: chips+palette tucked away until asked for; re-collapses each case
+// THE MENU STAYS WHERE THE PLAYER LEFT IT — in a live code, and after a diagnosis. Kim,
+// 2026-09-23: "When I enter the diagnosis, i.e. ventricular fibrillation, it takes away the quick
+// menu." A rebuild closes the menu (it steps aside after an ordinary order so the results can
+// be read), and a diagnosis goes through a full turn while a code's own orders do not — so naming
+// the rhythm mid-code took the menu away. After a diagnosis it comes back, on the same group.
+let _keepMenuThroughTurn = false;
 function renderPlay(){
   repaintOnFirstManifest();   // which finding pictures exist decides which photo the patient panel draws
+  // A turn can rebuild more than once, so the diagnosis's request lasts until the next ordinary
+  // order (dispatchOrders) or until the player closes the menu (closeActionBrowser).
+  // Only for a diagnosis. A code's own orders never rebuild the screen, so they never closed it;
+  // an order that falls through to a turn steps aside as always, so its receipt — and its
+  // Report problem button — stay reachable (tests/feedback-form.test.cjs caught the menu over it).
+  const reopenMenu = _keepMenuThroughTurn;
   closeActionBrowser(true);
   document.body.classList.add('tapUI');
   hideTypeahead();
@@ -9689,6 +9801,7 @@ function renderPlay(){
     // full basket signs the basket; an empty basket with typed text is the old behaviour.
     const plan = basketPlan(S.basket, cmd.value); if(!plan) return;
     const t = plan.action;
+    _keepMenuThroughTurn = false;   // an ordinary order closes the menu as it always has (renderPlay)
     hideTypeahead();
     // A code is running: the code engine answers what it recognises RIGHT NOW — no
     // turn, no engine latency, no clock cost. A shock has to land the instant it is
@@ -9964,6 +10077,9 @@ function renderPlay(){
       };
       setTimeout(attempt, 0);
     });
+  }
+  if(reopenMenu && S.stage === 'play' && !mobileWorkspace()){
+    try{ openActionBrowser(); }catch(err){ console.error('order menu after turn: ' + (err && err.message || err)); }
   }
   if($('actionLaunch')) $('actionLaunch').onclick=openActionBrowser;
   if($('micBtn')) $('micBtn').onclick=startDictation;   // absent in PUBLIC_BUILD (no local whisper server)
