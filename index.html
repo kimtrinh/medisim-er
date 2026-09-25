@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-0UaVruOXtrBy2yxBtxOgkHYYXudoHdqe7ld1ACSIYC4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-HhqrOBbl3/qDb5F7kgT98LojFGYz71fDh/TWLBQSqMM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -13657,13 +13657,28 @@ function cprOverlayHTML(viewKey, chest, sceneKey){
 }
 // The source mask contact is at 16%,80% of the generated 2:3 cutout. Anchor that
 // point to the face rather than positioning the therapist by eye in each camera.
-function bvmOverlayHTML(viewKey, head){
+// Per-photo corrections to the mask in the room camera, merged over the room default. The head
+// zone moves with ROOM_SCENE_SHIFT, but each face still sits a few pixels differently under it:
+// the women's and older faces lie lower and further toward the feet. Measured face by face (nose
+// tip, lips, chin) by two independent reviews, 2026-09-25; these are the mean of the two.
+const BVM_POSE_SCENE = {
+  'room:young-m': {dy: -.08}, 'room:young-m-2': {dx: -.8, dy: -.05}, 'room:teen-m': {dx: -.6, dy: -.08},
+  'room:young-f': {dx: -1.75, dy: .12}, 'room:young-f-2': {dx: -.88, dy: .02}, 'room:mid-f': {dx: -1, dy: .01},
+  'room:older-f': {dx: -1.06, dy: -.09}, 'room:elder-f': {dx: -1.6, dy: -.06},
+  'room:case-eb-severe-tbi': {dy: 0}, 'room:case-resus-atls-blunt-multi': {dy: .23},
+  'room:case-resus-atls-penetrating': {dy: .07},
+};
+function bvmOverlayHTML(viewKey, head, sceneKey){
   // Once an ET tube is in, the mask in this artwork would contradict the airway.
   // The care strip can still correctly say that ventilation continues via ETT.
   if(!head || (S.gear && S.gear.ett) || !ventilationRunning() || !adultBvmArtAllowed()) return '';
   // The mask belongs on the mouth, just footward and above the centre of the
   // broad head hotspot. The original adult-sized cutout rose behind the HUD.
-  const cfg={room:{w:12,dx:-.7,dy:.34},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5};
+  // Kim, 2026-09-25: "Bvm not on the face" — in this side view the face looks at the ceiling, so
+  // the nose and mouth are the TOP edge of the head, and at dy .34 the mask was pressed into the
+  // jaw. dy -.2 seats its rim on the nose and mouth.
+  const cfg=Object.assign({},{room:{w:12,dx:-.7,dy:-.2},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5},
+    BVM_POSE_SCENE[viewKey+':'+sceneKey]||{});
   const h=cfg.w*(100/56)*(3/2), cx=head.l+head.w/2+cfg.dx, cy=head.t+head.h*cfg.dy;
   const left=cx-cfg.w*.16, top=cy-h*.80;
   return `<div class="rmBvmRig absolute" style="z-index:2;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
@@ -14062,7 +14077,7 @@ function paintRoom(){
       // its 700 ms (fxKey carries st.defib, so they return when the machine goes back to pads).
       // Charging keeps them working — compressions continue while the defibrillator charges.
       const clear=st.defib==='shock';
-      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':bvmOverlayHTML(viewKey,head))+
+      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':bvmOverlayHTML(viewKey,head,cprSceneKey()))+
         (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
