@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VM1uD7moEm6evvK1J+zv5jzNbiCFPRXMdQM22+PVsLc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-0UaVruOXtrBy2yxBtxOgkHYYXudoHdqe7ld1ACSIYC4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -107,7 +107,13 @@
     42%{opacity:.18;transform:scale(1)}
   }
   .rmBvmRig{perspective:650px;perspective-origin:16% 80%}
+  /* Both cut-outs end at mid-thigh; fade that edge rather than leave a straight cut in mid-air.
+     The therapist's picture also crops his back at its right edge: fade that too (both masks
+     intersected, so each edge fades and the rest of him stays solid). */
   .rmBvmClinician{width:100%;height:100%;object-fit:contain;display:block;transform-origin:16% 80%;
+    -webkit-mask-image:linear-gradient(to bottom,#000 86%,transparent 100%),linear-gradient(to left,transparent 0%,#000 9%);
+    mask-image:linear-gradient(to bottom,#000 86%,transparent 100%),linear-gradient(to left,transparent 0%,#000 9%);
+    -webkit-mask-composite:source-in;mask-composite:intersect;
     animation:rmVentilate 6s cubic-bezier(.45,0,.55,1) infinite;
     filter:drop-shadow(0 5px 4px rgba(2,6,23,.58));will-change:transform}
   .rmBvmBagPulse{position:absolute;left:24%;top:64%;width:47%;height:18%;border-radius:50%;
@@ -117,7 +123,12 @@
   @keyframes rmDefibReady{0%,100%{transform:translate3d(0,0,0) scaleX(-1)}50%{transform:translate3d(.35%,.2%,0) scaleX(-1)}}
   @keyframes rmDefibPress{0%{transform:translate3d(0,0,0) scaleX(-1)}38%{transform:translate3d(1.1%,.8%,0) scaleX(-1)}100%{transform:translate3d(0,0,0) scaleX(-1)}}
   @keyframes rmShockPatient{0%{transform:translate3d(0,0,0)}30%{transform:translate3d(0,-.55%,0) scale(1.002)}100%{transform:translate3d(0,0,0)}}
-  .rmDefibNurse{width:100%;height:100%;object-fit:contain;display:block;transform-origin:50% 91%;
+  /* The flip lives here as well as in the keyframes: with reduced motion the animation is off,
+     and without it she turned round and pointed at the head of the bed. */
+  /* Her fade ends higher than his: below 87% of her box is the cart's heart sticker, which a
+     longer fade showed through her legs. She reads as standing behind the cart instead. */
+  .rmDefibNurse{width:100%;height:100%;object-fit:contain;display:block;transform-origin:50% 91%;transform:scaleX(-1);
+    -webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);
     filter:drop-shadow(0 5px 4px rgba(2,6,23,.62));will-change:transform}
   .rmDefibNurse--charging{animation:rmDefibReady .8s ease-in-out infinite}
   .rmDefibNurse--shock{animation:rmDefibPress .55s cubic-bezier(.2,.8,.2,1) 1}
@@ -13650,7 +13661,9 @@ function bvmOverlayHTML(viewKey, head){
   // Once an ET tube is in, the mask in this artwork would contradict the airway.
   // The care strip can still correctly say that ventilation continues via ETT.
   if(!head || (S.gear && S.gear.ett) || !ventilationRunning() || !adultBvmArtAllowed()) return '';
-  const cfg={room:{w:15.5,dx:0,dy:.48},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5};
+  // The mask belongs on the mouth, just footward and above the centre of the
+  // broad head hotspot. The original adult-sized cutout rose behind the HUD.
+  const cfg={room:{w:12,dx:-.7,dy:.34},foot:{w:15,dx:0,dy:.48},airway:{w:16,dx:0,dy:.52}}[viewKey]||{w:15.5,dx:0,dy:.5};
   const h=cfg.w*(100/56)*(3/2), cx=head.l+head.w/2+cfg.dx, cy=head.t+head.h*cfg.dy;
   const left=cx-cfg.w*.16, top=cy-h*.80;
   return `<div class="rmBvmRig absolute" style="z-index:2;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
@@ -13671,8 +13684,12 @@ function intubationClinicianHTML(viewKey, head){
 }
 function defibOperatorHTML(viewKey, defib, state, mode){
   if(!defib || (state!=='charging' && state!=='shock')) return '';
-  const cfg={room:{w:12},foot:{w:11.5},airway:{w:11.5}}[viewKey]||{w:12};
-  const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*.52, cy=defib.t+defib.h*.10;
+  const cfg={room:{w:10.5,zx:.65,zy:.105},foot:{w:11.5,zx:.52,zy:.10},airway:{w:11.5,zx:.52,zy:.10}}[viewKey]||{w:12,zx:.52,zy:.10};
+  // In the room photo the actual controls sit at the upper-right of the broad
+  // crash-cart hotspot; its centre is the drawer bank, not the defibrillator.
+  // zx .65, zy .105: the fingertip on the energy dial and key column, not the grey base below.
+  // Her label sits a row above her head: level with it, it covered the end of BVM · ASSISTED.
+  const h=cfg.w*(100/56)*(3/2), cx=defib.l+defib.w*cfg.zx, cy=defib.t+defib.h*cfg.zy;
   // The source is mirrored: its horizontal control fingertip becomes a 94%,59% anchor,
   // leaving the nurse upright and visible to the left of the machine. Anchoring the old
   // downward-pointing hand at 91% put the fingertip on a crash-cart drawer, not the control.
@@ -13685,7 +13702,7 @@ function defibOperatorHTML(viewKey, defib, state, mode){
   const art=state==='shock'?'media/game/defib-nurse-shock-v3.webp':'media/game/defib-nurse-clear-v3.webp';
   return `<div class="absolute" style="z-index:4;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
     <img class="rmDefibNurse rmDefibNurse--${state}" src="${art}" alt="" draggable="false">
-    <div class="rmActionLabel absolute left-0 top-[4%] whitespace-nowrap rounded-full border border-amber-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">${label}</div>
+    <div class="rmActionLabel absolute whitespace-nowrap rounded-full border border-amber-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md" style="bottom:calc(100% + 20px);left:14%">${label}</div>
   </div>`;
 }
 // A duplicate of the current scene is clipped tightly around the patient's body and
@@ -13904,6 +13921,17 @@ const ROOM_SCENE_SHIFT = {
   'case-eb-severe-tbi': [-1.7, -1.2], 'case-resus-atls-blunt-multi': [-2.9, -2.2],
   'case-resus-atls-penetrating': [-1.2, -2],
 };
+// The crash cart is not where it is in the patient photos in the three trauma rooms either: its
+// defibrillator sits 2.4-4.2% further left and 1.4-2.4% higher, so the defib nurse pointed past it.
+// [dx % of width, dy % of height], measured on the machine's energy dial (2026-09-24).
+const ROOM_CART_SHIFT = {
+  'case-eb-severe-tbi': [-2.4, -1.5], 'case-resus-atls-blunt-multi': [-4.2, -2.4],
+  'case-resus-atls-penetrating': [-2.4, -1.4],
+};
+function roomCartShift(view){
+  if(view !== 'room') return [0, 0];
+  return ROOM_CART_SHIFT[caseSceneImg('room', S.goldId) ? 'case-' + S.goldId : ''] || [0, 0];
+}
 function roomSceneShift(view){
   if(view !== 'room') return [0, 0];
   const key = caseSceneImg('room', S.goldId) ? 'case-' + S.goldId : patientBaseFor(S.patient || {});
@@ -13944,6 +13972,7 @@ function paintRoom(){
   // so the spots the pictures hang on move with this photograph's patient.
   const shift=roomSceneShift(viewKey);
   [head, chest].forEach(b=>{ if(b){ b.l+=shift[0]; b.t+=shift[1]; b.hookX+=shift[0]; } });
+  const cart=roomCartShift(viewKey); if(d){ d.l+=cart[0]; d.t+=cart[1]; }
   // Two layers per piece of kit. A plain translucent wash was tested and rejected: an
   // amber one disappeared BOTH into the cream walls and into the red crash cart it was
   // meant to mark. `mix-blend-mode:screen` only ever lightens, so the equipment visibly
@@ -14029,8 +14058,12 @@ function paintRoom(){
     const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
-      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
-        cprOverlayHTML(viewKey,chest,cprSceneKey())+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
+      // Nobody touches the patient during the shock: the therapist and the compressor step back for
+      // its 700 ms (fxKey carries st.defib, so they return when the machine goes back to pads).
+      // Charging keeps them working — compressions continue while the defibrillator charges.
+      const clear=st.defib==='shock';
+      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':bvmOverlayHTML(viewKey,head))+
+        (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
     }
