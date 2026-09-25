@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-HhqrOBbl3/qDb5F7kgT98LojFGYz71fDh/TWLBQSqMM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LA8hFi4qCj64iBxVqOoV44c6APq74dYPB10yhe7vJ9w=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -12258,7 +12258,11 @@ function shownRect(e){
 //   3. past the side of the photo → slid back inside;
 //   4. under the overhead monitor display (desktop console) → slid sideways off it, never
 //      back down onto the patient; the tail still points at who is speaking;
-//   5. over a bubble already placed → lifted above it.
+//   5. over a bubble already placed → lifted above it;
+//   6. over someone working on the patient (the CPR nurse, the bag-mask therapist, the defib
+//      nurse, the intubating clinician) → moved to the clearest of: above them, or off to
+//      either side — inside the photo, off the monitor and the patient. Kim, 2026-09-25: on
+//      the phone the team's lines ("Compressions running…") sat on the rescuers' heads.
 // Idempotent: every call starts again from the anchor, so it is safe on every resize,
 // drawer toggle and image load.
 function placeRoomBubbles(){
@@ -12271,7 +12275,13 @@ function placeRoomBubbles(){
   const bodyTop = body ? B.top + B.height*body.t/100 : B.bottom;
   const bodyL = body ? B.left + B.width*body.l/100 : B.left, bodyR = body ? B.left + B.width*body.r/100 : B.right;
   const mon = document.body.classList.contains('console') ? shownRect($('monBar')) : null;
+  // The Hide / Show all toggle in the photo's top corner: a bubble lifted to the top of a
+  // phone's photo ran under it.
+  const hideBtn = shownRect($('rmHide'));
   const covers = [shownRect($('sideBar')), shownRect($('chat'))].filter(Boolean);
+  // The rescuers' own boxes (their labels are separate elements, and hidden on a phone).
+  const staff = [...box.querySelectorAll('#rmActionFx .rmCprRig, #rmActionFx .rmBvmRig, #rmActionFx .rmDefibNurse, #rmActionFx .rmIntubationClinician')]
+    .map(shownRect).filter(Boolean);
   const hit = (a, c) => a.right>c.left && a.left<c.right && a.bottom>c.top && a.top<c.bottom;
   const area = (a, c) => Math.max(0, Math.min(a.right,c.right)-Math.max(a.left,c.left)) *
                          Math.max(0, Math.min(a.bottom,c.bottom)-Math.max(a.top,c.top));
@@ -12311,8 +12321,58 @@ function placeRoomBubbles(){
         if(tries.length){ x += tries[0].dx; r=put(); }
         else { clampTo(r.bottom - (mon.bottom + GAP)); r=put(); }
       }
+      if(hideBtn && hit(r, hideBtn)){                                                               // 4b
+        const was = staff.reduce((s,k)=>s+area(r,k), 0);
+        const dx = [(hideBtn.left - GAP) - r.right, (hideBtn.right + GAP) - r.left].filter(d => {
+          const n={left:r.left+d, right:r.right+d, top:r.top, bottom:r.bottom};
+          return n.left >= B.left + EDGE && n.right <= B.right - EDGE && !(mon && hit(n, mon)) &&
+                 !(n.right>bodyL && n.left<bodyR && n.bottom > bodyTop - 2) && !placed.some(p => hit(n, p)) &&
+                 staff.reduce((s,k)=>s+area(n,k), 0) <= was;
+        }).sort((a,b)=>Math.abs(a)-Math.abs(b))[0];
+        if(dx !== undefined){ x += dx; r=put(); }
+      }
       const clash = placed.find(p => hit(r, p));                                                     // 5
       if(clash && pass<3){ y -= r.bottom - clash.top + GAP; r=put(); continue; }
+      const onStaff = staff.reduce((s,c)=>s+area(r,c), 0);                                           // 6
+      // over 5% of the bubble: the rescuers' boxes are whole 2:3 frames, transparent at the edges
+      if(onStaff > .05 * r.width * r.height && pass<3){
+        const under = staff.filter(c=>hit(r,c));
+        const top = Math.min(...under.map(c=>c.top)), L = Math.min(...under.map(c=>c.left)), R = Math.max(...under.map(c=>c.right));
+        const best = [{dx:0, dy:(top-GAP)-r.bottom}, {dx:(L-GAP)-r.right, dy:0}, {dx:(R+GAP)-r.left, dy:0}].map(c => {
+          const n={left:r.left+c.dx, right:r.right+c.dx, top:r.top+c.dy, bottom:r.bottom+c.dy};
+          const inside = n.left >= B.left + EDGE && n.right <= B.right - EDGE && n.top >= B.top + EDGE;
+          const blocked = (mon && hit(n, mon)) || (hideBtn && hit(n, hideBtn)) ||
+                          (n.right>bodyL && n.left<bodyR && n.bottom > bodyTop - 2) || placed.some(p => hit(n, p));
+          const left = staff.reduce((s,k)=>s+area(n,k), 0);
+          return { ...c, ok: inside && !blocked && left < onStaff, score: left + 2*Math.hypot(c.dx, c.dy) };
+        }).filter(c=>c.ok).sort((a,b)=>a.score-b.score)[0];
+        if(best){ x += best.dx; y += best.dy; r=put(); continue; }
+        // No room beside them (a phone's photo is ~375px): above their heads, as wide as the
+        // photo and cut to the lines that fit — the whole line is in the ticker and transcript,
+        // as rule 2 already does. Kept only if that lands inside the photo and off the monitor.
+        // Up to the photo's own top edge (a landscape phone has ~28px above the rescuers), and
+        // left of the Hide toggle when that band reaches it.
+        const topLim = B.top + 1, avail = (top - GAP) - topLim;
+        const rightLim = (hideBtn && hideBtn.top < top - GAP && hideBtn.bottom > topLim) ? hideBtn.left - GAP : B.right - EDGE;
+        if(avail >= 24 && rightLim - (B.left + EDGE) >= 120){
+          const keep = {x, y, max: bub.style.maxWidth, clamp: txt && txt.style.webkitLineClamp, cls: txt && txt.classList.contains('rbClamp')};
+          bub.style.maxWidth = Math.max(0, rightLim - (B.left + EDGE)) + 'px'; r=put();
+          if(r.height > avail){ clampTo(avail); r=put(); }
+          y += (top - GAP) - r.bottom; r=put();
+          if(r.left < B.left + EDGE){ x += B.left + EDGE - r.left; r=put(); }
+          else if(r.right > rightLim){ x -= r.right - rightLim; r=put(); }
+          const worse = r.top < topLim - .5 || (mon && hit(r, mon)) || (hideBtn && hit(r, hideBtn)) ||
+                        (r.right>bodyL && r.left<bodyR && r.bottom > bodyTop - 2) ||
+                        placed.some(p => hit(r, p)) || staff.reduce((s,k)=>s+area(r,k), 0) >= onStaff;
+          if(worse){
+            x = keep.x; y = keep.y; bub.style.maxWidth = keep.max;
+            if(txt){ txt.style.webkitLineClamp = keep.clamp || ''; txt.classList.toggle('rbClamp', !!keep.cls); }
+            r=put();
+          }
+          // Done either way: `worse` already weighed the monitor, the toggle, the patient and the
+          // other bubbles, and another pass would let rule 2 re-widen it under the Hide toggle.
+        }
+      }
       break;
     }
     placed.push(r);
@@ -14081,6 +14141,12 @@ function paintRoom(){
         (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
+      // Someone started or stopped working on the patient: the bubbles steer round them again.
+      // Not for the shock itself: the compressor and the bagger step back for 700 ms, and a
+      // line lifted over them would drop and rise again at the tensest moment.
+      // So the defib nurse arriving to charge re-places them, the shock (same nurse) does not.
+      const staffKey=fxKey.replace(/\|(charging|shock)\|/, '|defib|').replace(/\|(pads|idle)\|/, '|none|');
+      if(actionFx.dataset.staffKey!==staffKey){ actionFx.dataset.staffKey=staffKey; try{ placeRoomBubbles(); }catch(_){ } }
     }
   }
   paintClinicalCue();
