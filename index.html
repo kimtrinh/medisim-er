@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-tlVhEZzpsnV5WTU4j3xtSuiZG6lTZtHTAOucEXGNlj4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VM1uD7moEm6evvK1J+zv5jzNbiCFPRXMdQM22+PVsLc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -81,6 +81,10 @@
     42%,58%{opacity:.68;transform:translate(-50%,-50%) scale(1.08)}
   }
   .rmCprRig{perspective:650px;perspective-origin:23% 91%}
+  /* The rescuer's body, turned to face the right way for the camera (CPR_POSE.mirror) and
+     masked where the bed and patient stand in front of her (CPR_POSE.cut). It does not move:
+     the compressing figure inside it does, so the bed line stays still while she pushes. */
+  .rmCprBody{position:absolute;inset:0;perspective:650px;perspective-origin:23% 91%}
   /* Pulse check: hands still, off the chest (startCprPause). */
   .rmCprPaused .rmCprClinician{animation:none}
   .rmCprPaused .rmCprContact{animation:none;opacity:0}
@@ -2088,6 +2092,14 @@ function sessionCredential(key){
 // wakes up in the room instead of on a tab that no longer exists.
 try{ if(localStorage.ms_pview==='3d') localStorage.ms_pview='room'; }catch(_){ }
 
+// CAMERAS NOT OFFERED. Kim, 2026-09-24: "i don't think I need a airway view and foot of bed
+// view for now. maybe you can hide them for now." Only the controls go: the camera menu, the
+// ROOM/FOOT/AIRWAY tabs and the walk-to chips skip them, and a browser that last stood at one
+// opens at ROOM (its ms_pview is left alone). The scenes themselves — photos, zones, device art,
+// CPR_POSE — stay built and tested. Empty this set to bring them back.
+const HIDDEN_CAMERAS = new Set(['foot', 'airway']);
+function cameraOffered(k){ return !HIDDEN_CAMERAS.has(k); }
+
 // One-time repair of an "off" nobody chose. Until efc8975, pressing Esc while inside
 // the sim room called leaveCinema(true), which persisted ms_roomFirst='0' — so one
 // stray press of the universal dismiss key silently turned the sim room off for every
@@ -2140,7 +2152,7 @@ const S = {
   trend: 'stable',
   messages: [], context:'', diagnosis:'', learningPoints:[],
   labs:[], reports:[], exam:[],
-  pview: localStorage.ms_pview || 'room',
+  pview: cameraOffered(localStorage.ms_pview) && localStorage.ms_pview || 'room',
   caseCamera: null,       // the camera this case chose to open at (openAtCaseCamera)
   cameraTouched: false,   // the player has moved the camera since the case started
   difficulty: localStorage.ms_difficulty || 'resident',
@@ -11625,9 +11637,9 @@ function renderPatient(){
   const label = describeAge(p);
   const who = label ? `${label} ${sexWord}` : `${band} ${sexWord}`;
   // Walkthrough positions ROOM/FOOT/AIRWAY + the BEDSIDE close-up photo.
-  if(S.pview===undefined) S.pview = localStorage.ms_pview || 'room';
+  if(S.pview===undefined) S.pview = cameraOffered(localStorage.ms_pview) && localStorage.ms_pview || 'room';
   const tab=(k,lbl)=>`<button data-pview="${k}" class="px-2 py-0.5 text-[9px] font-black ${S.pview===k?'bg-emerald-600/30 text-emerald-300':'text-slate-500 hover:text-slate-300'}">${lbl}</button>`;
-  const viewToggle=`<span class="float-right inline-flex rounded-lg overflow-hidden border border-slate-700 -mt-0.5">${tab('room','ROOM')}${tab('foot','FOOT')}${tab('airway','AIRWAY')}${tab('bed','BEDSIDE')}</span>`;
+  const viewToggle=`<span class="float-right inline-flex rounded-lg overflow-hidden border border-slate-700 -mt-0.5">${[['room','ROOM'],['foot','FOOT'],['airway','AIRWAY'],['bed','BEDSIDE']].filter(([k])=>cameraOffered(k)).map(([k,l])=>tab(k,l)).join('')}</span>`;
   // Cinema mode owns EVERY camera, BEDSIDE included: the scene is built into #cinemaStage
   // (outside #main, so it survives progress()'s rebuild) and the sidebar card is emptied,
   // which keeps exactly ONE copy of #roomBox — and of the close-up's #ptSvg, #pt_chest and
@@ -12137,7 +12149,7 @@ function buildRoomScene(mount){
      <div id="rmFoot" class="absolute bottom-0 left-0 right-0 px-1.5 pb-1 pt-4 pointer-events-none" style="background:linear-gradient(transparent,rgba(0,0,0,.72))">
        <div class="rmHint text-center text-[9px] text-slate-300 uppercase tracking-widest font-bold mb-1" style="text-shadow:0 1px 3px rgba(0,0,0,.9)">${esc(view.hint)}</div>
        <div class="flex flex-wrap justify-center gap-1 pointer-events-auto">
-         ${WALK_TO.filter(w=>w.key!==S.pview).map(w=>`<button data-goto="${w.key}" class="px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-sky-400/40 border border-white/20 text-[8px] font-black uppercase tracking-wider text-slate-100 backdrop-blur-sm transition">↦ ${esc(w.label)}</button>`).join('')}
+         ${WALK_TO.filter(w=>w.key!==S.pview && cameraOffered(w.key)).map(w=>`<button data-goto="${w.key}" class="px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-sky-400/40 border border-white/20 text-[8px] font-black uppercase tracking-wider text-slate-100 backdrop-blur-sm transition">↦ ${esc(w.label)}</button>`).join('')}
        </div>
      </div>
    </div>`;
@@ -12452,7 +12464,7 @@ function roomZoneClick(zone, ev){
 // Walk to another position in the room: fade the scene out, swap the view, fade back.
 // 'bed' is the close-up photo panel, which is a different renderer but the same journey.
 function roomGoTo(view){
-  if(!ROOM_VIEWS[view] && view!=='bed') return;
+  if((!ROOM_VIEWS[view] && view!=='bed') || !cameraOffered(view)) return;
   closeRoomMenu();
   const box=$('roomBox'), go=()=>{ chooseCamera(view); renderPatient(); };
   if(!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return go();
@@ -13193,7 +13205,7 @@ function camMenu(ev){
   closeRoomMenu();
   const m = document.createElement('div');
   m.className = 'roomMenu camMenu fixed z-[75] min-w-[170px] max-w-[16rem] rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl overflow-hidden';
-  const cams = ['room', 'foot', 'airway', 'bed'];
+  const cams = ['room', 'foot', 'airway', 'bed'].filter(cameraOffered);
   m.innerHTML = '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">Camera</div>' +
     cams.map(k => '<button data-cam="' + k + '" aria-pressed="' + (S.pview === k) + '" class="block w-full text-left px-3 text-slate-300 hover:bg-emerald-500/15 hover:text-emerald-300">' + esc(cameraLabel(k)) + '</button>').join('') +
     '<div class="px-3 py-1.5 text-[12px] font-black uppercase tracking-widest text-slate-500 border-t border-b border-slate-800">Equipment</div>' +
@@ -13340,7 +13352,7 @@ function paintCinemaCard(who){
   const tab=k=>`<button data-pview="${k}" class="px-1.5 py-1 text-[9px] font-black flex-1 ${S.pview===k?'bg-emerald-600/30 text-emerald-300':'text-slate-500 hover:text-slate-300'}">${cameraLabel(k)}</button>`;
   card.innerHTML=`
     <div class="text-[9px] font-black uppercase tracking-[.3em] text-slate-500 mb-1.5">Sim Room — <span class="text-slate-300">${esc(who||'')}</span></div>
-    <div class="flex rounded-lg overflow-hidden border border-slate-700 mb-1.5">${tab('room')}${tab('foot')}${tab('airway')}${tab('bed')}</div>
+    <div class="flex rounded-lg overflow-hidden border border-slate-700 mb-1.5">${['room','foot','airway','bed'].filter(cameraOffered).map(k=>tab(k)).join('')}</div>
     <div class="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">${esc(hint)}</div>
     <div class="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1">Equipment</div>
     <div class="flex flex-wrap gap-1" id="gearTray">${GEAR.map(g=>`<button data-gear="${g.key}" title="${g.label}">${g.label}</button>`).join('')}</div>`;
@@ -13549,22 +13561,87 @@ function adultBvmArtAllowed(){
 // A generated clinician cutout rather than a new patient image. The stacked hands are
 // anchored to the current camera's chest polygon, so ROOM, FOOT and AIRWAY show the
 // same action at the correct anatomy while the original patient remains unchanged.
-function cprOverlayHTML(viewKey, chest){
-  if(!chest || !cprRunning()) return '';
-  const cfg={room:{w:11.5,dx:1.2,dy:-1.2},foot:{w:13,dx:0,dy:0},airway:{w:14.5,dx:0,dy:0}}[viewKey]||{w:12,dx:0,dy:0};
-  // The source cutout is 2:3. The scene coordinate system is 100 × 56, so its height
-  // in scene-percent is width*(100/56)*(3/2). Hands sit at 23%,91% in the source.
-  const h=cfg.w*(100/56)*(3/2);
-  // Lower-sternum contact is slightly above the geometric centre of the generous
-  // clickable chest region. This keeps the palm (rather than the fingertips) on the
-  // sternum in all three camera angles.
-  const cx=chest.l+chest.w/2+cfg.dx, cy=chest.t+chest.h*.42+cfg.dy;
-  const left=cx-cfg.w*.23, top=cy-h*.91;
+// WHERE THE CPR RESCUER STANDS, per camera. Kim, 2026-09-24: "change the CPR animation so that
+// the nurse looks like she does CPR on the chest." She did not: the cutout is a side-on photo of
+// a nurse bent over with her hips out behind her, and it was pasted with its hips ON the bed —
+// on the pillow in the room camera, on the mattress in the other two — at a size that made her
+// a small person standing in the bed.
+//   w      her width, % of the scene (height follows the 2:3 cutout), sized to the patient
+//   hx,hy  where her palms land, as a fraction of this camera's chest zone: the LOWER half of
+//          the sternum, on the midline. NOT the zone's centre: in the room camera the chest
+//          zone reaches down over the upper abdomen (its centre put her hands above his waist).
+//   mirror true turns her round, so her hips go to the other side of her hands
+//   cut    how far down her own picture (0–1) she is still in front of the bed; below that line
+//          the bed and patient hide her, all but the column that holds her hands. null = no cut.
+//   cutDeg the bed line's slope: 180 is level; the patient's front falls away from the chest
+//   fade   the bottom of the cutout is her mid-thigh, so where nothing stands in front of it,
+//          it fades out over this fraction of her height instead of ending in a hard edge
+const CPR_POSE = {
+  // Palm point measured against the sternal notch on every adult photo: the stacked hands point
+  // toward the head, so the heel (which does the pushing) sits ~1 hand-length footward of it.
+  // hx .70 left the heel ~26 cm below the notch — the abdomen. .94 puts it 16-18 cm below.
+  room:   { w:11.5, hx:.94, hy:.11, mirror:true,  cut:.898, cutDeg:187.4, fade:0 },
+  // Kim, 2026-09-24: hands "higher, close to the head" (option B, just below the neck), and
+  // "keep her full size, use the Hide button" — at true size her head is under the vitals strip.
+  // Turned round (image left): the bag-mask therapist leans in from the image right, over her.
+  foot:   { w:19,   hx:.50, hy:.22, mirror:true,  cut:null, cutDeg:180,   fade:.08 },
+  // Turned round (image left = the patient's left): the bag-mask therapist and the defib nurse
+  // work on the image right in this camera, and facing them she stood behind both.
+  airway: { w:23,   hx:.535,hy:-.05,mirror:true,  cut:.85,  cutDeg:180,   fade:0 },   // hy: the push travels toward the chin here; at .25 the gloves hit it
+};
+// The same camera, a different photograph: the patients are not all the same size, and do
+// not all lie in the same place (ROOM_SCENE_SHIFT follows the mouth, not the chest).
+// Keyed '<view>:<scene key>' (cprSceneKey), merged over CPR_POSE. Measured photo by photo.
+const CPR_POSE_SCENE = {
+  'room:young-m-2':{hx:.91, hy:.155}, 'room:young-f':{hx:.75}, 'room:young-f-2':{hx:.97},
+  'room:mid-m':{hx:.878, cut:.877, cutDeg:188.5}, 'room:mid-f':{hx:.91, hy:.075},
+  'room:older-m':{hx:.894, hy:.004}, 'room:older-f':{hx:.826, hy:.014}, 'room:elder-f':{hx:.83},
+  'room:case-resus-atls-blunt-multi':{w:11, hx:.861, hy:.218, cut:.896, cutDeg:182.4},
+  'room:case-resus-atls-penetrating':{hx:.793, hy:.351, cut:.9, cutDeg:183.9},
+  'room:case-eb-severe-tbi':{hx:.909, hy:.242, cut:.902, cutDeg:182.3},
+  'room:child':{hx:.823, hy:.202, cut:.848, cutDeg:195.9},
+  'foot:child':{hy:.42},                       // the same spot below the neck; the child's notch is lower
+  'airway:child':{hx:.523, hy:.59, cut:.9},    // the child's chin sits lower in this photo
+};
+// Two stacked adult hands is not infant CPR (two-thumb encircling, or two fingers), and on the
+// infant photos the adult's hands cover the whole chest and land on the belly at each push.
+// Children keep her: one or two hands on the lower sternum is PALS technique.
+function cprArtAllowed(){
+  const p=S.patient||{}, ageText=(String(p.ageBand||'')+' '+String(p.age||'')).toLowerCase();
+  if(/\b(newborn|neonat\w*|infant\w*|months?|weeks?|days?)\b/.test(ageText)) return false;
+  const years=parseFloat(String(p.age||''));
+  return !Number.isFinite(years) || years>=1;
+}
+// The scene key the room pictures are chosen by: a case's own photograph, else the patient's
+// age/sex base — the same key ROOM_SCENE_SHIFT is read with.
+function cprSceneKey(){
+  return caseSceneImg('room', S.goldId) ? 'case-' + S.goldId : patientBaseFor(S.patient || {});
+}
+function cprOverlayHTML(viewKey, chest, sceneKey){
+  if(!chest || !cprRunning() || !cprArtAllowed()) return '';
+  const p=Object.assign({}, CPR_POSE[viewKey]||CPR_POSE.room, CPR_POSE_SCENE[viewKey+':'+sceneKey]||{});
+  // The source cutout is 2:3. The scene coordinate system is 100 × 56, so her height
+  // in scene-percent is w*(100/56)*(3/2). Her hands sit at 23%,91% of the source picture
+  // (77%,91% once she is turned round).
+  const h=p.w*(100/56)*(3/2), hand=p.mirror?.77:.23;
+  const cx=chest.l+chest.w*p.hx, cy=chest.t+chest.h*p.hy;
+  const left=cx-p.w*hand, top=cy-h*.91;
+  // Masks are drawn in the SOURCE picture's coordinates (the body box is the one that is
+  // mirrored), so the hands column is always 10–37% whichever way she faces.
+  const masks=[];
+  // The hands column is in every mask: without it a fade ate her gloves at the bottom of each push.
+  if(p.cut!=null) masks.push(`linear-gradient(${p.cutDeg||180}deg,#000 ${((p.cut-.02)*100).toFixed(1)}%,transparent ${(p.cut*100).toFixed(1)}%)`);
+  else if(p.fade) masks.push(`linear-gradient(to bottom,#000 ${((1-p.fade)*100).toFixed(1)}%,transparent 100%)`);
+  if(masks.length) masks.push('linear-gradient(to right,transparent 9%,#000 12%,#000 36%,transparent 39%)');
+  const mask=masks.length?`-webkit-mask-image:${masks.join(',')};mask-image:${masks.join(',')};`+
+    (masks.length>1?'-webkit-mask-composite:source-over;mask-composite:add;':''):'';
   const paused=cprPaused();
-  return `<div class="rmCprRig absolute${paused?' rmCprPaused':''}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;aspect-ratio:2/3">
-    <span class="rmCprContact"></span>
-    <img class="rmCprClinician" src="media/game/cpr-clinician-cutout-v1.webp" alt="" draggable="false">
-    <div class="rmActionLabel absolute right-0 top-[8%] whitespace-nowrap rounded-full border ${paused?'border-amber-300/45 text-amber-100':'border-cyan-300/45 text-cyan-100'} bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider shadow-md">${paused?'Pulse check · hands off':'CPR · 110/min'}</div>
+  return `<div class="rmCprRig absolute${paused?' rmCprPaused':''}" data-cpr-view="${viewKey}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${p.w}%;aspect-ratio:2/3">
+    <div class="rmCprBody" style="${p.mirror?'transform:scaleX(-1);':''}${mask}">
+      <span class="rmCprContact"></span>
+      <img class="rmCprClinician" src="media/game/cpr-clinician-cutout-v1.webp" alt="" draggable="false">
+    </div>
+    <div class="rmActionLabel absolute ${p.mirror?'left-0':'right-0'} top-[8%] whitespace-nowrap rounded-full border ${paused?'border-amber-300/45 text-amber-100':'border-cyan-300/45 text-cyan-100'} bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider shadow-md">${paused?'Pulse check · hands off':'CPR · 110/min'}</div>
   </div>`;
 }
 // The source mask contact is at 16%,80% of the generated 2:3 cutout. Anchor that
@@ -13953,7 +14030,7 @@ function paintRoom(){
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+bvmOverlayHTML(viewKey,head)+
-        cprOverlayHTML(viewKey,chest)+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
+        cprOverlayHTML(viewKey,chest,cprSceneKey())+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
     }
