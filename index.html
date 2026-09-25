@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-YGMzAWYXN/Uci9a820HzmQLrOoPuZtnyRgKN1EU9wG8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-tlVhEZzpsnV5WTU4j3xtSuiZG6lTZtHTAOucEXGNlj4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1992,6 +1992,10 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
         </div>
         <input id="ttsURL" class="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 mb-3" placeholder="http://localhost:7070" />
     </div>
+    <label class="flex items-center gap-3 cursor-pointer select-none mb-2">
+      <input id="studioVoicesToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Studio character voices <span class="text-slate-600 normal-case tracking-normal">(recorded ahead of time — the full cast on any device; lines not yet recorded use your browser's voice)</span></span>
+    </label>
     <label class="flex items-center gap-3 cursor-pointer select-none">
       <input id="hdVoicesToggle" type="checkbox" class="w-4 h-4 accent-emerald-500" />
       <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">HD character voices <span class="text-slate-600 normal-case tracking-normal">(Gemini TTS — needs API key; falls back to local voices)</span></span>
@@ -4377,6 +4381,12 @@ function noteCastUnreachable(){
 // the first sentence alone, so it is ready almost at once, then groups of up to ~28 words, never
 // across two speakers. Each is asked for as the one before it finishes building — the cast does
 // one at a time anyway, and asking out of order would only make the first one wait.
+// A full stop ends a sentence only when a space and a capital (or the end) follow, and not after
+// a title like "Dr." — so "0.5 mg" and "Dr. Smith" stay whole. Shared by the cast's chunks and
+// the studio clips.
+function castSentences(text){
+  return String(text || '').trim().split(/(?<=[.!?…]["')\]]?)\s+(?=["'(\[]?[A-Z0-9])(?<!\b(?:Dr|Mr|Mrs|Ms|St|vs)\.\s+)/).filter(Boolean);
+}
 function ttsChunks(segs){
   const out = [];
   for(const s of (segs || [])){
@@ -4384,7 +4394,7 @@ function ttsChunks(segs){
     if(!text) continue;
     // A full stop ends a sentence only when a space and a capital (or the end) follow, and not
     // after a title like "Dr." — so "0.5 mg" and "Dr. Smith" stay whole.
-    const sents = text.split(/(?<=[.!?…]["')\]]?)\s+(?=["'(\[]?[A-Z0-9])(?<!\b(?:Dr|Mr|Mrs|Ms|St|vs)\.\s+)/).filter(Boolean);
+    const sents = castSentences(text);
     let buf = '';
     const count = x => x.split(/\s+/).filter(Boolean).length;
     // A piece may be at most ~1.5x everything already queued ahead of it (and never over 28
@@ -4401,6 +4411,60 @@ function ttsChunks(segs){
     if(buf) out.push({ ...s, text: buf });
   }
   return out;
+}
+// STUDIO VOICES: THE CAST, RECORDED AHEAD OF TIME. Kim, 2026-09-24: "i'd like an option for ppl
+// to have the cool voices". The twelve-voice cast runs only on Kim's Mac; every other visitor
+// heard their browser's voice. The lines the cases speak are fixed text, so the cast records
+// them once (tools_render_voices.cjs) and the site serves the clips like any image. A clip is
+// named from exactly what it says — voice, speed and words, hashed — so a line whose words
+// change (a vitals callout with today's numbers) simply has no clip and falls back as before.
+// One clip per SENTENCE, not per built chunk: the cast groups a turn's sentences by what else is
+// said in it, so clips made per chunk would miss whenever a player sends several orders at once.
+// A sentence with no clip (today's numbers) is read by the browser voice in its place.
+const STUDIO_DIR = 'media/voice/';
+let _studio = null;   // Set of clip keys, from voice-clips.json
+function studioOn(){ try{ return localStorage.getItem('ms_studioVoices') !== '0'; }catch(_){ return true; } }
+// cyrb53 — the same function in tools_render_voices.cjs names the files.
+function clipKey(c){
+  const str = c.voice + '|' + Number(c.speed || 1).toFixed(2) + '|' + c.text;
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for(let i = 0; i < str.length; i++){ const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
+if(typeof window !== 'undefined') (async () => { try{
+  const r = await fetch('voice-clips.json', { cache: 'no-cache' });
+  if(r.ok){ const j = await r.json(); if(j && Array.isArray(j.clips)) _studio = new Set(j.clips); }
+}catch(_){ /* no library on this copy: the cast or the browser voice, as before */ } })();
+// The studio's units for a turn: [{role, voice, speed, text, url|null}], or null when none of it
+// is recorded (the cast or the browser voice then takes the whole turn, as before).
+function studioUnits(roleSegs){
+  if(!_studio || !studioOn()) return null;
+  const units = [];
+  for(const r of roleSegs){
+    const v = segVoice(r.role);
+    for(const sent of castSentences(r.text)){
+      const u = { role: r.role, voice: v.voice, speed: v.speed, text: sent };
+      const k = clipKey(u);
+      units.push({ ...u, url: _studio.has(k) ? STUDIO_DIR + k + '.m4a' : null });
+    }
+  }
+  return units.some(u => u.url) ? units : null;
+}
+async function studioSpeak(units, seq){
+  for(let i = 0; i < units.length; i++){
+    const u = units[i];
+    const next = units.slice(i + 1).find(x => x.url);
+    if(next){ try{ fetch(next.url).catch(() => {}); }catch(_){ } }   // fetched while this one plays
+    if(u.url){ if(!await playUrlQueued(u.url, seq)) return 'superseded'; }
+    else{
+      if(seq !== _ttsSeq) return 'superseded';
+      await new Promise(r => browserSpeak([{ role: u.role, text: u.text }], r));
+    }
+    if(seq !== _ttsSeq) return 'superseded';
+  }
+  return 'done';
 }
 // Plays `chunks` from the local cast in order, each as soon as it is built. 'done', or
 // 'superseded' if a newer line took the floor (nothing more is played OR asked for). Throws if
@@ -4547,8 +4611,18 @@ async function speakSegments(segments, force, opts){
     try{ await gemSpeakSegments(roleSegs, seq); audioStatus(null); storyDone(seq); return; }
     catch(_){ if(seq!==_ttsSeq){ audioStatus(null); return; } /* quota or network — fall back to Kokoro */ }
   }
-  // 2) Local Kokoro cast
   const segs = roleSegs.map(s=>({ ...segVoice(s.role), text: s.text }));
+  // 2) Studio voices: the cast, recorded ahead of time, for every visitor
+  const studio = studioUnits(roleSegs);
+  if(studio){
+    try{ await studioSpeak(studio, seq); audioStatus(null); storyDone(seq); return; }
+    catch(e){
+      if(seq!==_ttsSeq){ audioStatus(null); return; }
+      if(e && e.name === 'NotAllowedError') audioStatus('Audio blocked by the browser — click the page, then Replay', 'warn', 9000, 'Audio blocked');
+      /* otherwise the cast or the browser voice takes the line */
+    }
+  }
+  // 3) Local Kokoro cast
   // Only when the server actually answered /health — otherwise every turn pays for a
   // doomed request. The probe runs everywhere now, including the deployed site: a browser
   // treats http://localhost as trustworthy, so a page on https can reach a cast running on
@@ -14716,6 +14790,66 @@ function evidenceHTML(){
     ${unreviewed ? '<div class="text-[10px] text-amber-300/80 pt-1">These rules are generated from the checklist and not yet clinically reviewed. Nothing here changes your score.</div>' : ''}
   </div>`;
 }
+// NEW CASES BY EMAIL. Kim, 2026-09-24: "i want to collect emails for ppl to sign up for more
+// cases". Under the score on every debrief — the moment a player most wants another case. Email
+// and role; consent is case updates only. It posts straight to the Supabase table case_signups,
+// which anyone may add to and nobody may read through the API (Kim exports it from the
+// dashboard). A browser that has signed up sees a one-line thank-you instead of the form.
+const SIGNUP_ROLES = [['attending','Attending physician'],['resident','Resident'],['student','Medical student'],
+  ['pa_np','PA / NP'],['nurse','Nurse'],['paramedic','Paramedic / EMT'],['other','Other']];
+function caseSignedUp(){ try{ return localStorage.getItem('ms_caseSignup') === '1'; }catch(_){ return false; } }
+function caseSignupHTML(){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return '';
+  if(caseSignedUp()) return `<div id="caseSignupBox" class="text-center text-[11px] text-emerald-400/80">✓ You're on the list for new cases.</div>`;
+  let email = ''; try{ const st = typeof Account !== 'undefined' ? Account.status() : null; email = (st && st.user && st.user.email) || ''; }catch(_){ }   // signed in: already filled
+  return `<form id="caseSignup" class="bg-emerald-950/30 border border-emerald-800/50 rounded-2xl p-5 space-y-3" novalidate>
+    <div>
+      <div class="text-base font-bold text-white">Want more cases like this?</div>
+      <div class="text-xs text-slate-400 mt-0.5">New cases by email. Case updates only &mdash; unsubscribe anytime.</div>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <label class="sr-only" for="signupEmail">Email</label>
+      <input id="signupEmail" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="you@hospital.org" value="${esc(email)}"
+        class="flex-1 min-w-0 min-h-[44px] px-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500">
+      <label class="sr-only" for="signupRole">Your role</label>
+      <select id="signupRole" name="role" required class="min-h-[44px] px-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+        <option value="">Your role</option>
+        ${SIGNUP_ROLES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+      </select>
+      <input name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden">
+      <button type="submit" class="min-h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white whitespace-nowrap">Email me new cases</button>
+    </div>
+    <div id="signupMsg" class="text-[11px] text-slate-500 min-h-[1em]" role="status" aria-live="polite">We'll only use your email for new-case updates. <a href="privacy.html" class="underline underline-offset-2 hover:text-emerald-400">Privacy</a></div>
+  </form>`;
+}
+async function submitCaseSignup(form){
+  const msg = form.querySelector('#signupMsg'), btn = form.querySelector('button[type=submit]');
+  const email = String(form.email.value || '').trim(), role = form.role.value;
+  const say = (t, tone) => { msg.textContent = t; msg.className = 'text-[11px] min-h-[1em] ' + (tone || 'text-amber-300'); };
+  if(form.website && form.website.value) return;                                    // a bot filled the hidden field
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254){ say('Please enter a valid email address.'); form.email.focus(); return; }
+  if(!role){ say('Please pick your role.'); form.role.focus(); return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/case_signups', { method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ email, role, consent: 'case_updates', source: ('debrief:' + (S.goldId || S.diagnosis || '')).slice(0, 80) }) });
+    if(r.ok || r.status === 409){                                                     // 409: already on the list — same answer
+      try{ localStorage.setItem('ms_caseSignup', '1'); }catch(_){ }
+      form.outerHTML = `<div id="caseSignupBox" class="bg-emerald-950/30 border border-emerald-800/50 rounded-2xl p-5 text-center">
+        <div class="text-base font-bold text-emerald-300">You're on the list.</div>
+        <div class="text-xs text-slate-400 mt-1">We'll email you when new cases are added.</div></div>`;
+      return;
+    }
+    throw new Error('HTTP ' + r.status);
+  }catch(_){
+    btn.disabled = false; btn.textContent = 'Email me new cases';
+    say('That did not go through. Check your connection and try again.');
+  }
+}
+if(typeof document !== 'undefined') document.addEventListener('submit', e => {
+  if(e.target && e.target.id === 'caseSignup'){ e.preventDefault(); submitCaseSignup(e.target); }
+});
 function debriefQuickSummaryHTML(d,met,missed){
   const ev=Array.isArray(d.criticalEvents)?d.criticalEvents:[];
   const positive=ev.find(x=>x&&x.type==='positive');
@@ -14771,6 +14905,7 @@ function renderDebrief(){
         <div class="text-lg font-bold text-white mt-1">${esc(d.outcome||'Case complete')}</div>
         <div id="debriefDeep" class="text-[11px] mt-2 h-4"></div>
       </div>
+      ${caseSignupHTML()}
       ${debriefQuickSummaryHTML(d,met,missed)}
       <details class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 leading-relaxed"><summary class="cursor-pointer font-bold text-slate-200">Full case summary</summary><p class="mt-3">${esc(d.summary||'')}</p></details>
       ${(met.length||missed.length)?`<div class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Critical Actions Checklist</h3>
@@ -15390,6 +15525,7 @@ function openSettings(){
   $('temp').value=S.temperature; $('tempVal').textContent=S.temperature; $('soundToggle').checked=S.sound;
   $('comfortableTextToggle').checked=S.comfortableText;
   $('hdVoicesToggle').checked=S.hdVoices;
+  if($('studioVoicesToggle')) $('studioVoicesToggle').checked=studioOn();
   paintVoicePicker();
   if($('ttsURL')) $('ttsURL').value = S.ttsURL || '';
   paintVoiceStatus();
@@ -15502,6 +15638,7 @@ $('comfortableTextToggle').addEventListener('change',e=>{
   if(S.stage==='play') measureDock();
 });
 $('logRunsToggle').addEventListener('change',e=>{ S.logRuns=e.target.checked; localStorage.setItem('ms_logRuns',S.logRuns?'1':'0'); });
+if($('studioVoicesToggle')) $('studioVoicesToggle').addEventListener('change',e=>{ try{ localStorage.setItem('ms_studioVoices', e.target.checked?'1':'0'); }catch(_){ } });
 $('hdVoicesToggle').addEventListener('change',e=>{ S.hdVoices=e.target.checked; localStorage.setItem('ms_hdVoices',S.hdVoices?'1':'0'); });
 $('voicePick').addEventListener('change',e=>{
   S.ttsVoice=e.target.value||''; localStorage.setItem('ms_voice',S.ttsVoice);
