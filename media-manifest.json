@@ -1344,7 +1344,7 @@
   "source_title": "File:DVTInGroinNoCompresible.png"
  },
  "us_fast_ruq": {
-  "credit": "Drahreg01",
+  "credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
   "file": "media/us_fast_ruq.jpg",
   "kw": [
    "free fluid",
@@ -1357,10 +1357,19 @@
    "positive fast"
   ],
   "label": "FAST \u2014 free fluid in Morison's pouch",
-  "license": "CC BY-SA 3.0",
-  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
-  "page": "https://commons.wikimedia.org/wiki/File:MorisonNoText.png",
-  "source_title": "File:MorisonNoText.png"
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S1.ogv",
+  "source_title": "Positive FAST of Hepatorenal Fossa (video frame; cropped and transcoded)",
+  "video": "media/usv_fast_ruq.webm",
+  "video_poster": "media/usv_fast_ruq.jpg",
+  "video_credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S1.ogv",
+  "video_title": "Positive FAST of Hepatorenal Fossa",
+  "video_note": "Cropped and transcoded for offline playback",
+  "video_kw": ["free fluid", "morison", "hemoperitoneum", "positive fast"]
  },
  "us_gallstones": {
   "credit": "Nevit Dilmen ( talk )",
@@ -1448,6 +1457,25 @@
   "page": "https://commons.wikimedia.org/wiki/File:B_lines_on_a_lung_ultrasound_of_a_patient_with_fibrosis.jpg",
   "source_title": "File:B lines on a lung ultrasound of a patient with fibrosis.jpg"
  },
+ "us_lung_absent": {
+  "credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "file": "media/usv_lung_absent.jpg",
+  "kw": ["absent lung sliding", "no lung sliding"],
+  "label": "Lung — absent sliding",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S4.ogv",
+  "source_title": "Absent Lung Sliding (video frame; cropped and transcoded)",
+  "video": "media/usv_lung_absent.webm",
+  "video_poster": "media/usv_lung_absent.jpg",
+  "video_credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S4.ogv",
+  "video_title": "Absent Lung Sliding",
+  "video_note": "Cropped to remove scanner header and transcoded for offline playback",
+  "video_kw": ["absent lung sliding", "no lung sliding"]
+ },
  "us_lung_mmode": {
   "credit": "Tinss",
   "file": "media/us_lung_mmode.jpg",
@@ -1455,17 +1483,42 @@
    "m-mode",
    "m mode",
    "seashore",
-   "barcode",
-   "stratosphere",
    "lung sliding",
-   "absent sliding",
-   "lung point"
+   "sliding returned"
   ],
-  "label": "Lung \u2014 M-mode, seashore vs barcode",
+  "label": "Lung \u2014 sliding present, seashore sign",
   "license": "CC BY-SA 4.0",
   "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
   "page": "https://commons.wikimedia.org/wiki/File:Sea_shore_sign_on_a_lung_ultrasound.jpg",
-  "source_title": "File:Sea shore sign on a lung ultrasound.jpg"
+  "source_title": "File:Sea shore sign on a lung ultrasound.jpg",
+  "video": "media/usv_lung_sliding.webm",
+  "video_poster": "media/usv_lung_sliding.jpg",
+  "video_credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S3.ogv",
+  "video_title": "Lung Sliding",
+  "video_note": "Cropped to remove scanner header and transcoded for offline playback",
+  "video_kw": ["lung sliding", "seashore", "sliding returned"]
+ },
+ "us_lung_point": {
+  "credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "file": "media/usv_lung_point.jpg",
+  "kw": ["lung point", "pneumothorax lung point"],
+  "label": "Lung \u2014 lung point",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S7.ogv",
+  "source_title": "Lung Point",
+  "video": "media/usv_lung_point.webm",
+  "video_poster": "media/usv_lung_point.jpg",
+  "video_credit": "Gillman L, Ball C, Panebianco N, Al-Kadi A, Kirkpatrick A",
+  "video_license": "CC BY 2.0",
+  "video_license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "video_page": "https://commons.wikimedia.org/wiki/File:Clinician-performed-resuscitative-ultrasonography-for-the-initial-evaluation-and-resuscitation-of-1757-7241-17-34-S7.ogv",
+  "video_title": "Lung Point",
+  "video_note": "Cropped to remove scanner header and transcoded for offline playback",
+  "video_kw": ["lung point"]
  },
  "us_normal_generic": {
   "credit": "Nevit Dilmen ( talk )",

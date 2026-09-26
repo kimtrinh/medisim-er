@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-LA8hFi4qCj64iBxVqOoV44c6APq74dYPB10yhe7vJ9w=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-+VA45CQJiMR2KBrHulwliIZ6MvybRGQSPnjkE1QdWGM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -160,6 +160,49 @@
   @keyframes rmLungOpen{from{transform:scale(.48,.73);opacity:.48}to{transform:scale(1);opacity:1}}
   @keyframes rmPleuralAir{from{transform:translateX(-9px);opacity:.9}to{transform:translateX(13px);opacity:0}}
   @keyframes rmRoscGlow{50%{box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 28px rgba(16,185,129,.7)}}
+  /* Monitor-native feedback: these effects never sit over the patient or the team.
+     Waveform capnography earns its own trace only after the engine confirms it, and
+     pacing capture briefly lights the ECG/HR/BP rather than adding another room actor. */
+  .telemetryLower{flex:38 1 0;min-height:0;display:flex;border-top:1px solid rgba(30,41,59,.5)}
+  .telemetryLower>canvas{min-width:0;min-height:0}
+  #pleth{flex:1 1 auto;width:100%}
+  #capnoPod{display:none;position:relative;flex:0 0 42%;min-width:92px;border-left:1px solid rgba(71,85,105,.55);
+    background:rgba(2,6,23,.76);overflow:hidden}
+  #capnoPod.capnoOn{display:block;animation:capnoArrive .32s ease-out both}
+  #capno{display:block;width:100%;height:100%}
+  .capnoLabel{position:absolute;z-index:2;top:2px;left:6px;color:rgba(250,204,21,.72);
+    font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  .capnoValue{position:absolute;z-index:2;right:5px;bottom:1px;color:#fde047;
+    font:900 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;pointer-events:none}
+  #pacingCue{position:absolute;z-index:12;left:50%;top:5px;translate:-50% -8px;opacity:0;pointer-events:none;
+    padding:3px 8px;border:1px solid rgba(250,204,21,.68);border-radius:999px;background:rgba(24,18,2,.9);
+    color:#fef08a;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+  #pacingCue.captureOn{animation:pacingCaptureCue 3.2s ease-out both}
+  #monGrid.captureOn #ecgBox,#monGrid.captureOn .vBox:nth-child(-n+2){animation:pacingCapturePanel 1.05s ease-in-out 2}
+  @keyframes capnoArrive{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+  @keyframes pacingCaptureCue{0%{opacity:0;translate:-50% -8px}10%,72%{opacity:1;translate:-50% 0}100%{opacity:0;translate:-50% 0}}
+  @keyframes pacingCapturePanel{50%{border-color:rgba(250,204,21,.8);box-shadow:0 0 0 2px rgba(250,204,21,.14),0 0 24px rgba(250,204,21,.28)}}
+  @media(max-width:639px){
+    #capnoPod{flex-basis:46%;min-width:74px}.capnoLabel{font-size:7px;left:3px}.capnoValue{font-size:8px;right:3px}
+    #pacingCue{font-size:7px;padding:2px 5px}
+  }
+  /* A brief response at the patient's chest, not a permanent HUD. The event is
+     only mounted after the engine confirms ROSC or improved post-decompression
+     physiology; the room photo and patient identity stay untouched. */
+  .rmResponseBurst{position:absolute;z-index:8;width:18%;aspect-ratio:1;pointer-events:none;
+    transform:translate(-50%,-50%);border-radius:50%;isolation:isolate}
+  .rmResponseBurst::before{content:'';position:absolute;inset:25%;border-radius:50%;
+    background:radial-gradient(circle,var(--burst-core),transparent 68%);
+    animation:rmResponseCore 1.9s ease-out both}
+  .rmResponseBurst i{position:absolute;inset:16%;display:block;border:2px solid var(--burst-ring);
+    border-radius:50%;box-shadow:0 0 18px var(--burst-glow),inset 0 0 10px var(--burst-glow);
+    animation:rmResponseRing 1.6s cubic-bezier(.18,.72,.26,1) both}
+  .rmResponseBurst i:nth-child(2){animation-delay:.48s}
+  .rmResponseBurst i:nth-child(3){animation-delay:.96s}
+  .rmResponseBurst--rosc{--burst-core:rgba(52,211,153,.52);--burst-ring:rgba(167,243,208,.85);--burst-glow:rgba(16,185,129,.62)}
+  .rmResponseBurst--lung{--burst-core:rgba(103,232,249,.43);--burst-ring:rgba(165,243,252,.8);--burst-glow:rgba(8,145,178,.62)}
+  @keyframes rmResponseCore{0%{opacity:0;scale:.45}20%{opacity:.9}100%{opacity:0;scale:1.3}}
+  @keyframes rmResponseRing{0%{opacity:0;scale:.25}15%{opacity:.85}100%{opacity:0;scale:1.8}}
   @keyframes rmIntubate{
     0%{opacity:0;translate:2% -4%}
     18%,70%{opacity:1}
@@ -203,6 +246,8 @@
   }
   @media (prefers-reduced-motion:reduce){
     .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir{animation:none!important}
+    #capnoPod,#pacingCue,#monGrid.captureOn #ecgBox,#monGrid.captureOn .vBox{animation:none!important}
+    .rmResponseBurst{display:none}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
     .rmBvmBagPulse{opacity:.32;transform:none}
     .chartNew{animation:none}
@@ -2931,7 +2976,8 @@ function mediaEntry(query, type, allowGeneric, accept){
           licenseUrl:e.license_url, label:e.label, key:best.key, source:'local', score:bestScore,
           // an ultrasound LOOP attached to this still (plan 4, task 4) — the still stays the choice
           video:loopFits?e.video:null, poster:e.video_poster||null, videoCredit:e.video_credit||null,
-          videoLicense:e.video_license||null, videoPage:e.video_page||null};
+          videoLicense:e.video_license||null, videoLicenseUrl:e.video_license_url||null,
+          videoPage:e.video_page||null, videoNote:e.video_note||null};
 }
 
 // BOTH LIBRARIES ARE ONE POOL, RANKED TOGETHER. This used to try the local library first
@@ -3188,7 +3234,13 @@ document.addEventListener('error', e => {
   v.replaceWith(im);
 }, true);
 function studyLoopCredit(img){
-  return img && img.video && img.videoCredit ? ' · loop: ' + img.videoCredit + (img.videoLicense ? ', ' + img.videoLicense : '') : '';
+  return img && img.video && img.videoCredit ? ' · loop: ' + img.videoCredit + (img.videoLicense ? ', ' + img.videoLicense : '') + (img.videoNote ? ' · ' + img.videoNote : '') : '';
+}
+function studyLoopSourceHTML(img){
+  if(!img || !img.video || !/^https:\/\/commons\.wikimedia\.org\/wiki\//.test(img.videoPage||'')) return '';
+  const license = /^https:\/\/creativecommons\.org\/licenses\//.test(img.videoLicenseUrl||'')
+    ? ` · <a href="${esc(img.videoLicenseUrl)}" target="_blank" rel="noopener noreferrer" class="underline">license</a>` : '';
+  return ` · <a href="${esc(img.videoPage)}" target="_blank" rel="noopener noreferrer" class="underline">loop source</a>${license}`;
 }
 function openFilmViewer(url, caption, key){
   const spots = (key && FILM_HOTSPOTS[key]) || [];
@@ -4836,16 +4888,17 @@ let _ecgFit=null;
 // consumed by the next waveform sample.
 let _ecgShockPending = false;
 function ecgShock(){ _ecgShockPending = true; }
-function startECG(canvas, pleth){
+function startECG(canvas, pleth, capno){
   cancelAnimationFrame(ecgRAF);
   if(_ecgFit){ _ecgFit(); _ecgFit=null; }   // the previous case's observers go with it
-  const ectx=canvas.getContext('2d'), pctx=pleth?pleth.getContext('2d'):null;
+  const ectx=canvas.getContext('2d'), pctx=pleth?pleth.getContext('2d'):null,
+        cctx=capno?capno.getContext('2d'):null;
   // Buffers start EMPTY and are primed to the strip's real width the moment the box is
   // measured (see prime()). Sizing them here from an unlaid-out canvas was the second
   // half of the bug: even once drawing started the trace grew one column per frame.
-  let ecgBuf=[], plBuf=[];
-  let bufW=1, plBufW=1;                     // target buffer lengths = strip widths in CSS px
-  let dispW=1, dispH=1, plDispW=1, plDispH=1;   // cached box sizes; re-read per frame forced a layout
+  let ecgBuf=[], plBuf=[], capBuf=[];
+  let bufW=1, plBufW=1, capBufW=1;          // target buffer lengths = strip widths in CSS px
+  let dispW=1, dispH=1, plDispW=1, plDispH=1, capDispW=1, capDispH=1; // cached box sizes
   let t=0, rPeaks=[], nextR=0.25, aP=[], nextAP=0;   // ventricular beats + independent atrial P (for CHB)
   let _beatN=0;   // beat counter: drives the Wenckebach cycle, the 2:1 drop and the torsades envelope
   let shockT=-1;  // trace time of the last defibrillation, -1 when none is being drawn
@@ -4930,6 +4983,18 @@ function startECG(canvas, pleth){
         p=Math.max(p,(up+notch)*perf); } }
       plBuf.push(p); while(plBuf.length>plBufW) plBuf.shift();
     }
+    // A true time-based capnogram: rapid expiratory upstroke, gently rising alveolar
+    // plateau, rapid inspiratory downstroke and a zero baseline. It is drawn continuously
+    // but the pod remains hidden until capnography has actually been attached.
+    if(cctx){
+      const breaths=Math.max(4,Math.min(40,Number(v.rr)||12)), period=60/breaths;
+      const ph=(t%period)/period;
+      let co2=0;
+      if(ph>=.10 && ph<.18) co2=(ph-.10)/.08;
+      else if(ph>=.18 && ph<.62) co2=.88+.12*((ph-.18)/.44);
+      else if(ph>=.62 && ph<.70) co2=1-(ph-.62)/.08;
+      capBuf.push(Math.max(0,co2)); while(capBuf.length>capBufW) capBuf.shift();
+    }
   }
   // Fill the strip before it is first painted. Without this the trace crawls in at one
   // column per frame and takes about five seconds to reach the right-hand edge, which
@@ -4941,7 +5006,7 @@ function startECG(canvas, pleth){
   function prime(){
     if(!sized) return;
     let guard=4000;
-    while(guard-- > 0 && (ecgBuf.length<bufW || (pctx && plBuf.length<plBufW))) step(true);
+    while(guard-- > 0 && (ecgBuf.length<bufW || (pctx && plBuf.length<plBufW) || (cctx && capBuf.length<capBufW))) step(true);
   }
   function frame(){
     step(false);
@@ -4950,6 +5015,7 @@ function startECG(canvas, pleth){
     if(shockT>=0 && t-shockT<0.18){ ectx.globalAlpha=0.85; ectx.fillStyle='#fff'; ectx.fillRect(0,0,dispW,dispH); ectx.globalAlpha=1; }   // ~11 frames, unmistakable
     if(pctx) drawTrace(pctx,plBuf,plDispW,plDispH,plDispH*0.82,plDispH*0.62,
                        (S.shown.o2<92)?'#f59e0b':'#22d3ee');
+    if(cctx) drawTrace(cctx,capBuf,capDispW,capDispH,capDispH*0.86,capDispH*0.68,'#facc15');
     ecgRAF=requestAnimationFrame(frame);
   }
   // Sized last, because the first fit lands synchronously and primes the buffer, which
@@ -4958,7 +5024,9 @@ function startECG(canvas, pleth){
     dispW=w; dispH=h; bufW=Math.max(1,w); while(ecgBuf.length>bufW) ecgBuf.shift(); prime(); });
   const fitP=pleth?autoFitCanvas(pleth,(w,h,dpr)=>{ pctx.setTransform(dpr,0,0,dpr,0,0);
     plDispW=w; plDispH=h; plBufW=Math.max(1,w); while(plBuf.length>plBufW) plBuf.shift(); prime(); }):null;
-  _ecgFit=()=>{ fitE.stop(); if(fitP) fitP.stop(); };
+  const fitC=capno?autoFitCanvas(capno,(w,h,dpr)=>{ cctx.setTransform(dpr,0,0,dpr,0,0);
+    capDispW=w; capDispH=h; capBufW=Math.max(1,w); while(capBuf.length>capBufW) capBuf.shift(); prime(); }):null;
+  _ecgFit=()=>{ fitE.stop(); if(fitP) fitP.stop(); if(fitC) fitC.stop(); };
   sized=true; prime();
   frame();
 }
@@ -5148,6 +5216,7 @@ function paintVitals(){
   $('v_bp').textContent=sys+'/'+dia; $('v_bp').className='text-3xl font-black mono '+(bpCrit?'text-red-500':'text-yellow-400');
   $('v_o2').textContent=o2; $('v_o2').className='text-3xl font-black mono '+(o2Crit?'text-red-500':'text-blue-400');
   $('v_rr').textContent=rr;
+  paintCapnoPod();
   // Sim-room wall monitor mirrors the header numbers; red border = any crit vital.
   // The room itself reacts: a red vignette closes in as the patient deteriorates, so
   // trouble is visible from across the desk without reading a single number.
@@ -5849,6 +5918,9 @@ function onCodeEvents(events){
   const story = evs.filter(e => !STATUS_KINDS.has(e.kind));
   const status = evs.filter(e => STATUS_KINDS.has(e.kind));
   if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
+  // Starting a pacer is not the same thing as capture. The cue is earned only after
+  // checkConversion has changed the engine to a perfusing paced rhythm.
+  if(evs.some(e => e.kind === 'pacing') && S.code && S.code.rhythm === 'paced' && S.code.pulse) showPacingCapture();
   if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')) startClinicalCue('lung');
   if(evs.some(e => e.kind === 'check')) startCprPause();   // the 2-minute check, or one the player ordered
   if(story.length) codeSay(story);
@@ -9773,7 +9845,13 @@ function renderPlay(){
              basis is definite, so the pair always divides the whole strip 62/38 whatever
              the backing store happens to be. min-height:0 lets them shrink on a phone. -->
         <canvas id="ecg" class="w-full block" style="flex:62 1 0;min-height:0"></canvas>
-        <canvas id="pleth" class="w-full block border-t border-slate-800/50" style="flex:38 1 0;min-height:0"></canvas>
+        <div class="telemetryLower">
+          <canvas id="pleth" class="block"></canvas>
+          <div id="capnoPod" aria-label="Waveform capnography">
+            <span class="capnoLabel">EtCO₂</span><canvas id="capno"></canvas><span id="capnoValue" class="capnoValue">--</span>
+          </div>
+        </div>
+        <div id="pacingCue" role="status" aria-live="polite" aria-hidden="true"></div>
         <div id="v_trend" class="absolute bottom-1.5 right-2"></div>
       </div>
       <div id="vitalsGrid" class="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
@@ -9907,7 +9985,7 @@ function renderPlay(){
     </aside>
   </div>`;
   // wire
-  startECG($('ecg'), $('pleth')); startDrift(); paintVitals();
+  startECG($('ecg'), $('pleth'), $('capno')); startDrift(); paintVitals();
   // renderPlay() rebuilds the whole play screen on every order, so the code strip has
   // to be repainted here or it vanishes the moment the player does anything.
   paintCodeStrip();
@@ -13561,13 +13639,22 @@ function clinicalCueHTML(kind){
     Chest decompressed<small>Watch the monitor and reassess</small></div>`;
   return '';
 }
+function responseBurstHTML(kind){
+  if(kind!=='rosc' && kind!=='lung') return '';
+  const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room';
+  const chest=zoneBox(ROOM_VIEWS[viewKey].zones,'chest');
+  if(!chest) return '';
+  const shift=roomSceneShift(viewKey);
+  const x=chest.l+chest.w*.5+shift[0], y=chest.t+chest.h*.45+shift[1];
+  return `<div class="rmResponseBurst rmResponseBurst--${kind}" aria-hidden="true" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><i></i><i></i><i></i></div>`;
+}
 function paintClinicalCue(){
   const host=$('rmClinicalCue'); if(!host) return;
   const cue=roomState().clinicalCue;
   const kind=cue && cue.until>Date.now() ? cue.kind : '';
   if(host.dataset.kind===kind) return;
   host.dataset.kind=kind;
-  host.innerHTML=clinicalCueHTML(kind);
+  host.innerHTML=clinicalCueHTML(kind)+($('roomBox')?responseBurstHTML(kind):'');
 }
 function startClinicalCue(kind){
   if(kind!=='rosc' && kind!=='lung') return;
@@ -13619,6 +13706,26 @@ function paintCareStrip(){
   el.innerHTML='<div class="flex items-center gap-1.5 overflow-x-auto"><span class="shrink-0 text-[9px] font-black uppercase tracking-widest text-slate-500 mr-1">Care in progress</span>'+
     items.map(x=>'<span class="shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold '+(tone[x.tone]||tone.slate)+'">'+esc(x.label)+'</span>').join('')+'</div>';
   el.classList.remove('hidden');
+}
+// These animations live in the monitor because they explain physiology, not staging.
+// They cannot obscure the patient, CPR hands, airway operator, or paramedic handover.
+function paintCapnoPod(){
+  const pod=$('capnoPod'), value=$('capnoValue'); if(!pod) return;
+  const active=!!(S.code && S.code.capnography);
+  pod.classList.toggle('capnoOn',active);
+  pod.setAttribute('aria-hidden',String(!active));
+  if(value) value.textContent=active ? String(Math.round(Number(S.code.etco2)||0)) : '--';
+}
+let _pacingCaptureTimer=0;
+function showPacingCapture(){
+  const cue=$('pacingCue'), grid=$('monGrid'); if(!cue||!grid) return;
+  clearTimeout(_pacingCaptureTimer);
+  cue.classList.remove('captureOn'); grid.classList.remove('captureOn');
+  cue.textContent='⚡ Electrical + mechanical capture'; cue.setAttribute('aria-hidden','false');
+  void cue.offsetWidth;
+  cue.classList.add('captureOn'); grid.classList.add('captureOn');
+  _pacingCaptureTimer=setTimeout(()=>{ cue.classList.remove('captureOn'); grid.classList.remove('captureOn');
+    cue.textContent=''; cue.setAttribute('aria-hidden','true'); },3250);
 }
 // The current RT cutout is composed for an adult bed. Do not shrink that adult onto
 // a pediatric or neonatal patient: those families need their own reviewed artwork
@@ -14625,7 +14732,7 @@ function renderWorkspace(){
     const imgHtml = !r.img ? '' : (studyLoopOK(r.img)
       ? studyLoopHTML(r.img, `aria-label="Clinical study loop: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-study-loop="1" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black"`, '')
       : `<img src="${esc(r.img.url)}" loading="lazy" alt="Clinical study image: ${esc(r.title||rk||'study')}" role="button" tabindex="0" data-img="${esc(r.img.url)}" data-cap="${cap}" data-key="${esc(r.img.key||'')}" data-fallback="${esc(fbUrl)}" class="w-full rounded-lg my-2 cursor-zoom-in border border-slate-700/50 bg-black" />`)
-      + `<div class="text-[9px] text-slate-600 leading-tight">${esc(attr + (studyLoopOK(r.img) ? studyLoopCredit(r.img) : ''))} · click to enlarge</div>`;
+      + `<div class="text-[9px] text-slate-600 leading-tight">${esc(attr + (studyLoopOK(r.img) ? studyLoopCredit(r.img) : ''))}${studyLoopOK(r.img) ? studyLoopSourceHTML(r.img) : ''} · click to enlarge</div>`;
     // WHO READS WHAT: the ED physician interprets ONLY their own 12-lead ECG and
     // chest X-ray in real time — those two show the IMAGE ONLY, never a written
     // read. EVERY other study (ultrasound, plain films like KUB/pelvis, CT, MRI)
