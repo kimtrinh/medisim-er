@@ -227,6 +227,39 @@
   "page": "https://commons.wikimedia.org/wiki/File:Normal_posteroanterior_(PA)_chest_radiograph_(X-ray).jpg",
   "source_title": "File:Normal posteroanterior (PA) chest radiograph (X-ray).jpg"
  },
+ "cxr_ett_clear_ai": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/cxr_ett_clear-ai-v1.jpg",
+  "generated": true,
+  "kw": ["endotracheal tube", "ett position", "intubated chest x-ray", "clear lungs after intubation"],
+  "label": "CXR — endotracheal tube in place (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated chest radiograph"
+ },
+ "cxr_left_tension_ptx_ai": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/cxr_left_tension_ptx-ai-v1.jpg",
+  "generated": true,
+  "kw": ["left tension pneumothorax", "left pneumothorax", "absent left lung markings", "mediastinal shift"],
+  "label": "CXR — left tension pneumothorax (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated chest radiograph"
+ },
+ "cxr_left_chest_tube_ett_ai": {
+  "credit": "ChatGPT image generation (user-requested asset)",
+  "file": "media/cxr_left_chest_tube_ett-ai-v1.jpg",
+  "generated": true,
+  "kw": ["left chest tube", "tube thoracostomy", "endotracheal tube", "post decompression chest x-ray"],
+  "label": "CXR — left chest tube and endotracheal tube (illustrative)",
+  "license": "AI-generated illustrative asset",
+  "license_url": "",
+  "page": "https://chatgpt.com/",
+  "source_title": "Non-identifiable generated chest radiograph"
+ },
  "cxr_free_air": {
   "credit": "Bill Rhodes from Asheville",
   "file": "media/cxr_free_air.jpg",

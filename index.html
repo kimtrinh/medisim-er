@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-+VA45CQJiMR2KBrHulwliIZ6MvybRGQSPnjkE1QdWGM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-m9znSPeB7ZkjSRnQdVvbM1mzmsNQLN7kxtXoQIEiDeQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -120,6 +120,22 @@
     background:radial-gradient(ellipse,rgba(103,232,249,.52),rgba(14,116,144,.12) 55%,transparent 74%);
     transform-origin:center;animation:rmBagPulse 6s cubic-bezier(.45,0,.55,1) infinite;
     mix-blend-mode:screen;will-change:transform,opacity}
+  /* PALS/NRP use their own anatomy instead of shrinking an adult clinician photograph.
+     The whole rig is anchored to the authored chest/head zone, while only the thumbs or
+     bag deform. That keeps the contact point fixed when the camera changes. */
+  @keyframes rmInfantThumbs{0%,100%{transform:translateY(-1px)}42%,58%{transform:translateY(5px)}}
+  @keyframes rmInfantChest{0%,100%{transform:scaleY(1)}42%,58%{transform:scaleY(.91)}}
+  @keyframes rmInfantBag{0%,100%{transform:scale(1)}28%{transform:scale(.76,1.06)}48%{transform:scale(1)}}
+  @keyframes rmWarmRays{0%,100%{opacity:.28;transform:scale(.94)}50%{opacity:.88;transform:scale(1.05)}}
+  .rmInfantRig{position:absolute;z-index:3;pointer-events:none;filter:drop-shadow(0 4px 5px rgba(2,6,23,.5))}
+  .rmInfantRig svg{display:block;width:100%;height:100%;overflow:visible}
+  .rmInfantThumbs{transform-box:fill-box;transform-origin:center;animation:rmInfantThumbs .545s cubic-bezier(.45,0,.55,1) infinite}
+  .rmInfantChest{transform-box:fill-box;transform-origin:center bottom;animation:rmInfantChest .545s cubic-bezier(.45,0,.55,1) infinite}
+  .rmInfantCprPaused .rmInfantThumbs,.rmInfantCprPaused .rmInfantChest{animation:none}
+  .rmInfantBag{transform-box:fill-box;transform-origin:center;animation:rmInfantBag var(--ppv-cycle,1.2s) ease-in-out infinite}
+  .rmNeonatalWarmth{position:absolute;z-index:2;pointer-events:none;filter:drop-shadow(0 0 8px rgba(251,191,36,.34))}
+  .rmNeonatalWarmth svg{display:block;width:100%;height:100%;overflow:visible}
+  .rmWarmRays{transform-box:fill-box;transform-origin:center;animation:rmWarmRays 1.15s ease-in-out infinite}
   @keyframes rmDefibReady{0%,100%{transform:translate3d(0,0,0) scaleX(-1)}50%{transform:translate3d(.35%,.2%,0) scaleX(-1)}}
   @keyframes rmDefibPress{0%{transform:translate3d(0,0,0) scaleX(-1)}38%{transform:translate3d(1.1%,.8%,0) scaleX(-1)}100%{transform:translate3d(0,0,0) scaleX(-1)}}
   @keyframes rmShockPatient{0%{transform:translate3d(0,0,0)}30%{transform:translate3d(0,-.55%,0) scale(1.002)}100%{transform:translate3d(0,0,0)}}
@@ -148,6 +164,8 @@
   .rmClinicalCue .rmAir{animation:rmPleuralAir 1.45s ease-out both}
   .rmClinicalCue .rmAir:nth-of-type(2){animation-delay:.14s}
   .rmClinicalCue .rmAir:nth-of-type(3){animation-delay:.28s}
+  .rmClinicalCue .rmBronchus{transform-box:fill-box;transform-origin:center;animation:rmBronchusOpen 1.8s ease-out both}
+  .rmClinicalCue .rmBreathWave{stroke-dasharray:58;stroke-dashoffset:58;animation:rmBreathDraw 1.7s ease-out .2s both}
   .rmClinicalCue--rosc{width:auto;min-width:150px;font-size:14px;letter-spacing:.07em;
     animation:rmCueIn .32s ease-out both,rmRoscGlow 1s ease-in-out 2}
   @media(max-width:767px){
@@ -159,6 +177,8 @@
   @keyframes rmCueIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
   @keyframes rmLungOpen{from{transform:scale(.48,.73);opacity:.48}to{transform:scale(1);opacity:1}}
   @keyframes rmPleuralAir{from{transform:translateX(-9px);opacity:.9}to{transform:translateX(13px);opacity:0}}
+  @keyframes rmBronchusOpen{from{transform:scaleX(.52);opacity:.48}to{transform:scaleX(1);opacity:1}}
+  @keyframes rmBreathDraw{to{stroke-dashoffset:0}}
   @keyframes rmRoscGlow{50%{box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 28px rgba(16,185,129,.7)}}
   /* Monitor-native feedback: these effects never sit over the patient or the team.
      Waveform capnography earns its own trace only after the engine confirms it, and
@@ -245,7 +265,7 @@
     #typeahead.dosePicker .ta-dose{min-height:48px;font-size:15px;padding:.75rem 1rem}
   }
   @media (prefers-reduced-motion:reduce){
-    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir{animation:none!important}
+    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmInfantThumbs,.rmInfantChest,.rmInfantBag,.rmWarmRays,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir,.rmClinicalCue .rmBronchus,.rmClinicalCue .rmBreathWave{animation:none!important}
     #capnoPod,#pacingCue,#monGrid.captureOn #ecgBox,#monGrid.captureOn .vBox{animation:none!important}
     .rmResponseBurst{display:none}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
@@ -3718,6 +3738,8 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
       S.trend = ['stable','improving','worsening','critical'].includes(r.vitalTrend)?r.vitalTrend:'stable';
     if(lungResponseFromTurn(action, r._trace, beforeTreatmentVitals, S.vitals, S.diagnosis))
       startClinicalCue('lung');
+    else if(bronchodilatorResponseFromTurn(action, r._trace, beforeTreatmentVitals, S.vitals))
+      startClinicalCue('breathing');
     snapVitalsToTurn();   // monitor + telemetry respond THE INSTANT the order lands, in sync with the spoken result — not 10+s behind it
     // repeat:true rows/cards (instant engine re-orders) REPLACE their originals
     // instead of stacking duplicates in the workspace; everything else appends.
@@ -4888,6 +4910,11 @@ let _ecgFit=null;
 // consumed by the next waveform sample.
 let _ecgShockPending = false;
 function ecgShock(){ _ecgShockPending = true; }
+// Adenosine earns a different monitor moment from a shock: a very short AV pause,
+// followed by the newly converted rhythm. Raised only by an engine conversion event,
+// never by merely seeing the word "adenosine" in an order.
+let _ecgAdenosinePending = false;
+function ecgAdenosine(){ _ecgAdenosinePending = true; }
 function startECG(canvas, pleth, capno){
   cancelAnimationFrame(ecgRAF);
   if(_ecgFit){ _ecgFit(); _ecgFit=null; }   // the previous case's observers go with it
@@ -4901,7 +4928,7 @@ function startECG(canvas, pleth, capno){
   let dispW=1, dispH=1, plDispW=1, plDispH=1, capDispW=1, capDispH=1; // cached box sizes
   let t=0, rPeaks=[], nextR=0.25, aP=[], nextAP=0;   // ventricular beats + independent atrial P (for CHB)
   let _beatN=0;   // beat counter: drives the Wenckebach cycle, the 2:1 drop and the torsades envelope
-  let shockT=-1;  // trace time of the last defibrillation, -1 when none is being drawn
+  let shockT=-1, adenosineT=-1;  // trace time of the last electrical/drug interruption
   function rr(type,hr){ const base=60/Math.max(20,hr); return type==='afib'? base*(0.5+Math.random()*1.0) : base; }
   function drawGrid(cx,W,H){ cx.strokeStyle='rgba(226,232,240,.05)'; cx.lineWidth=1;
     for(let x=0;x<W;x+=20){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
@@ -4962,6 +4989,15 @@ function startECG(canvas, pleth, capno){
       if(d<0.09) y = (Math.floor(d/0.016)%2) ? 1.35 : -1.15;      // saturated spike
       else if(d<0.85) y = 0.015*Math.sin(t*37);                    // stunned: near-flat
       else shockT=-1;
+    }
+    if(!quiet && _ecgAdenosinePending){ _ecgAdenosinePending=false; adenosineT=t; }
+    if(adenosineT>=0){
+      const d=t-adenosineT;
+      // A transient AV pause, not an alarming prolonged flatline. The engine has
+      // already changed S.shown.rhythm, so sinus complexes naturally follow it.
+      if(d<0.08) y=.42*Math.exp(-Math.pow((d-.035)/.018,2));
+      else if(d<0.58) y=.008*Math.sin(t*24);
+      else adenosineT=-1;
     }
     ecgBuf.push(y); while(ecgBuf.length>bufW) ecgBuf.shift();
     // beep on each new QRS as it passes 'now' — a primed backlog is history, not news,
@@ -5918,10 +5954,13 @@ function onCodeEvents(events){
   const story = evs.filter(e => !STATUS_KINDS.has(e.kind));
   const status = evs.filter(e => STATUS_KINDS.has(e.kind));
   if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
+  const adenosineConverted=evs.some(e => e.kind==='convert' && e.via==='adenosine');
+  if(adenosineConverted){ ecgAdenosine(); showMonitorResponse('AV pause → sinus rhythm'); }
   // Starting a pacer is not the same thing as capture. The cue is earned only after
   // checkConversion has changed the engine to a perfusing paced rhythm.
   if(evs.some(e => e.kind === 'pacing') && S.code && S.code.rhythm === 'paced' && S.code.pulse) showPacingCapture();
   if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')) startClinicalCue('lung');
+  if(evs.some(e => e.kind === 'care' && e.care === 'naloxone')) startClinicalCue('breathing');
   if(evs.some(e => e.kind === 'check')) startCprPause();   // the 2-minute check, or one the player ordered
   if(story.length) codeSay(story);
   for(const e of (events || [])){
@@ -13624,6 +13663,14 @@ function lungResponseFromTurn(action, trace, before, after, diagnosis){
   return (Number.isFinite(+a.o2) && Number.isFinite(+b.o2) && +a.o2>=+b.o2+2)
       || (Number.isFinite(+a.bpSystolic) && Number.isFinite(+b.bpSystolic) && +a.bpSystolic>=+b.bpSystolic+5);
 }
+function bronchodilatorResponseFromTurn(action, trace, before, after){
+  const treatment=/\b(albuterol|salbutamol|ipratropium|duoneb|duo-neb|nebuliz(?:e|er|ed|ation)|bronchodilator)\b/i;
+  if(!treatment.test(String(action||''))) return false;
+  if(trace && !roomActionConfirmed(trace,treatment)) return false;
+  const a=after||{}, b=before||{};
+  return (Number.isFinite(+a.o2) && Number.isFinite(+b.o2) && +a.o2>=+b.o2+2)
+      || (Number.isFinite(+a.rr) && Number.isFinite(+b.rr) && +a.rr<=+b.rr-3);
+}
 function clinicalCueHTML(kind){
   if(kind==='rosc') return '<div class="rmClinicalCue rmClinicalCue--rosc" role="status">♥ PULSE RETURNED<small>Post-arrest care continues</small></div>';
   if(kind==='lung') return `<div class="rmClinicalCue rmClinicalCue--lung" role="status">
@@ -13637,16 +13684,26 @@ function clinicalCueHTML(kind){
       <path d="M103 31h12m-6-6 6 6-6 6" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     Chest decompressed<small>Watch the monitor and reassess</small></div>`;
+  if(kind==='breathing') return `<div class="rmClinicalCue rmClinicalCue--breathing" role="status">
+    <svg viewBox="0 0 120 62" aria-hidden="true" focusable="false">
+      <path d="M60 7v17m0-2-18 13m18-13 18 13" fill="none" stroke="#a7f3d0" stroke-width="4" stroke-linecap="round"/>
+      <g class="rmBronchus" fill="none" stroke="#67e8f9" stroke-width="4" stroke-linecap="round">
+        <path d="M42 35 28 47m14-12-13-2M78 35l14 12m-14-12 13-2"/>
+      </g>
+      <path class="rmBreathWave" d="M18 55h19l4-7 7 12 7-18 8 13h39" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Breathing improving<small>Reassess work of breathing</small></div>`;
   return '';
 }
 function responseBurstHTML(kind){
-  if(kind!=='rosc' && kind!=='lung') return '';
+  if(kind!=='rosc' && kind!=='lung' && kind!=='breathing') return '';
   const viewKey=ROOM_VIEWS[S.pview]?S.pview:'room';
   const chest=zoneBox(ROOM_VIEWS[viewKey].zones,'chest');
   if(!chest) return '';
   const shift=roomSceneShift(viewKey);
   const x=chest.l+chest.w*.5+shift[0], y=chest.t+chest.h*.45+shift[1];
-  return `<div class="rmResponseBurst rmResponseBurst--${kind}" aria-hidden="true" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><i></i><i></i><i></i></div>`;
+  const burstKind=kind==='breathing'?'lung':kind;
+  return `<div class="rmResponseBurst rmResponseBurst--${burstKind}" aria-hidden="true" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><i></i><i></i><i></i></div>`;
 }
 function paintClinicalCue(){
   const host=$('rmClinicalCue'); if(!host) return;
@@ -13657,7 +13714,7 @@ function paintClinicalCue(){
   host.innerHTML=clinicalCueHTML(kind)+($('roomBox')?responseBurstHTML(kind):'');
 }
 function startClinicalCue(kind){
-  if(kind!=='rosc' && kind!=='lung') return;
+  if(kind!=='rosc' && kind!=='lung' && kind!=='breathing') return;
   const cue={kind,until:Date.now()+(kind==='rosc'?4200:3600)};
   roomState().clinicalCue=cue;
   paintClinicalCue();
@@ -13717,15 +13774,88 @@ function paintCapnoPod(){
   if(value) value.textContent=active ? String(Math.round(Number(S.code.etco2)||0)) : '--';
 }
 let _pacingCaptureTimer=0;
-function showPacingCapture(){
+function showMonitorResponse(text){
   const cue=$('pacingCue'), grid=$('monGrid'); if(!cue||!grid) return;
   clearTimeout(_pacingCaptureTimer);
   cue.classList.remove('captureOn'); grid.classList.remove('captureOn');
-  cue.textContent='⚡ Electrical + mechanical capture'; cue.setAttribute('aria-hidden','false');
+  cue.textContent=text; cue.setAttribute('aria-hidden','false');
   void cue.offsetWidth;
   cue.classList.add('captureOn'); grid.classList.add('captureOn');
   _pacingCaptureTimer=setTimeout(()=>{ cue.classList.remove('captureOn'); grid.classList.remove('captureOn');
     cue.textContent=''; cue.setAttribute('aria-hidden','true'); },3250);
+}
+function showPacingCapture(){ showMonitorResponse('⚡ Electrical + mechanical capture'); }
+// Clinical age for bedside resuscitation art. Unit words win over parseFloat:
+// "4 months" is an infant, not a four-year-old. Neonates get NRP cadence/labels;
+// older infants get the PALS two-thumb technique.
+function resusAgeKind(patient){
+  const p=patient||{}, text=(String(p.ageBand||'')+' '+String(p.age||'')).toLowerCase();
+  if(/\b(newborn|neonat\w*)\b/.test(text)) return 'neonate';
+  const days=text.match(/(\d+(?:\.\d+)?)\s*days?\b/), weeks=text.match(/(\d+(?:\.\d+)?)\s*weeks?\b/);
+  if(days) return +days[1]<=28?'neonate':'infant';
+  if(weeks) return +weeks[1]<=4?'neonate':'infant';
+  if(/\b(infant\w*|\d+(?:\.\d+)?\s*months?)\b/.test(text)) return 'infant';
+  const years=parseFloat(String(p.age||''));
+  if(Number.isFinite(years) && years<1) return 'infant';
+  if((Number.isFinite(years)&&years<13) || /\b(child|pediatric|paediatric|toddler)\b/.test(text)) return 'child';
+  return 'older';
+}
+function infantCprOverlayHTML(viewKey,chest){
+  const age=resusAgeKind(S.patient);
+  if(!chest || !cprRunning() || (age!=='infant'&&age!=='neonate')) return '';
+  const w=Math.max(8,Math.min(12,chest.w*1.15));
+  const h=w*(100/56)*(5/6), cx=chest.l+chest.w*.54, cy=chest.t+chest.h*.38;
+  const left=cx-w*.5, top=cy-h*.53, paused=cprPaused();
+  const label=paused ? 'Pulse check · hands off' : (age==='neonate'?'3:1 CPR · 90 compressions/min':'Two-thumb CPR · 100–120/min');
+  return `<div class="rmInfantRig${paused?' rmInfantCprPaused':''}" data-infant-cpr="${age}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${w}%;aspect-ratio:6/5">
+    <svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">
+      <ellipse class="rmInfantChest" cx="60" cy="61" rx="24" ry="18" fill="rgba(14,116,144,.16)" stroke="rgba(103,232,249,.55)" stroke-width="2"/>
+      <g fill="#bfdbfe" stroke="#e0f2fe" stroke-width="2" stroke-linejoin="round">
+        <path d="M7 53c8-17 20-25 35-24l9 12-13 10-8 25C18 75 10 67 7 53Z"/>
+        <path d="M113 53c-8-17-20-25-35-24l-9 12 13 10 8 25c12-1 20-9 23-23Z"/>
+      </g>
+      <g class="rmInfantThumbs" fill="#dbeafe" stroke="#eff6ff" stroke-width="2">
+        <rect x="45" y="33" width="13" height="36" rx="6" transform="rotate(-8 51 51)"/>
+        <rect x="62" y="33" width="13" height="36" rx="6" transform="rotate(8 68 51)"/>
+      </g>
+      <path d="M31 73c8 12 18 17 29 17s21-5 29-17" fill="none" stroke="rgba(125,211,252,.72)" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border ${paused?'border-amber-300/45 text-amber-100':'border-cyan-300/45 text-cyan-100'} bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider shadow-md">${label}</div>
+  </div>`;
+}
+function infantPpvOverlayHTML(viewKey,head){
+  const age=resusAgeKind(S.patient);
+  if(!head || !ventilationRunning() || (S.gear&&S.gear.ett) || age==='older') return '';
+  const w=Math.max(7,Math.min(10,head.w*1.65)), h=w*(100/56)*(11/12);
+  const cx=head.l+head.w*.52, cy=head.t+head.h*.35;
+  const left=cx-w*.43, top=cy-h*.59, cycle=age==='neonate'?'1.2s':'2.4s';
+  return `<div class="rmInfantRig" data-infant-ppv="${age}" style="--ppv-cycle:${cycle};left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${w}%;aspect-ratio:12/11">
+    <svg viewBox="0 0 120 110" aria-hidden="true" focusable="false">
+      <path d="M44 65c-9-11-20-15-32-9l8 25c12 2 22-2 31-11Z" fill="#bfdbfe" stroke="#eff6ff" stroke-width="2"/>
+      <ellipse cx="53" cy="69" rx="17" ry="13" fill="rgba(125,211,252,.48)" stroke="#a5f3fc" stroke-width="3"/>
+      <path d="M67 69h13" stroke="#bae6fd" stroke-width="6" stroke-linecap="round"/>
+      <g class="rmInfantBag">
+        <path d="M78 51c15-7 30 1 33 17-3 16-18 24-33 17l-6-8V59Z" fill="#38bdf8" fill-opacity=".68" stroke="#bae6fd" stroke-width="3"/>
+        <path d="M105 57h10v22h-10" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="2"/>
+      </g>
+      <path d="M47 54c3-9 11-14 20-13" fill="none" stroke="#dbeafe" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+    <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-sky-100 shadow-md">${age==='neonate'?'PPV · 40–60/min':age==='child'?'Pediatric BVM · 20–30/min':'Infant PPV · 20–30/min'}</div>
+  </div>`;
+}
+function neonatalCareOverlayHTML(viewKey,chest){
+  const st=roomState(), active=st.neonatalCareUntil && st.neonatalCareUntil>Date.now();
+  if(!chest || !active || resusAgeKind(S.patient)!=='neonate') return '';
+  const w=Math.max(13,Math.min(21,chest.w*1.8)), h=w*(100/56)*(7/12);
+  const cx=chest.l+chest.w*.48, cy=chest.t+chest.h*.55;
+  return `<div class="rmNeonatalWarmth" style="left:${(cx-w*.5).toFixed(2)}%;top:${(cy-h*.55).toFixed(2)}%;width:${w}%;aspect-ratio:12/7">
+    <svg viewBox="0 0 120 70" aria-hidden="true" focusable="false">
+      <g class="rmWarmRays" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"><path d="M31 8 38 20M60 3v15M89 8 82 20"/></g>
+      <path d="M17 28c22-12 64-12 86 0l-8 31H25Z" fill="rgba(14,116,144,.42)" stroke="#67e8f9" stroke-width="2"/>
+      <path d="M25 31c20 8 50 8 70 0" fill="none" stroke="#cffafe" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border border-amber-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">Warmer on · dry &amp; stimulate</div>
+  </div>`;
 }
 // The current RT cutout is composed for an adult bed. Do not shrink that adult onto
 // a pediatric or neonatal patient: those families need their own reviewed artwork
@@ -13970,6 +14100,7 @@ function roomAutoState(text, trace){
   const chestTubeRx=/\b(chest tube|tube thoracostomy|pigtail catheter)\b/i;
   const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
   const cprRx=/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i;
+  const neonatalCareRx=/\b(?:warm(?:er|ing)?|dry(?:ing)?|stimulat(?:e|ion)|initial newborn steps?)\b/i;
   const accepted=rx=>roomActionConfirmed(trace,rx);
   if(shockRx.test(text) && accepted(shockRx)){
     // charge → discharge flash → pads still on the chest. Timers are tracked so a
@@ -13993,6 +14124,10 @@ function roomAutoState(text, trace){
     st.cpr=false; paintRoom();
   } else if(cprRx.test(text) && accepted(cprRx)){
     st.cpr=true; paintRoom();
+  }
+  if(resusAgeKind(S.patient)==='neonate' && neonatalCareRx.test(text) && accepted(neonatalCareRx)){
+    const until=Date.now()+5200; st.neonatalCareUntil=until; paintRoom();
+    setTimeout(()=>{ if(S.room&&S.room.neonatalCareUntil===until){ S.room.neonatalCareUntil=0; paintRoom(); } },5220);
   }
 }
 // Bounding box of a zone polygon, in % of the scene box (zones live in the
@@ -14237,15 +14372,17 @@ function paintRoom(){
     const src=scene && scene.getAttribute('src');
     // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
     // on every update restarts CSS animation at frame zero and makes bagging stutter.
-    const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
+    const neonatalCare=!!(st.neonatalCareUntil&&st.neonatalCareUntil>Date.now());
+    const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,neonatalCare?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       // Nobody touches the patient during the shock: the therapist and the compressor step back for
       // its 700 ms (fxKey carries st.defib, so they return when the machine goes back to pads).
       // Charging keeps them working — compressions continue while the defibrillator charges.
       const clear=st.defib==='shock';
-      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':bvmOverlayHTML(viewKey,head,cprSceneKey()))+
-        (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
+      actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':neonatalCareOverlayHTML(viewKey,chest))+
+        (clear?'':bvmOverlayHTML(viewKey,head,cprSceneKey()))+(clear?'':infantPpvOverlayHTML(viewKey,head))+
+        (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+(clear?'':infantCprOverlayHTML(viewKey,chest))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
         (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
       // Someone started or stopped working on the patient: the bubbles steer round them again.
