@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-57u/7P1vcRYIYXkOldeMpfWuvePQbvvccUaMPTFhwsQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VlfxZBO2Q7r01zYRJQOkUOqdubsKrNH5yGJV21TRnnw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -1985,6 +1985,13 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
 
 <main id="main" class="flex-1 overflow-hidden flex flex-col"></main>
 
+<!-- The gentle line a case that is still in progress answers with (sayCaseLocked). The live
+     region is always rendered so a screen reader hears the line; only the pill inside it
+     comes and goes. -->
+<div role="status" aria-live="polite" class="fixed bottom-6 inset-x-0 z-[90] flex justify-center px-4 pointer-events-none">
+  <span id="caseLocked" class="hidden max-w-md text-center text-xs leading-relaxed px-4 py-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-200 shadow-2xl"></span>
+</div>
+
 <!-- ======= SETTINGS MODAL ======= -->
 <!-- Suggest an improvement. One form, opened from any order's receipt (about that order) and
      from the debrief (about the whole case). It never says a note went somewhere it did not:
@@ -3484,6 +3491,14 @@ ${text}
 }
 // Shared case generator: same CASE_SYSTEM contract for topic- and PDF-based cases.
 async function generateCase(userContent, hint, label){
+  // Building a new case is Kim's alone for now (THE PUBLIC SET). Every generator — a topic, a
+  // PDF, the EBMedicine library, "Train my weak spots" — ends here, so this refuses them all.
+  if(!generatorOpen()){
+    sayCaseLocked('build');
+    if($('setupHint')) $('setupHint').textContent = BUILD_LOCKED_LINE;
+    return;
+  }
+  hideCaseLocked();   // a line from an earlier refused click is not about this case
   // Authoring a brand-new case is inherently an API call, so Instant Mode refuses it
   // outright — including when keys ARE configured. Instant Mode's promise is that no
   // key is spent, and silently spending one here is precisely the leak that made the
@@ -3602,6 +3617,8 @@ async function distillPearls(text, onProgress){
 async function handlePdf(file){
   if(!file) return;
   const msg=m=>{ if($('pdfMsg')) $('pdfMsg').innerHTML=m; };
+  // Refused before the PDF is read: generateCase would refuse it anyway, after the OCR.
+  if(!generatorOpen()){ sayCaseLocked('build'); msg(esc(BUILD_LOCKED_LINE)); return; }
   if(file.type!=='application/pdf' && !/\.pdf$/i.test(file.name)){ msg('<span class="text-red-400">Please choose a PDF file.</span>'); return; }
   if(file.size < 1000){ msg('<span class="text-red-400">That PDF is empty (0 bytes) — if it lives in Google Drive, make it available offline first, then retry.</span>'); return; }
   try{
@@ -5405,6 +5422,7 @@ function renderSetup(){
   // Computed once — the header chip below reads it three times — and only when the chip
   // can actually show, so an `off` celebrateMode doesn't pay for a log scan + XP replay.
   const gp=(celebrateMode()!=='off' && historyOwned())?gameProgress():null;
+  const buildOpen = generatorOpen();   // building a new case is Kim's alone for now (THE PUBLIC SET)
   main.innerHTML=`
   <!-- align-items:center on a scrolling flex container makes the TOP overflow
        unreachable: when the card is taller than this box the excess spills evenly
@@ -5503,24 +5521,27 @@ function renderSetup(){
              still reachable, so this is a disclosure rather than a deletion — and the DOM
              order the setup-flow test pins (start, library, topic, key) is unchanged. -->
         <details id="advancedTools" class="mt-5 pt-5 border-t border-slate-800/60">
-          <summary class="cursor-pointer list-none text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 transition select-none">▸ Build your own case <span class="normal-case font-bold text-slate-600">— needs an API key</span></summary>
-        <div class="mt-4">
+          <summary class="cursor-pointer list-none text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-400 transition select-none">▸ Build your own case ${buildOpen
+            ? '<span class="normal-case font-bold text-slate-600">— needs an API key</span>'
+            : '<span class="ml-1 text-[9px] px-1.5 py-0.5 rounded border border-slate-700 bg-slate-800/60 text-slate-400">In progress</span>'}</summary>
+        ${buildOpen ? '' : `<p id="buildLocked" class="mt-3 text-[11px] text-slate-400 leading-relaxed">${esc(BUILD_LOCKED_LINE)}</p>`}
+        <div class="mt-4${buildOpen ? '' : ' opacity-50'}">
           <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Topic-based case <span class="normal-case font-bold text-slate-600">(needs an API key)</span></label>
           <input id="topic" placeholder="e.g. Diabetic Ketoacidosis…" class="w-full mt-2 bg-slate-950 border border-slate-800 rounded-2xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500/50" />
           <div class="flex flex-wrap gap-2 mt-3">
             ${EXAMPLES.map(e=>`<button class="ex px-3 py-1.5 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition">${e}</button>`).join('')}
           </div>
-          <button id="genBtn" class="w-full mt-5 ${useInstant()?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white'} disabled:opacity-50 font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2"${useInstant()?' disabled title="Instant Mode makes no API calls"':''}>Generate Case →</button>
-          ${useInstant()?`<p class="text-center text-[10px] text-slate-500 mt-2">Instant Mode makes no API calls, so it can't generate new cases. <button id="openSettingsHint" class="text-emerald-500 hover:text-emerald-400 underline underline-offset-2">Open Settings</button> to turn it off.</p>`:''}
+          <button id="genBtn" class="w-full mt-5 ${(useInstant()||!buildOpen)?'bg-slate-800 text-slate-500 cursor-not-allowed':'bg-emerald-600 hover:bg-emerald-500 text-white'} disabled:opacity-50 font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2"${useInstant()?' disabled title="Instant Mode makes no API calls"':(buildOpen?'':' aria-disabled="true" title="In progress"')}>Generate Case →</button>
+          ${(useInstant() && buildOpen)?`<p class="text-center text-[10px] text-slate-500 mt-2">Instant Mode makes no API calls, so it can't generate new cases. <button id="openSettingsHint" class="text-emerald-500 hover:text-emerald-400 underline underline-offset-2">Open Settings</button> to turn it off.</p>`:''}
           <p id="setupHint" class="text-center text-[11px] text-slate-500 mt-3"></p>
         </div>
 
         <div class="mt-5 pt-5 border-t border-slate-800/60">
           <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">…or build a case from a CME PDF</label>
-          <div id="dropZone" class="mt-2 border-2 border-dashed rounded-2xl p-5 text-center transition ${useInstant()?'border-slate-800/50 opacity-50 cursor-not-allowed':'border-slate-800 cursor-pointer hover:border-emerald-500/40'}">
+          <div id="dropZone" class="mt-2 border-2 border-dashed rounded-2xl p-5 text-center transition ${(useInstant()||!buildOpen)?'border-slate-800/50 opacity-50 cursor-not-allowed':'border-slate-800 cursor-pointer hover:border-emerald-500/40'}">
             <input id="pdfInput" type="file" accept="application/pdf,.pdf" class="hidden" />
             <p class="text-sm ${useInstant()?'text-slate-500':'text-slate-300'}"><span class="${useInstant()?'text-slate-500':'text-emerald-400'} font-bold">Choose a PDF</span> or drop it here</p>
-            <p class="text-[10px] text-slate-600 mt-1 uppercase tracking-widest font-bold">${useInstant()?'Needs an API key — off in Instant Mode':'Turns the article into a playable case'}</p>
+            <p class="text-[10px] text-slate-600 mt-1 uppercase tracking-widest font-bold">${!buildOpen?'In progress':useInstant()?'Needs an API key — off in Instant Mode':'Turns the article into a playable case'}</p>
           </div>
           <p class="text-[11px] text-amber-500/80 mt-2 leading-relaxed"><b>Do not upload real patient records or protected health information.</b> Extracted PDF text is sent directly to your selected AI provider to generate the case.</p>
           <p id="pdfMsg" class="text-[11px] text-slate-500 mt-2 text-center"></p>
@@ -5534,12 +5555,12 @@ function renderSetup(){
         : `<div class="mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
              <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                <div class="flex-1">
-                 <div class="text-emerald-300 font-black text-sm mb-1">Optional: add an API key for AI-generated cases</div>
+                 <div class="text-emerald-300 font-black text-sm mb-1">${buildOpen ? 'Optional: add an API key for AI-generated cases' : 'Optional: add an API key for AI answers at the bedside and the attending review'}</div>
                  <div class="text-[11px] text-slate-300 leading-relaxed">The key stays in this browser session and is sent straight to the provider. No MediSim server receives it. A <b>Gemini</b> key is free and takes about a minute: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">get one here →</a>. If you would rather use Claude, <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="text-emerald-400 font-bold underline decoration-dotted">Claude API keys →</a></div>
                </div>
                <button id="addKeyBtn" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm px-5 py-3 rounded-xl transition whitespace-nowrap">Add your key →</button>
              </div>
-             <div class="text-[10px] text-slate-500 mt-2.5 pt-2.5 border-t border-slate-800">Everything above plays without a key.${PUBLIC_BUILD?'':' Without one, live cases fall back to your local Claude bridge or LM Studio (Settings ③).'}</div>
+             <div class="text-[10px] text-slate-500 mt-2.5 pt-2.5 border-t border-slate-800">${buildOpen ? 'Everything above plays without a key.' : 'The open cases play without a key.'}${PUBLIC_BUILD?'':' Without one, live cases fall back to your local Claude bridge or LM Studio (Settings ③).'}</div>
            </div>`}
         </details>
 
@@ -5556,7 +5577,7 @@ function renderSetup(){
             <div class="text-[11px] text-slate-500" id="perfSummary"></div>
             <div class="flex items-center gap-2 shrink-0">
               ${gp?`<button id="deptBtn" class="px-3 py-1 rounded-xl bg-slate-900 border border-fuchsia-700/60 text-[11px] font-bold text-fuchsia-300 hover:border-fuchsia-400 transition inline-flex items-center gap-1.5"><img src="media/game/department-rank-crest-v1.webp" alt="" class="w-6 h-7 object-contain"/>${esc(gp.level.title)}${gp.streaks.daily>1&&streakLive()?' · 🔥'+gp.streaks.daily:''}</button>`:''}
-              <button id="trainBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/20 transition">Train my weak spots</button>
+              <button id="trainBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/20 transition${buildOpen ? '' : ' opacity-50 cursor-not-allowed'}"${buildOpen ? '' : ' aria-disabled="true" title="In progress"'}>Train my weak spots</button>
             </div>
           </div>
           <div id="perfSpark" class="mt-3"></div>
@@ -5569,10 +5590,10 @@ function renderSetup(){
            model control, and the default learning flow should not lead with one. -->
     </div>
   </div>`;
-  $('genBtn').onclick=()=>{ const t=$('topic').value.trim(); if(t) startCase(t); };
+  $('genBtn').onclick=()=>{ if(!generatorOpen()) return sayCaseLocked('build'); const t=$('topic').value.trim(); if(t) startCase(t); };
   if($('deptBtn')) $('deptBtn').onclick=renderDepartment;
   if($('openSettingsHint')) $('openSettingsHint').onclick=()=>{ openSettings(); };
-  $('topic').addEventListener('keydown',e=>{ if(e.key==='Enter'){const t=$('topic').value.trim(); if(t) startCase(t);} });
+  $('topic').addEventListener('keydown',e=>{ if(e.key==='Enter'){ if(!generatorOpen()) return sayCaseLocked('build'); const t=$('topic').value.trim(); if(t) startCase(t);} });
   if($('addKeyBtn')) $('addKeyBtn').onclick=openSettings;    // public BYOK key CTA → Settings
   if($('editKeyBtn')) $('editKeyBtn').onclick=openSettings;
   document.querySelectorAll('.ex').forEach(b=>b.onclick=()=>{ $('topic').value=b.textContent; });
@@ -5580,16 +5601,17 @@ function renderSetup(){
   const dz=$('dropZone'), pi=$('pdfInput');
   // Building a case from a PDF is an API call, so Instant Mode leaves the dropzone inert
   // rather than accepting a file and failing at the point of no return.
-  dz.onclick=()=>{ if(useInstant()){ if($('pdfMsg')) $('pdfMsg').innerHTML='<span class="text-amber-500/90">Instant Mode makes no API calls. Turn it off in Settings to build a case from a PDF.</span>'; return; } pi.click(); };
+  dz.onclick=()=>{ if(!generatorOpen()){ if($('pdfMsg')) $('pdfMsg').textContent=BUILD_LOCKED_LINE; sayCaseLocked('build'); return; } if(useInstant()){ if($('pdfMsg')) $('pdfMsg').innerHTML='<span class="text-amber-500/90">Instant Mode makes no API calls. Turn it off in Settings to build a case from a PDF.</span>'; return; } pi.click(); };
   const acceptPdf=f=>{
     if(!f || useInstant()) return;
+    if(!generatorOpen()){ if($('pdfMsg')) $('pdfMsg').textContent=BUILD_LOCKED_LINE; sayCaseLocked('build'); return; }
     if(PUBLIC_BUILD && !confirm('Use this PDF to build a simulation case?\n\nDo not continue if it contains real patient information or protected health information. Extracted text will be sent directly to your selected AI provider.')) return;
     handlePdf(f);
   };
   pi.onchange=()=>{ if(pi.files&&pi.files[0]) acceptPdf(pi.files[0]); };
   ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.add('border-emerald-500/60'); }));
   ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.remove('border-emerald-500/60'); }));
-  dz.addEventListener('drop',e=>{ if(useInstant()) return; const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) acceptPdf(f); });
+  dz.addEventListener('drop',e=>{ if(useInstant()) return; if(!generatorOpen()){ sayCaseLocked('build'); return; } const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) acceptPdf(f); });
   initGold();
   initLibrary();
   renderPerfStrip();
@@ -5625,6 +5647,9 @@ function renderDepartment(){
     (groups[sys]=groups[sys]||[]).push(id);
   }
   const tile=id=>{
+    // The case map follows the same rule as the library (THE PUBLIC SET): a case still in
+    // progress is a grayed tile that only says so.
+    if(!caseOpen(id)) return `<button data-gid="${esc(id)}" data-locked="1" aria-disabled="true" class="dept-tile dept-locked aspect-square rounded-lg border border-slate-900 bg-slate-900/30 opacity-40 cursor-not-allowed" title="In progress" aria-label="Case in progress \u2014 not open yet"></button>`;
     const pc=gp.perCase[id];
     if(!pc) return `<button data-gid="${esc(id)}" class="dept-tile dept-mystery aspect-square rounded-lg border border-dashed border-slate-800 hover:border-cyan-400" title="Unplayed — walk in blind" aria-label="Unplayed mystery case — walk in blind"></button>`;
     if(pc.mastered) return `<button data-gid="${esc(id)}" class="dept-tile relative aspect-square rounded-lg bg-slate-900 border border-yellow-400 text-yellow-300 text-sm" style="box-shadow:0 0 8px rgba(250,204,21,.35)" title="Mastered — best ${pc.best}" aria-label="Mastered case — best ${pc.best}. Retry">★<span class="absolute -top-1 -right-1 text-[9px]" aria-hidden="true">🏆</span></button>`;
@@ -5632,15 +5657,24 @@ function renderDepartment(){
     const trophy=caseBadgeIds.has(id)?'<span class="absolute -top-1 -right-1 text-[9px]" aria-hidden="true">🏆</span>':'';
     return `<button data-gid="${esc(id)}" class="dept-tile relative aspect-square rounded-lg bg-slate-900 border border-${col}-600 text-${col}-400 text-[10px] font-black mono" title="Best ${pc.best} — click to retry" aria-label="Played case — best ${pc.best}${trophy?' and case trophy earned':''}. Retry">${pc.best}${trophy}</button>`;
   };
-  const played=Object.keys(gp.perCase).filter(id=>idSet.has(id)).length;
+  // Counted against the cases this person can open (THE PUBLIC SET): a visitor sees "3/17
+  // treated · 155 in progress", not a denominator of 172 they can never reach. The locked
+  // tiles are still drawn, grayed, and say so.
+  const openIds=ids.filter(id=>caseOpen(id)), openSet=new Set(openIds), lockedN=ids.length-openIds.length;
+  const played=Object.keys(gp.perCase).filter(id=>openSet.has(id)).length;
   // Unfiltered by design, not an oversight: this mirrors GameLayer's own mastery-collector
   // badge (game-layer.js), which also counts every mastered perCase entry regardless of
   // whether its id is still in the current catalog — a case retired from cases-gold.json
   // shouldn't retroactively un-master itself.
   const mastered=Object.values(gp.perCase).filter(p=>p.mastered).length;
+  const deptCount=list=>{
+    const open=list.filter(id=>openSet.has(id)), locked=list.length-open.length;
+    if(!open.length) return `${locked} in progress`;
+    return `${open.filter(id=>gp.perCase[id]).length}/${open.length}` + (locked ? ` · ${locked} in progress` : '');
+  };
   const sections=GOLD_SYS_ORDER.filter(s=>groups[s]).map(s=>`
     <div class="mb-4">
-      <div class="text-[9px] font-black tracking-[.25em] text-fuchsia-400 mb-1.5">${esc((GOLD_SYS[s]||s).toUpperCase())} — ${groups[s].filter(id=>gp.perCase[id]).length}/${groups[s].length}</div>
+      <div class="text-[9px] font-black tracking-[.25em] text-fuchsia-400 mb-1.5">${esc((GOLD_SYS[s]||s).toUpperCase())} — ${deptCount(groups[s])}</div>
       <div class="dept-grid">${groups[s].map(tile).join('')}</div>
     </div>`).join('');
   main.innerHTML=`<div class="flex-1 overflow-y-auto p-6"><div class="max-w-3xl mx-auto fade">
@@ -5652,7 +5686,7 @@ function renderDepartment(){
           ${gp.streaks.daily>1&&streakLive()?`<div class="text-orange-400 font-extrabold text-xs">🔥 ${gp.streaks.daily}-day streak</div>`:''}
         </div>
         <div class="mt-1"><span class="text-cyan-300 font-black text-lg">${esc(gp.level.title)}</span> <span class="text-slate-500 text-xs mono">· ${gp.xp.toLocaleString()} XP</span></div>
-        <div class="text-slate-500 text-xs mt-1">${played}<span class="text-slate-700">/${ids.length}</span> treated · <span class="text-yellow-300">${mastered} mastered</span></div>
+        <div class="text-slate-500 text-xs mt-1">${played}<span class="text-slate-700">/${openIds.length}</span> treated${lockedN?` · <span class="text-slate-600">${lockedN} in progress</span>`:''} · <span class="text-yellow-300">${mastered} mastered</span></div>
       </div>
     </div>
     <div class="mb-5 space-y-2">
@@ -5726,6 +5760,190 @@ const ACLS_TEACHES = {
   'resus-acls-unstable-tachy':  'Unstable tachycardia — synchronised cardioversion',
   'resus-acls-stable-svt':      'Stable narrow-complex tachycardia — vagal, then adenosine' };
 const isAcls = c => ACLS_ORDER.includes((c && c.id) || '');
+// ===================== THE PUBLIC SET =====================
+// Kim, 2026-09-26: "keep the ACLS, ATLS PALS and NRP cases, the rest should be only
+// accessible to me, you can keep them grayed out (in progress)".
+//
+// So a visitor can open the seventeen live-code cases of the four courses and nothing else.
+// Every other case stays in the library, grayed and tagged "In progress", and building a new
+// case with an AI key is Kim's alone. ONE rule answers every door: caseOpen(id) for a case,
+// generatorOpen() for the generator. The library rows, the case map, both random draws, the
+// generator's buttons — and, behind all of them, the only two functions that put the page
+// into play (loadGoldCase and generateCase) — ask it, so a path nobody listed is refused too.
+//
+// A curtain, not a lock: the page is static and cases-gold.json is a public file, so this
+// decides what the SITE offers a visitor, not what a determined reader of the source can do.
+const PUBLIC_CASE_RE = /^resus-(acls|atls|pals|nrp)-/;
+// SHA-256 of Kim's sign-in address, lower-cased — the address itself is never in the page.
+// To let another account in, add its hash:
+//   node -e "console.log(require('crypto').createHash('sha256').update(process.argv[1].trim().toLowerCase()).digest('hex'))" name@example.com
+const OWNER_EMAIL_SHA256 = ['aa08e9111b960d922d9d80523a2c57eff04a3debd0355069e601dac60fd35dd7'];
+const CASE_LOCKED_LINE  = 'This case is still in progress — try one of the resuscitation cases.';
+const BUILD_LOCKED_LINE = 'Building your own case is still in progress — try one of the resuscitation cases.';
+const YOURS_LOCKED_LINE = 'Your saved cases are paused while building your own case is in progress — try one of the resuscitation cases.';
+function isPublicCase(id){ return PUBLIC_CASE_RE.test(String(id || '')); }
+// Kim's own machine and the repo's tests: the page opened from disk, or served on a loopback
+// host (the same list PUBLIC_BUILD uses, plus *.localhost).
+function localHost(loc){
+  const l = loc || location, h = String(l.hostname || '').toLowerCase();
+  return l.protocol === 'file:' || h === '' || h === 'localhost' || h === '127.0.0.1' ||
+    h === '[::1]' || h === '::1' || h.endsWith('.localhost');
+}
+// ?visitor=1 shows a local page exactly as a visitor to the public site sees it: the host no
+// longer counts, and only signing in as Kim unlocks. Honoured ONLY on a local host, and it
+// can only ever take access away — on the public site every visitor is a visitor already.
+// The browser test needs it: served on localhost, the page would otherwise count it as Kim.
+function visitorPreview(loc){
+  const l = loc || location;
+  return localHost(l) && /(?:^|[?&])visitor=1(?:&|$)/.test(String(l.search || ''));
+}
+// Who this browser has stored as signed in. Account.user() is the in-memory user and nothing
+// else (Account.status() also reads the outbox from localStorage, and a library paint asks
+// this for every row). It is NOT proof of anything: Supabase's getSession() reads the session
+// from localStorage and never asks the server, so a session written there by hand — junk
+// tokens and Kim's address, which is printed on the privacy and terms pages — looks exactly
+// like Kim signed in. syncOwner therefore asks the server (ownerVerdict) before anything opens.
+function signedInUser(){
+  try{
+    if(typeof Account === 'undefined') return null;
+    const u = (typeof Account.user === 'function') ? Account.user() : Account.status().user;
+    return (u && u.email) ? { id: String(u.id || ''), email: String(u.email).trim().toLowerCase() } : null;
+  }catch(_){ return null; }
+}
+function signedInEmail(){ const u = signedInUser(); return u ? u.email : null; }
+const ownerKey = u => u ? u.id + ' ' + u.email : null;
+// The answer for the account signed in now, worked out once per change of account (syncOwner)
+// and read synchronously here. `failedAt`: the server could not be asked; try again later.
+let _ownerCheck = { key: null, ok: false, pending: null, failedAt: 0 };
+function ownerMode(){
+  if(localHost(location) && !visitorPreview(location)) return true;
+  if(!_ownerCheck.ok) return false;                       // every visitor: no lookup at all
+  return _ownerCheck.key === ownerKey(signedInUser());    // a stale yes for the last account never carries
+}
+function caseOpen(id){ return isPublicCase(id) || ownerMode(); }
+function generatorOpen(){ return ownerMode(); }
+function openCases(list){ return (list || []).filter(c => c && caseOpen(c.id)); }
+// Both random draws (the hero's fallback and "Walk in blind") pick through this, so a draw
+// can only ever land on a case that would open.
+function drawCase(list){
+  const open = openCases(list);
+  return open.length ? open[Math.floor(Math.random() * open.length)] : null;
+}
+async function sha256Hex(text){
+  try{
+    if(typeof crypto !== 'undefined' && crypto.subtle){
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text)));
+      return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+    }
+  }catch(_){ }
+  return sha256Plain(String(text));
+}
+// crypto.subtle exists only on a secure origin — https, or a loopback host. The public site is
+// https; anywhere else (a phone on the home network over plain http) this answers the same
+// question, so the owner is never silently locked out. Plain SHA-256 (FIPS 180-4), checked
+// against Node's own in tests/public-set.test.cjs.
+function sha256Plain(str){
+  const rot = (v, n) => (v >>> n) | (v << (32 - n));
+  const H = [], K = [];
+  for(let c = 2, i = 0; i < 64; c++){
+    let prime = true;
+    for(let f = 2; f * f <= c; f++) if(c % f === 0){ prime = false; break; }
+    if(!prime) continue;
+    if(i < 8) H[i] = (Math.pow(c, 1 / 2) * 4294967296) | 0;
+    K[i++] = (Math.pow(c, 1 / 3) * 4294967296) | 0;
+  }
+  const bytes = new TextEncoder().encode(str), len = bytes.length;
+  const blocks = ((len + 8) >> 6) + 1, words = new Array(blocks * 16).fill(0);
+  for(let j = 0; j < len; j++) words[j >> 2] |= bytes[j] << ((3 - (j & 3)) * 8);
+  words[len >> 2] |= 0x80 << ((3 - (len & 3)) * 8);
+  words[blocks * 16 - 1] = (len * 8) | 0;
+  words[blocks * 16 - 2] = Math.floor(len / 536870912);   // the high word of the bit length
+  const w = new Array(64);
+  for(let b = 0; b < words.length; b += 16){
+    const a = H.slice();
+    for(let t = 0; t < 64; t++){
+      if(t < 16) w[t] = words[b + t];
+      else {
+        const x = w[t - 15], y = w[t - 2];
+        w[t] = (w[t - 16] + (rot(x, 7) ^ rot(x, 18) ^ (x >>> 3)) + w[t - 7] + (rot(y, 17) ^ rot(y, 19) ^ (y >>> 10))) | 0;
+      }
+      const t1 = (a[7] + (rot(a[4], 6) ^ rot(a[4], 11) ^ rot(a[4], 25)) + ((a[4] & a[5]) ^ (~a[4] & a[6])) + K[t] + w[t]) | 0;
+      const t2 = ((rot(a[0], 2) ^ rot(a[0], 13) ^ rot(a[0], 22)) + ((a[0] & a[1]) ^ (a[0] & a[2]) ^ (a[1] & a[2]))) | 0;
+      a.pop(); a.unshift((t1 + t2) | 0); a[4] = (a[4] + t1) | 0;
+    }
+    for(let j = 0; j < 8; j++) H[j] = (H[j] + a[j]) | 0;
+  }
+  return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+}
+// Run on every change of who is signed in (paintAuth calls it, and paintAuth runs on each).
+// The first paint after a sign-in is still the visitor's; when the server has vouched for the
+// account and the answer has changed, the library repaints itself — so everything unlocks
+// without a reload, and signing out locks it again the same way.
+const OWNER_RETRY_MS = 30000;
+function syncOwner(){
+  const u = signedInUser(), key = ownerKey(u), c = _ownerCheck;
+  if(key === c.key && !(c.failedAt && Date.now() - c.failedAt >= OWNER_RETRY_MS))
+    return c.pending || Promise.resolve();
+  // What the last paint was told: the account that WAS signed in has already gone from
+  // Account by the time a sign-out gets here, so it is read from the cache.
+  const was = (localHost(location) && !visitorPreview(location)) || !!c.ok;
+  const mine = { key, ok: false, pending: null, failedAt: 0 };
+  _ownerCheck = mine;
+  if(!u){ repaintForOwner(was); return Promise.resolve(); }
+  mine.pending = ownerVerdict(u)
+    .then(v => { if(v === null) mine.failedAt = Date.now(); else mine.ok = v === true; },
+          () => { mine.failedAt = Date.now(); })
+    .then(() => { if(_ownerCheck === mine) repaintForOwner(was); });
+  return mine.pending;
+}
+// Is this account Kim's? true or false once the SERVER has said so (Account.verifiedUser sends
+// the access token to Supabase, which checks its signature); null when it could not be asked —
+// offline, no client, an expired, revoked or forged session. null is a visitor for now, and is
+// asked again on a later change of account state, at most every OWNER_RETRY_MS. An address
+// that does not even claim to be Kim's is answered here, with no call at all. The server's
+// answer is kept per user id for the life of the page — in memory only, never in storage,
+// where it could be written by hand like the session was.
+const _ownerVerified = new Map();
+async function ownerVerdict(u){
+  if(!u || !u.id || !OWNER_EMAIL_SHA256.includes(await sha256Hex(u.email))) return false;
+  if(_ownerVerified.has(u.id)) return _ownerVerified.get(u.id);
+  let v = null;
+  try{
+    v = (typeof Account !== 'undefined' && typeof Account.verifiedUser === 'function')
+      ? await Account.verifiedUser() : null;
+  }catch(_){ v = null; }
+  if(!v || !v.email || String(v.id || '') !== u.id) return null;
+  const ok = OWNER_EMAIL_SHA256.includes(await sha256Hex(String(v.email).trim().toLowerCase()));
+  _ownerVerified.set(u.id, ok);
+  return ok;
+}
+function repaintForOwner(was){
+  if(ownerMode() === was) return;
+  if(typeof S === 'undefined' || S.stage !== 'setup') return;   // never pull a case out from under anyone
+  if(document.querySelector('.dept-tile')) renderDepartment(); else renderSetup();
+}
+// The one gentle line a refused door says. A status line, not a dialog and not a navigation:
+// a refused click leaves you exactly where you were — on the library.
+function sayCaseLocked(kind){
+  const el = document.getElementById('caseLocked');
+  if(!el) return false;
+  el.textContent = kind === 'build' ? BUILD_LOCKED_LINE : kind === 'yours' ? YOURS_LOCKED_LINE : CASE_LOCKED_LINE;
+  el.classList.remove('hidden');
+  clearTimeout(sayCaseLocked._t);
+  sayCaseLocked._t = setTimeout(() => el.classList.add('hidden'), 6000);
+  return false;
+}
+// …and it goes the moment a case does open: a refused click and then an open one within the
+// six seconds must not leave "still in progress" sitting over the case that just started (and
+// over its order box). Both chokepoints call this once their guard has let the case through.
+function hideCaseLocked(){
+  clearTimeout(sayCaseLocked._t);
+  const el = document.getElementById('caseLocked');
+  if(el) el.classList.add('hidden');
+}
+// Which line a refused SEED says. A case a visitor saved for themselves (no id — built earlier
+// with their own key) is not one of Kim's unfinished cases, and is not called one.
+function lockedKind(seed){ return (seed && seed._user && !seed.id) ? 'yours' : undefined; }
 const GOLD_SYS_ALIAS={ colitis:'gi', metab:'endo', onc:'heme' };
 const GOLD_SYS_ID={
   'core-dka-adolescent':'endo','core-septic-shock-uro':'id','core-afebrile-elderly-sepsis':'geri','core-failed-airway':'resp',
@@ -9218,6 +9436,16 @@ async function initGold(){
   const rowHTML=(c, teaches)=>{
     const idx=all.indexOf(c);
     const tag = goldTag(c);
+    // Still in progress, for whoever is looking (caseOpen): listed, grayed, tagged, and a
+    // click only says so. A button still — it can be reached and read, and it answers.
+    // A visitor's own saved case (lockedKind 'yours') is paused with the generator that made
+    // it, and its title says that rather than calling it one of Kim's unfinished cases.
+    if(!caseOpen(c.id)){
+      const yours = lockedKind(c) === 'yours';
+      return `<button data-gold="${idx}" data-locked="1" aria-disabled="true" title="${esc(yours ? YOURS_LOCKED_LINE : CASE_LOCKED_LINE)}" class="goldItem goldLocked w-full text-left px-3 py-2.5 cursor-not-allowed">
+      <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-slate-500 truncate">${esc(c.title||c.diagnosis||'Case')}</span><span class="flex gap-1 shrink-0">${chipHTML('In progress', 'border-slate-700 bg-slate-800/60 text-slate-400', yours ? 'Your saved case — paused while building your own case is in progress' : 'Still being written and checked — not open yet')}</span></div>
+      <div class="text-[10px] truncate mt-0.5 text-slate-600">${esc(c.chiefComplaint || '')}</div></button>`;
+    }
     const chips = [];
     // Honest labelling: only the five have been proven end to end. Everything else — a
     // written pack or not — is experimental, and says so.
@@ -9258,13 +9486,19 @@ async function initGold(){
       // unverified resuscitation cases the same billing as the five. Two sections now, with the
       // course groupings kept INSIDE the experimental one — they are how you find a PALS case,
       // not a claim that it has been checked.
+      //
+      // THE PUBLIC SET, then everything else (Kim, 2026-09-26). The validated and experimental
+      // sections now hold only the four courses — the cases anyone can open — and every other
+      // case moves to a third section, "In progress", below them: grayed for a visitor, open
+      // for Kim, the same list either way so she sees what the public sees.
       const courseOrder=['ACLS','ATLS','PALS','NRP'];
-      const validated = hits.filter(c => !c._user && isValidation(c.id));
-      const rest0 = hits.filter(c => c._user || !isValidation(c.id));
+      const shown = hits.filter(c => isPublicCase(c.id));
+      const validated = shown.filter(c => !c._user && isValidation(c.id));
+      const rest0 = shown.filter(c => c._user || !isValidation(c.id));
       const courseGroups={};
       for(const tag of courseOrder) courseGroups[tag]=rest0.filter(c=>goldTag(c)===tag);
-      const rest = rest0.filter(c => !goldTag(c));
-      const groups={}; rest.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
+      const inProgress = hits.filter(c => !isPublicCase(c.id));
+      const groups={}; inProgress.forEach(c=>{ const s=goldSystem(c); (groups[s]=groups[s]||[]).push(c); });
       const head = (text, n, tone) =>
         `<div class="sticky top-0 z-10 px-3 py-1.5 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 text-[10px] font-black uppercase tracking-widest ${tone}">${esc(text)} <span class="text-slate-700">${n}</span></div>`;
       const note = text =>
@@ -9274,9 +9508,15 @@ async function initGold(){
           const label={ACLS:'Adult cardiac life support',ATLS:'Trauma resuscitation',PALS:'Pediatric advanced life support',NRP:'Newborn resuscitation'}[tag];
           return courseGroups[tag].length ? head(tag+' \u2014 '+label, courseGroups[tag].length, tone)
             + courseGroups[tag].map(c=>rowHTML(c, ACLS_TEACHES[c.id])).join('') : '';
-        }).join('')
-        + GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
-            head(GOLD_SYS[k], groups[k].length, 'text-slate-600') + groups[k].map(c=>rowHTML(c)).join('')).join('');
+        }).join('');
+      // The visitor's own saved cases head the section with a note of their own: they are
+      // paused with the generator, not "still being written" by Kim.
+      const owner = ownerMode();
+      const progressHTML = GOLD_SYS_ORDER.filter(k=>groups[k]).map(k =>
+            head(GOLD_SYS[k], groups[k].length, 'text-slate-600')
+            + (k === 'yours' && !owner && groups[k].some(c => lockedKind(c) === 'yours')
+                ? note('Your saved cases are paused while building your own case is in progress. They are still here, and nothing is lost.') : '')
+            + groups[k].map(c=>rowHTML(c)).join('')).join('');
       html = (validated.length
           ? '<div data-list-section="validated">' + head('Validated cases', validated.length, 'text-emerald-400')
             + note('Graded end to end and checked by hand \u2014 the scoring in these has been verified.')
@@ -9286,11 +9526,20 @@ async function initGold(){
           ? '<div data-list-section="experimental">' + head('Experimental cases', rest0.length, 'text-amber-300')
             + note('Playable, and the clinical content is written \u2014 but the grading has not been verified yet.')
             + courseHTML + '</div>'
+          : '')
+        + (progressHTML
+          ? '<div data-list-section="in-progress">' + head('In progress', inProgress.length, 'text-slate-400')
+            + note(owner
+                ? 'Only you can open these \u2014 a visitor sees them grayed out until they are ready.'
+                : 'Still being written and checked \u2014 they open here once they are ready. For now, try one of the resuscitation cases above.')
+            + progressHTML + '</div>'
           : '');
     } else html = hits.map(c=>rowHTML(c, isAcls(c) ? ACLS_TEACHES[c.id] : null)).join('');
     $('goldList').innerHTML = html || '<p class="px-3 py-2 text-xs text-slate-600">No matches.</p>';
-    if($('goldShowing')) $('goldShowing').textContent = hits.length===all.length
-      ? `All ${all.length} cases` : `${hits.length} of ${all.length} cases`;
+    const lockedN = hits.length - openCases(hits).length;
+    if($('goldShowing')) $('goldShowing').textContent = (hits.length===all.length
+      ? `All ${all.length} cases` : `${hits.length} of ${all.length} cases`)
+      + (lockedN ? ` \u00b7 ${lockedN} in progress` : '');
     const gl=$('goldList');
     gl.classList.toggle('max-h-96', !_goldOpen);
     gl.classList.toggle('overflow-y-auto', !_goldOpen);
@@ -9306,14 +9555,18 @@ async function initGold(){
     // would be ambiguous between several of those, so those fall back to the direct seed.
     document.querySelectorAll('.goldItem').forEach(b=>b.onclick=()=>{
       const seed=all[+b.dataset.gold];
+      if(!seed || !caseOpen(seed.id)) return sayCaseLocked(lockedKind(seed));   // an "In progress" row only says so
       if(seed.id) startGoldCaseById(seed.id); else loadGoldCase(seed);
     });
     const gb=$('goldBlind');
     if(gb && !gb._wired){ gb._wired=true; gb.onclick=()=>{
-      const core=all.filter(c=>goldTag(c));
+      // Drawn only from cases that would open (drawCase), at click time — so signing in or
+      // out after this was wired still changes what it can land on.
+      const core=openCases(all.filter(c=>goldTag(c)));
       const pool=(useInstant() && !hasAnyKey() && _offline) ? core.filter(c=>ready(c.id)) : core;
-      const src=pool.length?pool:all;
-      loadGoldCase(src[Math.floor(Math.random()*src.length)], {blind:true});
+      const pick=drawCase(pool.length?pool:all);
+      if(!pick) return sayCaseLocked();
+      loadGoldCase(pick, {blind:true});
     }; }
     document.querySelectorAll('[data-course]').forEach(b=>{
       if(b._wired) return; b._wired=true;
@@ -9333,8 +9586,9 @@ async function initGold(){
         // other, so it can be absent from a stripped build or a half-loaded library — in
         // which case the button falls back to the random draw it used to do rather than
         // dying, which is the failure the two branches below already guard against.
-        if(all.some(c => c.id === FEATURED_CASE)) return startGoldCaseById(FEATURED_CASE);
-        const pool = (useInstant() && !hasAnyKey() && _offline) ? all.filter(c=>ready(c.id)) : all;
+        if(all.some(c => c.id === FEATURED_CASE) && caseOpen(FEATURED_CASE)) return startGoldCaseById(FEATURED_CASE);
+        const open = openCases(all);
+        const pool = (useInstant() && !hasAnyKey() && _offline) ? open.filter(c=>ready(c.id)) : open;
         if(!pool.length){
           const h=$('heroHint');
           if(h){ h.textContent='Cases are still loading — give it a second.'; h.classList.remove('hidden'); }
@@ -9342,7 +9596,8 @@ async function initGold(){
         }
         // Same two-clause launch as the rows above: a self-saved case can lack an id,
         // and an id-less lookup would leave the page's biggest button doing nothing.
-        const pick = pool[Math.floor(Math.random()*pool.length)];
+        const pick = drawCase(pool);
+        if(!pick) return sayCaseLocked();
         if(pick.id) startGoldCaseById(pick.id); else loadGoldCase(pick);
       };
     }
@@ -9369,6 +9624,11 @@ async function initGold(){
 // which of your runs were blind. Now it is real and recorded.
 async function loadGoldCase(seed, opts){
   if(!seed) return;
+  // The last door. Every path to a pre-authored case ends here, so one reached by any route —
+  // a stale button, a console, a path nobody listed — is refused before a single piece of
+  // state changes, and the screen stays the one you were on.
+  if(!caseOpen(seed.id)){ sayCaseLocked(lockedKind(seed)); return; }
+  hideCaseLocked();   // a line from an earlier refused click is not about this case
   S.blind = !!(opts && opts.blind);
   try{ stopSpeak(); }catch(_){ }
   S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.gameDiff=null; S.gjFxDone=false;
@@ -9431,6 +9691,7 @@ async function loadGoldCase(seed, opts){
 // through to goldAll(), replaying a saved gold case would launch the frozen localStorage
 // snapshot instead of the live cases-gold.json seed, silently defeating pack repairs.
 function startGoldCaseById(id){
+  if(!caseOpen(id)) return sayCaseLocked();
   const seed=(_gold||[]).find(c=>c.id===id)||goldAll().find(c=>c.id===id);
   if(seed) loadGoldCase(seed);
   else console.warn('gold case not loaded yet:', id);
@@ -9486,7 +9747,8 @@ function renderPerfStrip(){
     }).join('')
     + (Array.isArray(k.focus)&&k.focus.length?`<span class="w-full text-[10px] text-slate-500 mt-1">Attending focus: ${esc(k.focus.join(' · '))}</span>`:'');
   }
-  $('trainBtn').onclick=()=>{ if(recentWeaknesses().length||(S.knowledge&&(S.knowledge.focus||[]).length)) trainWeaknesses(); else startCase('a random high-yield emergency medicine presentation'); };
+  // Both of its answers BUILD a case, so it is the generator's door too (THE PUBLIC SET).
+  $('trainBtn').onclick=()=>{ if(!generatorOpen()) return sayCaseLocked('build'); if(recentWeaknesses().length||(S.knowledge&&(S.knowledge.focus||[]).length)) trainWeaknesses(); else startCase('a random high-yield emergency medicine presentation'); };
 }
 
 // ===================== EBMEDICINE CASE LIBRARY =====================
@@ -14381,6 +14643,9 @@ function enterCinema(){
 // The chip, the Settings block and the one-time offer to bring this browser's existing
 // runs along. Everything here no-ops when no project is configured.
 function paintAuth(){
+  // Every change of who is signed in passes through here, so this is where the owner check
+  // (THE PUBLIC SET) is kept in step: it repaints the library itself when the answer changes.
+  try{ syncOwner(); }catch(_){ }
   const st = (typeof Account === 'undefined') ? { enabled:false } : Account.status();
   const btn = $('authBtn');
   if(btn){
@@ -17288,7 +17553,10 @@ function goldCaseMeta(){
     out[c.id]={title:c.title||c.diagnosis||c.id,system:goldSystem(c)};
   return out;
 }
-function gameProgress(){ return GameLayer.computeProgress(getCaseLog(), goldIdList(), goldCaseMeta()); }
+// The cases the library badges count ("Half the Board", "Board Certified") are the ones this
+// person can open (THE PUBLIC SET): a visitor's library is the seventeen, and a badge they
+// could never earn is not a badge. Kim, the owner, still counts every case.
+function gameProgress(){ return GameLayer.computeProgress(getCaseLog(), goldIdList().filter(id=>caseOpen(id)), goldCaseMeta()); }
 // The flame only burns if the streak is alive: last play today or yesterday. GameLayer's
 // streaks.daily is computed purely from the log and ends at the LAST PLAYED day — it has
 // no notion of "today", so a 6-day streak from last month would still show a flame there.
@@ -17723,7 +17991,11 @@ async function testConnection(silent){
     if($('connText')) $('connText').textContent =
       (S.geminiKey||S.claudeKey) ? 'Instant Mode · no API calls · keys saved but unused'
                                  : 'Instant Mode · no API calls · no key needed';
-    if(S.stage==='setup'&&$('setupHint')) $('setupHint').innerHTML='<span class="text-slate-500">The pre-authored cases above play without a key. Add a Gemini or Claude key in Settings if you want AI-generated cases as well.</span>';
+    // A visitor cannot build a case with or without a key (THE PUBLIC SET), so the hint says
+    // what a key still does for them rather than promising AI-generated cases.
+    if(S.stage==='setup'&&$('setupHint')) $('setupHint').innerHTML = generatorOpen()
+      ? '<span class="text-slate-500">The pre-authored cases above play without a key. Add a Gemini or Claude key in Settings if you want AI-generated cases as well.</span>'
+      : '<span class="text-slate-500">The open cases above play without a key. A Gemini or Claude key in Settings adds AI answers at the bedside and the attending review.</span>';
     return null;
   }
   try{

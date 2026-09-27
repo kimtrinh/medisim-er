@@ -6,7 +6,9 @@
 // The log has always been one browser's localStorage: private to the machine, shared by
 // anyone who uses it, invisible from any other device. Signing in with Google moves it to
 // a row-level-secured table where each person can read only their own rows, and it follows
-// them to the phone. NOTHING ELSE IS GATED — every case plays signed out, exactly as before.
+// them to the phone. The log is all this file gates. (Since 2026-09-26 the page itself opens
+// most cases only for its owner — THE PUBLIC SET in medisim-er-local.html — and asks
+// verifiedUser() below, never the stored session, whether the one signed in is her.)
 //
 // The whole app touches the log through two functions, getCaseLog() and saveCaseLog(), and
 // twelve consumers read it SYNCHRONOUSLY (game-layer's computeProgress among them). So the
@@ -305,8 +307,30 @@ function status(){
            offline: A._offline, syncing: A._syncing,
            waiting: uid ? readJSON(outboxKey(uid), []).length : 0 };
 }
+// Who this browser has stored as signed in, and nothing else. status() also reads and parses
+// the outbox from localStorage; the page asks who is signed in hundreds of times a paint.
+function user(){ return A._user; }
 
-root.Account = { init, signIn, signOut, log, append, flush, status,
+// Who the SERVER says is signed in. user() and status().user are only what this browser has
+// stored: getSession() reads the session from localStorage and never asks the server, so a
+// session written there by hand — junk tokens, any address — looks signed in. Anything that
+// grants something on the strength of WHO you are (the page's owner check, THE PUBLIC SET)
+// must ask this instead. getUser() sends the access token to Supabase, which checks its
+// signature and answers with the account it belongs to. Any failure — no client, offline, an
+// expired, revoked or forged token, or an answer for someone other than the stored user — is
+// null, never a guess.
+async function verifiedUser(){
+  const uid = A._uid;
+  if(!A.client || !uid) return null;
+  try{
+    const { data, error } = await A.client.auth.getUser();
+    const u = !error && data && data.user;
+    if(!u || u.id !== uid || A._uid !== uid) return null;
+    return shapeUser(u);
+  }catch(_){ return null; }
+}
+
+root.Account = { init, signIn, signOut, log, append, flush, status, user, verifiedUser,
                  pendingMerge, mergeLocal, declineMerge,
                  shipRun, saveFeedback,
                  entryId, newId, _state: A };
