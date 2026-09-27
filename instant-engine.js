@@ -3436,6 +3436,100 @@ function codeTimelineRows(events, fmtSec){
   return rows;
 }
 
+// MEDICATIONS TO REVIEW (Kim, 2026-09-27: "if I order the wrong meds during the EM SIM explain in the debrief why they were
+// wrong, based on the latest ACLS guideline — for example calcium and bicarbonate not routinely indicated").
+//
+// The code engine lists what went in wrong (CodeEngine.medicationReview: one entry per drug and reason, every time it went
+// in); drug-teaching.json holds the card for each reason — the lesson in plain words, the guideline line with its class, and
+// what to do instead — built only from guideline statements verified against the primary text. A reason with no verified
+// card (the table's `unsourced`) still gets its card, from the engine's own note, with no guideline line: a wrong dose is
+// never left unexplained, and no class or level is ever made up for it. Repeats of the same drug for the same reason fold
+// into one card: "×3 — 1:02, 2:40, 4:10".
+const MED_LABEL = { epinephrine: 'Epinephrine', amiodarone: 'Amiodarone', lidocaine: 'Lidocaine', naloxone: 'Naloxone',
+  calcium: 'Calcium', bicarbonate: 'Sodium bicarbonate', magnesium: 'Magnesium sulfate', adenosine: 'Adenosine',
+  atropine: 'Atropine', tranexamic: 'Tranexamic acid', dextrose: 'Dextrose', surfactant: 'Surfactant',
+  vasopressin: 'Vasopressin', thrombolytic: 'Thrombolytic', alteplase: 'Alteplase', tenecteplase: 'Tenecteplase',
+  reteplase: 'Reteplase', procainamide: 'Procainamide', sotalol: 'Sotalol', ibutilide: 'Ibutilide' };
+// REVIEW, 2026-09-27:
+//   · `counted`: every dose of the card counted in the score (a timing card, or a lesson the engine teaches without marking it
+//     down — CodeEngine LESSONS_SCORED). The page marks those apart from the doses that were flagged.
+//   · `trauma`: given in a traumatic arrest, the card's own `trauma` lesson replaces its "…then epinephrine" (the causes come first).
+//   · With no verified card, the title and why come from the reason that LEADS the card (the engine's `teachText`), never from
+//     the joined note — whose first clause is often the dose — and the title is not said again at the start of the why. The
+//     table may give an unsourced key its own title and why; a dose key with neither reads "<Drug> — dose outside the expected range".
+//   · Doses with different notes (600 mg "expected about 300 mg", then "expected about 150 mg") each keep theirs.
+function splitLesson(text){
+  const t = String(text || '').trim();
+  const m = t.match(/^(.+?)(?: — |: |\. )([\s\S]+)$/);
+  if(!m) return { head: t.replace(/\.$/, ''), rest: '' };
+  const rest = m[2].trim();
+  return { head: m[1].replace(/\.$/, ''), rest: rest.charAt(0).toUpperCase() + rest.slice(1) };
+}
+function medicationCards(items, teaching, fmtSec){
+  const entries = (teaching && teaching.entries) || {};
+  const unsourced = (teaching && teaching.unsourced) || {};
+  const fmt = fmtSec || (x => { const n = Math.round(x || 0); return Math.floor(n/60) + ':' + String(n%60).padStart(2,'0'); });
+  const cards = [];
+  for(const g of (Array.isArray(items) ? items : [])){
+    if(!g || !g.key || !Array.isArray(g.times) || !g.times.length) continue;
+    const name = String(g.name || '');
+    const drug = name === 'calcium' && g.salt ? 'Calcium ' + g.salt
+      : MED_LABEL[name] || (name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Medication');
+    const times = g.times.map(fmt);
+    const after = g.after === 'rosc' ? ' (after the pulse came back)' : g.after ? ' (after the case had settled)' : '';
+    const own = Object.prototype.hasOwnProperty.call(entries, g.key) ? entries[g.key] : null;
+    // A traumatic arrest reads the card's trauma lesson where it has one.
+    const e = own && g.trauma && own.trauma ? Object.assign({}, own, own.trauma) : own;
+    const notes = (g.notes || []).filter(Boolean);
+    const note = notes[0] || '';
+    // The words of the reason that leads the card (older records: the note).
+    const lead = String(g.teachText || note || '');
+    const u = Object.prototype.hasOwnProperty.call(unsourced, g.key) && unsourced[g.key] && typeof unsourced[g.key] === 'object' ? unsourced[g.key] : null;
+    let title, why;
+    if(e){ title = e.title; why = e.why; }
+    else if(u && u.title){ title = u.title; why = u.why || lead; }
+    else if(/-dose(?:-child)?$/.test(g.key)){
+      title = drug + ' — dose outside the expected range';
+      why = lead.replace(/^Dose out of range:\s*/, 'Given ');
+    } else {
+      const sp = splitLesson(lead);
+      title = sp.head || drug + ' was flagged';
+      why = sp.rest || lead;
+    }
+    // Two doses under one card with different numbers: each dose says its own.
+    const perDose = Array.isArray(g.perDose) ? g.perDose : [];
+    const distinct = perDose.filter((p, i) => p.note && perDose.findIndex(q => q.note === p.note) === i);
+    const showNote = !e || e.showNote;
+    const noteLine = distinct.length > 1 && showNote
+      ? distinct.map(p => fmt(p.t) + (p.dose ? ' (' + p.dose + ')' : '') + ': ' + p.note).join(' ')
+      : e && e.showNote && note && note !== e.why ? note : '';
+    cards.push({
+      key: g.key, kind: g.timing ? 'timing' : e ? e.kind : 'flag', sourced: !!e, counted: !!g.counted,
+      drug, dose: (g.doses || []).join(' / '), count: g.times.length,
+      when: (g.times.length > 1 ? '×' + g.times.length + ' — ' : '') + times.join(', ') + after,
+      title, why,
+      // The engine's own numbers ("expected about 1 mg") beside a dose card; nothing beside an indication card, whose why
+      // already says it.
+      note: noteLine,
+      guideline: e ? e.guideline : '',
+      instead: e ? e.instead : ''
+    });
+  }
+  return cards;
+}
+// The Code Quality rows already coach two timing lessons in a line; with the card below them, the line is said once — on the
+// card, which carries the guideline (review, 2026-09-27).
+const TIMING_ROW_LINES = [
+  { keys: /^epi-before-second-shock/, row: 'epiInterval', line: ' In a shockable rhythm the first dose goes in after the second shock — electricity first.' },
+  { keys: /^antiarrhythmic-before-third-shock/, row: 'drugTiming', line: 'In VF/pVT the antiarrhythmic goes in after the third shock.' }];
+function dropCardedTimingLines(codeQuality, cards){
+  if(!codeQuality || !Array.isArray(cards) || !cards.length) return;
+  for(const t of TIMING_ROW_LINES){
+    if(!cards.some(c => t.keys.test(c.key))) continue;
+    for(const r of codeQuality.rows) if(r.name === t.row && r.teach) r.teach = r.teach.replace(t.line, '').replace(/\s{2,}/g, ' ').trim();
+  }
+}
+
 function buildDebrief(pack, state, opts, outcome){
   const CA = opts.criticalActions || [];
   creditShownReasoning(pack, state);
@@ -3619,6 +3713,8 @@ function buildDebrief(pack, state, opts, outcome){
       type: 'neutral' };
   };
   const fmtSec = x => { const n = Math.round(x || 0); return Math.floor(n/60) + ':' + String(n%60).padStart(2,'0'); };
+  const medCards = medicationCards(opts.code && opts.code.medReview, opts.drugTeaching, fmtSec);
+  dropCardedTimingLines(codeQuality, medCards);
   return {
     outcome: outcomeText,
     score,
@@ -3626,6 +3722,8 @@ function buildDebrief(pack, state, opts, outcome){
     // The code, minute by minute. A resuscitation debrief without a timeline asks the
     // player to remember what they did under pressure, which is exactly what they cannot do.
     codeTimeline: (opts.code && opts.code.events) ? codeTimelineRows(opts.code.events, fmtSec) : undefined,
+    // Only when something went in wrong: one card per drug and reason (medicationCards).
+    medicationsToReview: medCards.length ? medCards : undefined,
     creditBasis,
     summary: codeSummaryPrefix(pack, opts) + summaryText,
     criticalActionsMet: metS,
@@ -4966,7 +5064,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   clauseModality, responderModality, matchScore, MODALITY_COMPAT, INTENT_COMPAT,
   statesAmount, hasDoseEvidence,   // one list of dose grammar: a stated amount is treatment
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
-  runTurn, buildDebrief, creditShownReasoning, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
+  runTurn, buildDebrief, medicationCards, creditShownReasoning, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
   treatmentActions,      // what an ungated consultant counts as the treatment (tests)
   consultAdmits,   // does this checklist action's own text say the consult IS the admission

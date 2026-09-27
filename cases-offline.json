@@ -145975,6 +145975,10 @@
      },
      "naloxone": {
       "mg": 2,
+      "band": [
+       0.2,
+       2
+      ],
       "route": [
        "iv",
        "io",
@@ -154375,7 +154379,8 @@
        "iv",
        "io"
       ],
-      "note": "Adjunct for a hyperkalaemic arrest with a pH of 6.98 \u2014 but perfusion, not bicarbonate, is what clears this acidosis."
+      "note": "Adjunct for a hyperkalaemic arrest with a pH of 6.98 \u2014 but perfusion, not bicarbonate, is what clears this acidosis.",
+      "indicated": true
      },
      "amiodarone": {
       "first": 300,

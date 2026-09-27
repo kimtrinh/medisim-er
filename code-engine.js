@@ -1842,6 +1842,77 @@ function arrestAdjunctIndicated(state, script, name){
   return state.rhythm === 'torsades' || !!(script.start && script.start.rhythm === 'torsades') || /torsade|longqt|hypomag/i.test(causes);
 }
 
+// WHO, AND WHAT KIND OF CASE — for the teaching keys (2026-09-27). The adult, child and newborn guidelines are different
+// documents with different classes, so a lesson is keyed by the population it is read to.
+function populationOf(script){ return isNeonate(script) ? 'newborn' : isChild(script) ? 'child' : 'adult'; }
+// A trauma case is one whose declared causes include the bleed itself (the three ATLS scripts).
+function traumaScript(script){ return !!(((script || {}).causes || {}).actions || {}).exsanguination; }
+// Any of the case's required causes still untreated: the life-saving steps a vasopressor must not come before.
+function causesOutstanding(state, script){
+  return (((script || {}).causes || {}).required || []).some(c => state.causesTreated.indexOf(c) === -1);
+}
+// Naloxone has an opioid to reverse: the case says so (`indicated`), credits it, or names an opioid cause.
+function naloxoneIndicated(script){
+  const rule = ((script || {}).drugs || {}).naloxone || {};
+  if(rule.indicated || (script.credits && script.credits.naloxone != null)) return true;
+  return /opioid|opiate|overdose|heroin|fentanyl|methadone/i.test(Object.keys(((script || {}).causes || {}).actions || {}).join(' '));
+}
+// Tranexamic acid has a bleed to treat: the case doses it, or names a bleed or blood loss as a cause.
+function tranexamicIndicated(script){
+  if(((script || {}).drugs || {}).tranexamic) return true;
+  return /exsanguin|hypovol|bleed|haemorrh|hemorrh/i.test(Object.keys(((script || {}).causes || {}).actions || {}).join(' '));
+}
+// The narrow rhythms with a pulse that lidocaine, a ventricular drug, does not treat.
+const SUPRAVENTRICULAR = new Set(['SVT', 'AF', 'aflutter']);
+// Atropine ordered as a premedication for intubation ("atropine before we intubate", "premed with atropine", "RSI atropine"): PALS
+// allows it where bradycardia is likely (2020: 2b), so the fast-heart and hypoxic-bradycardia lessons stand down (review, 2026-09-27).
+const ATROPINE_PREMED_RE = /\bpre ?-?med\w*|\b(?:before|for|prior to|ahead of)\s+(?:the\s+)?(?:intubat\w*|tube|rsi)\b|\brsi\b|\bpre ?-?intubat\w*/;
+// A drug named in a thought, not an order: "consider calcium", "thinking about bicarb", "maybe some magnesium" (actInner).
+const DRUG_MUSING_RE = /^(?:(?:ok|okay|so|and|um|uh|er|hmm|well|now|also|alright|doctor)\s+)*(?:consider\w*|contemplat\w*|think\w*|wonder\w*|maybe|perhaps|possibly|might)\b/;
+// A script's `wrongFor` (drug and rhythm) and the card that teaches it.
+const WRONG_FOR_TEACH = { 'adenosine|AF': 'adenosine-af', 'adenosine|aflutter': 'adenosine-af', 'amiodarone|torsades': 'antiarrhythmic-torsades' };
+// THE GRADE STAYS WHERE IT WAS (review of 2026-09-27). The reasons this build added — naloxone with no opioid, tranexamic acid
+// with no bleed, atropine into a fast heart or a child's hypoxic one, lidocaine into a narrow rhythm, an epinephrine drip into a
+// tachycardia, adenosine into an unstable wide complex, epinephrine in trauma before its causes, lidocaine in torsades, an
+// antiarrhythmic before the cardioversion an unstable tachycardia needs, an adult epinephrine down the tube — went in "all
+// correct" on the live version. They are taught in the debrief (a `lesson`: the record keeps ok, its credit and dose accuracy,
+// and carries the key of its card), not marked down, until Kim decides they should cost the dose-accuracy points and the credit.
+// true makes every lesson a flag (ok=false, read back by the nurse, named under dose accuracy).
+const LESSONS_SCORED = false;
+// A cardiac arrest in one of the trauma scripts: the ordinary arrest cards' "…then epinephrine" is the wrong advice there (the
+// causes come first), and the debrief swaps in the trauma lesson (drug-teaching.json `trauma`).
+function traumaArrest(state, script){ return traumaScript(script) && !state.pulse; }
+// EVERY TEACHING KEY THIS ENGINE CAN PUT ON A RECORD (medicationReview, giveDrug's flags, the off-list drugs, the newborn's
+// volume), so tests/drug-teaching.test.cjs can hold drug-teaching.json to it: each one has a card there, or is listed as
+// having no verified source. A key added below without one fails that test. (Built lazily: DRUG_ALIASES is declared later.)
+function teachKeys(){
+  const keys = new Set([
+    'calcium-routine-arrest', 'calcium-routine-arrest-child', 'calcium-newborn',
+    'bicarbonate-routine-arrest', 'bicarbonate-routine-arrest-child', 'bicarbonate-no-indication', 'bicarbonate-trauma-acidosis', 'bicarbonate-newborn',
+    'magnesium-routine-arrest', 'magnesium-routine-arrest-child', 'magnesium-drip-in-arrest',
+    'atropine-in-arrest', 'atropine-in-arrest-child', 'atropine-no-bradycardia', 'atropine-no-bradycardia-child', 'atropine-hypoxic-bradycardia-child',
+    'atropine-infusion', 'atropine-infusion-child',
+    'adenosine-no-tachycardia', 'adenosine-no-tachycardia-child', 'adenosine-unstable-wct', 'adenosine-infusion', 'adenosine-infusion-child',
+    'antiarrhythmic-nonshockable', 'antiarrhythmic-nonshockable-child', 'antiarrhythmic-bradycardia', 'antiarrhythmic-bradycardia-child',
+    'antiarrhythmic-drip-no-bolus', 'antiarrhythmic-drip-no-bolus-child', 'lidocaine-supraventricular', 'lidocaine-supraventricular-child',
+    'lidocaine-torsades', 'drug-instead-of-cardioversion', 'drug-instead-of-cardioversion-wct', 'calcium-trauma-with-blood', 'epi-tube-adult', 'wrong-rhythm',
+    'epi-arrest-dose-at-pulse', 'epi-child-rate-60', 'epi-newborn-rate-60', 'epi-before-ventilation-child', 'epi-before-ventilation-newborn',
+    'epi-before-compressions-newborn', 'epi-drip-tachycardia', 'epi-drip-tachycardia-child', 'epi-drip-newborn', 'epi-drip-in-arrest',
+    'epi-drip-in-arrest-child', 'epi-traumatic-arrest-first', 'vasopressor-haemorrhagic-shock', 'epi-tube-line-in', 'epi-tube-line-in-child',
+    'epi-tube-line-in-newborn', 'epi-im-in-arrest', 'epi-im-in-arrest-child', 'route-iv-io', 'route-iv-io-child', 'route-uvc-io-newborn',
+    'epi-dose-adult', 'epi-high-dose', 'epi-dose-adult-tube', 'epi-dose-child', 'epi-dose-child-tube', 'epi-dose-newborn', 'epi-dose-newborn-tube',
+    'epi-dose-im', 'dose-not-stated-child', 'dose-not-stated-newborn',
+    'naloxone-no-opioid', 'naloxone-no-opioid-child', 'naloxone-drip-in-arrest', 'txa-no-bleeding', 'dextrose-newborn-strength', 'newborn-volume',
+    'epi-before-second-shock', 'epi-before-second-shock-child', 'antiarrhythmic-before-third-shock', 'antiarrhythmic-before-third-shock-child',
+    // (medicationReview's key for a flagged record that carries none — not expected, and shown by its note.)
+    'flagged']);
+  // Each dosed drug's own dose card, adult and child (a newborn's is the child's).
+  for(const name of Object.keys(DRUG_ALIASES)) if(name !== 'epinephrine' && name !== 'surfactant'){ keys.add(name + '-dose'); keys.add(name + '-dose-child'); }
+  for(const k of Object.values(WRONG_FOR_TEACH)) keys.add(k);
+  for(const o of OFF_LIST) for(const k of o.keys || [o.key]) keys.add(k);
+  return [...keys].sort();
+}
+
 // `mode`: 'dry' only reads the dose against its range and returns { under, ok } — nothing is held or
 // recorded (doseHold asks it whether an order is an underdose); 'drip' records the infusion half of a
 // bolus-then-drip order, which converts nothing (the bolus before it already had that chance); 'bolus' is
@@ -1889,6 +1960,18 @@ function giveDrug(state, script, name, text, mode){
   }
   const infusion = isInfusion(text);
   let ok = true, note = '';
+  // WHY IT WAS WRONG, FOR THE DEBRIEF (Kim, 2026-09-27: "if I order the wrong meds … explain in the debrief why they were
+  // wrong, based on the latest ACLS guideline"). Every flag below names its reason with a stable teaching key — the key of its
+  // card in drug-teaching.json (the guideline, in plain words, and what to do instead) — and the note the nurse reads back.
+  // `kind` ranks the reasons for the card that leads: the wrong drug for this patient ('indication') before the wrong way of
+  // giving it ('route') before the wrong amount ('dose') — bicarbonate in VF is taught as no indication, not as the 82 mEq
+  // its note also names. The note itself is every reason, in the order found, as the nurse has always read it back.
+  const why = [];
+  const pop = populationOf(script);
+  const flag = (key, text, kind) => { ok = false; why.push({ key, text, kind: kind || 'indication' }); };
+  // A reason taught, not marked down (LESSONS_SCORED): the dose keeps its credit, the nurse reads back nothing new, and the
+  // debrief's card says why. (Ranked with the flags for the card that leads.)
+  const lesson = (key, text, kind) => LESSONS_SCORED ? flag(key, text, kind) : why.push({ key, text, kind: kind || 'indication', lesson: true });
 
   // expected dose in mg: per-kg rule wins for children and neonates
   let want = null;
@@ -1992,9 +2075,18 @@ function giveDrug(state, script, name, text, mode){
   // local anaesthetic is not graded against the arrest card: localAnaesthetic.)
   const lidoBand = name !== 'lidocaine' || infusion || isChild(script) || lidoRepeat || localAnaesthetic(text, route) ? null
     : { lo: 1 * kg * 0.95, hi: 1.5 * kg * 1.05, where: '', says: '1-1.5 mg/kg (' + doseNum(kg) + '-' + doseNum(1.5 * kg) + ' mg)' };
-  const band = epiBand || dexBand || magBand || lidoBand;
-  // Said in the unit the drug is ordered in: dextrose in grams, the rest in milligrams.
-  const bandDose = mg => dexBand ? round2(mg / 1000) + ' g' : magBand ? doseSaid(mg) : doseNum(mg) + ' mg';
+  // TRANEXAMIC ACID'S FIRST DOSE IS 1-2 g (review, 2026-09-27): CRASH-2's 1 g over ten minutes, then 1 g over eight hours — or
+  // the single 2 g dose of military (TCCC) and several prehospital protocols, the same total. Against 0.8-1.25 × the scripts'
+  // 1 g, "tranexamic acid 2 g" was flagged "Tranexamic acid is 1 g, then 1 g". (A child's is left to the script's own number.)
+  const txaBand = name !== 'tranexamic' || infusion || isChild(script) ? null
+    : { lo: 1000 * 0.95, hi: 2000 * 1.05, where: '', says: '1-2 g (1 g, then 1 g over 8 hours — or 2 g once)' };
+  // A SCRIPT MAY GIVE ITS DOSE AS A RANGE — `band: [lo, hi]` in mg (review, 2026-09-27). The opioid arrest's naloxone is AHA 2025
+  // Table 4's 0.2-2 mg IV/IO: against 2 mg ±25% the guideline's 0.4 mg read "Dose out of range — expected about 2 mg".
+  const ruleBand = !Array.isArray(rule.band) || infusion || unit !== 'mg' || rule.perKg != null ? null
+    : { lo: rule.band[0] * 0.95, hi: rule.band[1] * 1.05, where: '', says: doseNum(rule.band[0]) + '-' + doseSaid(rule.band[1]) };
+  const band = epiBand || dexBand || magBand || lidoBand || txaBand || ruleBand;
+  // Said in the unit the drug is ordered in: dextrose and tranexamic acid in grams, the rest in milligrams.
+  const bandDose = mg => dexBand ? round2(mg / 1000) + ' g' : magBand || txaBand || ruleBand ? doseSaid(mg) : doseNum(mg) + ' mg';
   // Which salt the calcium number is for, said with it.
   const saltSays = name !== 'calcium' ? '' : salt === 'gluconate'
     ? ' of calcium gluconate — three times the chloride dose, for the same calcium'
@@ -2005,10 +2097,19 @@ function giveDrug(state, script, name, text, mode){
   // above the low end of its band starts the epinephrine clock or counts as the arrest's
   // antiarrhythmic (antiRepeat, expectedDoseMg). An overdose went in, and counts.
   let under = false;
+  // Which dose card: each drug's own, for the patient's population — the adult, child and newborn doses are different
+  // guideline lines. Epinephrine's has its forms: down the tube, IM, and the high dose (AHA 2025: Class 3, No Benefit).
+  const doseKey = over => name === 'epinephrine'
+    ? (nrpEt ? 'epi-dose-newborn-tube' : nrpIv ? 'epi-dose-newborn' : tubeEpi && isChild(script) ? 'epi-dose-child-tube'
+      : tubeEpi ? 'epi-dose-adult-tube' : imEpi ? 'epi-dose-im' : pop === 'newborn' ? 'epi-dose-newborn'
+      // (Review, 2026-09-27: "high-dose" is the trials' 0.1-0.2 mg/kg — 5 mg or more here. 1.5 or 2 mg is an overdose of the
+      // standard dose, and its card says so, not the Class 3 of a regimen nobody gave.)
+      : pop === 'child' ? 'epi-dose-child' : over && given >= Math.min(5, 0.1 * kg) * 0.95 ? 'epi-high-dose' : 'epi-dose-adult')
+    : name + '-dose' + (pop === 'adult' ? '' : '-child');
   if(band && given != null){
     if(given < band.lo) under = true;
-    if(given < band.lo || given > band.hi){ ok = false;
-      note = 'Dose out of range: ' + bandDose(given) + band.where + ' — expected ' + band.says + '.'; }
+    if(given < band.lo || given > band.hi)
+      flag(doseKey(given > band.hi), 'Dose out of range: ' + bandDose(given) + band.where + ' — expected ' + band.says + '.', 'dose');
   // An infusion is a rate, not a bolus: the bolus band does not apply to it.
   } else if(want != null && given != null && !infusion){
     // The adult lidocaine repeat is the card's 0.5-0.75 mg/kg with the same ~5% slack as the first dose and as
@@ -2016,26 +2117,43 @@ function giveDrug(state, script, name, text, mode){
     // repeat and then flagged "expected about 51 mg".
     const lo = lidoRepeat ? 0.5 * kg * 0.95 : want * 0.8, hi = lidoRepeat ? 0.75 * kg * 1.05 : want * 1.25;
     if(given < lo) under = true;
-    if(given < lo || given > hi){ ok = false;
-      note = 'Dose out of range: ' + doseNum(given) + ' ' + unit + ' — expected about ' + doseNum(want) + ' ' + unit
+    if(given < lo || given > hi)
+      flag(doseKey(given > hi), 'Dose out of range: ' + doseNum(given) + ' ' + unit + ' — expected about ' + doseNum(want) + ' ' + unit
            + (lidoRepeat ? ' (0.5-0.75 mg/kg repeat × ' + kg + ' kg)'
-              : rule.perKg != null ? ' (' + rule.perKg * saltX + ' ' + unit + '/kg × ' + kg + ' kg)' : '') + saltSays + '.'; }
+              : rule.perKg != null ? ' (' + rule.perKg * saltX + ' ' + unit + '/kg × ' + kg + ' kg)' : '') + saltSays + '.', 'dose');
   } else if((want != null || band) && given == null && !infusion && (script.patient && (script.patient.child || script.patient.neonate))){
     // An adult can be given "an amp of epi" and everyone knows what that is. A
     // child cannot: the number IS the order, and leaving it out is the error.
-    ok = false; note = 'No dose stated — ' + (isNeonate(script) ? 'a newborn' : 'a child') + ' needs a weight-based dose' +
+    flag(pop === 'newborn' ? 'dose-not-stated-newborn' : 'dose-not-stated-child',
+      'No dose stated — ' + (isNeonate(script) ? 'a newborn' : 'a child') + ' needs a weight-based dose' +
       (band ? ': ' + band.says
-      : ' (' + (rule.perKg != null ? rule.perKg * saltX + ' ' + unit + '/kg' + saltSays : doseNum(want) + ' ' + unit) + ')') + '.';
+      : ' (' + (rule.perKg != null ? rule.perKg * saltX + ' ' + unit + '/kg' + saltSays : doseNum(want) + ' ' + unit) + ')') + '.', 'dose');
   }
 
+  // THE CAUSE COMES FIRST IN TRAUMA (2026-09-27). Epinephrine before the case's life-saving steps are done — the chest
+  // decompressed, the bleeding stopped, the blood going in — was accepted in all three ATLS cases (the scripts' own notes on
+  // it were never read). In a traumatic arrest the 2025 joint statement (NAEMSP/ACS-COT/ACEP) and ERC 2025 say it is not
+  // routine and never before those interventions; with a pulse, in haemorrhagic shock, a vasopressor is no substitute for
+  // blood (AAST/ACS-COT 2024). Once every required cause is treated it is not flagged: that is the bridge they allow.
+  // (Review, 2026-09-27: a lesson, not a flag — the traumatic-arrest script's own note says "Accepted, but…", and the grade is
+  // the live version's: LESSONS_SCORED.)
+  if(name === 'epinephrine' && pop === 'adult' && traumaScript(script) && !state.ended && !imRoute && causesOutstanding(state, script))
+    lesson(state.pulse ? 'vasopressor-haemorrhagic-shock' : 'epi-traumatic-arrest-first', state.pulse
+      ? 'A vasopressor in uncontrolled bleeding squeezes an empty tank — stop the bleeding and give blood first.'
+      : 'In a traumatic arrest the cause comes first — decompress the chest, stop the bleeding and give blood before epinephrine.');
   // (Not the IM anaphylaxis dose, which is 0.5 mg in an adult, nor a child's dose down the tube. An IM
   // dose with no IM indication is flagged for its route below — "push-dose 10-20 mcg" is advice for a vein.)
   // Nor a drip: "4 mg in 250 mL" is the bag, not a dose (round 5 — the standard epinephrine drip was flagged).
-  if(name === 'epinephrine' && state.pulse && dose.mg != null && dose.mg >= 0.5 && !imRoute && !tubeEpi && !infusion){
-    ok = false;
-    note = (note ? note + ' ' : '') + 'That is a cardiac-arrest dose at a patient with a pulse — ' +
-      'push-dose epinephrine is 10-20 mcg, or run an infusion.';
-  }
+  // (2026-09-27: an ADULT's. A child's or a newborn's milligram at a pulse is judged by its own weight-based band above —
+  // the adult push-dose advice after it was the wrong lesson for a 3 kg baby.)
+  // DOWN THE TUBE IS NO LONGER AN ADULT ROUTE (review, 2026-09-27). With no line, the adult tube dose (2-2.5 mg) went in credited
+  // and taught nothing, while the 2025 adult guidelines have removed endotracheal drug delivery: IV first, IO if IV fails. (With
+  // a line in it is flagged below, epi-tube-line-in, as it always was; a child's and a newborn's tube doses are still guideline.)
+  if(tubeEpi && pop === 'adult' && !(state.ivAccess || state.io || state.flags.uvc))
+    lesson('epi-tube-adult', 'Down the tube is no longer an adult route — blood levels after it are low and unpredictable; place an IO and give 1 mg IV or IO.', 'route');
+  if(name === 'epinephrine' && pop === 'adult' && state.pulse && dose.mg != null && dose.mg >= 0.5 && !imRoute && !tubeEpi && !infusion)
+    flag('epi-arrest-dose-at-pulse', 'That is a cardiac-arrest dose at a patient with a pulse — ' +
+      'push-dose epinephrine is 10-20 mcg, or run an infusion.');
   // ARREST RULES ARE FOR THE ARREST. Kim's crush case names treating the hyperkalaemia as
   // a critical action; she gave bicarbonate after ROSC and it was flagged four times with
   // the case's own note, which actually ENDORSES it ("Adjunct for a hyperkalaemic arrest").
@@ -2051,24 +2169,48 @@ function giveDrug(state, script, name, text, mode){
   // Routine bicarbonate in arrest is not recommended (AHA 2025): it is for hyperkalaemia,
   // a sodium-channel-blocker overdose or a known severe metabolic acidosis. A script
   // that wants it says `indicated: true`; otherwise the dose is delivered and flagged.
-  if(inArrest && name === 'bicarbonate' && !rule.indicated){ ok = false;
-    note = (note ? note + ' ' : '') + (rule.note || 'Bicarbonate is not part of routine arrest care — it is for hyperkalaemia, a sodium-channel-blocker overdose or a known severe acidosis.'); }
+  // (2026-09-27: which lesson depends on who and where. The adult's arrest reasons — hyperkalaemia, a tricyclic — were read to
+  // a newborn and to patients with a pulse ("not part of routine ARREST care" at a heart block); a trauma script says its own:
+  // perfusion, not bicarbonate, clears haemorrhagic acidosis.)
+  if(inArrest && name === 'bicarbonate' && !rule.indicated){
+    const onCpr = compressionsIndicated(state, script);
+    if(traumaScript(script))
+      flag('bicarbonate-trauma-acidosis', rule.note || 'Perfusion clears this acidosis — bicarbonate treats the number, not the bleeding.');
+    else if(pop === 'newborn')
+      flag('bicarbonate-newborn', 'Bicarbonate is not part of the newborn resuscitation algorithm — ventilation that moves the chest is what corrects a newborn\'s acidosis.');
+    // (Review, 2026-09-27: not "or a known severe acidosis" — the 2025 guidelines give it no such indication, and the opioid
+    // arrest's gas reads a pH of 6.98 beside a card that says it is not routine.)
+    else if(onCpr)
+      flag(pop === 'adult' ? 'bicarbonate-routine-arrest' : 'bicarbonate-routine-arrest-child',
+        rule.note || 'Bicarbonate is not part of routine arrest care, even with a low pH — it is for hyperkalaemia or a sodium-channel-blocker (tricyclic) overdose.');
+    else flag('bicarbonate-no-indication', rule.note || 'Bicarbonate has no indication here — it is for hyperkalaemia or a sodium-channel-blocker (tricyclic) overdose.');
+  }
   // ...and neither are routine calcium or routine magnesium (AHA 2025: routine calcium, Class 3 No
   // Benefit; magnesium only for torsades or a low magnesium). Both went in unflagged beside a flagged
   // bicarbonate — the VF case whose gas reads "potassium four point one" scored them "all correct".
   // When the case gives the arrest a reason for them, they are right (arrestAdjunctIndicated).
   if(inArrest && (name === 'calcium' || name === 'magnesium') && compressionsIndicated(state, script)
-     && !arrestAdjunctIndicated(state, script, name)){ ok = false;
-    note = (note ? note + ' ' : '') + (name === 'calcium'
-      ? 'Calcium is not part of routine arrest care — it is for hyperkalaemia, a low calcium, a calcium-channel-blocker overdose or the citrate of a massive transfusion.'
-        + (rule.note ? ' ' + rule.note : '')
-      : 'Magnesium is not part of routine arrest care — it is for torsades de pointes or a low magnesium.'); }
+     && !arrestAdjunctIndicated(state, script, name)){
+    // IN BLEEDING TRAUMA, CALCIUM GOES WITH THE BLOOD (review, 2026-09-27). The penetrating and blunt cases, pulseless before the
+    // transfusion, read the routine-arrest card — "no massive transfusion… keep to the algorithm, epinephrine" — to a patient
+    // whose missing treatment IS the transfusion, and whose own script says calcium goes in with the citrated blood. Still
+    // flagged (as on the live version); taught as what it goes with.
+    if(name === 'calcium' && traumaScript(script))
+      flag('calcium-trauma-with-blood', 'In bleeding trauma calcium goes in with the blood — the citrate of a transfusion binds it. Stop the bleeding and give blood first.'
+        + (rule.note ? ' ' + rule.note : ''));
+    else if(name === 'calcium') flag(pop === 'newborn' ? 'calcium-newborn' : pop === 'child' ? 'calcium-routine-arrest-child' : 'calcium-routine-arrest',
+      pop === 'newborn' ? 'Calcium is not part of the newborn resuscitation algorithm.' + (rule.note ? ' ' + rule.note : '')
+      : 'Calcium is not part of routine arrest care — it is for hyperkalaemia, a low calcium, a calcium-channel-blocker overdose or the citrate of a massive transfusion.'
+        + (rule.note ? ' ' + rule.note : ''));
+    else flag(pop === 'adult' ? 'magnesium-routine-arrest' : 'magnesium-routine-arrest-child',
+      'Magnesium is not part of routine arrest care — it is for torsades de pointes or a low magnesium.');
+  }
   // Read once and used twice — here to flag the dose, and below to stop it converting the
   // rhythm it is wrong for. Two copies of the condition could be edited apart.
   const wrongForRhythm = !!(rule.wrongFor && rule.wrongFor.indexOf(state.rhythm) !== -1);
-  if(wrongForRhythm){ ok = false;
-    note = (note ? note + ' ' : '') + (rule.wrongForNote ||
-      (capitalize(name) + ' is the wrong drug for ' + rhythmName(state.rhythm) + '.')); }
+  if(wrongForRhythm)
+    flag(WRONG_FOR_TEACH[name + '|' + state.rhythm] || 'wrong-rhythm', rule.wrongForNote ||
+      (capitalize(name) + ' is the wrong drug for ' + rhythmName(state.rhythm) + '.'));
   // AN ANTIARRHYTHMIC IS FOR VF/pVT, OR A TACHYCARDIA WITH A PULSE. Only amiodarone into asystole was
   // flagged: the first amiodarone or lidocaine into PEA (the repeat is held — antiRepeat), lidocaine
   // into asystole, and amiodarone at complete heart block or the hypoxic child's bradycardia all went in
@@ -2082,20 +2224,45 @@ function giveDrug(state, script, name, text, mode){
   const antiArrhythmic = (name === 'amiodarone' || name === 'lidocaine') && !(name === 'lidocaine' && localAnaesthetic(text, route));
   // (One rule, exported for the page's Hint — antiarrhythmicNotIndicated; round 7.)
   const antiNotIndicated = antiArrhythmic && antiarrhythmicNotIndicated(state);
-  if(antiNotIndicated){ ok = false;
-    note = (note ? note + ' ' : '') + (state.pulse
+  if(antiNotIndicated)
+    flag((state.pulse ? 'antiarrhythmic-bradycardia' : 'antiarrhythmic-nonshockable') + (pop === 'adult' ? '' : '-child'), state.pulse
       ? capitalize(name) + ' is for VF, pulseless VT or a tachyarrhythmia with a pulse — the rate is ' + state.hr +
         ', and an antiarrhythmic can suppress the escape rhythm the patient is living on.'
       : capitalize(name) + ' is for VF and pulseless VT' + (heardName(state)
-        ? ' — not for ' + heardName(state) + '. Compressions, epinephrine and the reversible causes.'
-        : ' — call the rhythm on the monitor before an antiarrhythmic.')); }
+        // (A traumatic arrest's next step is its cause, not epinephrine — review, 2026-09-27.)
+        ? ' — not for ' + heardName(state) + '. ' + (traumaArrest(state, script)
+          ? 'Here the causes come first: decompress the chest, stop the bleeding, give blood.' : 'Compressions, epinephrine and the reversible causes.')
+        : ' — call the rhythm on the monitor before an antiarrhythmic.'));
+  // LIDOCAINE IS A VENTRICULAR DRUG (2026-09-27). Into a narrow-complex tachycardia or atrial fibrillation it was judged only
+  // on its dose — "all correct" at 1-1.5 mg/kg. The guidelines give it for VF, pulseless VT and ventricular tachycardia;
+  // the narrow rhythms have their own drugs. (Said by what it is for, not by the rhythm — the blind-rhythm rule.)
+  // (Review, 2026-09-27: the infant's SVT reads the PALS card, not the adult's "rate control with diltiazem"; and a lesson, not a
+  // flag — LESSONS_SCORED.)
+  else if(name === 'lidocaine' && antiArrhythmic && state.pulse && !state.ended && SUPRAVENTRICULAR.has(state.rhythm))
+    lesson(pop === 'adult' ? 'lidocaine-supraventricular' : 'lidocaine-supraventricular-child', 'Lidocaine is for ventricular arrhythmias — it will not slow or convert this rhythm.');
+  // IN TORSADES THE DRUG IS MAGNESIUM (review, 2026-09-27). Lidocaine before the third shock in the pulseless torsades read the
+  // VF card — "amiodarone 300 mg or lidocaine after the third shock" — in the case whose own lesson is that amiodarone feeds
+  // torsades. AHA 2025 polymorphic VT: magnesium for a long QT; lidocaine or amiodarone only when the QT is normal. Taught, not
+  // marked down (the script doses lidocaine, and the live version accepted it).
+  if(name === 'lidocaine' && antiArrhythmic && state.rhythm === 'torsades' && !state.ended && pop === 'adult')
+    lesson('lidocaine-torsades', 'Lidocaine is for polymorphic VT with a normal QT — here the drug is magnesium.');
+  // CARDIOVERSION BEFORE THE DRUG (review, 2026-09-27). An adult with a pulse, a tachycardia that shocks, a systolic under 90 and
+  // no synchronized shock yet: amiodarone 150 mg and lidocaine went in with no lesson, while procainamide, digoxin, a beta-blocker
+  // or diltiazem at the same moment were taught "an unstable tachycardia needs cardioversion, not a drug" — whose own source names
+  // amiodarone. Taught, not marked down: the drug may still be the right one once the patient is stable. (Not once a synchronized
+  // shock has been tried: amiodarone for a critically ill AF after cardioversion has failed is the guideline's 2a.)
+  if(antiArrhythmic && !antiNotIndicated && pop === 'adult' && state.pulse && !state.ended && CARDIOVERTABLE.has(state.rhythm)
+     && state.bpSys < 90 && !state.shocks.some(x => x.sync) && !(name === 'lidocaine' && SUPRAVENTRICULAR.has(state.rhythm)))
+    lesson(state.rhythm === 'VT' ? 'drug-instead-of-cardioversion-wct' : 'drug-instead-of-cardioversion',
+      capitalize(name) + ' is for a stable patient — at a pressure of ' + state.bpSys + ' this tachycardia needs synchronized cardioversion first.');
   // (Magnesium in torsades was forced ok here, whatever the dose — 20 g scored correct. Its range is now
   // its own band, 1-2 g, and torsades is its indication for the routine-adjunct rule above.)
   // PALS and NRP give epinephrine for a rate under sixty despite effective ventilation (and
   // compressions). A child with a pulse and a rate of sixty or more is not an epinephrine patient.
   // (An IM dose for anaphylaxis or asthma is not that bradycardia dose, and is not judged on the rate.)
-  if(name === 'epinephrine' && isChild(script) && state.pulse && state.hr >= 60 && !infusion && !imEpi){ ok = false;
-    note = (note ? note + ' ' : '') + 'The heart rate is ' + state.hr + ' — epinephrine is for a rate under 60 despite effective ventilation and compressions.'; }
+  if(name === 'epinephrine' && isChild(script) && state.pulse && state.hr >= 60 && !infusion && !imEpi)
+    flag(pop === 'newborn' ? 'epi-newborn-rate-60' : 'epi-child-rate-60',
+      'The heart rate is ' + state.hr + ' — epinephrine is for a rate under 60 despite effective ventilation and compressions.');
   // AN EPINEPHRINE DRIP HAS ITS PATIENTS, AND THESE ARE NOT THEM. Once a drip was read as a drip (round
   // 5) the rate rules above stood down for it, and an infusion into the infant's tachycardia at 240, or
   // the newborn at 70, scored "all correct". A child's tachyarrhythmia is made faster by it — the
@@ -2103,11 +2270,14 @@ function giveDrug(state, script, name, text, mode){
   // resuscitation: a newborn's epinephrine is the bolus, for a rate under 60 despite ventilation and
   // compressions. (Once the pulse is back — ROSC, or the case ended stable — a pressor drip is
   // post-resuscitation care, and correct. A pulseless newborn's drip is the arrest-drip flag below.)
+  // (2026-09-27: an adult's tachyarrhythmia too. A drip into a stable SVT at 190 or an unstable AF at 170 scored "all
+  // correct": the guideline's epinephrine infusion is for a bradycardia atropine has not fixed.)
+  // (Review: the adult's is a lesson, not a flag — the live version accepted it. The child's and the newborn's were flags there.)
   else if(name === 'epinephrine' && infusion && state.pulse && !state.ended
-          && (isNeonate(script) || (isChild(script) && CARDIOVERTABLE.has(state.rhythm)))){ ok = false;
-    note = (note ? note + ' ' : '') + (isNeonate(script)
+          && (isNeonate(script) || CARDIOVERTABLE.has(state.rhythm)))
+    (pop === 'adult' ? lesson : flag)(pop === 'newborn' ? 'epi-drip-newborn' : pop === 'child' ? 'epi-drip-tachycardia-child' : 'epi-drip-tachycardia', isNeonate(script)
       ? 'A newborn is not given an epinephrine infusion during the resuscitation — NRP gives epinephrine as a bolus, 0.01-0.03 mg/kg IV, for a rate under 60 despite ventilation and compressions.'
-      : 'The heart rate is ' + state.hr + ' — an epinephrine infusion drives a tachycardia faster. The tachycardia itself is what needs treating.'); }
+      : 'The heart rate is ' + state.hr + ' — an epinephrine infusion drives a tachycardia faster. The tachycardia itself is what needs treating.');
   // VENTILATION FIRST. A newborn's heart rate, and a bradycardic child's, falls because the child is
   // not breathing: NRP gives epinephrine only for a rate under 60 after 30 seconds of ventilation that
   // moves the chest and 60 seconds of compressions coordinated with it, and PALS only for a rate under
@@ -2121,26 +2291,55 @@ function giveDrug(state, script, name, text, mode){
   // the epinephrine goes in in that pause — flagged "Compressions first" it lost its credit (round 6).
   else if(name === 'epinephrine' && !imEpi && (isNeonate(script) || (isChild(script) && state.pulse)) && (!state.pulse || state.hr < 60)){
     const ventilated = !!state.flags.ppv || (state.flags.ppv !== false && (state.airway !== 'none' || !!state.flags.altAirway));
-    if(!ventilated){ ok = false;
-      note = (note ? note + ' ' : '') + 'Ventilation first — epinephrine is for a rate under 60 despite effective ventilation and compressions.'; }
-    else if(isNeonate(script) && !state.cpr && !(state.cprSecs > 0)){ ok = false;
-      note = (note ? note + ' ' : '') + 'Compressions first — a newborn is given epinephrine for a rate under 60 after 30 seconds of ventilation that moves the chest and 60 seconds of compressions coordinated with it.'; }
+    if(!ventilated)
+      flag(pop === 'newborn' ? 'epi-before-ventilation-newborn' : 'epi-before-ventilation-child',
+        'Ventilation first — epinephrine is for a rate under 60 despite effective ventilation and compressions.');
+    else if(isNeonate(script) && !state.cpr && !(state.cprSecs > 0))
+      flag('epi-before-compressions-newborn', 'Compressions first — a newborn is given epinephrine for a rate under 60 after 30 seconds of ventilation that moves the chest and 60 seconds of compressions coordinated with it.');
   }
   // ADENOSINE BREAKS A RE-ENTRANT TACHYCARDIA THAT IS RUNNING. Once the SVT had been cardioverted to
   // sinus, 6 and 12 mg ordered after it went in unflagged and ticked the adenosine step. Into a rate
   // with nothing to break it is flagged (said by the rate — the rhythm is the doctor's to call).
-  if(name === 'adenosine' && state.pulse && !CARDIOVERTABLE.has(state.rhythm)){ ok = false;
-    note = (note ? note + ' ' : '') + 'There is no tachycardia running for adenosine to break — the rate is ' + state.hr + '.'; }
+  // (Review, 2026-09-27: not torsades with a pulse — a tachycardia is running there, and "no tachycardia to break" was the
+  // wrong reason; its own reason follows, flagged as it was.)
+  if(name === 'adenosine' && state.pulse && !CARDIOVERTABLE.has(state.rhythm) && state.rhythm !== 'torsades')
+    flag(pop === 'adult' ? 'adenosine-no-tachycardia' : 'adenosine-no-tachycardia-child',
+      'There is no tachycardia running for adenosine to break — the rate is ' + state.hr + '.');
+  // ADENOSINE INTO AN UNSTABLE WIDE-COMPLEX TACHYCARDIA (2026-09-27). The unstable VT at 82 systolic took it "all correct"
+  // (the case's own row answers that it does nothing). AHA 2025: not for an unstable, irregular or polymorphic wide-complex
+  // tachycardia — Class 3: Harm; it will not stop VT and can bring on hypotension or VF. (A stable, regular, monomorphic one
+  // may be given it: 2b. The irregular one — atrial fibrillation — is the script's own wrongFor.)
+  // (Review, 2026-09-27: a lesson, not a flag — LESSONS_SCORED; and said by the pressure and the drug's effect, never by the
+  // complex the doctor has not called — the blind-rhythm rule. Torsades with a pulse at a normal pressure is not "unstable":
+  // there adenosine simply does not treat it.)
+  else if(name === 'adenosine' && pop === 'adult' && state.pulse && !state.ended
+          && (state.rhythm === 'torsades' || (state.rhythm === 'VT' && state.bpSys < 90)))
+    (state.rhythm === 'torsades' ? flag : lesson)('adenosine-unstable-wct', state.rhythm === 'torsades'
+      ? 'Adenosine will not break this rhythm and can bring on VF — ' + (state.bpSys < 90 ? 'at a pressure of ' + state.bpSys + ' it needs a shock.' : 'magnesium, and a shock if the pressure falls.')
+      : 'At a pressure of ' + state.bpSys + ' adenosine can drop the pressure further or bring on VF — this needs synchronized cardioversion.');
   // Atropine left the cardiac-arrest algorithm in 2010. Given, and said so in the debrief.
-  if(inArrest && name === 'atropine' && !state.pulse){ ok = false;
-    note = (note ? note + ' ' : '') + 'Atropine is not part of cardiac arrest care — it is for a bradycardia with a pulse.'; }
+  if(inArrest && name === 'atropine' && !state.pulse)
+    flag(pop === 'adult' ? 'atropine-in-arrest' : 'atropine-in-arrest-child', 'Atropine is not part of cardiac arrest care — it is for a bradycardia with a pulse.');
+  // ATROPINE IS FOR A SLOW HEART (2026-09-27). At 170, 190 and 240 it went in "all correct". Said by the rate.
+  // (Review: a lesson, not a flag — LESSONS_SCORED. Nor atropine ordered as a premedication for intubation, which PALS allows
+  // where bradycardia is likely: ATROPINE_PREMED_RE.)
+  else if(name === 'atropine' && pop !== 'newborn' && state.pulse && !state.ended && !infusion && state.hr >= 100 && !ATROPINE_PREMED_RE.test(norm(text)))
+    lesson(pop === 'adult' ? 'atropine-no-bradycardia' : 'atropine-no-bradycardia-child',
+      'Atropine speeds the heart — the rate is ' + state.hr + ' already.');
+  // ...AND NOT FOR A CHILD'S HYPOXIC ONE. PALS 2025 gives it only for a bradycardia from vagal tone or a primary AV block
+  // (Class 1); a slow heart from hypoxia is treated with oxygen and breaths, then CPR and epinephrine. The bradycardic
+  // child with croup took it before a single breath, and after them, "all correct" — the case's own action says it has no
+  // place. Read from the case: a child whose declared cause is the hypoxia.
+  else if(name === 'atropine' && pop === 'child' && state.pulse && !state.ended && state.hr < 100
+          && ((script.causes || {}).actions || {}).hypoxia && !ATROPINE_PREMED_RE.test(norm(text)))
+    lesson('atropine-hypoxic-bradycardia-child', 'This slow heart is from hypoxia — oxygen and breaths first; atropine is for a vagal or heart-block bradycardia.');
   // A NEWBORN GETS D10. NRP treats a newborn's low sugar with D10W, 2 mL/kg (0.2 g/kg), through the
   // umbilical line. D25 and D50 are hypertonic: they damage a newborn's veins, swing the glucose (the
   // rebound low follows the spike) and are linked to intraventricular haemorrhage. "D25 2 mL/kg" went
   // in unjudged (the amount is still left unjudged — no newborn script doses it).
   const dexPct = name === 'dextrose' ? dextroseStrength(text) : null;
-  if(dexPct != null && dexPct > 12.5 && isNeonate(script)){ ok = false;
-    note = (note ? note + ' ' : '') + 'A newborn is given D10, not D' + dexPct + ' — 2 mL/kg (0.2 g/kg) of D10W through the umbilical line. Stronger dextrose is hypertonic: it damages a newborn\'s veins and swings the glucose.'; }
+  if(dexPct != null && dexPct > 12.5 && isNeonate(script))
+    flag('dextrose-newborn-strength', 'A newborn is given D10, not D' + dexPct + ' — 2 mL/kg (0.2 g/kg) of D10W through the umbilical line. Stronger dextrose is hypertonic: it damages a newborn\'s veins and swings the glucose.');
   // (A child's second lidocaine bolus that reaches here is the PALS repeat — fifteen minutes on, no
   // infusion running; any sooner, antiRepeat holds it.)
   // A DRIP IS NOT ARREST CARE. In cardiac arrest epinephrine is a bolus every 3-5 minutes; its
@@ -2162,6 +2361,18 @@ function giveDrug(state, script, name, text, mode){
   // then a naloxone infusion at 0.4 mg/h" reaches the engine as two orders) — its bolus given or, on its clock, held (K2).
   // And a bolus of it went in this arrest as the dose, unflagged. (Amiodarone, lidocaine and magnesium were already exempt
   // after any bolus in the arrest.)
+  // NALOXONE IS FOR AN OPIOID (2026-09-27). In the VF arrest, the croup child and the heart block it went in "all correct".
+  // AHA 2025 gives it for a suspected opioid overdose — respiratory arrest with a pulse (Class 1), cardiac arrest (2b, and
+  // only if it does not get in the way of CPR); it does not reverse VF. Where the case gives no opioid, it is flagged; where
+  // it does (the opioid arrest, which credits it), it is the drug. A newborn is left alone: the neonatal guideline does not
+  // address it, and nothing here verifies the older advice.
+  // (Review: these two are lessons, not flags — LESSONS_SCORED.)
+  if(name === 'naloxone' && pop !== 'newborn' && !state.ended && !naloxoneIndicated(script))
+    lesson(pop === 'adult' ? 'naloxone-no-opioid' : 'naloxone-no-opioid-child', 'Naloxone is for a suspected opioid overdose, and nothing in this case points to one.');
+  // TRANEXAMIC ACID IS FOR BLEEDING TRAUMA (2026-09-27). A medical VF took it "all correct". CRASH-2 and the trauma
+  // protocols give it to the bleeding trauma patient within three hours of injury — a case with no bleed has no use for it.
+  if(name === 'tranexamic' && !state.ended && !tranexamicIndicated(script))
+    lesson('txa-no-bleeding', 'Tranexamic acid is for a bleeding trauma patient, within three hours of the injury — nothing here is bleeding.');
   const lastRec = state.drugs[state.drugs.length - 1], hb = state.heldBolus;
   const sameOrder = mode === 'drip' || (!!lastRec && lastRec.name === name && !lastRec.infusion && lastRec.t === state.t)
     || (!!hb && hb.name === name && hb.t === state.t && hb.n === state.drugs.length);
@@ -2170,8 +2381,10 @@ function giveDrug(state, script, name, text, mode){
   const arrestDrip = infusion && !state.pulse && !maintenance && (name === 'epinephrine' || name === 'naloxone'
     || ((name === 'amiodarone' || name === 'lidocaine' || name === 'magnesium') && !antiNotIndicated
         && !state.drugs.some(d => d.name === name && d.pulseless && !d.infusion && d.episode === state.episode)));
-  if(arrestDrip){ ok = false;
-    note = (note ? note + ' ' : '') + (name === 'epinephrine'
+  if(arrestDrip)
+    flag(name === 'epinephrine' ? (pop === 'newborn' ? 'epi-drip-newborn' : pop === 'child' ? 'epi-drip-in-arrest-child' : 'epi-drip-in-arrest')
+      : name === 'naloxone' ? 'naloxone-drip-in-arrest' : name === 'magnesium' ? 'magnesium-drip-in-arrest'
+      : 'antiarrhythmic-drip-no-bolus' + (pop === 'adult' ? '' : '-child'), (name === 'epinephrine'
       ? 'An epinephrine infusion is not arrest care — in cardiac arrest epinephrine is a bolus every 3-5 minutes (' +
         (isNeonate(script) ? '0.01-0.03 mg/kg' : isChild(script) ? '0.01 mg/kg' : '1 mg') + '); the drip is for the pressure after the pulse comes back.'
       : name === 'naloxone'
@@ -2182,34 +2395,54 @@ function giveDrug(state, script, name, text, mode){
         (isChild(script) ? '25-50 mg/kg, 2 g at most' : '1-2 g') + ' over 1-2 minutes); the drip is for once the pulse is back.'
       // (The rhythm by name only once the doctor has called it — the note is read back at once.)
       : capitalize(name) + ' goes in as a bolus ' + (heardName(state) ? 'in VF/pVT' : 'first in an arrest') + ' (' + (name === 'amiodarone' ? (isChild(script) ? '5 mg/kg' : '300 mg') : (isChild(script) ? '1 mg/kg' : '1-1.5 mg/kg')) +
-        ') — the infusion follows the bolus, it does not replace it.'); }
+        ') — the infusion follows the bolus, it does not replace it.'), 'route');
   // ADENOSINE IS NEVER A DRIP. Its half-life is under ten seconds: it works only as a rapid push chased
   // by a flush. "Adenosine 12 mg a minute" was read as an infusion (round 5) and scored correct, where
   // live had flagged it; given and flagged, it earns nothing and breaks nothing (round 6).
-  if(infusion && name === 'adenosine'){ ok = false;
-    note = (note ? note + ' ' : '') + 'Adenosine is not run as an infusion — it is a rapid IV push with an immediate flush' +
-      (isChild(script) ? ' (0.1 mg/kg, then 0.2 mg/kg).' : ' (6 mg, then 12 mg).'); }
+  if(infusion && name === 'adenosine')
+    flag(pop === 'adult' ? 'adenosine-infusion' : 'adenosine-infusion-child', 'Adenosine is not run as an infusion — it is a rapid IV push with an immediate flush' +
+      (isChild(script) ? ' (0.1 mg/kg, then 0.2 mg/kg).' : ' (6 mg, then 12 mg).'), 'route');
   // NOR IS ATROPINE (round 8, Kim). A bradycardia's atropine is a bolus, repeated to its maximum; "atropine 1 mg then
   // a drip" at complete heart block recorded "Atropine infusion running", unflagged. When the boluses fail, the next
   // step is the pacer or an epinephrine (or dopamine) drip.
-  if(infusion && name === 'atropine'){ ok = false;
-    note = (note ? note + ' ' : '') + 'Atropine is not run as an infusion — it is a bolus' +
-      (isChild(script) ? ' (0.02 mg/kg, repeated once).' : ' (1 mg every 3-5 minutes, to 3 mg).') + ' When it fails, pace or start an epinephrine drip.'; }
-  if(rule.route && route && rule.route.indexOf(route) === -1 && !tubeEpi && !imEpi && !imInArrest){ ok = false;
-    note = (note ? note + ' ' : '') + 'Give it ' + rule.route.join(' or ').toUpperCase() + '.'; }
+  if(infusion && name === 'atropine')
+    flag(pop === 'adult' ? 'atropine-infusion' : 'atropine-infusion-child', 'Atropine is not run as an infusion — it is a bolus' +
+      (isChild(script) ? ' (0.02 mg/kg, repeated once).' : ' (1 mg every 3-5 minutes, to 3 mg).') + ' When it fails, pace or start an epinephrine drip.', 'route');
+  // (2026-09-27: "Give it IV OR IO." — each route in capitals, not the word between them.)
+  if(rule.route && route && rule.route.indexOf(route) === -1 && !tubeEpi && !imEpi && !imInArrest)
+    flag(pop === 'newborn' ? 'route-uvc-io-newborn' : pop === 'child' ? 'route-iv-io-child' : 'route-iv-io',
+      'Give it ' + rule.route.map(r => r.toUpperCase()).join(' or ') + '.', 'route');
   // The tube is for when there is NO line. With IV/IO access in, absorption down the tube is
   // unreliable and the dose belongs in the vein: given, and flagged — the choice of route is the
   // error, and it is a real one (PALS/NRP: "if no IV/IO access").
-  if(tubeEpi && (state.ivAccess || state.io || state.flags.uvc)){ ok = false;
-    note = (note ? note + ' ' : '') + 'The line is in — epinephrine goes IV or IO now. The tube is only for when there is no line: absorption down it is unreliable.'; }
+  if(tubeEpi && (state.ivAccess || state.io || state.flags.uvc))
+    flag(pop === 'newborn' ? 'epi-tube-line-in-newborn' : pop === 'child' ? 'epi-tube-line-in-child' : 'epi-tube-line-in',
+      'The line is in — epinephrine goes IV or IO now. The tube is only for when there is no line: absorption down it is unreliable.', 'route');
   // IM in an arrest, or a child on compressions for a rate under sixty: there is too little
   // circulation to carry it from the muscle.
-  if(imInArrest){ ok = false;
-    note = (note ? note + ' ' : '') + (state.pulse
+  if(imInArrest)
+    flag(pop === 'adult' ? 'epi-im-in-arrest' : 'epi-im-in-arrest-child', state.pulse
       ? 'On compressions epinephrine goes IV or IO — an intramuscular or subcutaneous dose is barely absorbed at this circulation.'
-      : 'In an arrest epinephrine goes IV or IO — an intramuscular or subcutaneous dose is not absorbed without a circulation.'); }
+      : 'In an arrest epinephrine goes IV or IO — an intramuscular or subcutaneous dose is not absorbed without a circulation.', 'route');
 
+  // The note: every reason, in the order found. The lesson that leads (see `why` above): the wrong drug first, then the wrong
+  // way of giving it, then the dose; the rest stay on the record (`teachAll`).
+  // (A lesson — LESSONS_SCORED — is not read back: the nurse's words are the live version's.)
+  note = why.filter(w => !w.lesson).map(w => w.text).join(' ');
+  const RANK = { indication: 3, route: 2, dose: 1 };
+  const lead = why.slice().sort((a, b) => RANK[b.kind] - RANK[a.kind])[0] || null;
   const rec = { t: state.t, name, doseMg: dose.mg, route, ok, note, pulseless: !state.pulse, episode: state.pulse ? null : state.episode };
+  // ...and the lead's own words (review, 2026-09-27): a card with no verified source, or with no table at all, is built from the
+  // reason that leads it — not from the joined note, whose first clause is often the dose ("Dose out of range … expected 82 mEq"
+  // on a bicarbonate whose lesson is that it had no indication).
+  if(lead){ rec.teach = lead.key; rec.teachAll = why.map(w => w.key); rec.teachText = lead.text; }
+  // A traumatic arrest: its cards say the causes come first, not "…then epinephrine" (medicationReview, drug-teaching `trauma`).
+  if(traumaArrest(state, script)) rec.traumaArrest = true;
+  // What went in, as it was said ("1 g", "50 mEq") — the debrief's card names the dose it teaches about.
+  const doseWords = spokenDose(dose).trim();
+  if(doseWords) rec.dose = doseWords;
+  // ...and the rhythm it went into, for the debrief's timing lessons (medicationReview).
+  rec.rhythm = state.rhythm;
   if(mode === 'dry') return { under, ok, note };
   if(infusion){ rec.infusion = true; rec.rate = rateText(text); }
   if(under) rec.under = true;
@@ -2241,6 +2474,117 @@ function giveDrug(state, script, name, text, mode){
   // case's rows count, so the 6 mg and then the 12 still come), nor the drip after a bolus.
   if(!wrongForRhythm && !under && mode !== 'drip' && !(name === 'epinephrine' && offAlgorithmRoute(route))) out.push(...checkConversion(state, script, name));
   return out;
+}
+
+// THE DRUGS THIS ENGINE DOES NOT DOSE, CLAIMED ONLY WHERE THEY ARE WRONG (2026-09-27 — see actInner). Each has the words a
+// lead says, the context the guideline rules it out in, the teaching key, and the nurse's line. Nothing here is held,
+// timed, converted or credited: the dose goes in and the record says why it was the wrong drug.
+const OFF_LIST = [
+  { name: 'vasopressin', re: /\b(?:vasopressin|pitressin|vasostrict)\b/, key: 'vasopressin-arrest',
+    when: (state, script) => !state.pulse && populationOf(script) === 'adult',
+    // (A traumatic arrest's vasopressor is no vasopressor at all until the causes are fixed — review, 2026-09-27.)
+    note: (d, state, script) => traumaArrest(state, script)
+      ? 'Vasopressin adds nothing in a traumatic arrest — the causes come first: decompress the chest, stop the bleeding, give blood.'
+      : 'Vasopressin adds nothing to epinephrine in cardiac arrest — epinephrine 1 mg every 3-5 minutes is the vasopressor.' },
+  { name: 'thrombolytic', re: /\b(?:alteplase|tenecteplase|reteplase|t\s?pa|rt\s?pa|tnk|tnkase|activase|thrombolys[ie]s|thrombolytics?|fibrinolys[ie]s|fibrinolytics?|lytics)\b/,
+    key: 'thrombolytic-no-pe', named: s => (s.match(/\b(alteplase|tenecteplase|reteplase)\b/) || [])[1]
+      || (/\b(?:t\s?pa|rt\s?pa|activase)\b/.test(s) ? 'alteplase' : /\b(?:tnk|tnkase)\b/.test(s) ? 'tenecteplase' : 'thrombolytic'),
+    when: (state, script) => !state.pulse && populationOf(script) === 'adult'
+      && !/\bpe\b|embol|thrombo/i.test(Object.keys(((script.causes || {}).actions || {})).join(' ')),
+    note: 'A thrombolytic is for a pulmonary embolism, and nothing in this arrest points to one — in an undifferentiated arrest it has not improved survival.' },
+  // (Review, 2026-09-27: said by the drug's effect — it lengthens the QT — and by the rhythm only once the doctor has called it:
+  // the note is read back at once, and the blind-rhythm rule holds. The debrief's card names it.)
+  { name: 'antiarrhythmic', re: /\b(?:procainamide|sotalol|ibutilide)\b/, key: 'antiarrhythmic-torsades',
+    named: s => (s.match(/\b(procainamide|sotalol|ibutilide)\b/) || [])[1],
+    when: state => state.rhythm === 'torsades',
+    note: (d, state) => capitalize(d) + ' lengthens the QT' + (heardName(state)
+      ? ' — it feeds ' + heardName(state) + ' rather than breaking it.' : ' — here that feeds the arrhythmia rather than breaking it.') },
+  // (Resumed build, 2026-09-27.) Any other drug that lengthens the QT, into torsades: the guideline's advice is to stop them
+  // (AHA 2025 polymorphic VT; the torsades case's own step 4). Ondansetron and haloperidol went in "is in — pushed and flushed".
+  { name: 'qt-drug', re: /\b(?:ondansetron|zofran|haloperidol|haldol|droperidol|methadone|azithromycin|erythromycin)\b/, key: 'qt-drug-torsades',
+    named: s => ({ zofran: 'ondansetron', haldol: 'haloperidol' })[(s.match(/\b(ondansetron|zofran|haloperidol|haldol|droperidol|methadone|azithromycin|erythromycin)\b/) || [])[1]]
+      || (s.match(/\b(ondansetron|zofran|haloperidol|haldol|droperidol|methadone|azithromycin|erythromycin)\b/) || [])[1],
+    when: state => state.rhythm === 'torsades',
+    note: (d, state) => capitalize(d) + ' lengthens the QT — ' + (heardName(state) ? 'in ' + heardName(state) : 'here') + ' every QT-prolonging drug is stopped, not given.' },
+  // VERAPAMIL OR DILTIAZEM INTO VT (review, 2026-09-27) — AHA 2025's Class 3: Harm in a wide-complex tachycardia, and the one
+  // error of the unstable-VT case that taught nothing in the debrief. The case's own pack answers the order (a falling pressure,
+  // a lost action) as it always did: this only RECORDS it for the debrief — `recordOnly`, the order still falls through to the
+  // turn engine. (Placed before the rate-control rule, which leaves this pair to the pack.)
+  { name: 'ccb-wct', re: /\b(?:diltiazem|cardizem|verapamil)\b/, key: 'ccb-wct', recordOnly: true,
+    named: s => /\bverapamil\b/.test(s) ? 'verapamil' : 'diltiazem',
+    when: (state, script) => state.pulse && populationOf(script) === 'adult' && state.rhythm === 'VT',
+    note: d => capitalize(d) + ' will not stop a wide-complex tachycardia and drops the pressure — synchronized cardioversion.' },
+  // A RATE-SLOWING DRUG INTO AN UNSTABLE TACHYCARDIA (resumed build, 2026-09-27). Diltiazem, a beta-blocker, digoxin or
+  // procainamide into the atrial fibrillation at 78 systolic went in "is in" with no lesson: AHA 2025 — an unstable tachycardia
+  // with a pulse needs immediate synchronized cardioversion (Class 1), and drugs are for the stable patient. (Unstable is read
+  // as the case's own threshold, a systolic under 90, as adenosine-unstable-wct reads it. Verapamil or diltiazem into VT is left
+  // to the pack: the unstable-VT case answers it with its own consequence and critical action.)
+  // (Review, 2026-09-27: into VT its card is the wide-complex one — synchronized cardioversion, then amiodarone or procainamide
+  // if it recurs — not the atrial fibrillation's "rate control with a beta-blocker or diltiazem".)
+  { name: 'rate-control', re: /\b(?:diltiazem|cardizem|verapamil|metoprolol|lopressor|esmolol|labetalol|propranolol|digoxin|procainamide)\b/,
+    key: state => state.rhythm === 'VT' ? 'drug-instead-of-cardioversion-wct' : 'drug-instead-of-cardioversion',
+    keys: ['drug-instead-of-cardioversion', 'drug-instead-of-cardioversion-wct'],
+    named: s => ({ cardizem: 'diltiazem', lopressor: 'metoprolol' })[(s.match(/\b(diltiazem|cardizem|verapamil|metoprolol|lopressor|esmolol|labetalol|propranolol|digoxin|procainamide)\b/) || [])[1]]
+      || (s.match(/\b(diltiazem|cardizem|verapamil|metoprolol|lopressor|esmolol|labetalol|propranolol|digoxin|procainamide)\b/) || [])[1],
+    when: (state, script, s) => state.pulse && populationOf(script) === 'adult' && CARDIOVERTABLE.has(state.rhythm) && state.bpSys < 90
+      && !(state.rhythm === 'VT' && /\b(?:diltiazem|cardizem|verapamil)\b/.test(s)),
+    note: (d, state) => capitalize(d) + ' is for a stable patient — at a pressure of ' + state.bpSys + ' this tachycardia needs synchronized cardioversion.' },
+  // A VASOPRESSOR INTO UNCONTROLLED BLEEDING (resumed build, 2026-09-27) — epinephrine's rule (giveDrug) for the pressors this
+  // engine does not dose: norepinephrine, phenylephrine, dopamine went in with no lesson while the bleeding was not yet stopped.
+  { name: 'vasopressor', re: /\b(?:norepinephrine|noradrenaline|norepi|levophed|phenylephrine|neosynephrine|neo-synephrine|dopamine)\b/,
+    key: 'vasopressor-haemorrhagic-shock',
+    named: s => (/\b(?:phenylephrine|neo-?synephrine)\b/.test(s) ? 'phenylephrine' : /\bdopamine\b/.test(s) ? 'dopamine' : 'norepinephrine'),
+    dripOnly: /^(?:norepinephrine|dopamine)$/,   // never a push: "start levophed" is its drip
+    when: (state, script) => state.pulse && populationOf(script) === 'adult' && traumaScript(script) && causesOutstanding(state, script),
+    note: 'A vasopressor in uncontrolled bleeding squeezes an empty tank — stop the bleeding and give blood first.' }
+];
+// Only an ORDER is claimed. "Should we give vasopressin?", "what about lytics", "consider alteplase", "is she on methadone?", "send
+// a digoxin level" are questions and mentions: they fall through to the turn engine as before, and nothing goes in.
+const OFF_LIST_NOT_AN_ORDER_RE = /\?|^\s*(?:should|shall|do|does|did|can|could|would|will|is|are|was|were|what|why|how|when|any|anything|consider\w*|think\w*|thinking|maybe|perhaps|if)\b|\b(?:what about|how about|level|levels|history|home med\w*|allerg\w*|on (?:her|his) list)\b/;
+// (Review, 2026-09-27.) ...AND ONLY AN ORDER SHAPED LIKE ONE: a dose, a rate or a route, or an order verb. The page splits the
+// torsades model answer "stop the methadone and ondansetron" into "stop methadone" and "ondansetron" — and the bare second clause
+// was given as ondansetron, flagged, and cost dose accuracy; the pack's own history word "methadone" was given too. A clause that
+// is only a drug's name falls through to the turn engine, as on the live version.
+const OFF_LIST_ORDER_SHAPE_RE = /\d|\b(?:give|giving|push|pushing|start|starting|hang|hanging|run|running|administer\w*|bolus\w*|load\w*|infus\w*|drip|iv|io|im|intravenous\w*|intraosseous\w*|intramuscular\w*|stat|units?|mg|mcg|micrograms?|milligrams?|grams?|amps?|vials?)\b/;
+// ...AND NEVER ONE THAT SAYS NOT TO, OR ONLY TALKS ABOUT IT: a negation, a contrast, a discontinuation, a cause, a home drug, a
+// statement. "Synchronized cardioversion at 150 joules instead of diltiazem" gave the diltiazem and no shock (the rhythm stayed
+// AF); "d/c methadone", "methadone is the cause", "she takes methadone 90 mg daily", "diltiazem is contraindicated", "we won't
+// give tPA", "norepinephrine is contraindicated" were each given. On the live version all fell through and nothing went in.
+const OFF_LIST_NOT_GIVEN_RE = /\b(?:not|no|never|none|nothing|instead|rather|avoid\w*|contraindicat\w*|hold|holding|held|stop\w*|d\.?\/?c\.?|discontinu\w*|cancel\w*|strike|struck|scratch|remove|won t|wont|don t|dont|do not|didn t|isn t|shouldn t|without|cause|caused|causes|causing|culprit|takes|taking|took|toxicity|toxic|overdose\w*|home|chronic|daily|nightly|regular|usual|is|was|were|are|has|had|been)\b/;
+// ...nor a clause that names an engine action — a shock, a cardioversion, pacing, compressions: that branch is the order's
+// ("cardiovert, not diltiazem" is a cardioversion), and actInner reaches the drugs first.
+const OFF_LIST_ENGINE_ACTION_RE = /\b(?:cardiover\w*|sync\w*|synch|shock\w*|defib\w*|pace|pacing|pacer|paced|joules?|compressions?|cpr)\b/;
+function offListDrug(state, script, s, text){
+  if(state.ended || findDrug(s)) return null;
+  const raw = String(text == null ? s : text).toLowerCase();
+  if(OFF_LIST_NOT_AN_ORDER_RE.test(raw)) return null;
+  if(!OFF_LIST_ORDER_SHAPE_RE.test(s) || OFF_LIST_NOT_GIVEN_RE.test(s) || OFF_LIST_ENGINE_ACTION_RE.test(s)) return null;
+  if(CODE_WITHHOLD_RE.test(String(text == null ? s : text))) return null;
+  for(const o of OFF_LIST) if(o.re.test(s) && o.when(state, script, s))
+    return Object.assign({}, o, { drug: o.named ? o.named(s) : o.name, key: typeof o.key === 'function' ? o.key(state, script) : o.key });
+  return null;
+}
+// The record of an off-list drug. Not scored: it is left out of dose accuracy (summary) — on the live version these went to the
+// turn engine and nothing was recorded — and it earns no credit (ok: false). The debrief teaches it (medicationReview).
+function offListRecord(state, script, off, text){
+  const note = typeof off.note === 'function' ? off.note(off.drug, state, script) : off.note;
+  // A drip is read back as its rate ("Norepinephrine running at 10 mcg/min"), not as a bolus of the rate's number.
+  const infusion = isInfusion(text) || !!(off.dripOnly && off.dripOnly.test(off.drug)), rate = infusion ? rateText(text) : null;
+  const said = (String(text).match(/(\d+(?:\.\d+)?)\s*(units?|u|mg|mcg|g)\b/i) || []);
+  const doseWords = !infusion && said[1] ? said[1] + ' ' + (/^u/i.test(said[2]) ? 'units' : said[2].toLowerCase()) : '';
+  const rec = { t: state.t, name: off.drug, doseMg: null, route: routeOf(text), ok: false, offList: true, note, pulseless: !state.pulse,
+    episode: state.pulse ? null : state.episode, shocksBefore: state.shocks.length, teach: off.key, teachAll: [off.key], teachText: note,
+    rhythm: state.rhythm };
+  if(traumaArrest(state, script)) rec.traumaArrest = true;
+  if(doseWords) rec.dose = doseWords;
+  if(infusion){ rec.infusion = true; rec.rate = rate; }
+  state.drugs.push(rec);
+  return { rec, infusion, rate, doseWords };
+}
+function giveOffListDrug(state, script, off, text){
+  const { infusion, rate, doseWords } = offListRecord(state, script, off, text);
+  return [ev(state, 'drug', capitalize(off.drug) + (infusion ? (rate ? ' running at ' + rate + '.' : ' infusion running.')
+    : (doseWords ? ' ' + doseWords : '') + ' is in.'), { ok: false, name: off.drug })];
 }
 
 // SAY THE DOSE THE WAY IT WAS ORDERED. An amp of D50 is 25 g; reading it back as
@@ -4584,7 +4928,23 @@ function actInner(state, script, text, now){
     // (epiAfterTheShock) is this one, in the same breath — not a second dose held as early.)
     if(d === 'epinephrine' && state.epiQueuedAt === state.t && !isInfusion(text) && !negatedDrug(s) && !CODE_WITHHOLD_RE.test(text))
       return { handled: true, events: [ev(state, 'note', 'Epinephrine is in, doctor.', { ack: 'echo', quiet: true })] };
+    // A THOUGHT IS NOT A DOSE (review, 2026-09-27). "Consider calcium", "thinking about bicarb", "maybe magnesium" went in — and the
+    // debrief's card now told the learner a drug they only thought aloud about was given. The nurse asks instead; nothing goes in,
+    // nothing is held or scored (`ack: 'answer'`). A REQUEST IS STILL AN ORDER, however it is punctuated — "should we give epi?",
+    // "what about bicarb", "can I get 1 mg of epi?", "do we need calcium?" — Kim's round 10/11 rule (questionLine, REQUEST_RE: seven
+    // textbook runs died when those were read as questions); the nurse said "… is in" to each, and the card says what happened.
+    if(d && DRUG_MUSING_RE.test(s))
+      return { handled: true, events: [ev(state, 'note', 'Do you want ' + (d === 'tranexamic' ? 'tranexamic acid' : d) + ' given, doctor? Say the dose and it goes in.', { ack: 'answer' })] };
     if(d) return { handled: true, events: giveDrug(state, script, d, text) };
+    // A DRUG THIS ENGINE DOES NOT DOSE, WHERE THE GUIDELINE SAYS IT IS WRONG (2026-09-27): vasopressin in an adult arrest,
+    // a thrombolytic in an arrest with no pulmonary embolism, a QT-prolonging antiarrhythmic into torsades. Each went to the
+    // turn engine and came back "… is in — pushed and flushed", with no lesson and nothing in the debrief. Given, flagged,
+    // named in the debrief with its reason. Anywhere else these words still fall through to the turn engine, as before.
+    const off = offListDrug(state, script, s, text);
+    // (Review, 2026-09-27: verapamil or diltiazem into VT is the pack's to answer — recorded for the debrief, and left to fall
+    // through, as on the live version.)
+    if(off && off.recordOnly) offListRecord(state, script, off, text);
+    else if(off) return { handled: true, events: giveOffListDrug(state, script, off, text) };
     // "...THEN START A DRIP" (round 7). The page splits "amiodarone 300 mg then start a drip" in two, and the
     // second half names no drug: it is the drip of the bolus that went in this same second (dripOfLastBolus).
     const dripOf = dripOfLastBolus(state, s);
@@ -4880,7 +5240,10 @@ function newbornVolume(state, script, text, named){
   if(ml == null){ const u = v.match(NEWBORN_UNIT_RE); if(u) ml = (NEWBORN_WORD_N[u[1]] || parseFloat(u[1])) * 300; }
   if(ml == null) return null;
   const mlKg = ml / kg;
-  return { ml, mlKg, ok: mlKg >= 10 * 0.8 * 0.95 && mlKg <= 10 * 1.25 * 1.05,
+  // A NEWBORN'S VOLUME BOLUS IS 10-20 mL/kg (review, 2026-09-27): saline or O-negative blood over 5-10 minutes, AHA/AAP 2025 Part 5
+  // (Class 2b; C-EO) — the 2025 Korean ILCOR-aligned guideline says the same; 2020 said 10 mL/kg. 20 mL/kg was flagged, and the
+  // nurse said 10 was the dose. (The low end keeps its old slack.)
+  return { ml, mlKg, ok: mlKg >= 10 * 0.8 * 0.95 && mlKg <= 20 * 1.05,
     fluid: fluidNamed ? newbornFluidName(v) : asked ? asked.fluid : 'normal saline', route: routeOf(text) };
 }
 // The wrong amount, given: a record the debrief's dose accuracy names (it is not a drug the engine knows, so no
@@ -4899,13 +5262,16 @@ function volumeAgreed(state, script, text){
   return VOLUME_YES_RE.test(norm(text)) ? Math.round(10 * weightOf(script)) + ' ml' : null;
 }
 function wrongNewbornVolume(state, script, vol){
-  const want = Math.round(10 * weightOf(script)), perKg = Math.round(vol.mlKg * 10) / 10, volume = { ml: round2(vol.ml), perKg: round2(vol.mlKg) };
-  state.drugs.push({ t: state.t, name: vol.fluid, doseMg: null, route: vol.route || null, ok: false, volume,
-    note: perKg + ' mL/kg — a newborn\'s volume bolus is 10 mL/kg (' + want + ' mL) over 5-10 minutes.',
-    pulseless: !state.pulse, episode: state.pulse ? null : state.episode, shocksBefore: state.shocks.length });
+  const kg = weightOf(script), want = Math.round(10 * kg), most = Math.round(20 * kg), perKg = Math.round(vol.mlKg * 10) / 10,
+    volume = { ml: round2(vol.ml), perKg: round2(vol.mlKg) };
+  const note = perKg + ' mL/kg — a newborn\'s volume bolus is 10-20 mL/kg (' + want + '-' + most + ' mL) over 5-10 minutes.';
+  state.drugs.push({ t: state.t, name: vol.fluid, doseMg: null, route: vol.route || null, ok: false, volume, note,
+    pulseless: !state.pulse, episode: state.pulse ? null : state.episode, shocksBefore: state.shocks.length,
+    teach: 'newborn-volume', teachAll: ['newborn-volume'], teachText: note, dose: Math.round(vol.ml) + ' mL', rhythm: state.rhythm });
   state.volumeAsk = { fluid: vol.fluid, t: state.t };
-  return [ev(state, 'drug', capitalize(vol.fluid) + ' ' + Math.round(vol.ml) + ' mL going in — that is ' + perKg + ' mL/kg, doctor. A newborn\'s volume bolus is 10 mL/kg: '
-    + want + ' mL, over five to ten minutes.', { ok: false, name: vol.fluid, volume })];
+  // (Her "yes" is still the 10 mL/kg she names first — volumeAgreed.)
+  return [ev(state, 'drug', capitalize(vol.fluid) + ' ' + Math.round(vol.ml) + ' mL going in — that is ' + perKg + ' mL/kg, doctor. A newborn\'s volume bolus is 10 to 20 mL/kg — '
+    + want + ' mL to start, over five to ten minutes.', { ok: false, name: vol.fluid, volume })];
 }
 
 // ---------- metrics ----------
@@ -5014,7 +5380,9 @@ function summary(state, script){
   const endedAt = state.endedT != null ? state.endedT : Infinity;
   const arrestEra = x => x.t == null || x.t <= endedAt;
   const problems = [].concat(state.shocks.filter(x => !x.ok && arrestEra(x)),
-                             state.drugs.filter(d => !d.ok && arrestEra(d)));
+                             // (Not the drugs this engine does not dose — offListRecord: on the live version they were never recorded,
+                             // and scoring them was a change nobody signed off. The debrief teaches them. Review, 2026-09-27.)
+                             state.drugs.filter(d => !d.ok && !d.offList && arrestEra(d)));
   const bad = problems.length;
   const seenNote = new Set();
   const named = problems.map(x => (x.name ? capitalize(x.name) : (x.sync ? 'Synchronized shock' : 'Shock')) + (x.t != null ? ' at ' + fmt(x.t) : '') + ': ' + (x.note || 'flagged'))
@@ -5031,7 +5399,10 @@ function summary(state, script){
   // (Not the asks held after the ending — round 6, heldOf.)
   const heldDrugs = state.events.filter(e => e.kind === 'withheld' && e.held && DRUG_FLOOR[e.held] && arrestEra(e) && !e.afterEnd);
   const timedGiven = state.drugs.filter(d => ['epinephrine', 'amiodarone', 'lidocaine', 'adenosine', 'atropine', 'naloxone'].indexOf(d.name) !== -1 && arrestEra(d));
-  const firstAnti = shockable ? state.drugs.find(d => (d.name === 'amiodarone' || d.name === 'lidocaine') && d.pulseless && !d.infusion && d.episode === shockEp.n) : null;
+  // (Not in torsades — review, 2026-09-27: its drug is magnesium, and the VF ladder's "antiarrhythmic after the third shock" is
+  // the wrong lesson there.)
+  const firstAnti = shockable ? state.drugs.find(d => (d.name === 'amiodarone' || d.name === 'lidocaine') && d.pulseless && !d.infusion && d.episode === shockEp.n
+    && d.rhythm !== 'torsades') : null;
   // The lesson is built from what the team actually held — the naloxone a player asked for early was
   // missing from a line that named every other drug. Each clock is said once, in the order asked.
   const LESSON = { epinephrine: 'epinephrine every 3-5 minutes', atropine: 'atropine every 3-5 minutes, to its maximum',
@@ -5096,6 +5467,64 @@ function summary(state, script){
       teach: late ? 'VF that persists after three shocks is refractory: amiodarone 300 mg (or lidocaine 1-1.5 mg/kg) after the third shock is what shortens a code like this one.' : '' });
   }
   return m;
+}
+
+// MEDICATIONS TO REVIEW (Kim, 2026-09-27: "if I order the wrong meds … explain in the debrief why they were wrong, based on
+// the latest ACLS guideline — for example calcium and bicarbonate not routinely indicated").
+//
+// Every dose the team gave that was the wrong drug, the wrong way or the wrong amount for this patient at that moment, one
+// entry per drug and reason: its teaching key (drug-teaching.json holds the card — the guideline in plain words, its class,
+// and what to do instead), what went in, and every time it went in. The debrief (InstantEngine.buildDebrief) turns each into
+// a card. Nothing here is scored — dose accuracy scores what it always scored — and what the team HELD is not here: nothing
+// went into the patient, and the drug-timing row already lists it with its lesson.
+//
+// Two lessons are not flags but timing, read from the arrest as it ran: in VF or pulseless VT the first epinephrine goes in
+// after the second shock (AHA 2025 adult Class 2a, upgraded from 2b; children after two shocks, 2b), and the antiarrhythmic
+// after the third (the algorithm's shock-refractory VF). Given sooner, the dose went in and counted — but the debrief says
+// when it belongs. (A dose already flagged is taught by its flag.)
+// REVIEW, 2026-09-27:
+//   · A dose that counted can carry a lesson (giveDrug's `lesson`, LESSONS_SCORED): it is here with its card, marked `counted`.
+//   · Not the antiarrhythmic timing in torsades: its drug is magnesium, and amiodarone feeds it (lidocaine-torsades says so).
+//   · One entry per drug, reason, era — in the arrest, or after it ended — and kind of arrest (a traumatic one reads its own
+//     `trauma` lesson): a dose in the arrest and one after the pulse came back no longer fold into one entry marked "after".
+//     Each dose keeps its own note (`perDose`), so two different expectations are both shown.
+//   · `teachText`: the leading reason's own words, for a card with no verified source (or no table).
+function medicationReview(state, script){
+  const pop = populationOf(script);
+  const endedAt = state.endedT != null ? state.endedT : Infinity;
+  const out = [], byKey = {};
+  const defibsBefore = d => state.shocks.slice(0, d.shocksBefore != null ? d.shocksBefore : state.shocks.length)
+    .filter(x => !x.sync && x.episode === d.episode && SHOCKABLE.has(x.rhythmBefore)).length;
+  const timingKey = d => {
+    if(!d.ok || !d.pulseless || d.infusion || d.under || !SHOCKABLE.has(d.rhythm) || d.t > endedAt || isNeonate(script)) return null;
+    if(d.name === 'epinephrine' && systemicEpi(d) && defibsBefore(d) < 2) return pop === 'adult' ? 'epi-before-second-shock' : 'epi-before-second-shock-child';
+    if((d.name === 'amiodarone' || d.name === 'lidocaine') && d.rhythm !== 'torsades' && defibsBefore(d) < 3)
+      return pop === 'adult' ? 'antiarrhythmic-before-third-shock' : 'antiarrhythmic-before-third-shock-child';
+    return null;
+  };
+  for(const d of state.drugs){
+    const lessonKey = d.ok ? d.teach || null : null, tKey = d.ok && !lessonKey ? timingKey(d) : null;
+    const key = d.ok ? lessonKey || tKey : (d.teach || 'flagged');
+    if(!key) continue;
+    const after = d.t > endedAt, trauma = !!d.traumaArrest;
+    const id = [d.name, key, after ? 'after' : 'arrest', trauma ? 'trauma' : ''].join('|');
+    let g = byKey[id];
+    if(!g){
+      g = byKey[id] = { key, name: d.name, salt: d.salt || null, doses: [], times: [], notes: [], perDose: [], timing: !!tKey, counted: true,
+        infusion: !!d.infusion, teachText: d.teachText || d.note || '' };
+      if(trauma) g.trauma = true;
+      if(after) g.after = state.ended === 'rosc' ? 'rosc' : state.ended || 'end';
+      out.push(g);
+    }
+    g.times.push(d.t);
+    if(!d.ok) g.counted = false;
+    const said = d.infusion ? (d.rate ? 'infusion at ' + d.rate : 'infusion') : (d.dose || '');
+    if(said && g.doses.indexOf(said) === -1) g.doses.push(said);
+    if(d.note && g.notes.indexOf(d.note) === -1) g.notes.push(d.note);
+    g.perDose.push({ t: d.t, dose: said, note: d.note || '' });
+    if(d.salt && g.salt && d.salt !== g.salt) g.salt = null;
+  }
+  return out;
 }
 
 function fmt(sec){ const s = Math.round(sec); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
@@ -5368,6 +5797,9 @@ function act(state, script, text, now){
 }
 
 root.CodeEngine = { newState, tick, act, actInner, creditKeysFor, summary, rhythmName, fmt, trendOf, responseNote,
+  // 2026-09-27 — the wrong medications, one per drug and reason, for the debrief's "Medications to review" (with the keys of
+  // their cards in drug-teaching.json).
+  medicationReview, teachKeys,
   // What is due when: the page's Hint and drug buttons ask the same rule the nurse applies.
   readyIn, DRUG_FLOOR, expectedDoseMg,
   // ...and why it is not due yet, in the nurse's own reckoning (clock, afterShock, clockAndShock, max,

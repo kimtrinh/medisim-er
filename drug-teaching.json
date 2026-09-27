@@ -1,0 +1,1756 @@
+{
+ "about": "Why a medication was wrong, for the debrief of the live code cases (Kim, 2026-09-27). Each entry is a card: the lesson in plain words, the guideline it rests on (with its class and level where the guideline gives them), and what to do instead. Built ONLY from guideline statements verified against the primary text (2025 AHA Parts 5, 8, 9 and 10 on cpr.heart.org; CRASH-2; the AAST/ACS-COT 2024 damage-control protocol; the NAEMSP/ACS-COT/ACEP 2025 statement and ERC 2025) — the research of 2026-09-27. Keys are the ones code-engine.js puts on a flagged drug record (rec.teach). A key listed under \"unsourced\" has no card: the debrief shows the engine's own note for it, with no guideline line. (Review, 2026-09-27.) An entry may carry a `trauma` lesson — its why and instead read in a traumatic arrest, where the causes come before epinephrine. An unsourced key may give its own title ({reason, title}); otherwise the card is read from the reason that leads it. Some cards teach a dose that counted in the score (CodeEngine LESSONS_SCORED): the debrief marks them apart.",
+ "researched": "2026-09-27",
+ "entries": {
+  "calcium-routine-arrest": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "calcium_arrest_routine_adult",
+    "calcium_hyperkalemia_arrest",
+    "calcium_ccb_poisoning",
+    "calcium_massive_transfusion",
+    "calcium_betablocker_poisoning",
+    "calcium_hypermagnesemia"
+   ],
+   "title": "Calcium is not a routine arrest drug",
+   "why": "Trials of routine calcium in cardiac arrest, including calcium given right after the first epinephrine, found no gain in survival or neurological recovery, and a trend toward harm. Nothing in this arrest gave it a reason: no hyperkalaemia severe enough to have caused it, no calcium-channel-blocker overdose, no massive transfusion.",
+   "guideline": "AHA 2025 Adult ALS — routine calcium is not recommended (Class 3: No Benefit; B-R)",
+   "instead": "Keep to the algorithm: compressions, shocks for a shockable rhythm, epinephrine, and the reversible causes. Calcium has its reasons — suspected hyperkalaemia (Class 2b), calcium-channel-blocker poisoning (2a), beta-blocker poisoning (2b), magnesium toxicity (2a in pregnancy), a documented low calcium, and the citrate of a massive transfusion."
+  },
+  "calcium-routine-arrest-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_calcium_routine"
+   ],
+   "title": "Calcium is not a routine arrest drug in children",
+   "why": "In children's in-hospital arrests routine calcium was linked to lower survival to discharge, and the guideline does not recommend it. This arrest had none of its reasons: no hypocalcaemia significant enough to explain the arrest, no calcium-channel-blocker overdose and no hyperkalaemia.",
+   "guideline": "AHA 2025 PALS — routine calcium is not recommended (Class 3: No Benefit; B-NR)",
+   "instead": "CPR, shocks for a shockable rhythm, epinephrine 0.01 mg/kg, and the reversible causes. Calcium is for hypocalcaemia, calcium-channel-blocker overdose or hyperkalaemia."
+  },
+  "bicarbonate-routine-arrest": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "bicarbonate_arrest_routine_adult",
+    "bicarbonate_sodium_channel_blocker",
+    "bicarbonate_hyperkalemia_arrest"
+   ],
+   "title": "Bicarbonate is not a routine arrest drug",
+   "why": "Routine sodium bicarbonate has not been shown to help in cardiac arrest, and the guideline recommends against giving it as a matter of course. This arrest had none of its specific reasons: no potassium high enough to have caused the arrest, and no tricyclic or other sodium-channel-blocker overdose.",
+   "guideline": "AHA 2025 Adult ALS — routine sodium bicarbonate is not recommended (Class 3: No Benefit; B-R)",
+   "instead": "Restore the circulation — compressions, ventilation, shocks, epinephrine — and treat the cause. Bicarbonate is for tricyclic cardiotoxicity (Class 1), other sodium-channel-blocker toxicity (2a) and suspected hyperkalaemic arrest (2b)."
+  },
+  "bicarbonate-routine-arrest-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_bicarbonate_routine"
+   ],
+   "title": "Bicarbonate is not a routine arrest drug in children",
+   "why": "Routine bicarbonate is not recommended in a child's cardiac arrest; in children's in-hospital arrests it was linked to lower survival. This arrest had no sodium-channel-blocker overdose and no high potassium to give it a reason.",
+   "guideline": "AHA 2025 PALS — routine sodium bicarbonate is not recommended (Class 3: No Benefit; B-NR)",
+   "instead": "Ventilate, compress, give epinephrine 0.01 mg/kg, and treat the cause. Bicarbonate is for sodium-channel-blocker toxicity (such as a tricyclic) or hyperkalaemia."
+  },
+  "bicarbonate-no-indication": {
+   "kind": "indication",
+   "population": "any",
+   "sources": [
+    "bicarbonate_sodium_channel_blocker",
+    "bicarbonate_hyperkalemia_arrest",
+    "pals_bicarbonate_routine"
+   ],
+   "title": "Bicarbonate had no indication here",
+   "why": "Bicarbonate treats specific problems — a tricyclic or other sodium-channel-blocker overdose, or hyperkalaemia. This patient had a pulse and neither problem.",
+   "guideline": "AHA 2025 Special Circumstances — bicarbonate for tricyclic cardiotoxicity (adults Class 1; B-NR; children 2a; C-LD), other sodium-channel blockers (2a; C-EO), hyperkalaemic arrest (2b; C-EO)",
+   "instead": "Treat the rhythm and the cause in front of you; keep bicarbonate for those poisonings or a high potassium."
+  },
+  "bicarbonate-trauma-acidosis": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "bicarbonate_trauma_acidosis",
+    "blood_vs_crystalloid_trauma_adult",
+    "txa_trauma"
+   ],
+   "title": "Bicarbonate does not fix bleeding",
+   "why": "The acid in haemorrhagic shock comes from tissue starved of blood. Bicarbonate for it is poorly studied and has shown no benefit above a pH of 7.2 — the acidosis clears when the bleeding stops and blood goes in.",
+   "guideline": "AAST/ACS-COT damage-control resuscitation protocol (2024) — correct the acidosis with haemorrhage control and blood (no graded recommendation)",
+   "instead": "Stop the bleeding (tourniquet, packing, pelvic binder), give blood through the massive transfusion protocol, and tranexamic acid within 3 hours of injury."
+  },
+  "magnesium-routine-arrest": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "magnesium_arrest_routine_adult",
+    "magnesium_torsades",
+    "magnesium_hypomagnesemia"
+   ],
+   "title": "Magnesium is for torsades, not routine arrest care",
+   "why": "Routine magnesium in cardiac arrest did not improve return of circulation, survival or neurological outcome in any presenting rhythm. Its place is torsades de pointes — polymorphic VT with a long QT — or a documented low magnesium, and this arrest had neither.",
+   "guideline": "AHA 2025 Adult ALS — routine magnesium is not recommended (Class 3: No Benefit; B-R); for recurrent torsades it may be considered (2b; C-LD)",
+   "instead": "Stay with the algorithm — CPR, shocks for a shockable rhythm, epinephrine — and the reversible causes. Keep magnesium for torsades or a documented low magnesium.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ]
+   }
+  },
+  "atropine-in-arrest": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "atropine_arrest",
+    "atropine_bradycardia_adult",
+    "epinephrine_nonshockable_timing",
+    "epinephrine_shockable_timing"
+   ],
+   "title": "Atropine has no place in cardiac arrest",
+   "why": "Atropine is not part of the adult cardiac arrest algorithm; its use is a bradycardia with a pulse.",
+   "guideline": "AHA 2025 Adult ALS — atropine is not in the cardiac arrest algorithm; it is for unstable bradycardia with a pulse (Class 2a; B-NR)",
+   "instead": "Follow the arrest algorithm for the rhythm: in VF or pulseless VT, shock first and give epinephrine 1 mg after the second shock (Class 2a); in PEA or asystole, epinephrine as soon as feasible (Class 2a); and search the Hs and Ts.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ],
+    "why": "Atropine is not part of the cardiac arrest algorithm. A traumatic PEA is an empty or obstructed heart, and it is treated by fixing that cause: bleeding, tension pneumothorax or tamponade."
+   }
+  },
+  "atropine-in-arrest-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia",
+    "pals_epinephrine_nonshockable_timing",
+    "pals_epinephrine_shockable_timing"
+   ],
+   "title": "Atropine has no place in cardiac arrest",
+   "why": "In children atropine is for a bradycardia with a pulse caused by vagal tone or a primary AV block. A child without a pulse needs CPR and the arrest algorithm.",
+   "guideline": "AHA 2025 PALS — atropine only for vagal or AV-block bradycardia (Class 1; C-LD)",
+   "instead": "CPR and the arrest algorithm for the rhythm: in VF or pulseless VT, shock first and give epinephrine 0.01 mg/kg after the second shock (2b); in PEA or asystole, as early as possible (2a); and the reversible causes."
+  },
+  "atropine-no-bradycardia": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "atropine_bradycardia_adult",
+    "drug_instead_of_cardioversion_unstable",
+    "adenosine_regular_nct"
+   ],
+   "title": "Atropine is for a slow heart",
+   "why": "Atropine raises the heart rate by blocking vagal tone, and the guideline gives it for an unstable bradycardia. Into a heart already running fast it has nothing to fix and can only push the rate higher.",
+   "guideline": "AHA 2025 Adult ALS — atropine for unstable bradycardia (Class 2a; B-NR)",
+   "instead": "Treat the tachycardia: synchronized cardioversion if unstable (Class 1); vagal manoeuvres and adenosine for a stable regular narrow-complex tachycardia (Class 1)."
+  },
+  "atropine-no-bradycardia-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia",
+    "pals_adenosine_svt"
+   ],
+   "title": "Atropine is for a slow heart",
+   "why": "Atropine raises the heart rate; in children it is given for a bradycardia from vagal tone or an AV block. Into a heart already running fast it has nothing to fix.",
+   "guideline": "AHA 2025 PALS — atropine only for vagal or AV-block bradycardia (Class 1; C-LD)",
+   "instead": "Treat what is driving the rate. For SVT: vagal manoeuvres and adenosine (Class 1), or synchronized cardioversion if the child is compromised."
+  },
+  "atropine-hypoxic-bradycardia-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia",
+    "pals_epinephrine_bradycardia"
+   ],
+   "title": "A slow heart from hypoxia needs breaths, not atropine",
+   "why": "In children atropine is recommended only when the bradycardia comes from vagal tone or a primary AV block. This child's heart was slow from hypoxia, and only oxygen and ventilation fix that.",
+   "guideline": "AHA 2025 PALS — atropine only for vagal or AV-block bradycardia (Class 1; C-LD); hypoxic bradycardia is treated with oxygen and ventilation",
+   "instead": "Open the airway and ventilate with oxygen. If the rate stays under 60 with poor perfusion despite good ventilation, start CPR (Class 1), then epinephrine 0.01 mg/kg (Class 1)."
+  },
+  "adenosine-af": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "adenosine_af"
+   ],
+   "title": "Adenosine does not convert atrial fibrillation",
+   "why": "Adenosine blocks the AV node for a few seconds. It can unmask atrial fibrillation or flutter, but it cannot convert it.",
+   "guideline": "AHA 2025 Adult ALS — atrial fibrillation: synchronized cardioversion if unstable (Class 1; C-LD); rate control with a beta-blocker or diltiazem/verapamil if stable (Class 1; B-NR)",
+   "instead": "Unstable: synchronized cardioversion now, sedated if feasible. Stable: rate control."
+  },
+  "adenosine-unstable-wct": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "adenosine_wct",
+    "drug_instead_of_cardioversion_unstable",
+    "polymorphic_vt_shock_first"
+   ],
+   "title": "Adenosine is harmful in unstable wide-complex tachycardia",
+   "why": "Adenosine will not stop VT, and in an unstable, irregular or polymorphic wide-complex tachycardia it can drop the pressure further or bring on VF. Those rhythms need electricity.",
+   "guideline": "AHA 2025 Adult ALS — no adenosine for unstable, irregular or polymorphic wide-complex tachycardia (Class 3: Harm; C-LD)",
+   "instead": "Synchronized cardioversion now, sedated if feasible (Class 1). Polymorphic VT gets an unsynchronized shock (Class 1)."
+  },
+  "adenosine-no-tachycardia": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "adenosine_regular_nct"
+   ],
+   "title": "No tachycardia for adenosine to break",
+   "why": "Adenosine blocks the AV node for a few seconds, which breaks a re-entrant tachycardia while it is running. With no such tachycardia there is nothing for it to do.",
+   "guideline": "AHA 2025 Adult ALS — adenosine for a stable regular narrow-complex tachycardia (Class 1; B-R)",
+   "instead": "Treat the rhythm on the monitor now; if the tachycardia has already broken, watch for it to come back."
+  },
+  "adenosine-no-tachycardia-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_adenosine_svt"
+   ],
+   "title": "No tachycardia for adenosine to break",
+   "why": "Adenosine breaks SVT while it is running by blocking the AV node for a few seconds. With no tachycardia there is nothing for it to do.",
+   "guideline": "AHA 2025 PALS — adenosine for SVT with a pulse once IV/IO access is ready (Class 1; C-LD)",
+   "instead": "Treat the rhythm on the monitor now; if the SVT has already broken, watch for it to come back."
+  },
+  "antiarrhythmic-torsades": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "antiarrhythmic_in_torsades",
+    "magnesium_torsades",
+    "polymorphic_vt_shock_first"
+   ],
+   "title": "QT-prolonging antiarrhythmics feed torsades",
+   "why": "Torsades de pointes grows out of a long QT. Amiodarone, procainamide, sotalol and ibutilide lengthen the QT further and can keep the arrhythmia coming back.",
+   "guideline": "AHA 2025 Adult ALS, polymorphic VT — antiarrhythmics can prolong the QT and promote torsades; magnesium may be considered for recurrences (Class 2b; C-LD)",
+   "instead": "Defibrillate polymorphic VT (Class 1). Then magnesium, correct the potassium, stop the QT-prolonging drugs, and get expert help for overdrive pacing or isoproterenol."
+  },
+  "qt-drug-torsades": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "magnesium_torsades",
+    "antiarrhythmic_in_torsades",
+    "polymorphic_vt_shock_first"
+   ],
+   "title": "In torsades, QT-prolonging drugs are stopped, not given",
+   "why": "Torsades de pointes grows out of a long QT. Drugs such as ondansetron, haloperidol and methadone lengthen the QT further, and the guideline's advice is to stop every QT-prolonging drug.",
+   "guideline": "AHA 2025 Adult ALS, polymorphic VT — stop QT-prolonging drugs and correct electrolytes; magnesium may be considered for recurrences (Class 2b; C-LD)",
+   "instead": "Defibrillate polymorphic VT (Class 1). Then magnesium, correct the potassium, stop every QT-prolonging drug, and get expert help for overdrive pacing or isoproterenol."
+  },
+  "drug-instead-of-cardioversion": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "drug_instead_of_cardioversion_unstable",
+    "adenosine_af"
+   ],
+   "title": "An unstable tachycardia needs cardioversion, not a drug",
+   "why": "With a low pressure and poor perfusion, a fast rhythm needs immediate synchronized cardioversion. Drugs to slow or convert the rhythm are for the stable patient; given first, they delay the treatment that works.",
+   "guideline": "AHA 2025 Adult ALS — an unstable tachycardia with a pulse needs immediate synchronized cardioversion (Class 1); drugs are for stable patients",
+   "instead": "Synchronized cardioversion now, sedated if feasible (Class 1). Drugs come once the patient is stable, chosen for the rhythm: for atrial fibrillation, rate control with a beta-blocker or diltiazem (Class 1), and amiodarone for the critically ill once cardioversion has failed (2a)."
+  },
+  "antiarrhythmic-nonshockable": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "antiarrhythmic_nonshockable",
+    "amiodarone_lidocaine_refractory_vf",
+    "epinephrine_nonshockable_timing"
+   ],
+   "title": "Antiarrhythmics are for VF and pulseless VT",
+   "why": "In the arrest algorithm amiodarone and lidocaine sit only on the shockable side, for VF or pulseless VT that persists after shocks. PEA and asystole are treated with CPR, epinephrine and the reversible causes.",
+   "guideline": "AHA 2025 Adult ALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; B-R); not part of the PEA/asystole pathway",
+   "instead": "CPR, epinephrine as soon as feasible (Class 2a), and a search for the Hs and Ts.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ],
+    "why": "In the arrest algorithm amiodarone and lidocaine sit only on the shockable side, for VF or pulseless VT that persists after shocks. A traumatic PEA is an empty or obstructed heart, treated by fixing that cause."
+   }
+  },
+  "antiarrhythmic-nonshockable-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_amiodarone_lidocaine",
+    "pals_epinephrine_nonshockable_timing"
+   ],
+   "title": "Antiarrhythmics are for VF and pulseless VT",
+   "why": "In the children's arrest algorithm amiodarone and lidocaine are for VF or pulseless VT that persists after shocks. PEA and asystole are treated with CPR, epinephrine and the reversible causes.",
+   "guideline": "AHA 2025 PALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; C-LD)",
+   "instead": "CPR, epinephrine 0.01 mg/kg as early as possible (Class 2a), and the reversible causes."
+  },
+  "antiarrhythmic-bradycardia": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "atropine_bradycardia_adult",
+    "epinephrine_dopamine_infusion_bradycardia"
+   ],
+   "title": "An antiarrhythmic has no place in a slow rhythm",
+   "why": "Amiodarone and lidocaine suppress fast ventricular rhythms. At a slow rate they can suppress the escape rhythm the patient depends on, and they are not part of the bradycardia algorithm.",
+   "guideline": "AHA 2025 Adult ALS, bradycardia — atropine (Class 2a; B-NR), then pacing or an epinephrine or dopamine infusion (2b; C-LD)",
+   "instead": "Atropine 1 mg, repeated to 3 mg; if it fails, transcutaneous pacing or an epinephrine infusion of 2-10 mcg/min."
+  },
+  "antiarrhythmic-bradycardia-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia",
+    "pals_epinephrine_bradycardia"
+   ],
+   "title": "An antiarrhythmic has no place in a slow rhythm",
+   "why": "Amiodarone and lidocaine suppress fast ventricular rhythms; at a slow rate they can suppress the escape rhythm the child depends on. A child's bradycardia is treated with oxygen and ventilation, then CPR and epinephrine if the rate stays under 60.",
+   "guideline": "AHA 2025 PALS, bradycardia — ventilate first; epinephrine if compromise persists (Class 1; C-EO)",
+   "instead": "Ventilate with oxygen; CPR for a rate under 60 with poor perfusion; epinephrine 0.01 mg/kg IV/IO."
+  },
+  "lidocaine-supraventricular": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "amiodarone_lidocaine_refractory_vf",
+    "antiarrhythmic_stable_wct",
+    "adenosine_regular_nct",
+    "adenosine_af"
+   ],
+   "title": "Lidocaine does not treat SVT or atrial fibrillation",
+   "why": "Lidocaine is a ventricular antiarrhythmic: the guidelines use it for VF, pulseless VT and ventricular tachycardia, and even there it is weak at tolerated rates. A narrow-complex tachycardia or atrial fibrillation has its own treatments.",
+   "guideline": "AHA 2025 Adult ALS — lidocaine for shock-refractory VF/pVT (Class 2b; B-R); SVT: vagal manoeuvres and adenosine (Class 1; B-R); AF: rate control (Class 1; B-NR)",
+   "instead": "Unstable: synchronized cardioversion. Stable regular narrow-complex: vagal manoeuvres, then adenosine. AF: rate control with a beta-blocker or diltiazem."
+  },
+  "epi-arrest-dose-at-pulse": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "epinephrine_arrest_dose_with_pulse",
+    "epinephrine_dopamine_infusion_bradycardia",
+    "atropine_bradycardia_adult"
+   ],
+   "title": "1 mg of epinephrine is the arrest dose",
+   "why": "A 1 mg IV bolus is the dose for a heart that has stopped. With a pulse, the algorithm runs epinephrine as an infusion instead; push-dose epinephrine has little supporting evidence, and dosing errors with it are reported.",
+   "guideline": "AHA 2025 Adult ALS — epinephrine or dopamine infusion for bradycardia unresponsive to atropine (Class 2b; C-LD)",
+   "instead": "With a pulse, epinephrine runs as an infusion of 2-10 mcg/min, and only when the patient needs it — a bradycardia atropine has not fixed. Save the 1 mg bolus for the patient without a pulse."
+  },
+  "epi-child-rate-60": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_bradycardia"
+   ],
+   "title": "Epinephrine is for a heart rate under 60",
+   "why": "With a pulse, a child is given epinephrine for a bradycardia under 60 with poor perfusion that persists once oxygenation and ventilation are fixed. This child's rate was 60 or more.",
+   "guideline": "AHA 2025 PALS — epinephrine when bradycardia with compromise persists after correcting hypoxia (Class 1; C-EO)",
+   "instead": "Treat what is in front of you and reassess; CPR and epinephrine 0.01 mg/kg only if the rate falls under 60 with poor perfusion."
+  },
+  "epi-newborn-rate-60": {
+   "kind": "indication",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "Epinephrine is for a heart rate under 60",
+   "why": "A newborn is given epinephrine when the heart rate stays under 60 after ventilation has been optimized and chest compressions given. This baby's rate was 60 or more.",
+   "guideline": "AHA/AAP 2025 Neonatal — IV/IO epinephrine for a heart rate under 60 after optimized ventilation and compressions (Class 1; B-NR)",
+   "instead": "Keep effective ventilation going and reassess the heart rate."
+  },
+  "epi-before-ventilation-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_bradycardia",
+    "pals_atropine_bradycardia"
+   ],
+   "title": "Ventilation comes before epinephrine",
+   "why": "In a child with a pulse, epinephrine is for a rate that stays under 60 with poor perfusion after oxygenation and ventilation have been corrected. No breaths had been given yet.",
+   "guideline": "AHA 2025 PALS — ventilate first; epinephrine if bradycardia with compromise persists (Class 1; C-EO)",
+   "instead": "Open the airway and ventilate with oxygen; CPR if the rate stays under 60 with poor perfusion; then epinephrine 0.01 mg/kg IV/IO."
+  },
+  "epi-before-ventilation-newborn": {
+   "kind": "indication",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "Ventilation comes before epinephrine",
+   "why": "In newborn resuscitation ventilation that moves the chest comes first. Epinephrine is for a heart rate that stays under 60 after ventilation has been optimized and compressions given — no breaths had been given yet.",
+   "guideline": "AHA/AAP 2025 Neonatal — epinephrine for a heart rate under 60 after optimized ventilation and compressions (Class 1; B-NR)",
+   "instead": "Positive-pressure ventilation that moves the chest; compressions if the rate stays under 60 after 30 seconds of effective ventilation (Class 1; C-EO); then epinephrine 0.01-0.03 mg/kg IV."
+  },
+  "epi-before-compressions-newborn": {
+   "kind": "indication",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "Compressions come before epinephrine in a newborn",
+   "why": "The neonatal guideline gives epinephrine when the heart rate stays under 60 after ventilation has been optimized and chest compressions have been given. None had been given yet.",
+   "guideline": "AHA/AAP 2025 Neonatal — epinephrine for a heart rate under 60 after optimized ventilation and compressions (Class 1; B-NR)",
+   "instead": "Start chest compressions coordinated with ventilation; if the rate is still under 60, epinephrine 0.01-0.03 mg/kg IV."
+  },
+  "epi-drip-tachycardia": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "epinephrine_dopamine_infusion_bradycardia",
+    "drug_instead_of_cardioversion_unstable",
+    "adenosine_regular_nct"
+   ],
+   "title": "An epinephrine infusion speeds a tachycardia",
+   "why": "The guideline's epinephrine infusion is for a bradycardia that atropine has not fixed. Into a heart already running fast it drives the rate higher, when the tachycardia itself is what needs treating.",
+   "guideline": "AHA 2025 Adult ALS — epinephrine infusion for bradycardia unresponsive to atropine (Class 2b; C-LD); unstable tachycardia: synchronized cardioversion (Class 1; B-NR)",
+   "instead": "Treat the tachycardia: synchronized cardioversion if unstable; vagal manoeuvres and adenosine for a stable regular narrow-complex tachycardia."
+  },
+  "epi-drip-tachycardia-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_bradycardia",
+    "pals_adenosine_svt"
+   ],
+   "title": "An epinephrine infusion speeds a tachycardia",
+   "why": "In children epinephrine is for a bradycardia with poor perfusion. Into a heart already running fast it drives the rate higher, when the tachycardia itself is what needs treating.",
+   "guideline": "AHA 2025 PALS — epinephrine for bradycardia with compromise (Class 1; C-EO); SVT: vagal manoeuvres and adenosine (Class 1; C-LD)",
+   "instead": "Vagal manoeuvres and adenosine 0.1 mg/kg, or synchronized cardioversion if the child is compromised."
+  },
+  "epi-drip-newborn": {
+   "kind": "indication",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "A newborn's epinephrine is a bolus",
+   "why": "In newborn resuscitation epinephrine goes in as an intravascular bolus, 0.01-0.03 mg/kg, when the heart rate stays under 60 after ventilation and compressions. An infusion is not part of that algorithm.",
+   "guideline": "AHA/AAP 2025 Neonatal — IV/IO epinephrine 0.01-0.03 mg/kg for a heart rate under 60 after optimized ventilation and compressions (Class 1; B-NR)",
+   "instead": "Ventilation, compressions, then an epinephrine bolus of 0.01-0.03 mg/kg IV, repeated every 3-5 minutes if the rate stays under 60."
+  },
+  "naloxone-no-opioid": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "naloxone_cardiac_arrest_adult",
+    "naloxone_resp_arrest_pulse"
+   ],
+   "title": "Naloxone is for an opioid overdose",
+   "why": "Naloxone reverses opioids and nothing else. The guideline gives it for a suspected opioid overdose — in cardiac arrest only if it does not get in the way of CPR, because it does not reverse VF. Nothing in this case pointed to opioids.",
+   "guideline": "AHA 2025 Special Circumstances — naloxone for suspected opioid overdose: respiratory arrest with a pulse (Class 1; B-NR); cardiac arrest, if it does not interfere with CPR (2b; B-NR)",
+   "instead": "Stay with the algorithm and look for the cause that is actually there.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ]
+   }
+  },
+  "naloxone-no-opioid-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "naloxone_cardiac_arrest_child",
+    "naloxone_resp_arrest_pulse"
+   ],
+   "title": "Naloxone is for an opioid overdose",
+   "why": "Naloxone reverses opioids and nothing else. The guideline gives it to a child with a suspected opioid overdose, and nothing in this case pointed to opioids.",
+   "guideline": "AHA 2025 Special Circumstances — naloxone for suspected opioid overdose: respiratory arrest with a pulse (Class 1; B-NR); a child's cardiac arrest, if it does not interfere with CPR (2b; C-EO)",
+   "instead": "Stay with the algorithm and look for the cause that is actually there."
+  },
+  "txa-no-bleeding": {
+   "kind": "indication",
+   "population": "any",
+   "sources": [
+    "txa_trauma"
+   ],
+   "title": "Tranexamic acid is for bleeding trauma",
+   "why": "Tranexamic acid cut deaths from bleeding in injured patients when given within 3 hours of the injury. With no bleeding there is nothing for it to treat.",
+   "guideline": "CRASH-2 (Lancet 2010; 2011) — TXA within 3 hours of injury reduced death from bleeding; after 3 hours it increased it (no graded recommendation)",
+   "instead": "Keep it for the bleeding trauma patient: 1 g IV over 10 minutes, then 1 g over 8 hours, within 3 hours of injury."
+  },
+  "epi-traumatic-arrest-first": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "epinephrine_traumatic_arrest"
+   ],
+   "title": "In traumatic arrest, fix the cause before epinephrine",
+   "why": "A traumatic arrest is driven by something epinephrine cannot fix — bleeding, a tension pneumothorax, tamponade. The 2025 trauma statement says epinephrine is not routine in traumatic arrest and never comes before the life-saving interventions.",
+   "guideline": "NAEMSP/ACS-COT/ACEP joint statement (2025); ERC 2025 — epinephrine is not routine in traumatic arrest and never before haemorrhage control, chest decompression and volume (no graded recommendation)",
+   "instead": "Stop the bleeding, decompress both sides of the chest, give blood, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done."
+  },
+  "vasopressor-haemorrhagic-shock": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "vasopressors_haemorrhagic_shock",
+    "blood_vs_crystalloid_trauma_adult",
+    "txa_trauma"
+   ],
+   "title": "A vasopressor is no substitute for blood",
+   "why": "In haemorrhagic shock the problem is lost blood. Retrospective data link vasopressors in bleeding patients to worse outcomes, and the trauma protocol keeps them for vasoplegia — vessels that have lost their tone — never in place of stopping the bleeding and giving blood.",
+   "guideline": "AAST/ACS-COT damage-control resuscitation protocol (2024) — vasopressors only when vasoplegia contributes; resuscitate with blood, not crystalloid (no graded recommendation)",
+   "instead": "Control the bleeding, activate the massive transfusion protocol, and give tranexamic acid within 3 hours of injury."
+  },
+  "vasopressin-arrest": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "vasopressin_arrest",
+    "epinephrine_arrest_adult"
+   ],
+   "title": "Vasopressin adds nothing to epinephrine",
+   "why": "Vasopressin, alone or added to epinephrine, gives no advantage in cardiac arrest. In 2025 the guideline moved it from \"may be considered\" to not recommended.",
+   "guideline": "AHA 2025 Adult ALS — vasopressin offers no advantage as a substitute for or addition to epinephrine (Class 3: No Benefit; B-R)",
+   "instead": "Epinephrine 1 mg IV/IO every 3-5 minutes.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ]
+   }
+  },
+  "thrombolytic-no-pe": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "thrombolytic_pe_suspected",
+    "thrombolytic_pe_confirmed"
+   ],
+   "title": "Thrombolytics are for a pulmonary embolism",
+   "why": "In an undifferentiated cardiac arrest, two randomized trials found no survival benefit from fibrinolytics. They have a place when a pulmonary embolism is confirmed or suspected, and nothing in this arrest pointed to one.",
+   "guideline": "AHA 2025 Special Circumstances — fibrinolysis in arrest from confirmed PE is reasonable (Class 2a; B-NR) and may be considered for suspected PE (2b; B-NR); not a routine arrest drug",
+   "instead": "Run the algorithm and search the Hs and Ts; keep fibrinolysis for a suspected or confirmed pulmonary embolism.",
+   "trauma": {
+    "instead": "In a traumatic arrest the causes come first: stop the bleeding (tourniquet, packing, pelvic binder), decompress both sides of the chest, give blood through the massive transfusion protocol, and consider thoracotomy for tamponade or penetrating injury. Epinephrine, if at all, only once those are done.",
+    "sources": [
+     "epinephrine_traumatic_arrest",
+     "blood_vs_crystalloid_trauma_adult"
+    ]
+   }
+  },
+  "epi-high-dose": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "epinephrine_high_dose",
+    "epinephrine_arrest_adult"
+   ],
+   "title": "High-dose epinephrine does not help",
+   "why": "The adult arrest dose is 1 mg. Higher doses are not recommended — they bring no benefit — and a registry study suggests dosing more often than the standard interval may be harmful.",
+   "guideline": "AHA 2025 Adult ALS — high-dose epinephrine is not recommended for routine use (Class 3: No Benefit; B-R)",
+   "instead": "Epinephrine 1 mg IV/IO every 3-5 minutes.",
+   "showNote": true
+  },
+  "epi-drip-in-arrest": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "epinephrine_arrest_adult"
+   ],
+   "title": "In an arrest, epinephrine is a bolus",
+   "why": "Cardiac arrest epinephrine is a 1 mg bolus every 3-5 minutes. An infusion is titrated for a patient with a pulse; it does not replace the arrest bolus.",
+   "guideline": "AHA 2025 Adult ALS — epinephrine in cardiac arrest (Class 1; B-R): 1 mg IV/IO every 3-5 minutes (2a; B-R)",
+   "instead": "Epinephrine 1 mg IV/IO push, repeated every 3-5 minutes."
+  },
+  "epi-drip-in-arrest-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_interval"
+   ],
+   "title": "In an arrest, epinephrine is a bolus",
+   "why": "A child's arrest epinephrine is a 0.01 mg/kg bolus every 3-5 minutes. An infusion is titrated for a child with a pulse; it does not replace the arrest bolus.",
+   "guideline": "AHA 2025 PALS — epinephrine 0.01 mg/kg IV/IO every 3-5 minutes in arrest (Class 2b; C-LD)",
+   "instead": "Epinephrine 0.01 mg/kg IV/IO push (maximum 1 mg), every 3-5 minutes."
+  },
+  "naloxone-drip-in-arrest": {
+   "kind": "route",
+   "population": "any",
+   "sources": [
+    "naloxone_infusion",
+    "naloxone_cardiac_arrest_adult"
+   ],
+   "title": "A naloxone infusion is not arrest care",
+   "why": "A naloxone infusion treats re-sedation in a patient who has already responded to naloxone. In cardiac arrest naloxone, if given at all, is a bolus that must not get in the way of CPR.",
+   "guideline": "AHA 2025 Special Circumstances — infusion for recurrent opioid toxicity after a response (Class 2a; C-LD); in arrest, naloxone only if it does not interfere with CPR (2b; B-NR)",
+   "instead": "High-quality CPR and ventilation first; a naloxone bolus if it does not interrupt them; the infusion once the pulse is back and sedation returns."
+  },
+  "antiarrhythmic-drip-no-bolus": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "amiodarone_lidocaine_refractory_vf"
+   ],
+   "title": "The antiarrhythmic starts with a bolus",
+   "why": "In shock-refractory VF or pulseless VT, amiodarone goes in as a 300 mg bolus (then 150 mg), and lidocaine as 1-1.5 mg/kg. An infusion follows a bolus; it does not replace it.",
+   "guideline": "AHA 2025 Adult ALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; B-R)",
+   "instead": "Amiodarone 300 mg IV/IO push, then 150 mg; or lidocaine 1-1.5 mg/kg, then 0.5-0.75 mg/kg."
+  },
+  "antiarrhythmic-drip-no-bolus-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_amiodarone_lidocaine"
+   ],
+   "title": "The antiarrhythmic starts with a bolus",
+   "why": "In a child's shock-refractory VF or pulseless VT, amiodarone goes in as a 5 mg/kg bolus and lidocaine as 1 mg/kg. An infusion follows a bolus; it does not replace it.",
+   "guideline": "AHA 2025 PALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; C-LD)",
+   "instead": "Amiodarone 5 mg/kg IV/IO bolus (maximum 300 mg), or lidocaine 1 mg/kg."
+  },
+  "adenosine-infusion": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "adenosine_regular_nct"
+   ],
+   "title": "Adenosine is a rapid push",
+   "why": "Adenosine is gone from the blood within seconds. It works only as a rapid IV push chased by a saline flush; run slowly it is spent before it reaches the heart.",
+   "guideline": "AHA 2025 Adult ALS — adenosine 6 mg rapid IV push with a flush, then 12 mg, for regular narrow-complex tachycardia (Class 1; B-R)",
+   "instead": "Adenosine 6 mg rapid IV push with an immediate flush; 12 mg if needed."
+  },
+  "adenosine-infusion-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_adenosine_svt"
+   ],
+   "title": "Adenosine is a rapid push",
+   "why": "Adenosine is gone from the blood within seconds. It works only as a rapid push chased by a flush; run slowly it is spent before it reaches the heart.",
+   "guideline": "AHA 2025 PALS — adenosine for SVT (Class 1; C-LD): 0.1 mg/kg rapid push, then 0.2 mg/kg",
+   "instead": "Adenosine 0.1 mg/kg rapid push (maximum 6 mg) with a flush; 0.2 mg/kg (maximum 12 mg) if needed."
+  },
+  "atropine-infusion": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "atropine_bradycardia_adult",
+    "epinephrine_dopamine_infusion_bradycardia"
+   ],
+   "title": "Atropine is a bolus",
+   "why": "Atropine is given as a 1 mg bolus, repeated every 3-5 minutes to 3 mg — never as an infusion. When the boluses fail, the next step is pacing or an epinephrine or dopamine infusion.",
+   "guideline": "AHA 2025 Adult ALS — atropine for unstable bradycardia (Class 2a; B-NR); then pacing or an epinephrine or dopamine infusion (2b; C-LD)",
+   "instead": "Atropine 1 mg IV every 3-5 minutes to 3 mg; then pacing or an epinephrine infusion of 2-10 mcg/min."
+  },
+  "atropine-infusion-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia"
+   ],
+   "title": "Atropine is a bolus",
+   "why": "A child's atropine is a bolus of 0.02 mg/kg, which may be repeated once — never an infusion.",
+   "guideline": "AHA 2025 PALS — atropine for vagal or AV-block bradycardia (Class 1; C-LD): 0.02 mg/kg IV/IO",
+   "instead": "Atropine 0.02 mg/kg IV/IO (at least 0.1 mg, at most 0.5 mg a dose), repeated once if needed."
+  },
+  "route-iv-io": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "vascular_access_adult",
+    "drug_route_endotracheal_adult"
+   ],
+   "title": "Resuscitation drugs go IV or IO",
+   "why": "In a resuscitation drugs go into a vein or the bone marrow, where the circulation carries them reliably. The 2025 adult guidelines put IV access first, then IO, and dropped the endotracheal route.",
+   "guideline": "AHA 2025 Adult ALS — IV access first (Class 1; A), IO if IV fails (2a; A); endotracheal drug delivery removed",
+   "instead": "Give it IV, or IO when there is no IV."
+  },
+  "route-iv-io-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_vascular_access_route"
+   ],
+   "title": "Resuscitation drugs go IV or IO",
+   "why": "In a child's resuscitation drugs go into a vein or the bone marrow, where the circulation carries them reliably. The 2025 children's algorithm gives IV/IO doses only.",
+   "guideline": "AHA 2025 PALS — rapid IV or IO access (Class 1; C-LD); IV/IO epinephrine preferred over the endotracheal route",
+   "instead": "Give it IV, or IO when there is no IV."
+  },
+  "route-uvc-io-newborn": {
+   "kind": "route",
+   "population": "newborn",
+   "sources": [
+    "nrp_vascular_access"
+   ],
+   "title": "A newborn's drugs go through the umbilical vein",
+   "why": "In newborn resuscitation drugs go through an umbilical venous catheter, or an intraosseous needle if that fails.",
+   "guideline": "AHA/AAP 2025 Neonatal — umbilical venous catheter (Class 1; C-LD); IO if IV access fails (2a; C-LD)",
+   "instead": "Place an umbilical venous catheter and give it there."
+  },
+  "epi-tube-line-in": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "drug_route_endotracheal_adult",
+    "vascular_access_adult"
+   ],
+   "title": "With a line in, epinephrine goes in the vein",
+   "why": "Absorption down the endotracheal tube is low and unpredictable, and the 2025 adult guidelines have dropped the route altogether. With IV or IO access in place, the vein is the route.",
+   "guideline": "AHA 2025 Adult ALS — IV first (Class 1; A), then IO (2a; A); endotracheal drug delivery removed",
+   "instead": "Epinephrine 1 mg IV/IO."
+  },
+  "epi-tube-line-in-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_vascular_access_route"
+   ],
+   "title": "With a line in, epinephrine goes in the vein",
+   "why": "Absorption down the endotracheal tube is poor. With IV or IO access in place, the vein is the route — the 2025 children's algorithm gives IV/IO doses only.",
+   "guideline": "AHA 2025 PALS — rapid IV/IO access (Class 1; C-LD); IV/IO epinephrine preferred over the endotracheal route",
+   "instead": "Epinephrine 0.01 mg/kg IV/IO."
+  },
+  "epi-tube-line-in-newborn": {
+   "kind": "route",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_endotracheal",
+    "nrp_vascular_access"
+   ],
+   "title": "With the umbilical line in, use it",
+   "why": "Down the tube is only for while the umbilical line goes in. Once intravascular access is in place, the dose goes there.",
+   "guideline": "AHA/AAP 2025 Neonatal — give the intravascular dose as soon as access is in if the response is inadequate (Class 2a; B-NR)",
+   "instead": "Epinephrine 0.01-0.03 mg/kg through the umbilical venous catheter."
+  },
+  "epi-im-in-arrest": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "vascular_access_adult"
+   ],
+   "title": "No circulation, no absorption from the muscle",
+   "why": "An intramuscular or subcutaneous dose needs blood flow to carry it out of the tissue, and in an arrest there is almost none. Arrest drugs go IV, or IO when there is no IV.",
+   "guideline": "AHA 2025 Adult ALS — IV access first (Class 1; A), IO if IV fails (2a; A)",
+   "instead": "Epinephrine 1 mg IV/IO every 3-5 minutes."
+  },
+  "epi-im-in-arrest-child": {
+   "kind": "route",
+   "population": "child",
+   "sources": [
+    "pals_vascular_access_route"
+   ],
+   "title": "No circulation, no absorption from the muscle",
+   "why": "An intramuscular dose needs blood flow to carry it out of the muscle, and on compressions there is too little. A child's arrest drugs go IV or IO.",
+   "guideline": "AHA 2025 PALS — rapid IV or IO access (Class 1; C-LD)",
+   "instead": "Epinephrine 0.01 mg/kg IV/IO."
+  },
+  "epi-dose-adult": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "epinephrine_arrest_adult",
+    "epinephrine_high_dose"
+   ],
+   "title": "The arrest dose of epinephrine is 1 mg",
+   "why": "The adult arrest dose is a fixed 1 mg IV/IO, and this dose was not it. Less may do nothing when it is needed most; more has not been shown to help.",
+   "guideline": "AHA 2025 Adult ALS — epinephrine in cardiac arrest (Class 1; B-R), 1 mg IV/IO every 3-5 minutes (2a; B-R)",
+   "instead": "Epinephrine 1 mg IV/IO push, every 3-5 minutes.",
+   "showNote": true
+  },
+  "epi-dose-adult-tube": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "drug_route_endotracheal_adult",
+    "vascular_access_adult"
+   ],
+   "title": "Down the tube is no longer an adult route",
+   "why": "The 2025 adult guidelines have dropped the endotracheal route altogether: blood levels after it are low and unpredictable.",
+   "guideline": "AHA 2025 Adult ALS — endotracheal drug delivery removed; IV first (Class 1; A), then IO (2a; A)",
+   "instead": "Get IO access if there is no IV, and give epinephrine 1 mg IV/IO.",
+   "showNote": true
+  },
+  "epi-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_interval",
+    "pals_epinephrine_bradycardia"
+   ],
+   "title": "A child's epinephrine is 0.01 mg/kg",
+   "why": "Children's epinephrine is dosed by weight: 0.01 mg/kg IV/IO, up to 1 mg. This dose was outside that.",
+   "guideline": "AHA 2025 PALS — epinephrine 0.01 mg/kg IV/IO, maximum 1 mg, every 3-5 minutes in arrest (Class 2b; C-LD)",
+   "instead": "Epinephrine 0.01 mg/kg (0.1 mL/kg of 0.1 mg/mL) IV/IO, maximum 1 mg.",
+   "showNote": true
+  },
+  "epi-dose-newborn": {
+   "kind": "dose",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "A newborn's epinephrine is 0.01-0.03 mg/kg",
+   "why": "A newborn's intravascular epinephrine is 0.01-0.03 mg/kg. This dose was outside that range.",
+   "guideline": "AHA/AAP 2025 Neonatal — IV/IO epinephrine 0.01-0.03 mg/kg for a heart rate under 60 after optimized ventilation and compressions (Class 1; B-NR)",
+   "instead": "Epinephrine 0.01-0.03 mg/kg through the umbilical venous catheter, every 3-5 minutes if the rate stays under 60.",
+   "showNote": true
+  },
+  "epi-dose-newborn-tube": {
+   "kind": "dose",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_endotracheal"
+   ],
+   "title": "Down the tube, a newborn needs the larger dose",
+   "why": "While the umbilical line goes in, a newborn's epinephrine down the tube is 0.05-0.1 mg/kg; the intravenous 0.01-0.03 mg/kg is too little by that route.",
+   "guideline": "AHA/AAP 2025 Neonatal — a larger endotracheal dose while access is obtained is reasonable (Class 2a; C-LD)",
+   "instead": "Epinephrine 0.05-0.1 mg/kg down the tube, then the intravascular dose as soon as the line is in.",
+   "showNote": true
+  },
+  "amiodarone-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "amiodarone_lidocaine_refractory_vf",
+    "antiarrhythmic_stable_wct"
+   ],
+   "title": "Amiodarone has two doses",
+   "why": "In VF or pulseless VT amiodarone is 300 mg IV/IO, then 150 mg. With a pulse it is 150 mg over 10 minutes. This dose was outside the one this moment called for.",
+   "guideline": "AHA 2025 Adult ALS — amiodarone 300 mg then 150 mg for shock-refractory VF/pVT (Class 2b; B-R); 150 mg over 10 minutes for stable wide-complex tachycardia (2b; B-R)",
+   "instead": "No pulse: 300 mg push, then 150 mg. With a pulse: 150 mg over 10 minutes.",
+   "showNote": true
+  },
+  "amiodarone-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_amiodarone_lidocaine"
+   ],
+   "title": "A child's amiodarone is 5 mg/kg",
+   "why": "A child's amiodarone is 5 mg/kg IV/IO, never more than 300 mg. This dose was outside that.",
+   "guideline": "AHA 2025 PALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; C-LD): amiodarone 5 mg/kg, maximum 300 mg",
+   "instead": "Amiodarone 5 mg/kg IV/IO (maximum 300 mg).",
+   "showNote": true
+  },
+  "lidocaine-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "amiodarone_lidocaine_refractory_vf"
+   ],
+   "title": "Lidocaine is 1-1.5 mg/kg",
+   "why": "Lidocaine in VF or pulseless VT is 1-1.5 mg/kg, then 0.5-0.75 mg/kg. This dose was outside that.",
+   "guideline": "AHA 2025 Adult ALS — lidocaine for shock-refractory VF/pVT (Class 2b; B-R): 1-1.5 mg/kg, then 0.5-0.75 mg/kg",
+   "instead": "Lidocaine 1-1.5 mg/kg IV/IO; repeats of 0.5-0.75 mg/kg.",
+   "showNote": true
+  },
+  "lidocaine-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_amiodarone_lidocaine"
+   ],
+   "title": "A child's lidocaine is 1 mg/kg",
+   "why": "A child's lidocaine in shock-refractory VF or pulseless VT is 1 mg/kg. This dose was outside that.",
+   "guideline": "AHA 2025 PALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; C-LD): lidocaine 1 mg/kg",
+   "instead": "Lidocaine 1 mg/kg IV/IO.",
+   "showNote": true
+  },
+  "magnesium-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "magnesium_torsades"
+   ],
+   "title": "The magnesium dose for torsades",
+   "why": "This dose of magnesium was outside the range for torsades. The AHA 2025 guideline gives no dose; the European 2025 guideline lists 2 g IV.",
+   "guideline": "AHA 2025 Adult ALS — magnesium for recurrent torsades (Class 2b; C-LD); dose from ERC 2025: 2 g IV",
+   "instead": "Magnesium 2 g IV for torsades.",
+   "showNote": true
+  },
+  "adenosine-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "adenosine_regular_nct"
+   ],
+   "title": "Adenosine is 6 mg, then 12 mg",
+   "why": "Adenosine for a regular narrow-complex tachycardia is 6 mg rapid IV push, then 12 mg if needed. This dose was outside that.",
+   "guideline": "AHA 2025 Adult ALS — adenosine for regular narrow-complex tachycardia (Class 1; B-R): 6 mg, then 12 mg",
+   "instead": "Adenosine 6 mg rapid push with a flush; 12 mg if the first does not work.",
+   "showNote": true
+  },
+  "adenosine-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_adenosine_svt"
+   ],
+   "title": "A child's adenosine is 0.1 mg/kg, then 0.2 mg/kg",
+   "why": "A child's adenosine is 0.1 mg/kg (at most 6 mg), then 0.2 mg/kg (at most 12 mg). This dose was outside that.",
+   "guideline": "AHA 2025 PALS — adenosine for SVT (Class 1; C-LD): 0.1 mg/kg, then 0.2 mg/kg",
+   "instead": "Adenosine 0.1 mg/kg rapid push with a flush; 0.2 mg/kg if needed.",
+   "showNote": true
+  },
+  "atropine-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "atropine_bradycardia_adult"
+   ],
+   "title": "Atropine is 1 mg",
+   "why": "Adult atropine is 1 mg IV, repeated every 3-5 minutes to a total of 3 mg. This dose was outside that.",
+   "guideline": "AHA 2025 Adult ALS — atropine for unstable bradycardia (Class 2a; B-NR): 1 mg, to 3 mg",
+   "instead": "Atropine 1 mg IV, every 3-5 minutes, to 3 mg.",
+   "showNote": true
+  },
+  "atropine-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_atropine_bradycardia"
+   ],
+   "title": "A child's atropine is 0.02 mg/kg",
+   "why": "A child's atropine is 0.02 mg/kg, at least 0.1 mg and at most 0.5 mg a dose. This dose was outside that.",
+   "guideline": "AHA 2025 PALS — atropine for vagal or AV-block bradycardia (Class 1; C-LD): 0.02 mg/kg",
+   "instead": "Atropine 0.02 mg/kg IV/IO, repeated once if needed.",
+   "showNote": true
+  },
+  "calcium-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "calcium_hyperkalemia_arrest",
+    "calcium_massive_transfusion",
+    "calcium_ccb_poisoning"
+   ],
+   "title": "The calcium dose",
+   "why": "Calcium here is calcium chloride 1 g (10 mL of 10%); calcium gluconate carries a third of the calcium, so it is three times the dose. This dose was outside that.",
+   "guideline": "ERC 2025 — 10 mL of 10% calcium chloride; AAST/ACS-COT 2024 — 1 g calcium in massive transfusion; AHA 2025 Table 4 — gluconate is three times the chloride dose",
+   "instead": "Calcium chloride 1 g IV, or calcium gluconate 3 g.",
+   "showNote": true
+  },
+  "calcium-dose-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "calcium_ccb_poisoning"
+   ],
+   "title": "A child's calcium is 20 mg/kg",
+   "why": "A child's calcium chloride is 20 mg/kg; calcium gluconate is three times that, 60 mg/kg. This dose was outside that.",
+   "guideline": "AHA 2025 Special Circumstances, Table 4 — calcium chloride 20 mg/kg or calcium gluconate 60 mg/kg in a child",
+   "instead": "Calcium chloride 20 mg/kg IV/IO, or calcium gluconate 60 mg/kg.",
+   "showNote": true
+  },
+  "tranexamic-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "txa_trauma"
+   ],
+   "title": "Tranexamic acid: 1 g, then 1 g",
+   "why": "CRASH-2, the trial behind it, gave 1 g IV over 10 minutes, then 1 g over 8 hours. This dose was outside that.",
+   "guideline": "CRASH-2 (Lancet 2010) — 1 g over 10 minutes, then 1 g over 8 hours, within 3 hours of injury (no graded recommendation)",
+   "instead": "Tranexamic acid 1 g IV over 10 minutes, then 1 g over 8 hours.",
+   "showNote": true
+  },
+  "dose-not-stated-child": {
+   "kind": "dose",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_interval",
+    "pals_amiodarone_lidocaine"
+   ],
+   "title": "A child's dose is a number per kilogram",
+   "why": "Every children's resuscitation drug is dosed by weight — epinephrine 0.01 mg/kg, amiodarone 5 mg/kg — so an order without a number cannot be drawn up or checked. The number is the order.",
+   "guideline": "AHA 2025 PALS — weight-based doses throughout (e.g. epinephrine 0.01 mg/kg, amiodarone 5 mg/kg)",
+   "instead": "Say the drug, the dose per kilogram or the milligrams for this child, and the route.",
+   "showNote": true
+  },
+  "dose-not-stated-newborn": {
+   "kind": "dose",
+   "population": "newborn",
+   "sources": [
+    "nrp_epinephrine_intravascular"
+   ],
+   "title": "A newborn's dose is a number per kilogram",
+   "why": "A newborn's drugs are dosed by weight — epinephrine 0.01-0.03 mg/kg — so an order without a number cannot be drawn up or checked. The number is the order.",
+   "guideline": "AHA/AAP 2025 Neonatal — IV/IO epinephrine 0.01-0.03 mg/kg (Class 1; B-NR)",
+   "instead": "Say the drug, the dose for this baby's weight, and the route.",
+   "showNote": true
+  },
+  "epi-before-second-shock": {
+   "kind": "timing",
+   "population": "adult",
+   "sources": [
+    "epinephrine_shockable_timing"
+   ],
+   "title": "In a shockable arrest, electricity before epinephrine",
+   "why": "In a shockable arrest defibrillation comes first; epinephrine goes in once the first shocks have failed — after the second shock in the algorithm. One in-hospital study found lower survival where epinephrine often came before the first shock.",
+   "guideline": "AHA 2025 Adult ALS — in VF/pVT give epinephrine after initial defibrillation attempts fail (Class 2a; B-NR — upgraded from 2b in 2025)",
+   "instead": "Shock, 2 minutes of CPR, shock again — then epinephrine 1 mg, every 3-5 minutes."
+  },
+  "epi-before-second-shock-child": {
+   "kind": "timing",
+   "population": "child",
+   "sources": [
+    "pals_epinephrine_shockable_timing"
+   ],
+   "title": "In a shockable arrest, electricity before epinephrine",
+   "why": "In a child's shockable arrest defibrillation comes first; epinephrine goes in after two shocks, or sooner only if rapid defibrillation is not possible.",
+   "guideline": "AHA 2025 PALS — in VF/pVT give epinephrine after 2 defibrillation attempts (Class 2b; C-LD — new in 2025)",
+   "instead": "Shock, 2 minutes of CPR, shock again — then epinephrine 0.01 mg/kg, every 3-5 minutes."
+  },
+  "antiarrhythmic-before-third-shock": {
+   "kind": "timing",
+   "population": "adult",
+   "sources": [
+    "amiodarone_lidocaine_refractory_vf"
+   ],
+   "title": "The antiarrhythmic is for VF that shocks have not broken",
+   "why": "Amiodarone and lidocaine are for shock-refractory VF or pulseless VT — in the algorithm, after the third shock. This dose went in before the VF had shown it would not answer to electricity.",
+   "guideline": "AHA 2025 Adult ALS — amiodarone or lidocaine for VF/pVT unresponsive to defibrillation (Class 2b; B-R)",
+   "instead": "Shocks, CPR and epinephrine first; amiodarone 300 mg or lidocaine 1-1.5 mg/kg after the third shock."
+  },
+  "antiarrhythmic-before-third-shock-child": {
+   "kind": "timing",
+   "population": "child",
+   "sources": [
+    "pals_amiodarone_lidocaine"
+   ],
+   "title": "The antiarrhythmic is for VF that shocks have not broken",
+   "why": "In children too, amiodarone and lidocaine are for VF or pulseless VT that persists after shocks — in the algorithm, after the third shock.",
+   "guideline": "AHA 2025 PALS — amiodarone or lidocaine for shock-refractory VF/pVT (Class 2b; C-LD)",
+   "instead": "Shocks, CPR and epinephrine first; amiodarone 5 mg/kg or lidocaine 1 mg/kg after the third shock."
+  },
+  "lidocaine-torsades": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "polymorphic_vt_shock_first",
+    "magnesium_torsades",
+    "polymorphic_vt_normal_qt",
+    "antiarrhythmic_in_torsades"
+   ],
+   "title": "In torsades the drug is magnesium",
+   "why": "Torsades grows out of a long QT, and the VF ladder of antiarrhythmics does not apply to it: lidocaine and amiodarone are for polymorphic VT with a normal QT, and amiodarone lengthens the QT further.",
+   "guideline": "AHA 2025 Adult ALS, polymorphic VT — defibrillate (Class 1; B-NR); magnesium for recurrences with a long QT (2b; C-LD); lidocaine or amiodarone only when the QT is normal (2b; C-LD)",
+   "instead": "Defibrillate, magnesium 2 g IV, correct the potassium, stop QT-prolonging drugs, and get expert help for overdrive pacing or isoproterenol."
+  },
+  "calcium-trauma-with-blood": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "calcium_massive_transfusion",
+    "blood_vs_crystalloid_trauma_adult",
+    "epinephrine_traumatic_arrest"
+   ],
+   "title": "In bleeding trauma, calcium goes with the blood",
+   "why": "Calcium replaces what the citrate in transfused blood binds; on its own it does not treat the empty tank that stopped this heart.",
+   "guideline": "AAST/ACS-COT damage-control resuscitation protocol (2024) — treat hypocalcaemia during massive transfusion, target ionized calcium above 1.0-1.2 mmol/L (no graded recommendation)",
+   "instead": "Stop the bleeding, decompress the chest, activate the massive transfusion protocol; calcium chloride 1 g (or gluconate 3 g) with the first units and after about every 4 units."
+  },
+  "drug-instead-of-cardioversion-wct": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "drug_instead_of_cardioversion_unstable",
+    "antiarrhythmic_stable_wct",
+    "verapamil_diltiazem_wct"
+   ],
+   "title": "An unstable wide-complex tachycardia needs cardioversion",
+   "why": "At this pressure the tachycardia is unstable, and the treatment is synchronized cardioversion now. Antiarrhythmics are for a stable patient: given first, they take minutes to work, if they work at all, while the pressure falls.",
+   "guideline": "AHA 2025 Adult ALS — an unstable tachycardia with a pulse needs immediate synchronized cardioversion (Class 1; B-NR); drugs are for stable patients",
+   "instead": "Synchronized cardioversion now, sedated if feasible (Class 1). If VT recurs once the patient is stable, amiodarone 150 mg over 10 minutes or procainamide may be considered (2b; B-R). Never verapamil or diltiazem in a wide-complex tachycardia (Class 3: Harm; B-NR)."
+  },
+  "ccb-wct": {
+   "kind": "indication",
+   "population": "adult",
+   "sources": [
+    "verapamil_diltiazem_wct",
+    "drug_instead_of_cardioversion_unstable"
+   ],
+   "title": "Verapamil and diltiazem are harmful in wide-complex tachycardia",
+   "why": "They will not stop VT, and they drop the pressure — in a patient already hypotensive, enough to bring on shock or arrest.",
+   "guideline": "AHA 2025 Adult ALS — verapamil or diltiazem should not be given for wide-complex tachycardia (Class 3: Harm; B-NR)",
+   "instead": "Synchronized cardioversion now, sedated if feasible (Class 1)."
+  },
+  "naloxone-dose": {
+   "kind": "dose",
+   "population": "adult",
+   "sources": [
+    "naloxone_resp_arrest_pulse",
+    "naloxone_cardiac_arrest_adult"
+   ],
+   "title": "The naloxone dose is 0.2-2 mg",
+   "why": "Naloxone for an opioid overdose is 0.2-2 mg IV/IO (2-4 mg intranasal), repeated every 2-3 minutes; in an arrest it must never delay CPR.",
+   "guideline": "AHA 2025 Special Circumstances, Table 4 — naloxone 0.2-2 mg IV/IO/IM; in cardiac arrest only if it does not interfere with CPR (2b; B-NR)",
+   "instead": "Naloxone 0.2-2 mg IV/IO, repeated every 2-3 minutes if needed — without pausing compressions and ventilation.",
+   "showNote": true
+  },
+  "newborn-volume": {
+   "kind": "dose",
+   "population": "newborn",
+   "sources": [
+    "nrp_volume"
+   ],
+   "title": "A newborn's volume bolus is 10-20 mL/kg",
+   "why": "For suspected blood loss, a newborn gets 10-20 mL/kg of saline or O-negative blood over 5-10 minutes, repeated if the response is poor.",
+   "guideline": "AHA/AAP 2025 Neonatal — volume expansion 10-20 mL/kg over 5-10 minutes when hypovolaemia is suspected (Class 2b; C-EO)",
+   "instead": "Normal saline or O-negative blood 10-20 mL/kg through the umbilical line over 5-10 minutes; reassess, and repeat if the heart rate stays low.",
+   "showNote": true
+  },
+  "epi-tube-adult": {
+   "kind": "route",
+   "population": "adult",
+   "sources": [
+    "drug_route_endotracheal_adult",
+    "vascular_access_adult"
+   ],
+   "title": "Down the tube is no longer an adult route",
+   "why": "The 2025 adult guidelines removed endotracheal drug delivery: blood levels after it are low and unpredictable. With no IV, the answer is an IO needle.",
+   "guideline": "AHA 2025 Adult ALS — IV first (Class 1; A), IO if IV fails (2a; A); endotracheal drug delivery removed",
+   "instead": "Place an IO and give epinephrine 1 mg IV/IO."
+  },
+  "lidocaine-supraventricular-child": {
+   "kind": "indication",
+   "population": "child",
+   "sources": [
+    "pals_adenosine_svt",
+    "pals_svt_antiarrhythmics"
+   ],
+   "title": "Lidocaine does not treat SVT",
+   "why": "Lidocaine is a ventricular antiarrhythmic. A child's SVT is a re-entry through the AV node, which it does not touch.",
+   "guideline": "AHA 2025 PALS — SVT with a pulse, vagal manoeuvres and adenosine 0.1 mg/kg (Class 1; C-LD); with compromise, synchronized cardioversion 0.5-1 J/kg (2a; C-LD)",
+   "instead": "Vagal manoeuvres (ice to the face in an infant), adenosine 0.1 mg/kg rapid push then 0.2 mg/kg, or synchronized cardioversion 0.5-1 J/kg if compromised; expert help before any other antiarrhythmic."
+  }
+ },
+ "unsourced": {
+  "epi-dose-child-tube": "The 2025 PALS algorithm gives no endotracheal dose (only IV/IO); the engine still accepts 0.1 mg/kg down the tube.",
+  "epi-dose-im": "The IM (asthma/anaphylaxis) epinephrine dose was not part of the guideline research.",
+  "magnesium-dose-child": "PALS 2025 has no magnesium recommendation or dose (research: unverified).",
+  "magnesium-routine-arrest-child": {
+   "reason": "PALS 2025 has no magnesium recommendation (research: unverified).",
+   "title": "Magnesium is not a routine arrest drug"
+  },
+  "magnesium-drip-in-arrest": {
+   "reason": "AHA 2025 gives no magnesium dose or route for arrest.",
+   "title": "In an arrest, magnesium is a bolus"
+  },
+  "naloxone-dose-child": "No child script doses naloxone.",
+  "bicarbonate-dose": "The engine expects 1 mEq/kg; the verified doses are for sodium-channel-blocker toxicity (50-150 mEq), not arrest.",
+  "bicarbonate-dose-child": "The PALS arrest dose (1 mEq/kg) was not part of the verified research.",
+  "bicarbonate-newborn": {
+   "reason": "Neonatal bicarbonate was not part of the guideline research.",
+   "title": "Bicarbonate is not a newborn resuscitation drug"
+  },
+  "calcium-newborn": {
+   "reason": "Neonatal calcium was not part of the guideline research.",
+   "title": "Calcium is not a newborn resuscitation drug"
+  },
+  "dextrose-dose": "No verified adult dextrose dose.",
+  "dextrose-dose-child": "The PALS dextrose dose is unverified in the research.",
+  "dextrose-newborn-strength": "The D10W 2 mL/kg newborn dose is unverified in the research.",
+  "tranexamic-dose-child": "No child script doses tranexamic acid.",
+  "wrong-rhythm": "A script wrongFor with no card of its own: its own wrongForNote is shown.",
+  "flagged": "A flagged record with no key (not expected): its note is shown."
+ },
+ "sources": {
+  "calcium_arrest_routine_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "11 Nonvasopressor Medications, rec 4 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-R",
+   "says": "Routine calcium is not recommended. Trials (including calcium given right after the first epinephrine) showed no survival or neurological benefit, with a trend toward harm. | Suspected hyperkalemia (2b, C-LD - see calcium_hyperkalemia_arrest),Calcium-channel-blocker poisoning (2a, C-EO),Beta-blocker poisoning (2b, C-EO),Cardiac arrest while on IV magnesium sulfate in pregnancy (2a, C-EO),Hypocalcaemia from massive transfusion (trauma protocols - see calcium_massive_transfusion)",
+   "changedIn2025": "LOE upgraded from B-NR (2020) to B-R after the RCTs reviewed in the 2023 focused update; class unchanged. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "calcium_hyperkalemia_arrest": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "15 Hyperkalemia, rec 1 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "The effectiveness of IV calcium in hyperkalemic arrest is not well established: the support is historical animal and case data, and a pig RCT showed no ROSC benefit. It remains the listed exception to 'no routine calcium'. |  | AHA 2025 gives no dose. ERC 2025 (cardiac arrest in pregnancy table) lists 10 mL of 10% calcium chloride IV for magnesium overdose, low calcium or hyperkalaemia.",
+   "changedIn2025": "Downgraded from 1 C-LD ('IV calcium should be administered', 2020) to 2b C-LD ('not well established'). 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "calcium_ccb_poisoning": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.5 Calcium Channel Blockers, recs 1-5; Table 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "2a",
+   "loe": "C-EO",
+   "says": "Calcium is reasonable (2a, C-EO); high-dose insulin (1, B-NR) and vasopressors (1, C-LD) are the stronger recommendations; ECLS if refractory. |  | Calcium chloride 2000 mg (20 mL of 10%) adult, 20 mg/kg child; or calcium gluconate 6000 mg (60 mL of 10%) adult, 60 mg/kg child; then infusion titrated to BP (Table 4).",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "calcium_massive_transfusion": {
+   "doc": "AAST/ACS-COT Clinical protocol for damage-control resuscitation for the adult trauma patient (LaGrone et al, J Trauma Acute Care Surg 2024;96(3), doi:10.1097/TA.0000000000004088)",
+   "section": "Treat Hypocalcemia (Target Ca2+ >1 or 1.2 mmol/L)",
+   "url": "https://journals.lww.com/jtrauma/fulltext/2024/03000/american_association_for_the_surgery_of.23.aspx",
+   "cor": null,
+   "loe": null,
+   "says": "Hypocalcaemia is common and linked to coagulopathy and death; protocols target ionized calcium above 1-1.2 mmol/L. Military guidance gives 1 g of calcium with the first unit and at least after 4 units. No prospective trial shows better outcomes. |  | 1 g calcium (military guidance, per AAST protocol); calcium gluconate 4 g over 4 h studied.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_calcium_routine": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 6 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-NR",
+   "says": "Not recommended routinely; associated with lower survival to discharge in pediatric IHCA (possible time bias). | Hypocalcemia,Calcium-channel-blocker overdose,Hyperkalemia",
+   "changedIn2025": "Reclassified from 3: Harm (2020) to 3: No Benefit; the 2020 exception list also named hypermagnesemia. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "bicarbonate_arrest_routine_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "11 Nonvasopressor Medications, rec 5 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-R",
+   "says": "Routine sodium bicarbonate is not recommended. Recent observational data in prehospital PEA/asystole hint at benefit, but resuscitation-time bias makes it uninterpretable; equipoise for new trials only. | Suspected hyperkalemia (2b, C-EO),Tricyclic/tetracyclic antidepressant cardiotoxicity (1, B-NR adults; 2a, C-LD children),Other sodium-channel-blocker cardiotoxicity (2a, C-EO),Wide-complex tachycardia from local-anesthetic toxicity (2a, C-EO)",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "bicarbonate_sodium_channel_blocker": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.13 Sodium Channel Blockers, recs 1-6; Table 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "Bicarbonate should be used for TCA cardiotoxicity in adults (1, B-NR) and is reasonable in children (2a, C-LD) and for other sodium-channel blockers (2a, C-EO); hyperventilation with it is reasonable in ventilated patients. Lidocaine may be reasonable for class Ia/Ic antiarrhythmic toxicity (2b, C-EO). |  | 50-150 mEq adult, 1-3 mEq/kg child; then 150 mEq/L infusion at 1-3 mL/kg/h (Table 4).",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "bicarbonate_hyperkalemia_arrest": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "15 Hyperkalemia, rec 2 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2b",
+   "loe": "C-EO",
+   "says": "Effectiveness not well established. It shifts potassium into cells; one pig RCT improved ROSC; human data are weak. | ",
+   "changedIn2025": "New recommendation (2020 had none for bicarbonate in hyperkalemic arrest). 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "pals_bicarbonate_routine": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 5 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-NR",
+   "says": "Not recommended routinely; pediatric IHCA meta-analysis associated it with lower survival (possibly resuscitation-time bias). | Sodium-channel-blocker toxicity (eg tricyclics, cocaine),Hyperkalemia",
+   "changedIn2025": "Reclassified from 3: Harm (2020) to 3: No Benefit, B-NR. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "bicarbonate_trauma_acidosis": {
+   "doc": "AAST/ACS-COT Clinical protocol for damage-control resuscitation for the adult trauma patient (LaGrone et al, J Trauma Acute Care Surg 2024;96(3), doi:10.1097/TA.0000000000004088)",
+   "section": "Correct Acidosis",
+   "url": "https://journals.lww.com/jtrauma/fulltext/2024/03000/american_association_for_the_surgery_of.23.aspx",
+   "cor": null,
+   "loe": null,
+   "says": "Bicarbonate for trauma acidaemia is not well studied; no benefit above pH 7.2 and questionable below. Correct acidosis by stopping the bleeding and giving blood. | Haemorrhage control,Blood product resuscitation",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "blood_vs_crystalloid_trauma_adult": {
+   "doc": "AAST/ACS-COT Clinical protocol for damage-control resuscitation for the adult trauma patient (LaGrone et al, J Trauma Acute Care Surg 2024;96(3), doi:10.1097/TA.0000000000004088)",
+   "section": "Isotonic Crystalloid Resuscitation; Correct Trauma-Induced Coagulopathy",
+   "url": "https://journals.lww.com/jtrauma/fulltext/2024/03000/american_association_for_the_surgery_of.23.aspx",
+   "cor": null,
+   "loe": null,
+   "says": "Resuscitate with blood products (whole blood or balanced 1:1:1), not crystalloid. More crystalloid is linked to ARDS (each extra 500 mL in 6 h, +9%), and TCCC no longer recommends crystalloid in haemorrhagic shock. Stop the bleeding first. | Haemorrhage control (tourniquet, packing, pelvic binder),Massive transfusion protocol,TXA within 3 h",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "txa_trauma": {
+   "doc": "CRASH-2 trial (Lancet 2010;376:23-32, doi:10.1016/S0140-6736(10)60835-5) and its time-to-treatment analysis (Lancet 2011;377:1096-1101, doi:10.1016/S0140-6736(11)60278-X); AAST/ACS-COT Clinical protocol for damage-control resuscitation for the adult trauma patient (LaGrone et al, J Trauma Acute Care Surg 2024;96(3), doi:10.1097/TA.0000000000004088); European Resuscitation Council Guidelines 2025: Special Circumstances in Resuscitation (Lott et al, Resuscitation 2025;215 Suppl 1:110753)",
+   "section": "CRASH-2 results; AAST/ACS-COT 'Tranexamic Acid'; ERC traumatic cardiac arrest - hypovolaemia",
+   "url": "https://doi.org/10.1016/S0140-6736(11)60278-X",
+   "cor": null,
+   "loe": null,
+   "says": "Give TXA as early as possible and within 3 hours of injury. In CRASH-2 it cut deaths from bleeding when given within 1 h (RR 0.68) or 1-3 h (RR 0.79); given after 3 h it increased death from bleeding (RR 1.44). Data in isolated head injury are mixed. | Not after 3 hours from injury | 1 g IV over 10 min, then 1 g over 8 h.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "magnesium_arrest_routine_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "11 Nonvasopressor Medications, rec 6 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-R",
+   "says": "Routine magnesium is not recommended: it did not improve ROSC, survival or neurological outcome in any presenting rhythm, and was not useful for monomorphic VT. | Torsades de pointes (polymorphic VT with a long QT) - see magnesium_torsades",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "magnesium_torsades": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "16 Polymorphic Ventricular Tachycardia, rec 2 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "Magnesium may be considered to suppress recurrences of torsades. Also correct electrolytes (especially low potassium) and stop QT-prolonging drugs; for bradycardia- or pause-dependent torsades seek expert help for overdrive pacing or isoproterenol. |  | AHA 2025 gives no dose. ERC 2025 (cardiac arrest in pregnancy table) lists magnesium 2 g IV for polymorphic VT.",
+   "changedIn2025": "Wording now 'recurrences of' polymorphic VT with long QT; class/LOE unchanged (2b, C-LD). 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "atropine_arrest": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "Figure 2 Adult Cardiac Arrest Algorithm; 19 Bradycardia supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": null,
+   "loe": null,
+   "says": "Atropine is not part of the 2025 adult cardiac arrest algorithm. The 2025 text notes one OHCA study associating atropine-after-epinephrine with survival to admission and one IHCA study showing no survival benefit; no recommendation to use it. | Bradycardia WITH a pulse and compromise",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "atropine_bradycardia_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "19 Initial Management of Bradycardia, rec 2; Figure 8 Adult Bradycardia With a Pulse Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2a",
+   "loe": "B-NR",
+   "says": "Atropine is reasonable to raise the rate in unstable bradycardia (typically HR <50) while reversible causes are treated. |  | 1 mg IV bolus, repeat every 3-5 min, maximum total 3 mg. It is a bolus, never an infusion.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "epinephrine_nonshockable_timing": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "10 Vasopressor Medications, rec 3; Figure 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2a",
+   "loe": "B-NR",
+   "says": "In a nonshockable arrest give the first epinephrine as soon as feasible (algorithm: 'Epinephrine ASAP'). | ",
+   "changedIn2025": "LOE upgraded from C-LD (2020) to B-NR; class unchanged (2a). 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "pals_atropine_bradycardia": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "18 Management of Bradycardia, recs 1-2 and supportive text; Figure 6 Pediatric Bradycardia With a Pulse Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "1",
+   "loe": "C-LD",
+   "says": "Atropine is recommended only when the bradycardia is from increased vagal tone or primary AV block, NOT from hypoxia. Hypoxic bradycardia is treated with ventilation and oxygen; if HR stays <60 with compromise despite effective ventilation, start CPR (1, C-EO). | Oxygen and ventilation for hypoxic bradycardia,CPR if HR <60 with poor perfusion despite ventilation,Epinephrine if it persists | 0.02 mg/kg IV/IO, may repeat once; minimum 0.1 mg, maximum single dose 0.5 mg.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_epinephrine_nonshockable_timing": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 1; Figure 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "2a",
+   "loe": "C-LD",
+   "says": "Give the first epinephrine as early as possible. |  | 0.01 mg/kg IV/IO (0.1 mL/kg of 0.1 mg/mL), max 1 mg.",
+   "changedIn2025": "2020 said 'within 5 min of starting compressions' (2a, C-LD); 2025 says 'as early as possible' for nonshockable rhythms. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "drug_instead_of_cardioversion_unstable": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "15 Wide-Complex Tachycardia rec 1; 17 Regular Narrow-Complex Tachycardia rec 3; Figure 6 Adult Tachyarrhythmia With a Pulse Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "An unstable wide- or narrow-complex tachycardia needs immediate synchronized cardioversion (sedate if feasible). Drugs are for stable patients; the algorithm allows adenosine only for a regular narrow rhythm while preparing to cardiovert. | Synchronized cardioversion now",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "adenosine_regular_nct": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "17 Regular Narrow-Complex Tachycardia, recs 1-2 and supportive text; Figure 6 doses box",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "B-R",
+   "says": "Vagal manoeuvres (1, B-R) and adenosine (1, B-R) are the first treatments. Adenosine is contraindicated in asthma (bronchospasm); 1 mg may be enough with a central line or after heart transplant. |  | 6 mg rapid IV push with saline flush; 12 mg if needed.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_adenosine_svt": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "19.1 Treatment of SVT With a Pulse, recs 1-4; Figure 7 Pediatric Tachyarrhythmia With a Pulse Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "1",
+   "loe": "C-LD",
+   "says": "Try vagal stimulation first if there is no cardiopulmonary compromise (1, C-LD); adenosine is recommended if IV/IO access is ready (1, C-LD). With compromise: adenosine if access is present, or synchronized cardioversion 0.5-1 J/kg then 2 J/kg (2a, C-LD). |  | 0.1 mg/kg rapid push (max 6 mg) with flush; repeat 0.2 mg/kg (max 12 mg).",
+   "changedIn2025": "Vagal stimulation first upgraded from 2a C-LD (2020) to 1 C-LD. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "pals_epinephrine_bradycardia": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "18 Management of Bradycardia, recs 3-4; Figure 6",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "1",
+   "loe": "C-EO",
+   "says": "Give epinephrine IV/IO when bradycardia with cardiopulmonary compromise persists after correcting other factors (eg hypoxia). Pacing may be considered for complete heart block or sinus node dysfunction unresponsive to CPR (2b, C-EO). |  | 0.01 mg/kg IV/IO (0.1 mg/mL), max 1 mg.",
+   "changedIn2025": "2020 allowed the endotracheal route if IV/IO was unavailable; 2025 says IV/IO only. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "adenosine_af": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "17 supportive text (adenosine); 18.1-18.2 Atrial Fibrillation or Flutter with RVR",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "Adenosine only blocks the AV node briefly (it unmasks flutter or fibrillation); it is not an AF treatment. For rate control give an IV beta-blocker or nondihydropyridine calcium-channel blocker (1, B-NR), or IV amiodarone in the critically ill (2a, B-NR); cardiovert if unstable (1, C-LD). | IV beta-blocker or diltiazem/verapamil for rate control,Amiodarone if critically ill,Synchronized cardioversion (>=200 J) if unstable",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "adenosine_wct": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "15 Wide-Complex Tachycardia, recs 4 and 6 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: Harm",
+   "loe": "C-LD",
+   "says": "Only for a STABLE, REGULAR, MONOMORPHIC wide-complex tachycardia, to treat or aid diagnosis (2b, B-NR). Adenosine should NOT be given for an unstable, irregularly irregular or polymorphic wide-complex tachycardia (3: Harm, C-LD): it will not stop VT and can cause hypotension or VF. | Unstable: synchronized cardioversion,Polymorphic: unsynchronized shock,Irregular (possible pre-excited AF): cardioversion / expert help",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "polymorphic_vt_shock_first": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "16 Polymorphic Ventricular Tachycardia, rec 1; Top 10 message 8",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "Polymorphic VT is always unstable: give an immediate unsynchronized (defibrillation-energy) shock; drugs are for preventing recurrence, not for the running rhythm. | ",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "antiarrhythmic_in_torsades": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "16 Polymorphic Ventricular Tachycardia, supportive text for rec 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": null,
+   "loe": null,
+   "says": "Antiarrhythmics given for torsades may prolong the QT further and promote the arrhythmia; acute beta-blockers can precipitate torsades by causing bradycardia. Lidocaine/amiodarone are the options only when the QT is NOT prolonged. | Magnesium (2b, C-LD),Correct potassium,Overdrive pacing or isoproterenol with expert consultation,Stop the QT-prolonging drug",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "antiarrhythmic_nonshockable": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "Figure 2 Adult Cardiac Arrest Algorithm (steps 9-11)",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/algorithms",
+   "cor": null,
+   "loe": null,
+   "says": "Antiarrhythmics appear only on the VF/pVT side of the arrest algorithm; the asystole/PEA path is CPR, epinephrine and reversible causes. (Derived from the algorithm: there is no statement recommending them in a nonshockable rhythm.) | VF/pVT refractory to shocks",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "amiodarone_lidocaine_refractory_vf": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "11 Nonvasopressor Medications, rec 1 and supportive text; Figure 2 drug-therapy box",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2b",
+   "loe": "B-R",
+   "says": "Amiodarone or lidocaine may be considered for shock-refractory VF/pVT (algorithm: after the 3rd shock). They improved survival to admission, not to discharge; benefit looks time-dependent (bystander- or EMS-witnessed arrests). Neither is preferred over the other. | Only for a shockable rhythm that persists after shocks; not for PEA/asystole or a perfusing rhythm | Amiodarone 300 mg IV/IO bolus, then 150 mg; OR lidocaine 1-1.5 mg/kg, then 0.5-0.75 mg/kg.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_amiodarone_lidocaine": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 4; Figure 2 drug box",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "Either amiodarone or lidocaine may be considered; propensity-matched data show no difference between them. |  | Amiodarone 5 mg/kg IV/IO bolus (max 300 mg), may repeat up to 3 doses (max 150 mg for later doses); OR lidocaine 1 mg/kg.",
+   "changedIn2025": "Class/LOE unchanged (2020 wording 'may be used'); 2025 algorithm adds per-dose caps for amiodarone. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "epinephrine_dopamine_infusion_bradycardia": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "19 Initial Management of Bradycardia, rec 4 and supportive text; Figure 8 doses box",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "If atropine fails, an epinephrine or dopamine infusion or transcutaneous pacing may be effective while transvenous pacing is arranged. Push-dose epinephrine for bradycardia has little supporting data, and dosing errors are reported. |  | Epinephrine infusion 2-10 mcg/min; dopamine 5-20 mcg/kg/min, titrated to response.",
+   "changedIn2025": "2025 names dopamine alongside epinephrine (2020: 'eg, epinephrine'); class/LOE unchanged. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "antiarrhythmic_stable_wct": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "15 Wide-Complex Tachycardia, rec 3 and supportive text; Figure 6 doses box",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2b",
+   "loe": "B-R",
+   "says": "IV amiodarone, procainamide or sotalol may be considered. Lidocaine is less effective for VT at tolerated rates. Do not combine them (additive arrhythmia risk); keep a defibrillator ready. Procainamide: avoid if QT prolonged or heart failure. |  | Procainamide 20-50 mg/min until arrhythmia suppressed, hypotension, QRS widens >50% or 17 mg/kg given; maintenance 1-4 mg/min. Amiodarone 150 mg over 10 min, repeat if VT recurs, then 1 mg/min for 6 h.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "epinephrine_arrest_dose_with_pulse": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "19 Initial Management of Bradycardia, supportive text; Figures 2 and 8",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/algorithms",
+   "cor": null,
+   "loe": null,
+   "says": "The 1 mg bolus is the pulseless-arrest dose. With a pulse, the algorithm uses an infusion of 2-10 mcg/min; push-dose epinephrine lacks data for bradycardia and carries reported dosing errors. | Epinephrine infusion 2-10 mcg/min,Atropine first for bradycardia,Pacing",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "nrp_epinephrine_intravascular": {
+   "doc": "Part 5: Neonatal Resuscitation, 2025 AHA/AAP Guidelines (Lee et al, Circulation 2025;152(suppl 2):S385-S423, doi:10.1161/CIR.0000000000001367)",
+   "section": "15 Epinephrine, recs 1 and 4 and synopsis; 13.1 rec 1; Figure 2 Neonatal Resuscitation Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/neonatal-resuscitation",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "Give intravascular (UVC or IO) epinephrine when the heart rate stays below 60/min after ventilation has been optimized (including an alternative airway) and chest compressions given; follow with a 3 mL saline flush. | Ventilation that moves the chest comes first,Compressions only if HR <60 despite 30 s of effective ventilation (1, C-EO) | 0.01-0.03 mg/kg IV/IO, every 3-5 min if HR <60 (2b, C-LD).",
+   "changedIn2025": "Upgraded from 2b C-LD (2020) to 1 B-NR. 2020 AHA/AAP Part 5 Neonatal Resuscitation (Aziz et al, Pediatrics 2021;147 Suppl 1:e2020038505E)",
+   "verified": true
+  },
+  "naloxone_cardiac_arrest_adult": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.11 Opioid Overdose, recs 4-5 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2b",
+   "loe": "B-NR",
+   "says": "Naloxone may be reasonable only if it does not interfere with high-quality compression-ventilation CPR. It is unlikely to help without circulation and does not reverse VF; start CPR and continue standard ALS first. | High-quality CPR with ventilation (1, C-EO: do not delay resuscitation for naloxone),Epinephrine per the arrest algorithm",
+   "changedIn2025": "New explicit 2b recommendation; 2020 said only that standard resuscitation takes priority over naloxone (1, C-EO). Opioid antagonists are now built into the 2025 BLS algorithms (Part 7). 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "naloxone_resp_arrest_pulse": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.11 Opioid Overdose, recs 1 and 3; Table 4 antidote doses",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "1",
+   "loe": "B-NR",
+   "says": "Ventilate (bag-mask) and give an opioid antagonist such as naloxone. |  | Adult 0.2-2 mg IV/IO/IM or 2-4 mg intranasal, repeat every 2-3 min; child 0.1 mg/kg.",
+   "changedIn2025": "Upgraded from 2a B-NR (2020) to 1 B-NR. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "naloxone_cardiac_arrest_child": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.11 Opioid Overdose, rec 6; Table 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "2b",
+   "loe": "C-EO",
+   "says": "As for adults: may be reasonable if it does not interfere with high-quality CPR; evidence extrapolated from adults. |  | 0.1 mg/kg (Table 4).",
+   "changedIn2025": "New explicit recommendation in 2025. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "epinephrine_traumatic_arrest": {
+   "doc": "NAEMSP/ACS-COT/ACEP joint position statement: Prehospital management of adults with traumatic out-of-hospital circulatory arrest (Prehosp Emerg Care 2025, doi:10.1080/10903127.2024.2428668; also Ann Emerg Med 2025, doi:10.1016/j.annemergmed.2024.12.015); European Resuscitation Council Guidelines 2025: Special Circumstances in Resuscitation (Lott et al, Resuscitation 2025;215 Suppl 1:110753)",
+   "section": "Joint statement recommendations (abstract); ERC 'The role of inotropes and vasopressors'",
+   "url": "https://doi.org/10.1080/10903127.2024.2428668",
+   "cor": null,
+   "loe": null,
+   "says": "Epinephrine should not be used routinely in traumatic arrest and never before the life-saving interventions: haemorrhage control, airway, chest decompression, volume. ERC 2025: the role of vasopressors in traumatic arrest is unclear; at most a bridge while causes are fixed. | Tourniquet/packing, pelvic binder,Bilateral decompression if chest trauma,Blood,Thoracotomy for tamponade/penetrating injury",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "vasopressors_haemorrhagic_shock": {
+   "doc": "AAST/ACS-COT Clinical protocol for damage-control resuscitation for the adult trauma patient (LaGrone et al, J Trauma Acute Care Surg 2024;96(3), doi:10.1097/TA.0000000000004088)",
+   "section": "Vasopressors",
+   "url": "https://journals.lww.com/jtrauma/fulltext/2024/03000/american_association_for_the_surgery_of.23.aspx",
+   "cor": null,
+   "loe": null,
+   "says": "Retrospective data link vasopressors in haemorrhagic shock to worse outcomes, partly from under-resuscitation; evidence is insufficient for a firm recommendation. Low-dose vasopressin (AVERT-Shock) reduced blood use without mortality change; vasopressors are considered only when vasoplegia contributes. | Volume with blood,Haemorrhage control",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "vasopressin_arrest": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "10 Vasopressor Medications, rec 5",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-R",
+   "says": "Vasopressin, alone or added to epinephrine, offers no advantage as a substitute for epinephrine. | Use epinephrine 1 mg every 3-5 min",
+   "changedIn2025": "Reclassified from 2b C-LD ('may be considered but offers no advantage', 2020) to 3: No Benefit, B-R. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "epinephrine_arrest_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "10 Vasopressor Medications in Adult Cardiac Arrest, recs 1-2; Figure 2 Adult Cardiac Arrest Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "B-R",
+   "says": "Give epinephrine in adult cardiac arrest. It raises ROSC and short-term survival; no trial shows better neurological survival. |  | 1 mg IV/IO every 3-5 min (2a, B-R); every second 2-minute cycle meets this.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "thrombolytic_pe_suspected": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "20.2 Adults in Cardiac Arrest From PE, rec 3 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2b",
+   "loe": "B-NR",
+   "says": "May be considered when PE is suspected. Two RCTs found no survival benefit from fibrinolytics in undifferentiated cardiac arrest, so it is not a routine arrest drug. | Confirmed or strongly suspected PE",
+   "changedIn2025": "LOE upgraded from C-LD (2020) to B-NR. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "thrombolytic_pe_confirmed": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "20.2 Adults in Cardiac Arrest From PE, recs 1-2, 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2a",
+   "loe": "B-NR",
+   "says": "Systemic fibrinolysis, surgical or percutaneous embolectomy are reasonable; ECLS is reasonable for confirmed or suspected PE (2a, B-NR). Optimal CPR duration after the drug is unclear (2b, C-EO). | ",
+   "changedIn2025": "LOE upgraded from C-LD (2020) to B-NR; ECLS recommendation new. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "epinephrine_high_dose": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "10 Vasopressor Medications, rec 6 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: No Benefit",
+   "loe": "B-R",
+   "says": "High-dose epinephrine is not recommended for routine use. A registry study suggested dosing more often than the standard interval may be harmful. | ",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_epinephrine_interval": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 3; Figure 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "Epinephrine every 3-5 minutes until ROSC may be reasonable; the optimal interval is unknown. |  | 0.01 mg/kg IV/IO, max 1 mg per dose.",
+   "changedIn2025": "Downgraded from 2a C-LD (2020) to 2b C-LD. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "naloxone_infusion": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.11 Opioid Overdose following successful response, recs 1-4 and supportive text; Table 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "2a",
+   "loe": "C-LD",
+   "says": "Repeat doses (2a, C-LD adults; 2a, C-EO children) or an IV infusion treat re-sedation; observe until low risk. An infusion is for the patient who has responded, not arrest care. |  | Infusion: two thirds of the waking dose per hour (Table 4).",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "vascular_access_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "9 Vascular Access in Cardiac Arrest Management, recs 1-3",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "1",
+   "loe": "A",
+   "says": "Attempt peripheral IV first (1, A); IO is reasonable if IV attempts fail or are not feasible (2a, A); central venous access may be considered by trained staff if both fail (2b, C-LD). Three RCTs found no advantage to IO-first, and ROSC was slightly lower with IO. | ",
+   "changedIn2025": "IV-first upgraded from 2a B-NR to 1 A; IO upgraded from 2b B-NR to 2a A. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "drug_route_endotracheal_adult": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "Top 10 Take-Home Messages (message 6); 9 Vascular Access, synopsis",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "removed (no recommendation)",
+   "loe": null,
+   "says": "Giving arrest drugs down an endotracheal tube has been removed from the adult guidelines: blood levels are low and unpredictable. Use IV, then IO, then central access. | IV first,IO if IV fails or is not feasible,central venous access by trained staff if both fail",
+   "changedIn2025": "2020 allowed it as a last resort (2b, C-LD: 'may be considered when other access routes are not available'); 2025 removed it. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "pals_vascular_access_route": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.1 Drug Administration Methods, recs 1-2 and synopsis; Figure 2 Pediatric Cardiac Arrest Algorithm",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "1",
+   "loe": "C-LD",
+   "says": "Get IV or IO access rapidly (1, C-LD), choosing by availability and expertise (1, C-EO). IV/IO epinephrine is preferred over the endotracheal route (poor absorption); the 2025 algorithm lists only IV/IO doses. | ",
+   "changedIn2025": "The 2020 PALS algorithm gave an endotracheal epinephrine dose (0.1 mg/kg); the 2025 algorithm gives IV/IO only. 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "nrp_vascular_access": {
+   "doc": "Part 5: Neonatal Resuscitation, 2025 AHA/AAP Guidelines (Lee et al, Circulation 2025;152(suppl 2):S385-S423, doi:10.1161/CIR.0000000000001367)",
+   "section": "14 Vascular Access During Resuscitation",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/neonatal-resuscitation",
+   "cor": "1",
+   "loe": "C-LD",
+   "says": "An umbilical venous catheter is recommended (1, C-LD); IO can be useful if IV access fails or is not feasible (2a, C-LD). | ",
+   "changedIn2025": "UVC LOE C-EO to C-LD; IO upgraded from 2b C-EO to 2a C-LD. 2020 AHA/AAP Part 5 Neonatal Resuscitation (Aziz et al, Pediatrics 2021;147 Suppl 1:e2020038505E)",
+   "verified": true
+  },
+  "nrp_epinephrine_endotracheal": {
+   "doc": "Part 5: Neonatal Resuscitation, 2025 AHA/AAP Guidelines (Lee et al, Circulation 2025;152(suppl 2):S385-S423, doi:10.1161/CIR.0000000000001367)",
+   "section": "15 Epinephrine, recs 2-3 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/neonatal-resuscitation",
+   "cor": "2a",
+   "loe": "C-LD",
+   "says": "Endotracheal epinephrine at a larger dose is reasonable while access is obtained (2a, C-LD); if the response is inadequate give an intravascular dose as soon as access is in, regardless of the interval (2a, B-NR). 0.01-0.03 mg/kg is an inadequate endotracheal dose; once the UVC is in, use it. |  | 0.05-0.1 mg/kg down the tube.",
+   "changedIn2025": "Both upgraded from 2b C-LD (2020) to 2a. 2020 AHA/AAP Part 5 Neonatal Resuscitation (Aziz et al, Pediatrics 2021;147 Suppl 1:e2020038505E)",
+   "verified": true
+  },
+  "epinephrine_shockable_timing": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "10 Vasopressor Medications, rec 4 and supportive text; Figure 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2a",
+   "loe": "B-NR",
+   "says": "In VF/pVT, defibrillate first; give epinephrine only after the initial shocks have failed (algorithm: after the 2nd shock). One in-hospital study found lower survival where epinephrine often came before the first shock. | After initial defibrillation attempts fail (after the 2nd shock in the algorithm)",
+   "changedIn2025": "Upgraded from 2b C-LD (2020) to 2a B-NR. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "pals_epinephrine_shockable_timing": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "7.2 Drug Administration During Cardiac Arrest, rec 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "In a shockable arrest give epinephrine after 2 defibrillation attempts, or sooner only if rapid defibrillation is not possible. | ",
+   "changedIn2025": "New in 2025 (2020 had one timing recommendation for all rhythms). 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "polymorphic_vt_normal_qt": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "16 Polymorphic Ventricular Tachycardia, recs 3-4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "IV lidocaine, amiodarone and treatment of myocardial ischaemia may be considered (2b, C-LD). Routine magnesium is not recommended when the QT is normal (3: No Benefit, C-LD). | Magnesium only if the QT is long",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "verapamil_diltiazem_wct": {
+   "doc": "Part 9: Adult Advanced Life Support, 2025 AHA Guidelines for CPR and ECC (Wigginton et al, Circulation 2025;152(suppl 2):S538-S577, doi:10.1161/CIR.0000000000001376)",
+   "section": "15 Wide-Complex Tachycardia, rec 5 and supportive text",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+   "cor": "3: Harm",
+   "loe": "B-NR",
+   "says": "Verapamil and diltiazem should not be given for wide-complex tachycardia: they will not stop VT and can cause profound hypotension, shock and arrest. | ",
+   "changedIn2025": "2020 named verapamil only, with an exception for known SVT without an accessory pathway; 2025 adds diltiazem and drops the exception. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "nrp_volume": {
+   "doc": "Part 5: Neonatal Resuscitation, 2025 AHA/AAP Guidelines (Lee et al, Circulation 2025;152(suppl 2):S385-S423, doi:10.1161/CIR.0000000000001367)",
+   "section": "16 Volume Expansion, recs 1-2 and supportive text; Figure 2",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/neonatal-resuscitation",
+   "cor": "2b",
+   "loe": "C-EO",
+   "says": "A volume expander may be reasonable when history/exam suggest hypovolaemia (pallor, weak pulses, persistent HR <60). If HR stays <60 after epinephrine, the algorithm says consider hypovolaemia and pneumothorax. |  | Normal saline or blood 10-20 mL/kg, over 5-10 min; repeat if inadequate response.",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "pals_svt_antiarrhythmics": {
+   "doc": "Part 8: Pediatric Advanced Life Support, 2025 AHA/AAP Guidelines (Lasa et al, Circulation 2025;152(suppl 2):S479-S537, doi:10.1161/CIR.0000000000001368)",
+   "section": "19.1 Treatment of SVT With a Pulse, recs 3 and 5",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+   "cor": "2b",
+   "loe": "C-LD",
+   "says": "Only if SVT with compromise has failed vagal manoeuvres, adenosine and cardioversion AND no expert is available may IV procainamide, amiodarone or sotalol be considered. Stable SVT unresponsive to vagal/adenosine: expert consultation (1, C-EO). | ",
+   "changedIn2025": "Sotalol added in 2025 (2020 named procainamide or amiodarone). 2020 AHA Part 4 Pediatric BLS/ALS (Topjian et al, Circulation 2020;142:S469-S523, doi:10.1161/CIR.0000000000000901)",
+   "verified": true
+  },
+  "calcium_betablocker_poisoning": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "21.4 Beta-Blockers, recs 1-9; Table 4",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation/content/guidelines-accordion/toxicology-nested-section/table-4",
+   "cor": "2b",
+   "loe": "C-EO",
+   "says": "Calcium may be reasonable (2b, C-EO). Stronger: vasopressors (1, C-EO), high-dose insulin for refractory hypotension (1, C-LD), glucagon bolus plus infusion (2a, C-LD). |  | Glucagon 2-10 mg (child 0.05-0.15 mg/kg), infusion 1-15 mg/h (Table 4).",
+   "changedIn2025": null,
+   "verified": true
+  },
+  "calcium_hypermagnesemia": {
+   "doc": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation, 2025 AHA Guidelines (Cao et al, Circulation 2025;152(suppl 2):S578-S672, doi:10.1161/CIR.0000000000001380)",
+   "section": "19.3 Pregnant Patients in Cardiac Arrest, rec 8",
+   "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+   "cor": "2a",
+   "loe": "C-EO",
+   "says": "Giving calcium to a pregnant patient who arrests while receiving IV magnesium sulfate is reasonable. | ",
+   "changedIn2025": "2020 had a general hypermagnesemia rec (empirical IV calcium, 2b C-EO); 2025 keeps only the pregnancy/magnesium-infusion version at 2a. 2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "verified": true
+  },
+  "magnesium_hypomagnesemia": {
+   "doc": "2020 AHA Part 3 Adult BLS/ALS (Panchal et al, Circulation 2020;142:S366-S468, doi:10.1161/CIR.0000000000000916)",
+   "section": "Electrolyte Abnormalities in Cardiac Arrest, rec 2",
+   "url": "https://doi.org/10.1161/CIR.0000000000000916",
+   "cor": "1 (2020)",
+   "loe": "C-LD (2020)",
+   "says": "2020: IV magnesium is recommended in addition to standard ACLS for arrest from severe hypomagnesemia. The 2025 Parts 9-10 contain no hypomagnesemia recommendation (searched), so the 2020 statement has not been restated. | ",
+   "changedIn2025": "Not restated in the 2025 guidelines (absent from Parts 9 and 10).",
+   "verified": true
+  }
+ }
+}

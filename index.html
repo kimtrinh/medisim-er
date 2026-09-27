@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-VlfxZBO2Q7r01zYRJQOkUOqdubsKrNH5yGJV21TRnnw=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-o160y0uWYs5aEdjd0cbrpRrIxGGT7+IBNzt+PmdX7JQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -6004,6 +6004,7 @@ function codeAnswers(){ return !!(S.code && S.code.ended !== 'death'); }
 
 function enterCodeMode(script){
   if(!window.CodeEngine || !script) return;
+  loadDrugTeaching();   // the debrief's medication cards — fetched now, so the code's debrief has them when it ends
   S.codeScript = script;
   S.code = CodeEngine.newState(script);
   // Where the code sits on the ER clock, so a post-arrest order can be stamped with the
@@ -8066,8 +8067,9 @@ function buildCodeDebrief(outcome){
   try{
     const d = InstantEngine.buildDebrief(pack, S.instantState || {flags:{},satisfied:[],stagesFired:[],dosing:0},
       {vitals:S.vitals, simMin:S.simMin, criticalActions:S.criticalActions,
-       learningPoints:S.learningPoints, difficulty:S.difficulty,
-       code:{metrics:CodeEngine.summary(S.code, S.codeScript), events:S.code.events}}, outcome);
+       learningPoints:S.learningPoints, difficulty:S.difficulty, drugTeaching:_drugTeaching,
+       code:{metrics:CodeEngine.summary(S.code, S.codeScript), events:S.code.events,
+             medReview:CodeEngine.medicationReview(S.code, S.codeScript)}}, outcome);
     // The engine's list and the receipts are two views of the same flag — union them rather
     // than letting either one silently delete the other's entries.
     d.unrecognizedOrders = unrecognizedForDebrief(d.unrecognizedOrders, null);
@@ -8171,7 +8173,10 @@ async function instantTurn(action){
      // Carry the code through every later turn: the case usually ENDS on a disposition
      // long after ROSC, and that is where buildDebrief runs. Without this the timeline
      // and the code-quality score would exist only for a code that ended in death.
-     code: S.code ? {metrics: CodeEngine.summary(S.code, S.codeScript), events: S.code.events} : undefined});
+     code: S.code ? {metrics: CodeEngine.summary(S.code, S.codeScript), events: S.code.events,
+                     medReview: CodeEngine.medicationReview(S.code, S.codeScript)} : undefined,
+     // Why each wrong medication was wrong (drug-teaching.json) — the debrief's "Medications to review".
+     drugTeaching: S.code ? await loadDrugTeaching() : null});
 }
 
 // ===================== THE DIAGNOSIS BOX =====================
@@ -8330,6 +8335,18 @@ async function loadDxCatalog(){
     _dxCatalog = (await r.json()).entries || [];
   }catch(_){ _dxCatalog = []; }   // offline or file missing: DX_EQUIV still carries the engine
   return _dxCatalog;
+}
+// WHY A MEDICATION WAS WRONG (Kim, 2026-09-27). drug-teaching.json: one card per reason the code engine flags a drug —
+// the lesson, the guideline line with its class, what to do instead — for the debrief's "Medications to review". Absent or
+// unfetchable, the cards fall back to the engine's own notes (InstantEngine.medicationCards).
+// Fetched at most once a load (review, 2026-09-27): a 404 or no network left it null, and every later Instant turn of the code
+// fetched it again — 7 orders, 4 requests. The attempt is remembered, as the other catalogues remember theirs.
+let _drugTeaching = null, _drugTeachingLoad = null;
+function loadDrugTeaching(){
+  if(!_drugTeachingLoad) _drugTeachingLoad = fetch('drug-teaching.json')
+    .then(r => r.ok ? r.json() : null).catch(() => null)
+    .then(j => (_drugTeaching = j && j.entries ? j : null));
+  return _drugTeachingLoad;
 }
 let _consultGates = null;
 // Who takes this patient, and what they want to see first. Absent or unfetchable = today's
@@ -17401,6 +17418,44 @@ function debriefQuickSummaryHTML(d,met,missed){
     ${card('Retry goal',retry,'border-sky-800/70 text-sky-400')}
   </div></section>`;
 }
+// MEDICATIONS TO REVIEW (Kim, 2026-09-27: explain in the debrief why a wrong medication was wrong, from the latest
+// guideline). One compact card per drug and reason, right under Code Quality so the checklist above keeps its place: what
+// went in and when, the lesson in a line or two, what to do instead, and the guideline it rests on in small print. Only
+// when something went in wrong (InstantEngine.medicationCards); a dose given before its point in the algorithm is marked
+// as timing — it counted, and it is listed for the lesson. The why is the card's body (12 px); the guideline line is the
+// small print under it (the page's 11 px floor for 10 px text).
+// (Review, 2026-09-27: the heading and the line under it say what the cards are. Doses flagged — "Why these doses were not
+// right"; only doses that counted — timing, or a lesson the grade does not take — a neutral heading, so the Code Quality row's
+// "Energies and doses all correct" above it is not contradicted; "the guidelines" only where a card carries its guideline line.)
+function medReviewIntro(cards){
+  const flagged = cards.some(c => !c.counted && c.kind !== 'timing');
+  const allTiming = cards.every(c => c.kind === 'timing');
+  const heading = allTiming ? 'Timing to review' : 'Medications to review';
+  const lead = allTiming ? 'These doses counted — each went in before its point in the algorithm.'
+    : flagged ? 'Why these doses were not right at that moment.'
+    : 'These doses counted in the score — they are listed for the lesson.';
+  const src = cards.every(c => c.sourced) ? ' Each card gives the guideline line it rests on.'
+    : cards.some(c => c.sourced) ? ' Where a card rests on a guideline, its line is under it.' : '';
+  return { heading, text: lead + src, flagged };
+}
+function medReviewHTML(d){
+  const cards = Array.isArray(d && d.medicationsToReview) ? d.medicationsToReview : [];
+  if(!cards.length) return '';
+  const intro = medReviewIntro(cards);
+  return `<div id="medReview" class="space-y-2"><h3 class="text-[10px] font-black uppercase tracking-widest ${intro.flagged?'text-amber-500':'text-sky-500'}">${esc(intro.heading)}</h3>
+    <p class="text-[11px] text-slate-500 leading-relaxed">${esc(intro.text)}</p>
+    <div class="bg-slate-900/40 border ${intro.flagged?'border-amber-900/40':'border-slate-800'} rounded-xl divide-y divide-slate-800/50">
+    ${cards.map(c=>{ const timing = c.kind==='timing', counted = timing || !!c.counted;
+      return `<div class="medCard px-4 py-3" data-key="${esc(c.key)}">
+      <div class="flex gap-2 items-baseline flex-wrap"><span class="${counted?'text-sky-400':'text-amber-400'} font-black" title="${timing?'Given before its point in the algorithm — it counted; listed for the lesson':counted?'It counted in the score — listed for the lesson':'Given, flagged, no credit'}">${counted?'•':'!'}</span><span class="text-xs font-bold text-slate-200">${esc(c.drug)}${c.dose?' '+esc(c.dose):''}</span><span class="mono text-[11px] text-slate-500">${esc(c.when)}</span></div>
+      <div class="pl-5 mt-1 text-xs font-bold ${counted?'text-sky-200':'text-amber-200'}">${esc(c.title)}</div>
+      <div class="pl-5 mt-0.5 text-xs text-slate-300 leading-relaxed">${esc(c.why)}</div>
+      ${c.note?`<div class="pl-5 mt-0.5 text-[11px] text-slate-400 leading-relaxed">${esc(c.note)}</div>`:''}
+      ${c.instead?`<div class="pl-5 mt-1 text-[11px] text-emerald-300/90 leading-relaxed"><span class="font-bold">Instead:</span> ${esc(c.instead)}</div>`:''}
+      ${c.guideline?`<div class="pl-5 mt-1 text-[10px] text-slate-500 leading-snug">${esc(c.guideline)}</div>`:''}
+    </div>`; }).join('')}
+    </div></div>`;
+}
 function renderDebrief(){
   hideTypeahead();
   const d=S.debrief||{}; const score=Math.round(d.score||0);
@@ -17470,6 +17525,7 @@ function renderDebrief(){
           ${r.teach?`<div class="text-[11px] text-slate-500 pl-5 mt-1 leading-relaxed">${esc(r.teach)}</div>`:''}
         </div>`).join('')}
         </div></div>`:''}
+      ${medReviewHTML(d)}
       ${Array.isArray(d.codeTimeline)&&d.codeTimeline.length?`<details class="space-y-2"><summary class="cursor-pointer text-[10px] font-black uppercase tracking-widest text-slate-500">The Code, Minute by Minute</summary>
         <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-4 space-y-1">
         ${d.codeTimeline.map(e=>`<div class="flex gap-3 text-xs items-baseline">
@@ -17825,6 +17881,10 @@ ${d.codeTimeline.map(e=>e.at.padStart(5)+'  '+e.text).join('\n')}
 
 `:''}${d.codeQuality?`CODE QUALITY — ${d.codeQuality.points}/15
 ${d.codeQuality.rows.map(r=>(r.info?'[i] ':r.ok?'[x] ':'[ ] ')+r.detail+(r.teach&&(!r.ok||r.info)?'\n      '+r.teach:'')).join('\n')}
+
+`:''}${Array.isArray(d.medicationsToReview)&&d.medicationsToReview.length?`${medReviewIntro(d.medicationsToReview).heading.toUpperCase()}
+${d.medicationsToReview.map(c=>(c.kind==='timing'||c.counted?'[i] ':'[!] ')+c.drug+(c.dose?' '+c.dose:'')+' — '+c.when+'\n      '+c.title+'. '+c.why
+  +(c.note?'\n      '+c.note:'')+(c.instead?'\n      Instead: '+c.instead:'')+(c.guideline?'\n      Guideline: '+c.guideline:'')).join('\n')}
 
 `:''}CRITICAL ACTIONS MET
 ${normList(d.criticalActionsMet).map(x=>'[x] '+x).join('\n')||'(none recorded)'}
