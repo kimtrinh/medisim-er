@@ -28,7 +28,7 @@
 <body>
 <main>
   <h1>Privacy</h1>
-  <p class="sub">MediSim ER · last updated 24 September 2026</p>
+  <p class="sub">MediSim ER · last updated 26 September 2026</p>
 
   <p>MediSim ER is an educational emergency-medicine simulator. It is free, it carries no
   advertising, and it has no analytics or third-party trackers of any kind. This page
@@ -40,8 +40,8 @@
   </div>
 
   <h2>If you do not sign in</h2>
-  <p>Nothing you do leaves your browser unless you choose to send it (a suggestion, or your
-  email for new cases &mdash; both below). Your cases, scores, settings and training log are
+  <p>Nothing you do leaves your browser unless you choose to send it (a suggestion, your
+  email for new cases, or a review &mdash; all below). Your cases, scores, settings and training log are
   kept in your own browser's local storage on your own device. There is no account, and no
   server receives them. Clearing your browser data deletes them permanently; nobody can
   recover them for you.</p>
@@ -110,9 +110,19 @@
   list and the address deleted. The list is stored in Supabase and can be read only by the
   simulator's author.</p>
 
+  <h2>Reviews</h2>
+  <p>At the end of a case the debrief asks <em>Did this case help you?</em> If you send a
+  review, we keep the name you gave, the role and star rating if you chose them, your words,
+  which case it was, the date, and whether you ticked <em>You may show my name, role, rating and
+  review on the MediSim ER site</em>. Your name, role, rating and review appear on the site only if
+  you ticked that box; otherwise they are read by the simulator's author and no one else. Nothing else is attached
+  to a review: no email, no account. Reviews are stored in Supabase and can be read only by the
+  simulator's author. To have a review taken down or deleted, write to the address below with
+  the name you used and roughly when you sent it.</p>
+
   <h2>Other services the page contacts</h2>
   <ul>
-    <li><strong>Supabase</strong> — sign-in and your training log, only when you are signed in; and the new-case email list, only when you sign up for it.</li>
+    <li><strong>Supabase</strong> — sign-in and your training log, only when you are signed in; the new-case email list, only when you sign up for it; and reviews, only when you send one.</li>
     <li><strong>Cloudflare</strong> — the collector that receives a suggestion when you press Send, and the case logs when the switch above is on. It stores nothing itself; it files the record in a private repository and keeps no record of who sent it.</li>
     <li><strong>Anthropic or Google</strong> — only if you supply your own API key, and only from your browser.</li>
     <li><strong>Wikimedia Commons</strong> — some of the study images are hosted there.</li>
@@ -136,7 +146,7 @@
   use the simulator after that means the new version applies.</p>
 
   <h2>Contact</h2>
-  <p>Questions, a deletion request, or to leave the email list: <a href="mailto:kltrinh@gmail.com">kltrinh@gmail.com</a>.</p>
+  <p>Questions, a deletion request, to leave the email list, or to remove a review: <a href="mailto:kltrinh@gmail.com">kltrinh@gmail.com</a>.</p>
 
   <footer>
     <p><a href="./">← Back to MediSim ER</a> · <a href="terms.html">Terms of use</a></p>

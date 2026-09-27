@@ -3409,6 +3409,33 @@ function creditShownReasoning(pack, state){
   return added;
 }
 
+// The code, minute by minute — with MANY CLICKS ON ONE ROW. Five clicks on a shock that was
+// not due wrote the nurse's refusal five times into the timeline, and the shocks and drugs that
+// did go in scrolled away between them (review, 2026-09-25). Consecutive refusals of the same
+// thing for the same reason are one row, at the first ask, carrying the count: "… (asked ×5,
+// 0:06-0:30 — held each time)". What is held and why is the engine's (code-engine.js, held()).
+function codeTimelineRows(events, fmtSec){
+  const key = e => e.kind === 'withheld' && e.held
+    ? e.held + '|' + (e.waitSec == null ? 'max' : e.afterShock ? 'after' : 'timed') : null;
+  const rows = [];
+  let run = null;   // { key, n, row, first } — the held row the next identical one folds into
+  for(const e of events){
+    if(!e || !e.text) continue;
+    const k = key(e);
+    if(k && run && run.key === k){
+      run.n++;
+      run.row.count = run.n;
+      run.row.text = run.first.text + ' (asked \u00d7' + run.n + ', ' + fmtSec(run.first.t)
+        + (e.t !== run.first.t ? '-' + fmtSec(e.t) : '') + ' \u2014 held each time)';
+      continue;
+    }
+    const row = { at: fmtSec(e.t), kind: e.kind, text: e.text };
+    rows.push(row);
+    run = k ? { key: k, n: 1, row, first: e } : null;
+  }
+  return rows;
+}
+
 function buildDebrief(pack, state, opts, outcome){
   const CA = opts.criticalActions || [];
   creditShownReasoning(pack, state);
@@ -3479,16 +3506,23 @@ function buildDebrief(pack, state, opts, outcome){
   // RUN. The fifteen points the stages occupy become code quality, weighted the way a
   // resuscitation debrief weights it: shock early, keep hands on the chest, epi on the
   // clock, check the rhythm every two minutes, get the doses right, fix the cause.
+  // drugTiming (2026-09-25): repeat doses asked for before they were due and held by the team.
+  // Round 10 (Kim's P2 — a hold never costs points): the nurse stopping an early or not-indicated order IS the
+  // teaching, and nothing went into the patient. drugTiming only ever measured held asks, so it is listed with its
+  // lessons and weighs nothing; a row the engine marks `info` weighs nothing either. (rhythmChecks and epiInterval
+  // keep their weight: they still score what happened — compressions into the check, a stacked shock delivered, an
+  // epinephrine interval broken by doses given — and merely list the held asks.)
   const CODE_WEIGHTS = { timeToFirstShock:3, cprFraction:3, epiInterval:3,
-                         rhythmChecks:2, doseAccuracy:2, reversibleCause:2 };
+                         rhythmChecks:2, doseAccuracy:2, reversibleCause:2, drugTiming:0 };
   const codeMetrics = (opts.code && opts.code.metrics) || null;
   let codeQuality = null;
   if(codeMetrics){
     const present = codeMetrics.filter(m => CODE_WEIGHTS[m.name] != null);
-    const max = present.reduce((a, m) => a + CODE_WEIGHTS[m.name], 0) || 1;
-    const got = present.reduce((a, m) => a + (m.ok ? CODE_WEIGHTS[m.name] : 0), 0);
+    const weight = m => m.info ? 0 : CODE_WEIGHTS[m.name];
+    const max = present.reduce((a, m) => a + weight(m), 0) || 1;
+    const got = present.reduce((a, m) => a + (m.ok ? weight(m) : 0), 0);
     codeQuality = { points: Math.round(got / max * 15),
-      rows: present.map(m => ({ name:m.name, ok:!!m.ok, detail:m.detail || '', teach:m.teach || '' })) };
+      rows: present.map(m => Object.assign({ name:m.name, ok:!!m.ok, detail:m.detail || '', teach:m.teach || '' }, m.info ? { info:true } : {})) };
   }
   let score = Math.round(60*metS.length/total)
             + (codeQuality ? codeQuality.points : Math.max(0, 15 - 5*state.stagesFired.length))
@@ -3591,9 +3625,7 @@ function buildDebrief(pack, state, opts, outcome){
     codeQuality: codeQuality || undefined,
     // The code, minute by minute. A resuscitation debrief without a timeline asks the
     // player to remember what they did under pressure, which is exactly what they cannot do.
-    codeTimeline: (opts.code && opts.code.events)
-      ? opts.code.events.filter(e => e && e.text).map(e => ({ at: fmtSec(e.t), kind: e.kind, text: e.text }))
-      : undefined,
+    codeTimeline: (opts.code && opts.code.events) ? codeTimelineRows(opts.code.events, fmtSec) : undefined,
     creditBasis,
     summary: codeSummaryPrefix(pack, opts) + summaryText,
     criticalActionsMet: metS,

@@ -16845,28 +16845,7 @@
       },
       {
        "n": 2,
-       "requires": [
-        "amiodarone"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 2,
-       "requires": [
-        "lidocaine"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 2,
        "to": "VF"
-      },
-      {
-       "n": 3,
-       "requires": [
-        "amiodarone"
-       ],
-       "to": "ROSC"
       },
       {
        "n": 3,
@@ -16874,6 +16853,24 @@
       },
       {
        "n": 4,
+       "requires": [
+        "amiodarone"
+       ],
+       "to": "ROSC"
+      },
+      {
+       "n": 4,
+       "requires": [
+        "lidocaine"
+       ],
+       "to": "ROSC"
+      },
+      {
+       "n": 4,
+       "to": "VF"
+      },
+      {
+       "n": 5,
        "to": "ROSC"
       }
      ]
@@ -16985,7 +16982,9 @@
      "cardioversion": 1,
      "cpr": 2,
      "magnesium": 4,
-     "amiodarone": 5
+     "amiodarone": 5,
+     "amiodaroneInfusion": 5,
+     "magnesiumInfusion": 4
     },
     "postRosc": {
      "rhythm": "sinus-tachy",
@@ -144213,24 +144212,28 @@
       },
       {
        "n": 3,
+       "to": "VF"
+      },
+      {
+       "n": 4,
        "requires": [
         "amiodarone"
        ],
        "to": "ROSC"
       },
       {
-       "n": 3,
+       "n": 4,
        "requires": [
         "lidocaine"
        ],
        "to": "ROSC"
       },
       {
-       "n": 3,
+       "n": 4,
        "to": "VF"
       },
       {
-       "n": 4,
+       "n": 5,
        "to": "ROSC"
       }
      ]
@@ -144316,11 +144319,14 @@
      "start compressions",
      "shock 200 joules",
      "get io access",
-     "epinephrine 1 mg IV",
+     60,
      "shock 200 joules",
-     "amiodarone 300 mg IV",
+     "epinephrine 1 mg IV",
      "intubate",
      "waveform capnography",
+     "shock 200 joules",
+     "amiodarone 300 mg IV",
+     60,
      "shock 200 joules"
     ],
     "credits": {
@@ -146846,7 +146852,8 @@
      "access": 0,
      "atropine": 2,
      "pacing": 3,
-     "epinephrine": 5
+     "epinephrine": 5,
+     "epinephrineInfusion": 5
     },
     "postRosc": {
      "rhythm": "sinus-brady",
@@ -147564,26 +147571,19 @@
       },
       {
        "n": 3,
-       "requires": [
-        "amiodarone"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 3,
-       "requires": [
-        "lidocaine"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 3,
        "to": "VF"
       },
       {
        "n": 4,
        "requires": [
         "amiodarone"
+       ],
+       "to": "ROSC"
+      },
+      {
+       "n": 4,
+       "requires": [
+        "lidocaine"
        ],
        "to": "ROSC"
       },
@@ -148406,7 +148406,11 @@
       50,
       360
      ],
-     "results": []
+     "results": [],
+     "stableFirst": [
+      "vagal",
+      "adenosine"
+     ]
     },
     "convert": [
      {
@@ -148534,6 +148538,7 @@
     "idealRun": [
      "modified valsalva manoeuvre with leg raise",
      "adenosine 6 mg iv rapid push",
+     30,
      "adenosine 12 mg iv rapid push"
     ]
    }
@@ -149240,13 +149245,6 @@
      "results": [
       {
        "n": 1,
-       "requires": [
-        "magnesium"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 1,
        "to": "torsades"
       },
       {
@@ -149428,7 +149426,7 @@
      "shock 200 joules",
      "magnesium sulfate 2 g iv",
      "stop the methadone and ondansetron",
-     "shock 200 joules"
+     30
     ]
    }
   },
@@ -155403,20 +155401,6 @@
       },
       {
        "n": 3,
-       "requires": [
-        "amiodarone"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 3,
-       "requires": [
-        "lidocaine"
-       ],
-       "to": "ROSC"
-      },
-      {
-       "n": 3,
        "to": "VF"
       },
       {
@@ -155528,10 +155512,14 @@
      "shock 48 joules",
      "get io access",
      "bag mask ventilation with oxygen",
+     30,
+     "shock 96 joules",
      "epinephrine 0.24 mg IV",
+     "waveform capnography",
+     30,
      "shock 96 joules",
      "amiodarone 120 mg IV",
-     "waveform capnography",
+     60,
      "shock 96 joules"
     ],
     "credits": {
@@ -157646,6 +157634,7 @@
      "attach the monitor and get iv access",
      "ice to the face",
      "adenosine 0.6 mg IV rapid push",
+     30,
      "adenosine 1.2 mg IV rapid push"
     ]
    }
@@ -158833,7 +158822,8 @@
       "route": [
        "iv",
        "io"
-      ]
+      ],
+      "im": "severe asthma"
      },
      "magnesium": {
       "perKg": 50,
