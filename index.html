@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-MsBX9t8SrTpe1qGn9foYvL72zju9yclXfRuJlolMnIo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-y6i8qTFCDfsY5ypJEpFMx1RA9NQOAM8dCOXog0jGktM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -12310,7 +12310,23 @@ const PATIENT_PHOTO_STATES = {
   'resus-atls-blunt-multi': {
     bed: {ett:'patient-trauma/case-resus-atls-blunt-multi-ett.jpg'},
     room: {ett:'scenes/room-case-resus-atls-blunt-multi-ett.jpg'}
-  }
+  },
+  // 2026-09-28, Kim: "the intubated pt is crucial … the main room view is more important".
+  // Room camera only, one per adult face and per trauma case room. Made by tools_room_state.py:
+  // the ORIGINAL room photo with only the tube, the circuit and the ventilator copied in from a
+  // Gemini edit, so the patient's mouth and chest stay where ROOM_SCENE_SHIFT measured them.
+  // eb-severe-tbi's also wears the collar (Gemini drew them together; a GCS-6 head injury has one).
+  'young-m': { room: {ett:'scenes/room-young-m-ett.jpg'} },
+  'young-f': { room: {ett:'scenes/room-young-f-ett.jpg'} },
+  'older-m': { room: {ett:'scenes/room-older-m-ett.jpg'} },
+  'older-f': { room: {ett:'scenes/room-older-f-ett.jpg'} },
+  'young-m-2': { room: {ett:'scenes/room-young-m-2-ett.jpg'} },
+  'young-f-2': { room: {ett:'scenes/room-young-f-2-ett.jpg'} },
+  'mid-f': { room: {ett:'scenes/room-mid-f-ett.jpg'} },
+  'elder-f': { room: {ett:'scenes/room-elder-f-ett.jpg'} },
+  'teen-m': { room: {ett:'scenes/room-teen-m-ett.jpg'} },
+  'eb-severe-tbi': { room: {ett:'scenes/room-case-eb-severe-tbi-ett.jpg'} },
+  'resus-atls-penetrating': { room: {ett:'scenes/room-case-resus-atls-penetrating-ett.jpg'} }
 };
 function patientPhotoState(view, base, caseId, gear, padsActive){
   const key=CASE_VISUALS[String(caseId||'')] ? String(caseId) : base;
