@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-o160y0uWYs5aEdjd0cbrpRrIxGGT7+IBNzt+PmdX7JQ=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-MsBX9t8SrTpe1qGn9foYvL72zju9yclXfRuJlolMnIo=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -237,6 +237,64 @@
     filter:drop-shadow(0 5px 4px rgba(2,6,23,.58));animation:rmIntubate 1.6s ease-in-out both}
   .rmDevicePlace{animation:rmDevicePlace .75s ease-out both}
   .rmDevicePlace--delayed{animation-delay:.4s}
+  /* Five high-value resuscitation effects. Each transient clinician is anchored by the
+     anatomical working point in the cut-out, not by the person's bounding box. */
+  @keyframes rmProcedureArrive{0%{opacity:0;transform:translateY(-2%) scale(1.025)}
+    15%,76%{opacity:1}45%{transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-1%) scale(.995)}}
+  @keyframes rmNeedleWork{0%,100%{translate:0 0}45%{translate:-.6% .45%}}
+  @keyframes rmTourniquetTurn{0%,100%{rotate:-2deg}45%{rotate:4deg}}
+  @keyframes rmBinderPull{0%,100%{scale:1 1}48%{scale:.965 1}}
+  @keyframes rmChestTubeWork{0%,100%{translate:0 0;rotate:-.4deg}48%{translate:-.45% .35%;rotate:.7deg}}
+  @keyframes rmCricWork{0%,100%{translate:0 0;rotate:-.25deg}45%{translate:-.32% .24%;rotate:.45deg}}
+  @keyframes rmNeonatalRub{0%,100%{translate:-.35% 0;rotate:-.5deg}50%{translate:.65% .25%;rotate:.65deg}}
+  @keyframes rmDrugBolus{0%{opacity:0;scale:.55}18%{opacity:1;scale:1}65%{opacity:.9}100%{opacity:0;scale:1.55}}
+  @keyframes rmDrugFlow{from{stroke-dashoffset:28}to{stroke-dashoffset:-28}}
+  @keyframes rmRecoveryWave{0%{opacity:.9;scale:.35}100%{opacity:0;scale:1.8}}
+  @keyframes rmPacerPulse{0%,38%,100%{opacity:.18;scale:.68}8%{opacity:.92;scale:1.08}18%{opacity:.45;scale:1.35}}
+  @keyframes rmPacerArc{0%,35%,100%{opacity:.12;stroke-dashoffset:20}8%,18%{opacity:.95;stroke-dashoffset:0}}
+  @keyframes rmBloodDrop{0%{translate:0 -18%;opacity:0}18%{opacity:1}82%{opacity:1}100%{translate:0 230%;opacity:0}}
+  @keyframes rmBloodLine{to{stroke-dashoffset:-28}}
+  .rmProcedureRig{position:absolute;z-index:5;pointer-events:none;transform-origin:center bottom;
+    animation:rmProcedureArrive var(--procedure-time,2.2s) ease-in-out both}
+  .rmProcedureRig img{display:block;width:100%;height:100%;object-fit:contain;
+    filter:drop-shadow(0 6px 5px rgba(2,6,23,.58))}
+  .rmProcedureRig--needle img{animation:rmNeedleWork .55s ease-in-out 2}
+  .rmProcedureRig--tourniquet img{transform-origin:82% 78%;animation:rmTourniquetTurn .52s ease-in-out 3}
+  .rmProcedureRig--binder img{transform-origin:50% 78%;animation:rmBinderPull .62s ease-in-out 2}
+  .rmProcedureRig--chestTube img{transform-origin:12% 73%;animation:rmChestTubeWork .62s ease-in-out 3}
+  .rmProcedureRig--cric img{transform-origin:23% 86%;animation:rmCricWork .58s ease-in-out 3}
+  .rmNeonatalNurse{position:absolute;z-index:4;pointer-events:none;animation:rmProcedureArrive 5.2s ease-in-out both}
+  .rmNeonatalNurse img{display:block;width:100%;height:100%;object-fit:contain;transform-origin:26% 76%;
+    filter:drop-shadow(0 6px 5px rgba(2,6,23,.58));animation:rmNeonatalRub .72s ease-in-out 5}
+  .rmDrugResponse{position:absolute;z-index:7;pointer-events:none;transform:translate(-50%,-50%);width:11%;aspect-ratio:1}
+  .rmDrugResponse i{position:absolute;inset:20%;border-radius:50%;border:2px solid var(--drug-color);
+    box-shadow:0 0 18px var(--drug-glow),inset 0 0 10px var(--drug-glow);animation:rmDrugBolus 1.5s ease-out both}
+  .rmDrugResponse i:nth-child(2){animation-delay:.34s}.rmDrugResponse i:nth-child(3){animation-delay:.68s}
+  .rmDrugResponse svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .rmDrugResponse path{fill:none;stroke:var(--drug-color);stroke-width:2;stroke-linecap:round;stroke-dasharray:5 5;animation:rmDrugFlow .52s linear 3}
+  .rmDrugResponse--adenosine{--drug-color:#fef08a;--drug-glow:rgba(250,204,21,.62)}
+  .rmDrugResponse--naloxone{--drug-color:#a7f3d0;--drug-glow:rgba(16,185,129,.62)}
+  .rmRecoveryCue{position:absolute;z-index:6;pointer-events:none;transform:translate(-50%,-50%);width:15%;aspect-ratio:1}
+  .rmRecoveryCue i{position:absolute;inset:20%;border:2px solid rgba(125,211,252,.72);border-radius:50%;
+    box-shadow:0 0 18px rgba(14,165,233,.38);animation:rmRecoveryWave 1.25s ease-out both}
+  .rmRecoveryCue i:nth-child(2){animation-delay:.42s}.rmRecoveryCue i:nth-child(3){animation-delay:.84s}
+  .rmPacingPatient{position:absolute;z-index:3;pointer-events:none;transform:translate(-50%,-50%)}
+  .rmPacingPatient i{position:absolute;width:42%;aspect-ratio:1;border-radius:50%;
+    border:2px solid rgba(253,224,71,.86);background:radial-gradient(circle,rgba(254,240,138,.6),rgba(202,138,4,.12) 48%,transparent 70%);
+    box-shadow:0 0 16px rgba(250,204,21,.72);animation:rmPacerPulse .857s ease-out infinite}
+  .rmPacingPatient i:first-child{left:3%;top:12%}.rmPacingPatient i:nth-child(2){right:3%;bottom:8%;animation-delay:.07s}
+  .rmPacingPatient svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .rmPacingPatient path{fill:none;stroke:#fef08a;stroke-width:2;stroke-linecap:round;
+    stroke-dasharray:5 6;animation:rmPacerArc .857s linear infinite}
+  .rmTransfusionFx{position:absolute;inset:0;z-index:3;pointer-events:none}
+  .rmTransfusionFx svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .rmTransfusionFx .rmBloodBag{position:absolute;border:1px solid rgba(254,202,202,.8);border-radius:16% 16% 28% 28%;
+    background:linear-gradient(to bottom,rgba(254,226,226,.9),rgba(153,27,27,.96) 36%,rgba(69,10,10,.98));
+    box-shadow:0 0 16px rgba(239,68,68,.45),inset 2px 1px 3px rgba(255,255,255,.55)}
+  .rmTransfusionFx .rmBloodDrop{position:absolute;width:4px;height:7px;border-radius:60% 60% 65% 65%;
+    background:#fca5a5;box-shadow:0 0 7px #ef4444;animation:rmBloodDrop .72s linear infinite}
+  .rmTransfusionFx path{fill:none;stroke:#f87171;stroke-width:.34;stroke-dasharray:4 3;
+    filter:drop-shadow(0 0 2px rgba(239,68,68,.8));animation:rmBloodLine .8s linear infinite}
   .resultCardNew{border-color:rgba(52,211,153,.62)!important;box-shadow:0 0 0 1px rgba(52,211,153,.18),0 12px 30px -24px rgba(52,211,153,.95)}
   .chartNew{animation:chartNew 1.15s ease-in-out infinite}
   @keyframes chartNew{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 0 4px rgba(52,211,153,.25)}}
@@ -265,7 +323,7 @@
     #typeahead.dosePicker .ta-dose{min-height:48px;font-size:15px;padding:.75rem 1rem}
   }
   @media (prefers-reduced-motion:reduce){
-    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmInfantThumbs,.rmInfantChest,.rmInfantBag,.rmWarmRays,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir,.rmClinicalCue .rmBronchus,.rmClinicalCue .rmBreathWave{animation:none!important}
+    .rmCprClinician,.rmCprContact,.rmBvmClinician,.rmBvmBagPulse,.rmInfantThumbs,.rmInfantChest,.rmInfantBag,.rmWarmRays,.rmDefibNurse,.rmShockPatient,.rmIntubationClinician,.rmDevicePlace,.rmProcedureRig,.rmProcedureRig img,.rmNeonatalNurse,.rmNeonatalNurse img,.rmDrugResponse i,.rmDrugResponse path,.rmRecoveryCue i,.rmPacingPatient i,.rmPacingPatient path,.rmTransfusionFx .rmBloodDrop,.rmTransfusionFx path,.rmClinicalCue,.rmClinicalCue .rmLung,.rmClinicalCue .rmAir,.rmClinicalCue .rmBronchus,.rmClinicalCue .rmBreathWave{animation:none!important}
     #capnoPod,#pacingCue,#monGrid.captureOn #ecgBox,#monGrid.captureOn .vBox{animation:none!important}
     .rmResponseBurst{display:none}
     .rmCprContact{opacity:.35;transform:translate(-50%,-50%)}
@@ -6230,7 +6288,11 @@ function onCodeEvents(events){
   const status = evs.filter(e => STATUS_KINDS.has(e.kind) && inline.indexOf(e) === -1);
   const said = inline.length ? evs.filter(e => !STATUS_KINDS.has(e.kind) || inline.indexOf(e) !== -1) : story;
   if(inline.length){ const tk = $('ticker'); if(tk) tk.textContent = '▸ nurse: ' + inline.map(l => l.text).join(' '); }
-  if((events || []).some(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'))) ecgShock();
+  const electrical=(events || []).find(e => e && (e.kind === 'shock' || e.kind === 'cardiovert'));
+  if(electrical){
+    ecgShock();
+    if(electrical.kind==='cardiovert') showMonitorResponse('SYNC ✓ · shock on R wave');
+  }
   // THE TEAM CHARGES AT A SHOCKABLE CHECK (engine round 8, `autoCharge` on the check): "Shockable — charging, doctor."
   // Her line was "Shockable — charge", the doctor answered it the way it is answered at a bedside — "clear" — and
   // nothing had been charged. Now the machine is heard charging and then stands CHARGED with its energy on the
@@ -6241,12 +6303,17 @@ function onCodeEvents(events){
      && S.code && codeChargePending(S.code))
     roomDefib('charge');
   const adenosineConverted=evs.some(e => e.kind==='convert' && e.via==='adenosine');
-  if(adenosineConverted){ ecgAdenosine(); showMonitorResponse('AV pause → sinus rhythm'); }
+  if(adenosineConverted){ ecgAdenosine(); showMonitorResponse('AV pause → sinus rhythm'); startRoomResponse('adenosine',1800); }
   // Starting a pacer is not the same thing as capture. The cue is earned only after
   // checkConversion has changed the engine to a perfusing paced rhythm.
-  if(evs.some(e => e.kind === 'pacing') && S.code && S.code.rhythm === 'paced' && S.code.pulse) showPacingCapture();
-  if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')) startClinicalCue('lung');
-  if(evs.some(e => e.kind === 'care' && e.care === 'naloxone')) startClinicalCue('breathing');
+  if(evs.some(e => e.kind === 'pacing')){
+    roomState().pacing=!!(S.code&&S.code.flags&&S.code.flags.pacing);
+    if(S.code && S.code.rhythm === 'paced' && S.code.pulse) showPacingCapture();
+  }
+  if(evs.some(e => e.kind === 'recover' && e.cause === 'tensionPtx')){
+    startRoomPlacement('needle'); startClinicalCue('lung');
+  }
+  if(evs.some(e => e.kind === 'care' && e.care === 'naloxone')){ startClinicalCue('breathing'); startRoomResponse('naloxone',3200); }
   if(evs.some(e => e.kind === 'check')) startCprPause();   // the 2-minute check, or one the player ordered
   if(story.length) codeSay(story);
   for(const e of (events || [])){
@@ -6758,6 +6825,14 @@ function fireCodeOrder(text, label){
     startRoomPlacement('ct');
     paintGear();
   }
+  // The code engine's cause event is the proof that the action actually happened.
+  // This avoids animating a queried/refused treatment merely because its name was spoken.
+  const treatedCauses=(r.events||[]).filter(e=>e&&e.kind==='cause').map(e=>String(e.cause||''));
+  if(treatedCauses.some(c=>/tensionPtx/i.test(c)) && /needle|decompress/i.test(text)) startRoomPlacement('needle');
+  if(treatedCauses.some(c=>/external|hemorrh|haemorrh|bleed/i.test(c)) && /tourniquet/i.test(text)) startRoomPlacement('tourniquet');
+  if(treatedCauses.some(c=>/pelvic/i.test(c)) && /binder/i.test(text)) startRoomPlacement('binder');
+  if(treatedCauses.some(c=>/hypovolem|blood|hemorrh|haemorrh/i.test(c)) && /transfus|\bmtp\b|blood warmer|rapid infus/i.test(text))
+    startRoomPlacement('transfusion');
   const outcome = codeOutcome(before, S.code, r);
   // (Round 9: what the code engine held and did not carry out — "sedate him" in "ok, sedate him first" — for the caller to
   // hand to the turn engine: dispatchOrders.)
@@ -13329,6 +13404,7 @@ function motionOrders(text){
 function motionHook(text, engine){
   if(!S.motion) S.motion = motionDefaults();
   const said = motionOrders(orderWordsOnly(text, engine));
+  const wasSeizing=!!S.motion.seizing;
   // Control is never un-set within a case (spec): a tourniquet does not fall off.
   if(S.motion.bleedControlledAt == null && said.controlsBleed) S.motion.bleedControlledAt = S.simMin || 0;
   // WHEN control happened, whoever decided it. The pack's own flags are set by the turn that
@@ -13337,6 +13413,7 @@ function motionHook(text, engine){
   // sixty-times-a-second write out of a once-a-case fact.
   if(S.motion.bleedControlledAt == null && bleedControlled()) S.motion.bleedControlledAt = S.simMin || 0;
   if(S.motion.seizing && said.stopsSeizure(S.motion.eclampsia)) S.motion.seizing = false;
+  if(wasSeizing && !S.motion.seizing) startRoomResponse('seizureRecovery',3600);
   accrueBleedClock();
 }
 // THE BLEED CLOCK'S BOOKS, in one place that is not the draw loop. Minutes without a pulse do
@@ -15555,6 +15632,9 @@ function careInProgressItems(){
   else if(S.gear&&S.gear.iv) out.push({label:'IV access',tone:'emerald'});
   if(st.drip) out.push({label:'Infusion running',tone:'amber'});
   if(c&&c.capnography) out.push({label:'Capnography',tone:'sky'});
+  if(st.transfusionPlacement) out.push({label:'Rapid transfusion',tone:'rose'});
+  if(st.ctPlacement) out.push({label:'Tube thoracostomy',tone:'sky'});
+  if(st.cricPlacement) out.push({label:'Cricothyrotomy',tone:'rose'});
   // A charge already in the machine (round 6) is not charging: the team is standing clear for it.
   if(st.defib==='charging') out.push({label:(st.defibMode==='clear'||st.defibMode==='syncClear')?'Stand clear':'Defibrillator charging',tone:'rose'});
   else if(st.defib==='shock') out.push({label:'Shock delivered',tone:'amber'});
@@ -15668,6 +15748,34 @@ function neonatalCareOverlayHTML(viewKey,chest){
     </svg>
     <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border border-amber-300/45 bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">Warmer on · dry &amp; stimulate</div>
   </div>`;
+}
+function neonatalResusClinicianHTML(viewKey,chest){
+  const st=roomState(), active=st.neonatalCareUntil && st.neonatalCareUntil>Date.now();
+  if(viewKey!=='room' || !chest || !active || resusAgeKind(S.patient)!=='neonate') return '';
+  // The towel/hands meet the infant at 26%,76% of this transparent cut-out.
+  const w=15, h=w*(100/56)*(1536/1024), x=chest.l+chest.w*.50, y=chest.t+chest.h*.55;
+  return `<div class="rmNeonatalNurse" data-room-procedure="neonatal" style="left:${(x-w*.26).toFixed(2)}%;top:${(y-h*.76).toFixed(2)}%;width:${w}%;height:${h.toFixed(2)}%">
+    <img src="media/game/room-neonatal-resus-nurse-v1.png" alt="" draggable="false">
+    <div class="rmActionLabel absolute left-1/2 top-[3%] -translate-x-1/2 whitespace-nowrap rounded-full border border-amber-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-100 shadow-md">Warm · dry · stimulate</div>
+  </div>`;
+}
+function roomResponseOverlayHTML(kind,viewKey,zones){
+  if(viewKey!=='room' || !zones) return '';
+  const head=zoneBox(zones,'head'), chest=zoneBox(zones,'chest');
+  const shift=roomSceneShift(viewKey);
+  [head,chest].forEach(b=>{ if(b){ b.l+=shift[0]; b.t+=shift[1]; } });
+  if(kind==='seizureRecovery' && chest){
+    const x=chest.l+chest.w*.52, y=chest.t+chest.h*.48;
+    return `<div class="rmRecoveryCue" data-room-response="seizureRecovery" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><i></i><i></i><i></i>
+      <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-sky-100">Seizure stopped · recovery</div></div>`;
+  }
+  const zone=kind==='naloxone'?head:chest;
+  if(!zone || (kind!=='adenosine'&&kind!=='naloxone')) return '';
+  const x=zone.l+zone.w*(kind==='naloxone'?.48:.30), y=zone.t+zone.h*(kind==='naloxone'?.52:.74);
+  const label=kind==='adenosine'?'Adenosine · rapid IV push':'Naloxone · respirations returning';
+  return `<div class="rmDrugResponse rmDrugResponse--${kind}" data-room-response="${kind}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><i></i><i></i><i></i>
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M8 78 C30 70 46 42 88 28"/></svg>
+    <div class="rmActionLabel absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full border bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider" style="color:var(--drug-color);border-color:var(--drug-color)">${label}</div></div>`;
 }
 // The current RT cutout is composed for an adult bed. Do not shrink that adult onto
 // a pediatric or neonatal patient: those families need their own reviewed artwork
@@ -15850,17 +15958,72 @@ function shockPatientOverlayHTML(viewKey, sceneSrc, state){
   }[viewKey];
   return clip ? `<img class="rmShockPatient" src="${esc(sceneSrc)}" alt="" draggable="false" style="z-index:1;clip-path:${clip}">` : '';
 }
-let _defibSeq=[], _roomPlacementTimers={};
+function roomProcedureOverlayHTML(kind, viewKey, zones){
+  // These photographs were generated for the side-on ROOM camera. Showing them
+  // from the foot or airway camera would put correct hands on impossible anatomy.
+  if(viewKey!=='room' || !zones) return '';
+  const chest=zoneBox(zones,'chest'), head=zoneBox(zones,'head'), abdomen=zoneBox(zones,'abdomen'), legs=zoneBox(zones,'legs');
+  const shift=roomSceneShift(viewKey);
+  [chest,head].forEach(b=>{ if(b){ b.l+=shift[0]; b.t+=shift[1]; } });
+  const cfg={
+    needle:{zone:chest,file:'media/game/room-needle-decompression-clinician-v1.png',
+      w:13,aspect:1024/1536,zx:.54,zy:.54,ax:.15,ay:.83,label:'Needle decompression'},
+    tourniquet:{zone:legs,file:'media/game/room-tourniquet-clinician-v1.png',
+      w:18,aspect:1355/1160,zx:.83,zy:.42,ax:.82,ay:.78,label:'Tourniquet tightened'},
+    binder:{zone:abdomen,file:'media/game/room-pelvic-binder-team-v1.png',
+      w:28,aspect:1536/1024,zx:.50,zy:.72,ax:.50,ay:.77,label:'Pelvic binder applied'},
+    chestTube:{zone:chest,file:'media/game/room-chest-tube-clinician-v1.png',
+      w:16,aspect:1024/1536,zx:.80,zy:.60,ax:.12,ay:.73,label:'ER physician · tube thoracostomy'},
+    cric:{zone:head,file:'media/game/room-cricothyrotomy-clinician-v1.png',
+      w:15,aspect:1024/1536,zx:.54,zy:.78,ax:.23,ay:.86,label:'ER physician · cricothyrotomy'}
+  }[kind];
+  if(!cfg || !cfg.zone) return '';
+  const h=cfg.w*(100/56)/cfg.aspect, x=cfg.zone.l+cfg.zone.w*cfg.zx, y=cfg.zone.t+cfg.zone.h*cfg.zy;
+  const left=x-cfg.w*cfg.ax, top=y-h*cfg.ay;
+  return `<div class="rmProcedureRig rmProcedureRig--${kind}" data-room-procedure="${kind}"
+    style="--procedure-time:${kind==='binder'?'2.6':kind==='chestTube'||kind==='cric'?'3.2':'2.2'}s;left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${cfg.w}%;height:${h.toFixed(2)}%">
+    <img src="${cfg.file}" alt="" draggable="false">
+    <div class="rmActionLabel absolute left-1/2 top-[2%] -translate-x-1/2 whitespace-nowrap rounded-full border border-emerald-300/55 bg-slate-950/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-emerald-100 shadow-md">${cfg.label}</div>
+  </div>`;
+}
+function pacingPatientOverlayHTML(viewKey, chest){
+  const active=!!(S.code&&S.code.flags&&S.code.flags.pacing);
+  if(!active || !chest) return '';
+  const x=chest.l+chest.w*.50, y=chest.t+chest.h*.50;
+  return `<div class="rmPacingPatient" data-room-procedure="pacing" aria-hidden="true"
+    style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${Math.max(6,chest.w*1.05).toFixed(2)}%;height:${Math.max(9,chest.h*1.25).toFixed(2)}%">
+    <i></i><i></i><svg viewBox="0 0 100 100"><path d="M20 35 C38 12 59 88 82 64"/></svg></div>`;
+}
+function transfusionOverlayHTML(viewKey, iv, chest, active){
+  if(!active || viewKey!=='room' || !iv || !chest) return '';
+  const bagX=iv.hookX-1.25, bagY=(ROOM_VIEWS[viewKey].hookY||iv.t)+.6;
+  const armX=chest.l+chest.w*.12, armY=chest.t+chest.h*.82;
+  return `<div class="rmTransfusionFx" data-room-procedure="transfusion" aria-hidden="true">
+    <div class="rmBloodBag" style="left:${bagX.toFixed(2)}%;top:${bagY.toFixed(2)}%;width:2.2%;height:5.4%"></div>
+    <span class="rmBloodDrop" style="left:${(bagX+1.0).toFixed(2)}%;top:${(bagY+4.7).toFixed(2)}%"></span>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M ${(bagX+1.1).toFixed(2)} ${(bagY+5.4).toFixed(2)} C ${(bagX-2).toFixed(2)} ${(bagY+13).toFixed(2)}, ${(armX+5).toFixed(2)} ${(armY-4).toFixed(2)}, ${armX.toFixed(2)} ${armY.toFixed(2)}"/></svg>
+  </div>`;
+}
+let _defibSeq=[], _roomPlacementTimers={}, _roomResponseTimers={};
 function resetRoomActionTimers(){
   _defibSeq.forEach(clearTimeout); _defibSeq=[];
   Object.values(_roomPlacementTimers).forEach(clearTimeout); _roomPlacementTimers={};
+  Object.values(_roomResponseTimers).forEach(clearTimeout); _roomResponseTimers={};
 }
 function startRoomPlacement(kind){
-  if(kind!=='ett' && kind!=='ct') return;
+  if(!['ett','ct','needle','tourniquet','binder','transfusion','cric'].includes(kind)) return;
   const key=kind+'Placement', st=roomState();
   clearTimeout(_roomPlacementTimers[kind]);
   st[key]=true; paintRoom();
-  _roomPlacementTimers[kind]=setTimeout(()=>{ st[key]=false; paintRoom(); delete _roomPlacementTimers[kind]; },kind==='ett'?1600:1100);
+  const ms={ett:1600,ct:3200,needle:2200,tourniquet:2200,binder:2600,transfusion:3600,cric:3200}[kind];
+  _roomPlacementTimers[kind]=setTimeout(()=>{ st[key]=false; paintRoom(); delete _roomPlacementTimers[kind]; },ms);
+}
+function startRoomResponse(kind,ms){
+  if(!['adenosine','naloxone','seizureRecovery','neonatal'].includes(kind)) return;
+  const key=kind+'Until', st=roomState(), until=Date.now()+(ms||2400);
+  clearTimeout(_roomResponseTimers[kind]); st[key]=until; paintRoom();
+  _roomResponseTimers[kind]=setTimeout(()=>{ if(S.room&&S.room[key]===until){ S.room[key]=0; paintRoom(); }
+    delete _roomResponseTimers[kind]; },(ms||2400)+20);
 }
 // `charged` (round 6): the shock spends a charge made in the last compressions. No second whine —
 // the machine is already charged — only the beat in which everyone stands clear, then the shock.
@@ -15968,6 +16131,14 @@ function roomAutoState(text, trace){
   const stopVentRx=/\b(stop|hold|pause)\b.*\b(bagging|bvm|ventilat\w*|ppv)\b/i;
   const ventRx=/\b(bagging|bvm|bag[- ]?mask|bag valve mask|manual(?:ly)? ventilat\w*|positive pressure|ppv)\b/i;
   const chestTubeRx=/\b(chest tube|tube thoracostomy|pigtail catheter)\b/i;
+  const needleRx=/\b(needle decompression|needle thoracostomy|needle decompress|decompress (?:the |left |right )?chest)\b/i;
+  const tourniquetRx=/\b(?:apply|place|tighten|put on|use)?\s*(?:a |the )?tourniquet\b/i;
+  const binderRx=/\b(?:apply|place|put on)?\s*(?:a |the )?pelvic binder\b/i;
+  const transfusionRx=/\b(massive transfusion|activate mtp|mtp|rapid infus\w*|blood warmer|transfuse (?:blood|packed|prbc|whole blood))\b/i;
+  const pacingRx=/\b(transcutaneous pac\w*|start pac\w*|pacer on|tcp)\b/i;
+  const adenosineRx=/\badenosine\b/i;
+  const naloxoneRx=/\b(?:naloxone|narcan)\b/i;
+  const cricRx=/\b(?:cricothyrotomy|cricothyroidotomy|surgical airway)\b/i;
   const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
   const cprRx=/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i;
   const neonatalCareRx=/\b(?:warm(?:er|ing)?|dry(?:ing)?|stimulat(?:e|ion)|initial newborn steps?)\b/i;
@@ -15980,9 +16151,17 @@ function roomAutoState(text, trace){
     st.defib='pads'; paintRoom();
   }
   if(dripRx.test(text) && accepted(dripRx)){ st.drip=true; paintRoom(); }
-  if(chestTubeRx.test(text) && accepted(chestTubeRx) && S.gear && S.gear.ct && !st.ctPlacedShown){
+  if(chestTubeRx.test(text) && accepted(chestTubeRx) && !st.ctPlacedShown){
     st.ctPlacedShown=true; startRoomPlacement('ct');
   }
+  if(needleRx.test(text) && accepted(needleRx)) startRoomPlacement('needle');
+  if(tourniquetRx.test(text) && accepted(tourniquetRx)) startRoomPlacement('tourniquet');
+  if(binderRx.test(text) && accepted(binderRx)) startRoomPlacement('binder');
+  if(transfusionRx.test(text) && accepted(transfusionRx)) startRoomPlacement('transfusion');
+  if(cricRx.test(text) && !/\b(?:kit|tray|ready|prepare|standby|backup)\b/i.test(text) && accepted(cricRx)) startRoomPlacement('cric');
+  if(adenosineRx.test(text) && accepted(adenosineRx)) startRoomResponse('adenosine',1800);
+  if(naloxoneRx.test(text) && accepted(naloxoneRx)) startRoomResponse('naloxone',3200);
+  if(pacingRx.test(text) && accepted(pacingRx)){ st.pacing=true; paintRoom(); }
   if(stopVentRx.test(text) && accepted(stopVentRx)){
     st.ventilation=false; paintRoom();
   } else if(ventRx.test(text) && accepted(ventRx)){
@@ -15996,7 +16175,7 @@ function roomAutoState(text, trace){
     st.cpr=true; paintRoom();
   }
   if(resusAgeKind(S.patient)==='neonate' && neonatalCareRx.test(text) && accepted(neonatalCareRx)){
-    const until=Date.now()+5200; st.neonatalCareUntil=until; paintRoom();
+    const until=Date.now()+5200; st.neonatalCareUntil=until; startRoomResponse('neonatal',5200); paintRoom();
     setTimeout(()=>{ if(S.room&&S.room.neonatalCareUntil===until){ S.room.neonatalCareUntil=0; paintRoom(); } },5220);
   }
 }
@@ -16245,7 +16424,12 @@ function paintRoom(){
     // Keep continuous loops mounted across ordinary room repaints. Replacing this HTML
     // on every update restarts CSS animation at frame zero and makes bagging stutter.
     const neonatalCare=!!(st.neonatalCareUntil&&st.neonatalCareUntil>Date.now());
-    const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,neonatalCare?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.defib,st.defibMode||'defib',st.defibJ==null?'':st.defibJ,src||''].join('|');
+    const pacingActive=!!((S.code&&S.code.flags&&S.code.flags.pacing)||st.pacing);
+    const fxKey=[viewKey,cprRunning()?(cprPaused()?2:1):0,ventilationRunning()?1:0,S.gear&&S.gear.ett?1:0,
+      neonatalCare?1:0,st.ettPlacement?1:0,st.ctPlacement?1:0,st.cricPlacement?1:0,st.needlePlacement?1:0,
+      st.tourniquetPlacement?1:0,st.binderPlacement?1:0,st.transfusionPlacement?1:0,pacingActive?1:0,
+      st.adenosineUntil>Date.now()?1:0,st.naloxoneUntil>Date.now()?1:0,st.seizureRecoveryUntil>Date.now()?1:0,
+      st.defib,st.defibMode||'defib',st.defibJ==null?'':st.defibJ,src||''].join('|');
     if(actionFx.dataset.fxKey!==fxKey){
       actionFx.dataset.fxKey=fxKey;
       // Nobody touches the patient during the shock: the therapist and the compressor step back for
@@ -16253,10 +16437,18 @@ function paintRoom(){
       // Charging keeps them working — compressions continue while the defibrillator charges.
       const clear=st.defib==='shock';
       actionFx.innerHTML=shockPatientOverlayHTML(viewKey,src,st.defib)+(clear?'':neonatalCareOverlayHTML(viewKey,chest))+
+        (clear?'':neonatalResusClinicianHTML(viewKey,chest))+
         (clear?'':bvmOverlayHTML(viewKey,head,cprSceneKey()))+(clear?'':infantPpvOverlayHTML(viewKey,head))+
         (clear?'':cprOverlayHTML(viewKey,chest,cprSceneKey()))+(clear?'':infantCprOverlayHTML(viewKey,chest))+defibOperatorHTML(viewKey,d,st.defib,st.defibMode,st.defibJ)+
         (st.ettPlacement?(photoState&&photoState.ett?'':roomArtHTML('ett',viewKey,head,'rmDevicePlace'))+intubationClinicianHTML(viewKey,head):'')+
-        (st.ctPlacement?roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'');
+        (st.ctPlacement?roomProcedureOverlayHTML('chestTube',viewKey,zones)+roomArtHTML('ct',viewKey,chest,'rmDevicePlace')+roomArtHTML('drain',viewKey,chest,'rmDevicePlace rmDevicePlace--delayed'):'')+
+        (st.cricPlacement?roomProcedureOverlayHTML('cric',viewKey,zones):'')+
+        (clear?'':pacingPatientOverlayHTML(viewKey,chest))+
+        (clear?'':roomProcedureOverlayHTML(st.needlePlacement?'needle':st.tourniquetPlacement?'tourniquet':st.binderPlacement?'binder':'',viewKey,zones))+
+        (clear?'':transfusionOverlayHTML(viewKey,iv,chest,st.transfusionPlacement))+
+        (clear&&st.adenosineUntil>Date.now()?'':st.adenosineUntil>Date.now()?roomResponseOverlayHTML('adenosine',viewKey,zones):'')+
+        (clear&&st.naloxoneUntil>Date.now()?'':st.naloxoneUntil>Date.now()?roomResponseOverlayHTML('naloxone',viewKey,zones):'')+
+        (clear&&st.seizureRecoveryUntil>Date.now()?'':st.seizureRecoveryUntil>Date.now()?roomResponseOverlayHTML('seizureRecovery',viewKey,zones):'');
       // Someone started or stopped working on the patient: the bubbles steer round them again.
       // Not for the shock itself: the compressor and the bagger step back for 700 ms, and a
       // line lifted over them would drop and rise again at the tensest moment.
