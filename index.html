@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-y6i8qTFCDfsY5ypJEpFMx1RA9NQOAM8dCOXog0jGktM=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Xba0ZF1lpT+uastjYrKP4DZnkCqUpaJhUC/CPt+vcPc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -6112,6 +6112,8 @@ function stopCodeTicker(){ clearInterval(_codeTimer); _codeTimer = null; }
 // changed a tenth of a second ago must already be on the screen.
 function applyCodeVitals(){
   const c = S.code; if(!c) return;
+  const arrestNow = !c.ended && !c.pulse;                   // ROOM_LAYERS' 'arrest' look follows the pulse
+  if(S._roomArrest !== arrestNow){ S._roomArrest = arrestNow; if(typeof paintRoom === 'function') paintRoom(); }
   S.simMin = c.t / 60;
   // The sim clock just moved, and during an arrest no turn moved it — so the bleed clock is
   // accounted here as well as in motionHook, or every pulseless minute of the resuscitation
@@ -6829,10 +6831,20 @@ function fireCodeOrder(text, label){
   // This avoids animating a queried/refused treatment merely because its name was spoken.
   const treatedCauses=(r.events||[]).filter(e=>e&&e.kind==='cause').map(e=>String(e.cause||''));
   if(treatedCauses.some(c=>/tensionPtx/i.test(c)) && /needle|decompress/i.test(text)) startRoomPlacement('needle');
-  if(treatedCauses.some(c=>/external|hemorrh|haemorrh|bleed/i.test(c)) && /tourniquet/i.test(text)) startRoomPlacement('tourniquet');
+  // (2026-09-28: the trauma scripts name that cause 'exsanguination' — the tourniquet never showed in a code.)
+  if(treatedCauses.some(c=>/exsang|external|hemorrh|haemorrh|bleed/i.test(c)) && /tourniquet/i.test(text)) startRoomPlacement('tourniquet');
   if(treatedCauses.some(c=>/pelvic/i.test(c)) && /binder/i.test(text)) startRoomPlacement('binder');
   if(treatedCauses.some(c=>/hypovolem|blood|hemorrh|haemorrh/i.test(c)) && /transfus|\bmtp\b|blood warmer|rapid infus/i.test(text))
     startRoomPlacement('transfusion');
+  // What stays on the patient with no animation of its own (ROOM_LAYERS): the IO needle and the umbilical line
+  // once the engine has them in, the wound packed once it credits the bleeding as controlled by packing.
+  if(S.gear){
+    let more=false;
+    if(S.code && S.code.io && !S.gear.io){ S.gear.io=true; more=true; }
+    if(treatedCauses.includes('uvc') && !S.gear.uvc){ S.gear.uvc=true; more=true; }
+    if(treatedCauses.some(c=>/exsang|external|hemorrh|haemorrh|bleed/i.test(c)) && /\b(?:pack\w*|pressure|gauze|dressing)\b/i.test(text) && !S.gear.packed){ S.gear.packed=true; more=true; }
+    if(more) paintRoom();
+  }
   const outcome = codeOutcome(before, S.code, r);
   // (Round 9: what the code engine held and did not carry out — "sedate him" in "ok, sedate him first" — for the caller to
   // hand to the turn engine: dispatchOrders.)
@@ -12338,6 +12350,54 @@ function patientPhotoState(view, base, caseId, gear, padsActive){
   if(pads&&states.pads) return {src:states.pads, ett:false, pads:true};
   return null;
 }
+// WHAT THE TEAM HAS DONE TO THE PATIENT, IN THE ROOM PHOTO. Kim, 2026-09-28: "create images of existing
+// case pts with chest tubes, pelvic binder … cric, needle decompression, tourniquets", then "switch them
+// all on". Each is a see-through picture of ONE thing (a binder, a tourniquet, blood running…) cut from a
+// Gemini edit of that exact room photo by tools_room_state.py --layer, so they stack: a binder, a chest
+// tube and the intubated photo can all be on one patient. `box` is left, top, width, height in % of the
+// photo. Keyed like PATIENT_PHOTO_STATES (the case's own room, else the face); 'case:<id>' adds layers to
+// one case only. `on` names the S.gear flag (or flags) that shows it; 'arrest' = pulseless in a live code,
+// and never over the intubated photo or a cric (both redraw the face); 'always' = the case's own look.
+// The room camera only (foot/airway are hidden). Drawn twice — over the photo and over the bed occluder,
+// clipped like it — so staff behind the bed stay behind the patient exactly as with a baked photo.
+const ROOM_LAYERS = {
+  'resus-atls-blunt-multi': [
+    {on:'binder', src:'scenes/layers/case-resus-atls-blunt-multi-binder.png', box:[42.0,43.58,15.92,15.37]},
+    {on:'ct',     src:'scenes/layers/case-resus-atls-blunt-multi-ct.png',     box:[34.67,43.73,23.33,39.7]}],
+  'resus-atls-penetrating': [
+    // a tourniquet cannot go on a groin wound: whichever the player orders, the room shows it packed
+    {on:['packed','tq'], src:'scenes/layers/case-resus-atls-penetrating-packed.png', box:[41.17,47.76,8.75,11.79]},
+    {on:'mtp',    src:'scenes/layers/case-resus-atls-penetrating-mtp.png',    box:[47.08,13.13,40.0,83.13]}],
+  'older-f':   [{on:'binder', src:'scenes/layers/older-f-binder.png', box:[44.0,47.16,11.92,10.6]}],
+  // No cric picture: Kim, 2026-09-28 — "way too big, it doesn't make sense". Codex's cric animation still plays.
+  'mid-m':     [{on:'arrest', src:'scenes/layers/mid-m-arrest.png', box:[31.75,43.13,38.92,33.58]}],
+  'mid-f':     [{on:'arrest', src:'scenes/layers/mid-f-arrest.png', box:[31.17,44.03,37.0,17.31]},
+                {on:'tq',     src:'scenes/layers/mid-f-tq.png',     box:[47.25,49.4,12.5,13.88]}],       // the dialysis arm
+  'young-f-2': [{on:'arrest', src:'scenes/layers/young-f-2-arrest.png', box:[31.0,42.09,45.0,21.49]}],
+  'young-m-2': [{on:'tq',     src:'scenes/layers/young-m-2-tq.png',  box:[38.92,48.81,14.75,14.33]},    // the crushed left thigh
+                {on:'io',     src:'scenes/layers/young-m-2-io.png',  box:[36.83,52.39,14.17,15.37]},
+                {on:'mtp',    src:'scenes/layers/young-m-2-mtp.png', box:[48.92,15.22,35.58,81.49]}],
+  'child':     [{on:'io',     src:'scenes/layers/child-io.png',      box:[42.58,49.85,8.42,16.42]}],
+  'infant':    [{on:'uvc',    src:'scenes/layers/infant-uvc.png',    box:[50.83,49.85,17.83,29.1]}],
+  'case:resus-nrp-meconium': [{on:'always', src:'scenes/layers/infant-meconium.png', box:[39.17,46.27,28.08,24.78]}]
+};
+// Which gear flag a procedure animation leaves behind once the clinician has done it.
+const ROOM_LAYER_PLACEMENT = {tq:'tourniquet', binder:'binder', mtp:'transfusion', cric:'cric', ct:'ct'};
+function roomLayersFor(view, base, caseId, gear, arrest, photoState, room){
+  if(view !== 'room') return [];
+  const id = String(caseId || ''), key = CASE_VISUALS[id] ? id : base, g = gear || {}, st = room || {};
+  return (ROOM_LAYERS[key] || []).concat(ROOM_LAYERS['case:' + id] || []).filter(l => {
+    if(l.on === 'always') return true;
+    if(l.on === 'arrest') return !!arrest && !(photoState && photoState.ett) && !g.cric;
+    const flags = [].concat(l.on);
+    // not while the clinician is still putting it on (the procedure animation): it appears when they step away
+    if(flags.some(f => ROOM_LAYER_PLACEMENT[f] && st[ROOM_LAYER_PLACEMENT[f] + 'Placement'])) return false;
+    return flags.some(f => !!g[f]);
+  });
+}
+function roomLayersHTML(layers){
+  return layers.map(l => `<img src="${l.src}" alt="" data-room-layer="${[].concat(l.on).join(' ')}" style="position:absolute;left:${l.box[0]}%;top:${l.box[1]}%;width:${l.box[2]}%;height:${l.box[3]}%;pointer-events:none">`).join('');
+}
 function roomImgFallback(img){
   const v=ROOM_VIEWS[img.dataset.view]; if(!v) return;
   const fallback=img.dataset.fallback||v.img;
@@ -14145,6 +14205,7 @@ function buildRoomScene(mount){
           monitor in the room. Just keep the telemetry strips." The wall monitor used to carry a
           copy of the telemetry trace (#rmMon, blitted every frame); the telemetry panel is the
           one monitor now, and the photo's own screen is left as it is. -->
+     <div id="rmLayers" class="absolute inset-0 pointer-events-none"></div>
      <div id="rmOverlays" class="absolute inset-0 pointer-events-none"></div>
      ${roomCritHTML()}
      <svg id="rmZones" class="absolute inset-0 w-full h-full" viewBox="0 0 100 56" preserveAspectRatio="none">
@@ -14160,7 +14221,8 @@ function buildRoomScene(mount){
           and they're positioned to stay clear of the zone polygons underneath. -->
      <div id="rmCast" class="absolute inset-0 pointer-events-none"></div>
      ${viewKey==='room' ? `<img id="rmOccluder" src="${sceneSrc}" data-fallback="${baseSceneSrc}" data-view="${viewKey}" alt=""
-        class="absolute inset-0 w-full h-full pointer-events-none" style="clip-path:polygon(${ROOM_BED_CLIP})">` : ''}
+        class="absolute inset-0 w-full h-full pointer-events-none" style="clip-path:polygon(${ROOM_BED_CLIP})">
+      <div id="rmLayersOcc" class="absolute inset-0 pointer-events-none" style="clip-path:polygon(${ROOM_BED_CLIP})"></div>` : ''}
      <!-- Live clinical actions belong above the bed occluder: the rescuer's hands must
           visibly land on the patient's chest, while the layer stays click-through. -->
      <div id="rmActionFx" class="absolute inset-0 pointer-events-none" style="z-index:8" aria-hidden="true"></div>
@@ -16029,6 +16091,9 @@ function resetRoomActionTimers(){
 function startRoomPlacement(kind){
   if(!['ett','ct','needle','tourniquet','binder','transfusion','cric'].includes(kind)) return;
   const key=kind+'Placement', st=roomState();
+  // …and leaves it there: every caller has already confirmed the order was carried out.
+  const leaves={tourniquet:'tq',binder:'binder',transfusion:'mtp',cric:'cric'}[kind];
+  if(leaves && S.gear) S.gear[leaves]=true;
   clearTimeout(_roomPlacementTimers[kind]);
   st[key]=true; paintRoom();
   const ms={ett:1600,ct:3200,needle:2200,tourniquet:2200,binder:2600,transfusion:3600,cric:3200}[kind];
@@ -16155,6 +16220,8 @@ function roomAutoState(text, trace){
   const adenosineRx=/\badenosine\b/i;
   const naloxoneRx=/\b(?:naloxone|narcan)\b/i;
   const cricRx=/\b(?:cricothyrotomy|cricothyroidotomy|surgical airway)\b/i;
+  const ioRx=/\b(?:intraosseous|ez-?io|io (?:access|line|needle|placement))\b/i;
+  const packRx=/\b(?:pack(?:ing)? (?:the )?(?:wound|groin)|wound packing|(?:hemostatic|haemostatic|combat) gauze|pressure dressing)\b/i;
   const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
   const cprRx=/\b(start|resume|continue|begin)\b.*\b(cpr|compressions)\b|\bcpr\b|\bchest compressions\b/i;
   const neonatalCareRx=/\b(?:warm(?:er|ing)?|dry(?:ing)?|stimulat(?:e|ion)|initial newborn steps?)\b/i;
@@ -16175,6 +16242,8 @@ function roomAutoState(text, trace){
   if(binderRx.test(text) && accepted(binderRx)) startRoomPlacement('binder');
   if(transfusionRx.test(text) && accepted(transfusionRx)) startRoomPlacement('transfusion');
   if(cricRx.test(text) && !/\b(?:kit|tray|ready|prepare|standby|backup)\b/i.test(text) && accepted(cricRx)) startRoomPlacement('cric');
+  if(S.gear && ioRx.test(text) && accepted(ioRx) && !S.gear.io){ S.gear.io=true; paintRoom(); }
+  if(S.gear && packRx.test(text) && accepted(packRx) && !S.gear.packed){ S.gear.packed=true; paintRoom(); }
   if(adenosineRx.test(text) && accepted(adenosineRx)) startRoomResponse('adenosine',1800);
   if(naloxoneRx.test(text) && accepted(naloxoneRx)) startRoomResponse('naloxone',3200);
   if(pacingRx.test(text) && accepted(pacingRx)){ st.pacing=true; paintRoom(); }
@@ -16343,6 +16412,9 @@ function paintRoom(){
   const baseSceneSrc=caseSceneImg(viewKey,S.goldId)||sceneImgFor(viewKey,base)||ROOM_VIEWS[viewKey].img;
   const sceneSrc=photoState&&photoState.src || baseSceneSrc;
   const box=$('roomBox');
+  const layers=roomLayersFor(viewKey,base,S.goldId,S.gear,!!(S.code&&!S.code.ended&&!S.code.pulse),photoState,st);
+  const layersHTML=roomLayersHTML(layers);
+  ['rmLayers','rmLayersOcc'].forEach(id=>{ const el=$(id); if(el && el.innerHTML!==layersHTML) el.innerHTML=layersHTML; });
   if(box) box.querySelectorAll('img[data-view]').forEach(im=>{
     im.dataset.fallback=baseSceneSrc;
     if(im.getAttribute('src')!==sceneSrc) im.setAttribute('src',sceneSrc);
@@ -16390,7 +16462,7 @@ function paintRoom(){
   if(S.gear && S.gear.o2 && !S.gear.ett) h+=roomArtHTML('o2', viewKey, head);
   if(S.gear && S.gear.ett && !(photoState&&photoState.ett)) h+=(st.ettPlacement?'':roomArtHTML('ett', viewKey, head)) + roomArtHTML('ventilator', viewKey, head);
   if(S.gear && S.gear.cvc) h+=roomArtHTML('cvc', viewKey, head);
-  if(S.gear && S.gear.ct && !st.ctPlacement) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
+  if(S.gear && S.gear.ct && !st.ctPlacement && !layers.some(l=>[].concat(l.on).includes('ct'))) h+=roomArtHTML('ct', viewKey, chest) + roomArtHTML('drain', viewKey, chest);
   // 'idle' is the defibrillator's RESTING state and it is a truthy string, so `|| st.defib`
   // was true from the first frame of every case. That was invisible while no pads picture
   // existed (roomArtHTML draws nothing for a key that is not switched on); the moment one
