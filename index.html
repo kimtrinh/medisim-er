@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-anE7LZDPE4qTnCohwvs2wXvE5Qg2rP/WlncnjpgsM30=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-vzLK5T5XXDA1KQjGVy3kH7dPv7YuQjnKbFX8JR5JCFk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -2161,6 +2161,7 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
     <div id="acctBox" class="hidden pt-3 mt-1 border-t border-slate-800">
       <div class="text-[10px] font-black uppercase tracking-[.3em] text-slate-500 mb-2">Account</div>
       <p id="acctStatus" class="text-[11px] leading-relaxed text-slate-400 mb-2"></p>
+      <div id="acctNewsletter" class="hidden mb-2"></div>
       <button id="acctBtn" class="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-widest transition"></button>
       <p class="text-[11px] leading-relaxed text-slate-600 mt-2">Signing in keeps your training log private to you and carries it to your other devices. It is separate from sharing case logs below, which sends orders and grading with no account, name or email on the record — signing in only unlocks the switch.</p>
     </div>
@@ -5728,8 +5729,8 @@ function renderDepartment(){
   const mastered=Object.values(gp.perCase).filter(p=>p.mastered).length;
   const deptCount=list=>{
     const open=list.filter(id=>openSet.has(id)), locked=list.length-open.length;
-    if(!open.length) return `${locked} in progress`;
-    return `${open.filter(id=>gp.perCase[id]).length}/${open.length}` + (locked ? ` · ${locked} in progress` : '');
+    if(!open.length) return `${locked} need sign-in`;
+    return `${open.filter(id=>gp.perCase[id]).length}/${open.length}` + (locked ? ` · ${locked} need sign-in` : '');
   };
   const sections=GOLD_SYS_ORDER.filter(s=>groups[s]).map(s=>`
     <div class="mb-4">
@@ -5745,7 +5746,7 @@ function renderDepartment(){
           ${gp.streaks.daily>1&&streakLive()?`<div class="text-orange-400 font-extrabold text-xs">🔥 ${gp.streaks.daily}-day streak</div>`:''}
         </div>
         <div class="mt-1"><span class="text-cyan-300 font-black text-lg">${esc(gp.level.title)}</span> <span class="text-slate-500 text-xs mono">· ${gp.xp.toLocaleString()} XP</span></div>
-        <div class="text-slate-500 text-xs mt-1">${played}<span class="text-slate-700">/${openIds.length}</span> treated${lockedN?` · <span class="text-slate-600">${lockedN} in progress</span>`:''} · <span class="text-yellow-300">${mastered} mastered</span></div>
+        <div class="text-slate-500 text-xs mt-1">${played}<span class="text-slate-700">/${openIds.length}</span> treated${lockedN?` · <span class="text-slate-600">${lockedN} need sign-in</span>`:''} · <span class="text-yellow-300">${mastered} mastered</span></div>
       </div>
     </div>
     <div class="mb-5 space-y-2">
@@ -5988,6 +5989,14 @@ const OWNER_EMAIL_SHA256 = ['aa08e9111b960d922d9d80523a2c57eff04a3debd0355069e60
 const CASE_LOCKED_LINE  = 'This case is still in progress — try one of the resuscitation cases.';
 const BUILD_LOCKED_LINE = 'Building your own case is still in progress — try one of the resuscitation cases.';
 const YOURS_LOCKED_LINE = 'Your saved cases are paused while building your own case is in progress — try one of the resuscitation cases.';
+// THE MEMBER CASES (Kim, 2026-09-29: "only let ppl who sign in have access so at least i have their email").
+// The 17 resuscitation cases are free. Every other case is published only as a STUB (id, title, patient's
+// age and sex — tools_split_members.cjs at build time); its content lives in Supabase (member_cases), which
+// the database lets only a signed-in player read. So this one is a lock, not a curtain: without a valid
+// sign-in the page has nothing to open. Kim's own machine keeps the whole files, so nothing is a stub there.
+const MEMBERS_LOCKED_LINE = 'Sign in (free, with Google) to play every case.';
+const _memberIds = new Set();      // member cases whose content this page has, for the account signed in now
+let _membersFor = null, _membersLoading = null;
 function isPublicCase(id){ return PUBLIC_CASE_RE.test(String(id || '')); }
 // Kim's own machine and the repo's tests: the page opened from disk, or served on a loopback
 // host (the same list PUBLIC_BUILD uses, plus *.localhost).
@@ -6027,7 +6036,12 @@ function ownerMode(){
   if(!_ownerCheck.ok) return false;                       // every visitor: no lookup at all
   return _ownerCheck.key === ownerKey(signedInUser());    // a stale yes for the last account never carries
 }
-function caseOpen(id){ return isPublicCase(id) || ownerMode(); }
+function caseOpen(id){
+  // (typeof: the rule is also run on its own, outside the page, by tests/public-set.test.cjs)
+  const seed = ((typeof _gold !== 'undefined' && _gold) || []).find(c => c.id === id);
+  if(seed && seed._members) return false;              // a stub: the case itself is not in this page
+  return isPublicCase(id) || ownerMode() || _memberIds.has(id);
+}
 function generatorOpen(){ return ownerMode(); }
 function openCases(list){ return (list || []).filter(c => c && caseOpen(c.id)); }
 // Both random draws (the hero's fallback and "Walk in blind") pick through this, so a draw
@@ -6134,7 +6148,10 @@ function repaintForOwner(was){
 function sayCaseLocked(kind){
   const el = document.getElementById('caseLocked');
   if(!el) return false;
-  el.textContent = kind === 'build' ? BUILD_LOCKED_LINE : kind === 'yours' ? YOURS_LOCKED_LINE : CASE_LOCKED_LINE;
+  if(kind === 'members'){
+    // A member case says how to get in, and the way in is right there.
+    el.innerHTML = esc(MEMBERS_LOCKED_LINE) + ' <button data-open-signin class="ml-1 underline font-bold text-emerald-300">Sign in</button>';
+  }else el.textContent = kind === 'build' ? BUILD_LOCKED_LINE : kind === 'yours' ? YOURS_LOCKED_LINE : CASE_LOCKED_LINE;
   el.classList.remove('hidden');
   clearTimeout(sayCaseLocked._t);
   sayCaseLocked._t = setTimeout(() => el.classList.add('hidden'), 6000);
@@ -6150,7 +6167,11 @@ function hideCaseLocked(){
 }
 // Which line a refused SEED says. A case a visitor saved for themselves (no id — built earlier
 // with their own key) is not one of Kim's unfinished cases, and is not called one.
-function lockedKind(seed){ return (seed && seed._user && !seed.id) ? 'yours' : undefined; }
+function lockedKind(seed){
+  if(seed && seed._user && !seed.id) return 'yours';
+  if(seed && seed.id && !isPublicCase(seed.id)) return 'members';   // every built-in case past the free 17
+  return undefined;
+}
 const GOLD_SYS_ALIAS={ colitis:'gi', metab:'endo', onc:'heme' };
 const GOLD_SYS_ID={
   'core-dka-adolescent':'endo','core-septic-shock-uro':'id','core-afebrile-elderly-sepsis':'geri','core-failed-airway':'resp',
@@ -9694,9 +9715,11 @@ async function initGold(){
     // A visitor's own saved case (lockedKind 'yours') is paused with the generator that made
     // it, and its title says that rather than calling it one of Kim's unfinished cases.
     if(!caseOpen(c.id)){
-      const yours = lockedKind(c) === 'yours';
-      return `<button data-gold="${idx}" data-locked="1" aria-disabled="true" title="${esc(yours ? YOURS_LOCKED_LINE : CASE_LOCKED_LINE)}" class="goldItem goldLocked w-full text-left px-3 py-2.5 cursor-not-allowed">
-      <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-slate-500 truncate">${esc(c.title||c.diagnosis||'Case')}</span><span class="flex gap-1 shrink-0">${chipHTML('In progress', 'border-slate-700 bg-slate-800/60 text-slate-400', yours ? 'Your saved case — paused while building your own case is in progress' : 'Still being written and checked — not open yet')}</span></div>
+      const kind = lockedKind(c), yours = kind === 'yours', member = kind === 'members';
+      return `<button data-gold="${idx}" data-locked="1" aria-disabled="true" title="${esc(yours ? YOURS_LOCKED_LINE : member ? MEMBERS_LOCKED_LINE : CASE_LOCKED_LINE)}" class="goldItem goldLocked w-full text-left px-3 py-2.5 cursor-not-allowed">
+      <div class="flex justify-between items-baseline gap-2"><span class="text-xs font-bold text-slate-500 truncate">${esc(c.title||c.diagnosis||'Case')}</span><span class="flex gap-1 shrink-0">${member
+        ? chipHTML('Sign in', 'border-emerald-700/60 bg-emerald-900/30 text-emerald-300', 'Free with a Google sign-in')
+        : chipHTML('In progress', 'border-slate-700 bg-slate-800/60 text-slate-400', yours ? 'Your saved case — paused while building your own case is in progress' : 'Still being written and checked — not open yet')}</span></div>
       <div class="text-[10px] truncate mt-0.5 text-slate-600">${esc(c.chiefComplaint || '')}</div></button>`;
     }
     const chips = [];
@@ -9781,10 +9804,12 @@ async function initGold(){
             + courseHTML + '</div>'
           : '')
         + (progressHTML
-          ? '<div data-list-section="in-progress">' + head('In progress', inProgress.length, 'text-slate-400')
+          ? '<div data-list-section="in-progress">' + head('More cases \u2014 free with sign-in', inProgress.length, 'text-slate-400')
             + note(owner
-                ? 'Only you can open these \u2014 a visitor sees them grayed out until they are ready.'
-                : 'Still being written and checked \u2014 they open here once they are ready. For now, try one of the resuscitation cases above.')
+                ? 'Open to anyone signed in; a visitor sees them with a Sign in tag. Playable, but the grading has not been verified yet.'
+                : inProgress.some(c => caseOpen(c.id))
+                  ? 'Playable, but the grading has not been verified yet \u2014 your feedback helps check them.'
+                  : 'Sign in with Google (free) to play these. They are playable, but their grading has not been verified yet.')
             + progressHTML + '</div>'
           : '');
     } else html = hits.map(c=>rowHTML(c, isAcls(c) ? ACLS_TEACHES[c.id] : null)).join('');
@@ -9792,7 +9817,7 @@ async function initGold(){
     const lockedN = hits.length - openCases(hits).length;
     if($('goldShowing')) $('goldShowing').textContent = (hits.length===all.length
       ? `All ${all.length} cases` : `${hits.length} of ${all.length} cases`)
-      + (lockedN ? ` \u00b7 ${lockedN} in progress` : '');
+      + (lockedN ? ` \u00b7 ${lockedN} need sign-in` : '');
     const gl=$('goldList');
     gl.classList.toggle('max-h-96', !_goldOpen);
     gl.classList.toggle('overflow-y-auto', !_goldOpen);
@@ -9944,7 +9969,7 @@ async function loadGoldCase(seed, opts){
 // through to goldAll(), replaying a saved gold case would launch the frozen localStorage
 // snapshot instead of the live cases-gold.json seed, silently defeating pack repairs.
 function startGoldCaseById(id){
-  if(!caseOpen(id)) return sayCaseLocked();
+  if(!caseOpen(id)) return sayCaseLocked(isPublicCase(id) ? undefined : 'members');
   const seed=(_gold||[]).find(c=>c.id===id)||goldAll().find(c=>c.id===id);
   if(seed) loadGoldCase(seed);
   else console.warn('gold case not loaded yet:', id);
@@ -14967,6 +14992,7 @@ function paintAuth(){
   // Every change of who is signed in passes through here, so this is where the owner check
   // (THE PUBLIC SET) is kept in step: it repaints the library itself when the answer changes.
   try{ syncOwner(); }catch(_){ }
+  try{ syncMembers(); }catch(_){ }
   const st = (typeof Account === 'undefined') ? { enabled:false } : Account.status();
   const btn = $('authBtn');
   if(btn){
@@ -15001,6 +15027,7 @@ function paintAuth(){
     }
   }
   paintMergeOffer();
+  try{ applyNewsletterChoice(); paintNewsletterSetting(); }catch(_){ }
   const lr = $('logReport');
   if(lr && !lr.classList.contains('hidden')) renderLogReport();
 }
@@ -15027,6 +15054,99 @@ function paintMergeOffer(){
   };
   $('mergeNo').onclick = () => { Account.declineMerge(); paintAuth(); };
 }
+// THE MEMBER CASES, fetched for the account signed in now and merged into the four places a case lives
+// in this page (the library, the packs, the hints, the order menu). Signing out locks them again.
+function syncMembers(){
+  const u = signedInUser();
+  if(!u){
+    if(_memberIds.size || _membersFor){ _memberIds.clear(); _membersFor = null; repaintLibrary(); }
+    return Promise.resolve();
+  }
+  if(_membersFor === u.id || _membersLoading) return _membersLoading || Promise.resolve();
+  _membersLoading = loadMemberCases(u.id).finally(() => { _membersLoading = null; });
+  return _membersLoading;
+}
+async function loadMemberCases(uid){
+  await initGold();
+  if(!(_gold || []).some(c => c._members)) { _membersFor = uid; return; }   // a whole library (Kim's machine): nothing to fetch
+  const rows = (typeof Account !== 'undefined' && Account.memberCases) ? await Account.memberCases() : null;
+  if(!rows || !rows.length || (signedInUser() || {}).id !== uid) return;   // offline, not allowed, or another account by now
+  const packs = await loadOfflinePacks(), hints = await loadCaHints(), catalog = await loadOrderCatalog();
+  const byId = new Map(rows.map(r => [r.case_id, r]));
+  _gold = _gold.map(c => byId.has(c.id) && byId.get(c.id).seed ? byId.get(c.id).seed : c);
+  const extra = new Map();
+  for(const r of rows){
+    if(r.pack) packs[r.case_id] = r.pack;
+    if(r.hints) hints[r.case_id] = r.hints;
+    for(const e of (r.catalog || [])) if(e && e.id) extra.set(e.id, e);
+    _memberIds.add(r.case_id);
+  }
+  // A NEW catalogue array, never edited in place: the engine memoises its alias list on the array itself.
+  if(extra.size){
+    _catalog = catalog.filter(e => !extra.has(e.id)).concat([...extra.values()]);
+    try{ rebuildSections(); repaintOrderSurfaces(); }catch(_){ }
+  }
+  _membersFor = uid;
+  repaintLibrary();
+}
+function repaintLibrary(){
+  if(typeof S === 'undefined' || S.stage !== 'setup') return;   // never pull a case out from under anyone
+  if(document.querySelector('.dept-tile')) renderDepartment(); else renderSetup();
+}
+// SIGNING IN, with the newsletter asked, never assumed. Kim chose a tick-box (2026-09-29), unticked unless
+// the player ticks it; the answer rides through Google's round trip in this browser and is written to the
+// player's own profile once they are back and signed in. Settings can change it later.
+function openSignInSheet(){
+  if(typeof Account === 'undefined') return;
+  let el = $('signInSheet');
+  if(!el){ el = document.createElement('div'); el.id = 'signInSheet'; document.body.appendChild(el); }
+  el.className = 'fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70';
+  el.innerHTML = `<div role="dialog" aria-modal="true" aria-labelledby="signInTitle" class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4 shadow-2xl">
+    <div>
+      <div id="signInTitle" class="text-base font-bold text-white">Sign in to MediSim ER</div>
+      <div class="text-xs text-slate-400 mt-1 leading-relaxed">Free. Unlocks every case, and keeps your training log private to you on any device.</div>
+    </div>
+    <label class="flex items-start gap-2.5 text-sm text-slate-200 cursor-pointer">
+      <input id="signInNewsletter" type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-500">
+      <span>Email me new cases and updates <span class="block text-[11px] text-slate-500">Occasional. Unsubscribe any time.</span></span>
+    </label>
+    <div class="flex gap-2">
+      <button id="signInGo" class="flex-1 min-h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white">Continue with Google</button>
+      <button id="signInCancel" class="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300">Not now</button>
+    </div>
+    <div class="text-[10px] text-slate-500">Google shares your name, email and picture. <a href="privacy.html" class="underline">Privacy</a></div>
+  </div>`;
+  const close = () => { el.remove(); };
+  $('signInCancel').onclick = close;
+  el.onclick = e => { if(e.target === el) close(); };
+  $('signInGo').onclick = () => {
+    try{ localStorage.setItem('ms_newsletterWant', $('signInNewsletter').checked ? '1' : '0'); }catch(_){ }
+    close(); startSignIn();
+  };
+  $('signInGo').focus();
+}
+// Back from Google and signed in: write the tick-box answer to the profile, once.
+async function applyNewsletterChoice(){
+  let want = null; try{ want = localStorage.getItem('ms_newsletterWant'); }catch(_){ }
+  if(want === null || !signedInUser() || !Account.setNewsletter) return;
+  if(want === '1' && !(await Account.setNewsletter(true))) return;   // not saved: ask again next time
+  try{ localStorage.removeItem('ms_newsletterWant'); }catch(_){ }
+  paintNewsletterSetting();
+}
+// Settings: the answer, changeable. Read from the profile once per account.
+let _newsletterFor = null, _newsletterOn = null;
+async function paintNewsletterSetting(){
+  const host = $('acctNewsletter'); if(!host) return;
+  const u = signedInUser();
+  if(!u){ host.classList.add('hidden'); host.innerHTML = ''; _newsletterFor = null; return; }
+  if(_newsletterFor !== u.id){ _newsletterFor = u.id; _newsletterOn = await Account.newsletter(); }
+  host.classList.remove('hidden');
+  host.innerHTML = `<label class="flex items-center gap-2 text-[11px] text-slate-300 cursor-pointer"><input id="acctNewsletterBox" type="checkbox" class="w-4 h-4 accent-emerald-500" ${_newsletterOn ? 'checked' : ''}> Email me new cases and updates</label>`;
+  $('acctNewsletterBox').onchange = async e => {
+    const on = e.target.checked;
+    if(await Account.setNewsletter(on)) _newsletterOn = on; else e.target.checked = !on;
+  };
+}
 async function startSignIn(){
   if(typeof Account === 'undefined') return;
   // The library is fetched here, the first time it is needed, and nowhere else.
@@ -15050,8 +15170,9 @@ document.addEventListener('click', e => {
     e.stopPropagation();
     const st = Account.status();
     if(st.user) Account.signOut().then(() => { paintAuth(); if(S.stage === 'setup') renderSetup(); });
-    else startSignIn();
+    else openSignInSheet();
   }
+  if(t.closest('[data-open-signin]')){ e.stopPropagation(); openSignInSheet(); }
 });
 
 // THE RESULTS DRAWER IS OPENED AND CLOSED IN ONE PLACE. Kim: "keep results tab open."
@@ -18307,7 +18428,7 @@ function renderLogReport(){
       </div>
       <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Your cases, what you keep missing, and the orders the simulator failed to understand \u2014 kept privately once you sign in, and carried to your other devices. Nobody else can read it, and it is not shown to anyone using this computer.</p>
       <button id="logSignIn" class="w-full mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition">Sign in with Google</button>`;
-    $('logSignIn').onclick = startSignIn;
+    $('logSignIn').onclick = openSignInSheet;
     return;
   }
   const r = logReport();

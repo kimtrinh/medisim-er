@@ -330,9 +330,40 @@ async function verifiedUser(){
   }catch(_){ return null; }
 }
 
+// ------------------------------------------------------------------------- the member cases
+// Kim, 2026-09-29: the 17 resuscitation cases are free; every other case is in public.member_cases,
+// which the DATABASE lets only a signed-in player read (row-level security on the `authenticated`
+// role — a session forged into localStorage has no valid token, so it reads nothing). Null on any
+// failure: the library then simply keeps showing "Sign in to play" for those cases.
+async function memberCases(){
+  if(!A.client || !A._uid) return null;
+  try{
+    const { data, error } = await A.client.from('member_cases').select('case_id, seed, pack, hints, catalog');
+    if(error || !Array.isArray(data)) return null;
+    return data;
+  }catch(_){ return null; }
+}
+// The newsletter: a tick-box at sign-in, off unless the player ticks it, changeable later. Each player
+// can read and change only their own profile row (existing policies).
+async function newsletter(){
+  if(!A.client || !A._uid) return null;
+  try{
+    const { data, error } = await A.client.from('profiles').select('newsletter').eq('id', A._uid).maybeSingle();
+    return error || !data ? null : !!data.newsletter;
+  }catch(_){ return null; }
+}
+async function setNewsletter(on){
+  if(!A.client || !A._uid) return false;
+  try{
+    const { error } = await A.client.from('profiles')
+      .update({ newsletter: !!on, newsletter_at: new Date().toISOString() }).eq('id', A._uid);
+    return !error;
+  }catch(_){ return false; }
+}
+
 root.Account = { init, signIn, signOut, log, append, flush, status, user, verifiedUser,
                  pendingMerge, mergeLocal, declineMerge,
-                 shipRun, saveFeedback,
+                 shipRun, saveFeedback, memberCases, newsletter, setNewsletter,
                  entryId, newId, _state: A };
 if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = root.Account;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
