@@ -3997,7 +3997,11 @@
     "typed": "ramp the patient upright"
    },
    null,
-   null
+   {
+    "order": "Surgical airway",
+    "where": "Resuscitate › Airway",
+    "typed": "cricothyrotomy"
+   }
   ],
   "resp-ards": [
    {

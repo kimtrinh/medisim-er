@@ -2704,6 +2704,9 @@ function unmetGateHint(pack, requires, flags){
   });
   return 'Still outstanding — ' + names.join('; ') + '.';
 }
+// ASKING FOR THE KIT, UNGATED TOO (2026-09-28). The narrow half of PREP_RE: the equipment itself and
+// stand-by phrasing — not "open", "ready", "prepare" or "bedside", which also describe doing the thing.
+const EQUIP_ASK_RE = /\b(kit|kits|tray|trays|cart|standby|stand by)\b/;   // not "if needed"/"just in case": those are conditional orders, handled as such
 const PREP_RE = /\b(kit|tray|cart|ready|readied|prepare|prepared|prep|open|opened|set up|setup|standby|stand by|backup|back up|available|nearby|bedside|on hand|in case|if needed|just in case|to hand)\b/;
 // "ok scrap the hemabate — miso 800 per rectum" replayed the drug's asthma warning and
 // re-applied its vitals: a leading interjection hid the cancellation from the anchor.
@@ -4195,7 +4198,7 @@ function runTurn(pack, state, action, opts){
       }
     }
     if(matched.length){
-      let clauseApplied = false, guardSkipped = false, gateBlocked = false, routeBlocked = false;
+      let clauseApplied = false, guardSkipped = false, gateBlocked = false, routeBlocked = false, prepAsked = false, prepAnswered = false;
       for(const r0 of matched){
         // A declined action must not be performed or credited. But withholding is often
         // exactly the right move — "hold apixaban", "hold steroids until GI weighs in" and
@@ -4234,6 +4237,17 @@ function runTurn(pack, state, action, opts){
         const withholdPhrased = ((r0.match && r0.match.any) || []).some(a => WITHHOLD_RE.test(a));
         if(withheld && !(withholdSurvivors && withholdSurvivors.has(r0)) && !withholdPhrased) continue;
         if(negSkips.has(r0) && !withholdPhrased){ guardSkipped = true; continue; }
+        // ASKING FOR THE KIT IS NOT DOING THE PROCEDURE — gated or not. The gated path below has always
+        // declined to credit prep language; an UNGATED procedure performed it. Kim, 2026-09-28: "fix the
+        // failed airway case so the cric works" — the cric stopped refusing, and "get the cric tray to the
+        // bedside" (which the catalogue rewrites through its bare "cric" alias into "cricothyrotomy") put a
+        // scalpel in the neck, the exact playtest bug tests/airway.test.cjs was written for. A responder that
+        // is itself about getting ready ("open the cric kit", "stage the rsi drugs") is exempt: its own aliases say so.
+        // (Pads are the exception: "pacing pads on standby" is how pads are ORDERED on — applied, pacer ready.)
+        if(r0.intent === 'procedure' && EQUIP_ASK_RE.test(rawClause) && !/\bpads?\b/.test(rawClause)){
+          if(!((r0.match && r0.match.any) || []).some(a => PREP_RE.test(normalize(a)) || /\bstag(e|ed|ing)\b/.test(normalize(a)))){ prepAsked = true; continue; }
+          prepAnswered = true;   // a getting-ready responder answers it in its own words
+        }
         // Talking ABOUT results is not re-ordering them: "explain the spinal
         // fluid shows a bacterial infection" re-ran the lumbar puncture.
         if(discussingAction && !Number.isInteger(r0.satisfies)
@@ -4469,6 +4483,8 @@ function runTurn(pack, state, action, opts){
       // fallback withhold acknowledgment).
       if(withheld && !clauseApplied)
         out.speech.push({speaker:'nurse', text:'Understood — holding that.'});
+      if(prepAsked && !prepAnswered)
+        out.speech.push({speaker:'nurse', text:"It's at the bedside and open — say the word when you want it done."});
       if(conditional && !clauseApplied)
         out.speech.push({speaker:'nurse', text:'Got it — staged and standing by; that runs only if we cross the line you set.'});
       // Answered, not silently ignored — and phrased as the question it is, so the learner

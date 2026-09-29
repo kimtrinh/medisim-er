@@ -5517,6 +5517,9 @@
        "glidescope",
        "open the cric kit",
        "surgical airway kit ready",
+       "prepare for a surgical airway",
+       "prepare for a cric",
+       "get the cric kit",
        "bring the difficult airway cart",
        "set up backup equipment",
        "get the vl ready",
@@ -5806,13 +5809,22 @@
      "match": {
       "any": [
        "cricothyrotomy",
-       "cric",
-       "surgical airway",
+       "cricothyroidotomy",
        "front of neck access",
        "fona",
        "scalpel-finger-bougie",
        "cant intubate cant oxygenate",
        "do the cric",
+       "do a cric",
+       "perform a cric",
+       "cric him",
+       "cric the patient",
+       "cric now",
+       "go to cric",
+       "proceed to cric",
+       "perform a surgical airway",
+       "do a surgical airway",
+       "go to a surgical airway",
        "emergency surgical airway",
        "crico now",
        "cut the neck",
@@ -5824,17 +5836,6 @@
        "perform cric",
        "emergency crico",
        "fona procedure"
-      ]
-     },
-     "gate": {
-      "requires": [
-       "firstAttemptFailed"
-      ],
-      "elseSpeech": [
-       {
-        "speaker": "consultant",
-        "text": "We're not at a scalpel yet \u2014 we haven't even attempted to intubate him."
-       }
       ]
      },
      "speech": [
@@ -5903,6 +5904,62 @@
       }
      ],
      "ends": "good"
+    },
+    {
+     "intent": "procedure",
+     "when": {
+      "absent": [
+       "firstAttemptFailed"
+      ]
+     },
+     "match": {
+      "any": [
+       "cricothyrotomy",
+       "cricothyroidotomy",
+       "front of neck access",
+       "fona",
+       "scalpel-finger-bougie",
+       "cant intubate cant oxygenate",
+       "do the cric",
+       "do a cric",
+       "perform a cric",
+       "cric him",
+       "cric the patient",
+       "cric now",
+       "go to cric",
+       "proceed to cric",
+       "perform a surgical airway",
+       "do a surgical airway",
+       "go to a surgical airway",
+       "emergency surgical airway",
+       "crico now",
+       "cut the neck",
+       "surgical cric",
+       "emergency front of neck",
+       "bougie cric",
+       "scalpel bougie technique",
+       "emergent cricothyroidotomy",
+       "perform cric",
+       "emergency crico",
+       "fona procedure"
+      ]
+     },
+     "speech": [
+      {
+       "speaker": "consultant",
+       "text": "Cricothyrotomy performed \u2014 surgical airway secured, good waveform, sats climbing. Going straight to the neck is defensible with this face: trismus, a mobile midface, and a man who desaturates lying flat."
+      }
+     ],
+     "vitals": {
+      "o2": 96,
+      "hr": 105,
+      "rr": 20
+     },
+     "trend": "improving",
+     "setState": {
+      "airwaySecured": true
+     },
+     "satisfies": 5
     }
    ],
    "deterioration": {

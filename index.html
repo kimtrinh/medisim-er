@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-Xba0ZF1lpT+uastjYrKP4DZnkCqUpaJhUC/CPt+vcPc=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-enoxfllQE5wNMMYQZnuUpeRWxNAfKrDTVQ+DOzsD0L8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -2029,8 +2029,8 @@ const PUBLIC_BUILD = !(location.protocol === 'file:' || location.hostname === ''
     <div id="audioSlot" class="idle"><div id="audioChip" class="idle flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap" role="status" aria-live="polite">
       <span id="audioChipDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span><span id="audioChipText">Generating audio…</span>
     </div></div>
-    <button id="ttsBtn" aria-label="Toggle voice narration" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Toggle voice narration">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+    <button id="ttsBtn" aria-label="Mute all sound" aria-pressed="false" class="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/40 text-emerald-400 transition" title="Sound on — click to mute everything (voices and monitor)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path id="ttsWaves" d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/><path id="ttsCross" d="M23 9l-6 6M17 9l6 6" style="display:none"/></svg>
     </button>
     <button id="resetBtn" aria-label="Start a new case" class="p-2.5 rounded-xl border bg-slate-900 border-slate-800 text-slate-500 hover:text-red-400 hover:border-red-400/50 transition" title="New case">
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9 9 0 00-9 9"/><path d="M3 3v6h6"/></svg>
@@ -11886,7 +11886,7 @@ function renderPlay(){
   try{ applyPhoneFold(); }catch(_){ }   // the phone's folding headers are children of #main, which was just rebuilt
   paintViewSwitch();
   paintSoundBtn();
-  $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); };
+  $('soundBtn').onclick=()=>{ S.sound=!S.sound; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(S.sound) ensureAudioCtx(); else stopMonitorSound(); paintSoundBtn(); paintMuteBtn(); };
   const cmd=$('cmd');
   Promise.all([loadOrderCatalog(),loadDxCatalog()]).then(()=>{
     if($('cmd')==cmd && cmd.value) cmd.dispatchEvent(new Event('input'));
@@ -14600,7 +14600,7 @@ function wireCast(el){
 function roomZoneClick(zone, ev){
   if(S.loading) return;
   if(zone.startsWith('go_')) return roomGoTo(zone.slice(3));   // walk, don't order
-  if(zone==='smiley'){ try{ _tone(880,'sine',0.08,0.25); _tone(660,'sine',0.10,0.25,0.09); }catch(e){}
+  if(zone==='smiley'){ try{ if(S.sound){ _tone(880,'sine',0.08,0.25); _tone(660,'sine',0.10,0.25,0.09); } }catch(e){}
     return toast('The stress ball squeaks approvingly. Morale +1.'); }
   roomMenu(ev, zone);
 }
@@ -16219,7 +16219,8 @@ function roomAutoState(text, trace){
   const pacingRx=/\b(transcutaneous pac\w*|start pac\w*|pacer on|tcp)\b/i;
   const adenosineRx=/\badenosine\b/i;
   const naloxoneRx=/\b(?:naloxone|narcan)\b/i;
-  const cricRx=/\b(?:cricothyrotomy|cricothyroidotomy|surgical airway)\b/i;
+  // (2026-09-28: "cric him", "do a cric" — the word people say — started no animation.)
+  const cricRx=/\b(?:cricothyrotomy|cricothyroidotomy|surgical airway|cric|crico|front of neck access|fona)\b/i;
   const ioRx=/\b(?:intraosseous|ez-?io|io (?:access|line|needle|placement))\b/i;
   const packRx=/\b(?:pack(?:ing)? (?:the )?(?:wound|groin)|wound packing|(?:hemostatic|haemostatic|combat) gauze|pressure dressing)\b/i;
   const stopCprRx=/\b(stop|hold|pause)\b.*\b(cpr|compressions)\b/i;
@@ -18531,7 +18532,7 @@ $('baseURL').addEventListener('change',e=>{
 $('model').addEventListener('change',e=>{ S.model=e.target.value.trim(); localStorage.setItem('ms_model',S.model); rememberTierModel(); });
 $('deepModel').addEventListener('change',e=>{ S.deepModel=e.target.value.trim(); localStorage.setItem('ms_deepModel',S.deepModel); });
 $('rpdLimit').addEventListener('change',e=>{ S.rpd=Math.max(1,parseInt(e.target.value,10)||20); localStorage.setItem('ms_rpd',String(S.rpd)); renderUsageStrip(); });
-$('soundToggle').addEventListener('change',e=>{ S.sound=e.target.checked; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(!S.sound) stopMonitorSound(); });
+$('soundToggle').addEventListener('change',e=>{ S.sound=e.target.checked; localStorage.setItem('ms_sound',S.sound?'1':'0'); if(!S.sound) stopMonitorSound(); paintSoundBtn(); paintMuteBtn(); });
 $('comfortableTextToggle').addEventListener('change',e=>{
   S.comfortableText=e.target.checked;
   localStorage.setItem('ms_comfortableText',S.comfortableText?'1':'0');
@@ -18573,8 +18574,28 @@ $('clearKeysBtn').onclick=()=>{
   warmTier(GEMINI_BASE); warmTier('https://api.anthropic.com');
   autoBestTier().then(()=>{ renderTierStatus(); testConnection(true); });
 };
-$('ttsBtn').onclick=()=>{ S.tts=!S.tts; localStorage.setItem('ms_tts',S.tts?'1':'0'); if(!S.tts){ stopSpeak(); audioStatus(null); }
-  $('ttsBtn').className='p-2.5 rounded-xl border transition '+(S.tts?'bg-emerald-500/10 border-emerald-500/40 text-emerald-400':'bg-slate-900 border-slate-800 text-slate-500'); };
+// ONE MUTE FOR EVERYTHING. Kim, 2026-09-28: "if i click mute it should mute all sounds including beeping
+// monitor sounds." The speaker in the header used to silence the voices only; the monitor's beeps, alarms and
+// the defibrillator had their own small switch on the monitor. The header speaker is now the master: one click
+// silences voices AND monitor (and cuts off whatever is already sounding — suspending the audio context drops
+// tones already scheduled), the next click brings both back. The monitor's own switch still does the beeps alone.
+function paintMuteBtn(){
+  const b=$('ttsBtn'); if(!b) return; const on=!!(S.tts||S.sound);
+  b.className='p-2.5 rounded-xl border transition '+(on?'bg-emerald-500/10 border-emerald-500/40 text-emerald-400':'bg-slate-900 border-slate-800 text-slate-500');
+  b.title=on?'Sound on — click to mute everything (voices and monitor)':'All sound muted — click to turn it back on';
+  b.setAttribute('aria-label', on?'Mute all sound':'Turn sound back on'); b.setAttribute('aria-pressed', on?'false':'true');
+  const w=$('ttsWaves'), x=$('ttsCross'); if(w) w.style.display=on?'':'none'; if(x) x.style.display=on?'none':'';
+}
+function setAllSound(on){
+  S.tts=on; S.sound=on;
+  try{ localStorage.setItem('ms_tts',on?'1':'0'); localStorage.setItem('ms_sound',on?'1':'0'); }catch(_){ }
+  if(on){ ensureAudioCtx(); }
+  else { stopSpeak(); audioStatus(null); stopMonitorSound();
+    try{ if(typeof audioCtx!=='undefined' && audioCtx && audioCtx.state==='running') audioCtx.suspend(); }catch(_){ } }
+  const t=$('soundToggle'); if(t) t.checked=S.sound;
+  paintSoundBtn(); paintMuteBtn();
+}
+$('ttsBtn').onclick=()=>setAllSound(!(S.tts||S.sound));
 // BACK TO THE CASE LIST — from the name in the header as well as the New-case button. Mid-case
 // it asks first: the name is the easiest thing on the screen to hit by accident, and the case
 // does not survive the trip.
@@ -18594,7 +18615,7 @@ if($('homeBtn')){
 }
 
 // init
-if(!S.tts) $('ttsBtn').className='p-2.5 rounded-xl border transition bg-slate-900 border-slate-800 text-slate-500';
+paintMuteBtn();
 // Public BYOK build: strangers have no local model/bridge/dictation server, so hide
 // every local-only affordance and surface a "how to get a free key" note instead. The
 // public cascade is PURE key-only — engineTiers() excludes the bridge and LM Studio when
