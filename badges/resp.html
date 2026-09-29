@@ -1,0 +1,84 @@
+<!--
+  badge-pages/template.html
+
+  One template, expanded by tools_build_badge_pages.cjs into badges/<artKey>.html
+  for every badge (32 of them). It is a complete, standalone, static page —
+  no server, no login, no database — because the badge is the only thing
+  being shared. Kim: nobody's name is ever published, so this page never
+  asks who earned the badge and has no field where a name could go.
+
+  {{TOKEN}} placeholders are filled in by plain string replacement (see
+  tools_build_badge_pages.cjs). No templating library, on purpose.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airway &amp; Respiratory Expert — MediSim ER</title>
+<meta name="description" content="Score 90+ unassisted, patient alive, on three different airway &amp; respiratory cases.">
+
+<!-- Open Graph: so pasting this link into a chat or a social post renders a
+     preview card — the badge art, its name, and what it took to earn it. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Airway &amp; Respiratory Expert — MediSim ER">
+<meta property="og:description" content="Score 90+ unassisted, patient alive, on three different airway &amp; respiratory cases.">
+<meta property="og:image" content="https://kimtrinh.github.io/medisim-er/media/badge-resp.svg">
+<meta property="og:url" content="https://kimtrinh.github.io/medisim-er/badges/resp.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Airway &amp; Respiratory Expert — MediSim ER">
+<meta name="twitter:description" content="Score 90+ unassisted, patient alive, on three different airway &amp; respiratory cases.">
+<meta name="twitter:image" content="https://kimtrinh.github.io/medisim-er/media/badge-resp.svg">
+
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#020617;color:#cbd5e1;
+    font:16px/1.6 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:32rem;margin:0 auto;padding:3rem 1.25rem 4rem;text-align:center}
+  .badge-art{width:11rem;height:11rem;margin:0 auto 1.25rem;display:block}
+  h1{color:#fff;font-size:1.6rem;line-height:1.25;margin:0 0 .4rem;letter-spacing:-.01em}
+  .specialty{color:#94a3b8;font-size:.95rem;margin:0 0 .3rem}
+  .tier{display:inline-block;color:#0f172a;background:#e8b830;font-weight:800;
+    font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;
+    padding:.25rem .8rem;margin:.4rem 0 1.6rem}
+  h2{color:#fff;font-size:1rem;margin:2rem 0 .5rem;letter-spacing:-.01em;text-align:left}
+  .requirement{text-align:left;background:#0b1220;border:1px solid #1e293b;border-radius:12px;
+    padding:1rem 1.1rem;margin:0 0 1.5rem;font-size:.95rem;color:#e2e8f0}
+  .disclaimer{text-align:left;border:1px solid #7c2d12;background:#1c0f0a;border-radius:12px;
+    padding:1rem 1.1rem;margin:1.5rem 0;font-size:.95rem;line-height:1.55;color:#fdba74}
+  .disclaimer strong{color:#fed7aa}
+  .cta{margin-top:2rem}
+  .cta a{display:inline-block;background:#34d399;color:#022c22;font-weight:700;
+    text-decoration:none;border-radius:10px;padding:.75rem 1.6rem;font-size:.95rem}
+  footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid #1e293b;color:#64748b;font-size:.82rem}
+  footer a{color:#64748b}
+</style>
+</head>
+<body>
+<main>
+  <img class="badge-art" src="../media/badge-resp.svg" width="176" height="176" alt="Airway &amp; Respiratory Expert badge">
+  <h1>Airway &amp; Respiratory Expert</h1>
+  <p class="specialty">Airway &amp; Respiratory specialty badge</p>
+  
+
+  <h2>What it took</h2>
+  <p class="requirement">Score 90+ unassisted, patient alive, on three different airway &amp; respiratory cases.</p>
+
+  <div class="disclaimer">
+    <p style="margin:0"><strong>This is practice on a simulator.</strong> Earning this badge
+    is not a certification or a qualification, and it does not certify anyone's clinical
+    competence. It shows only that a case was completed in MediSim ER, a training tool.</p>
+  </div>
+
+  <div class="cta">
+    <a href="https://kimtrinh.github.io/medisim-er/">Try MediSim ER</a>
+  </div>
+
+  <footer>
+    <p>MediSim ER is a free emergency-medicine training simulator. This page describes a
+    badge, not a person — nobody's identity is ever attached to it or published here.</p>
+    <p><a href="https://kimtrinh.github.io/medisim-er/">https://kimtrinh.github.io/medisim-er/</a></p>
+  </footer>
+</main>
+</body>
+</html>

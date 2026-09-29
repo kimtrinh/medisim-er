@@ -6,16 +6,18 @@
 (function (root) {
 'use strict';
 
+// Playful on purpose. Kim, 2026-09-28: the rank goes on a card people post, and "Attending" or
+// "PGY-2" there reads as a real training level. Invented titles, clearly a game, same XP bands.
 const LEVELS = [
-  { xp: 0,     title: 'MS-3' },
-  { xp: 500,   title: 'Sub-I' },
-  { xp: 1500,  title: 'Intern' },
-  { xp: 3500,  title: 'PGY-2' },
-  { xp: 7000,  title: 'PGY-3' },
-  { xp: 12000, title: 'Chief Resident' },
-  { xp: 20000, title: 'Junior Attending' },
-  { xp: 32000, title: 'Attending' },
-  { xp: 50000, title: 'Department Legend' },
+  { xp: 0,     title: 'Rookie' },
+  { xp: 500,   title: 'Monitor Watcher' },
+  { xp: 1500,  title: 'Line Slinger' },
+  { xp: 3500,  title: 'Code Runner' },
+  { xp: 7000,  title: 'Airway Wrangler' },
+  { xp: 12000, title: 'Shock Tamer' },
+  { xp: 20000, title: 'Crash Cart Captain' },
+  { xp: 32000, title: 'Resus Ace' },
+  { xp: 50000, title: 'Resus Legend' },
 ];
 
 function levelFor(xp){
@@ -124,8 +126,57 @@ function systemFor(id, caseMeta){
   const prefix=String(id||'').split('-')[0];
   return SYS_ALIAS[prefix] || prefix;
 }
-function specialtyRun(log, sys, caseMeta){
-  return consec(log, e => !!e.id && !e.died && (e.score||0)>=80 && systemFor(e.id,caseMeta)===sys);
+// How many cases the library actually has for a specialty. goldIds/caseMeta are the same
+// runtime data (cases-gold.json + case-systems.json) computeProgress already receives —
+// this file has no file access of its own, so it can only learn the count this way.
+function specialtyCaseCount(sys, goldIds, caseMeta){
+  return goldIds.filter(id => systemFor(id, caseMeta) === sys).length;
+}
+// Distinct cases in `sys` won unassisted, at 90+, with the patient alive. isAssisted is
+// the one definition of "assisted" (see above, where TrainingCoach's field is read) —
+// this does not reimplement it.
+function specialtyMastered(log, sys, caseMeta){
+  const won = new Set();
+  for(const e of log){
+    if(e && e.id && !isAssisted(e) && !e.died && (e.score||0) >= 90 && systemFor(e.id, caseMeta) === sys) won.add(e.id);
+  }
+  return won.size;
+}
+// The "Expert" badge(s) for every specialty, built once, statically — all four possible
+// ids always exist (`expert-<sys>` and the `-bronze`/`-silver`/`-gold` tiers), so a badge
+// lookup by id (medisim-er-local.html:4962,13436) always finds a shape, no matter what any
+// earlier computeProgress call happened to compute. Each test decides for itself whether
+// it applies, by checking the library size it is already handed (goldIds + caseMeta, the
+// same arguments every badge test gets): the tiered tests fire only at ten or more cases,
+// the bare test only below that. For any one library exactly one shape can ever fire —
+// that's a property of the tests now, not of what got built into the array.
+//
+// A specialty with ten or more cases can support a three-rung ladder (Bronze 3 / Silver 6
+// / Gold 10) without any rung being a coin flip away from unearnable; a specialty with
+// fewer cases gets one badge instead of a thin ladder nobody can climb. Which shape fires
+// is computed from the real count, not hardcoded, so a specialty that grows past the
+// ten-case line later is promoted to tiers automatically.
+//
+// The single-badge bar is 3, not "every case in the specialty." A badge that requires the
+// whole library becomes unearnable the moment any one case has a bug, and the player has
+// no way to tell a broken case from a badge they simply haven't earned yet — three is
+// robust to that.
+function specialtyExpertBadges(){
+  return SPECIALTIES.flatMap(([sys, name, icon]) => {
+    const bare = {
+      id: 'expert-' + sys, name: name + ' Expert', icon,
+      desc: 'Score 90+ unassisted, patient alive, on three different ' + name.toLowerCase() + ' cases.',
+      test: (log,perCase,systems,goldIds,caseMeta) =>
+        specialtyCaseCount(sys, goldIds, caseMeta) < 10 && specialtyMastered(log, sys, caseMeta) >= 3,
+    };
+    const tiers = [['bronze','Bronze',3], ['silver','Silver',6], ['gold','Gold',10]].map(([tier,label,need]) => ({
+      id: 'expert-' + sys + '-' + tier, name: name + ' Expert — ' + label, icon,
+      desc: 'Score 90+ unassisted, patient alive, on ' + need + ' different ' + name.toLowerCase() + ' cases.',
+      test: (log,perCase,systems,goldIds,caseMeta) =>
+        specialtyCaseCount(sys, goldIds, caseMeta) >= 10 && specialtyMastered(log, sys, caseMeta) >= need,
+    }));
+    return [bare, ...tiers];
+  });
 }
 function compactTitle(s){
   s=String(s||'').replace(/\s*\([^)]*\)\s*/g,' ').replace(/\s+/g,' ').trim();
@@ -191,10 +242,10 @@ const BADGES = [
     // never revoked by attempting a new case and scoring low.
     test: (log, perCase, systems, goldIds, caseMeta) =>
       Object.keys(perCase).filter(id => systemFor(id,caseMeta) === sys && perCase[id].bestWin >= 70).length >= 5 })),
-  ...SPECIALTIES.map(([sys, name, icon]) => ({
-    id:'expert-'+sys, name:name+' Expert', icon,
-    desc:'Win three '+name.toLowerCase()+' cases in a row with scores of 80 or better.',
-    test:(log,perCase,systems,goldIds,caseMeta)=>specialtyRun(log,sys,caseMeta)>=3 })),
+  // Expert badge(s) per specialty — all four ids per specialty always exist; each test
+  // decides for itself whether it applies to the library it's handed. See
+  // specialtyExpertBadges above.
+  ...specialtyExpertBadges(),
   { id: 'first-call', name: 'Called It First', icon: '⚡', desc: 'Name the right diagnosis on your first try.',
     test: log => log.some(e => e.dxFirstCorrect) },
   { id: 'sharp-differential', name: 'Sharp Differential', icon: '🔍', desc: 'Open with the right diagnosis on twenty-five different cases.',

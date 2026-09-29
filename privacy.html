@@ -28,7 +28,7 @@
 <body>
 <main>
   <h1>Privacy</h1>
-  <p class="sub">MediSim ER · last updated 26 September 2026</p>
+  <p class="sub">MediSim ER · last updated 28 September 2026</p>
 
   <p>MediSim ER is an educational emergency-medicine simulator. It is free, it carries no
   advertising, and it has no analytics or third-party trackers of any kind. This page
@@ -40,7 +40,7 @@
   </div>
 
   <h2>If you do not sign in</h2>
-  <p>Nothing you do leaves your browser unless you choose to send it (a suggestion, your
+  <p>On the website, apart from one anonymous tally when you finish a resuscitation case (described <a href="#tally">below</a>), nothing you do leaves your browser unless you choose to send it (a suggestion, your
   email for new cases, or a review &mdash; all below). Your cases, scores, settings and training log are
   kept in your own browser's local storage on your own device. There is no account, and no
   server receives them. Clearing your browser data deletes them permanently; nobody can
@@ -83,6 +83,37 @@
   Anthropic or Google API key into Settings, it is held in your browser for that session
   only, never written to permanent storage, and never transmitted to us. Your browser sends
   it directly to the provider you chose. Closing the tab discards it.</p>
+
+  <h2 id="app">The iPhone, iPad and Mac app</h2>
+  <p>The app has no account and no sign-in, no advertising and no tracking. Your cases, scores and
+  settings are kept on your device, and deleting the app deletes them.</p>
+  <ul>
+    <li><strong>Microphone and speech.</strong> The app listens only while you hold the mic button.
+    What you say is turned into text on your device by Apple's speech recognition; on devices with
+    Apple Intelligence, the on-device model helps read an unclear order. The audio is not sent
+    anywhere.</li>
+    <li><strong>Case logs (off unless you turn them on).</strong> With <em>Share case logs</em> on,
+    each finished case sends a record of that case to a private log that only the author reads:
+    the orders given (and, for spoken orders, their text), their timing and how they were graded,
+    plus the app version, device model, system version and language. It carries no account, name,
+    email or device identifier, and it is used only to find and fix mistakes in the simulator.</li>
+    <li><strong>Suggestions.</strong> <em>Suggest an improvement</em> sends your note, with which case it was
+    and what happened in it, only when you press Send.</li>
+  </ul>
+  <p>The app does not add to the website's anonymous &ldquo;how many players saved this patient&rdquo; tally.</p>
+
+  <h2 id="tally">How many players saved each patient</h2>
+  <p>When you finish one of the open resuscitation cases, the site adds a single anonymous tally
+  so it can show, for example, &ldquo;38% of players saved this patient.&rdquo; The tally holds
+  exactly three things: <em>which case</em>, <em>whether the patient was saved</em>, and <em>the
+  tens digit of the score</em> (so 87 is stored as 8). It carries no account, name, email,
+  device identifier or anything you typed, and it is not linked to you or to your other cases.
+  Nobody &mdash; including us &mdash; can tell who played. The site only ever reads back the totals
+  for each case, and shows a percentage only once a case has been played at least 30 times.
+  This is a count of case outcomes, not analytics: nothing else about your visit is recorded.</p>
+  <p>The share card after a case (&ldquo;Can you save this patient?&rdquo;) is made on your own
+  device. It shows the case and your result, never your name, and it goes nowhere unless you
+  share it yourself.</p>
 
   <h2>Optional research logs</h2>
   <p>Settings contains a switch, <em>off by default</em>, for sharing de-identified case

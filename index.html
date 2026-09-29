@@ -11,13 +11,14 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-enoxfllQE5wNMMYQZnuUpeRWxNAfKrDTVQ+DOzsD0L8=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-anE7LZDPE4qTnCohwvs2wXvE5Qg2rP/WlncnjpgsM30=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
 <script src="instant-engine.js"></script>
 <script src="code-engine.js"></script>
 <script src="game-layer.js"></script>
+<script src="lib/badge-card.cjs"></script>
 <script src="runlog.js"></script>
 <script src="account.js"></script>
 <script src="order-intents.js"></script>
@@ -5749,7 +5750,10 @@ function renderDepartment(){
     </div>
     <div class="mb-5 space-y-2">
       <div class="text-[9px] font-black uppercase tracking-[.24em] text-slate-500">Achievement badges · ${gp.badges.length}</div>
-      <div class="flex flex-wrap gap-1.5">${gp.badges.map(id=>{const b=GameLayer.BADGES.find(x=>x.id===id);return b?`<span class="text-[10px] bg-slate-900 border border-fuchsia-800/60 rounded-full px-2.5 py-1" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}</span>`:'';}).join('')||'<span class="text-slate-600 text-xs">No badges yet — go save someone.</span>'}</div>
+      <div class="flex flex-wrap gap-1.5">${gp.badges.map(id=>{const b=GameLayer.BADGES.find(x=>x.id===id);if(!b) return '';
+        const share=isShareableBadge(b)?`<button data-share-badge="${esc(id)}" class="text-cyan-400 hover:text-cyan-200 font-black leading-none" title="Share this badge" aria-label="Share ${esc(b.name)} badge">⇪</button>`:'';
+        return `<span class="text-[10px] bg-slate-900 border border-fuchsia-800/60 rounded-full pl-2.5 pr-2 py-1 inline-flex items-center gap-1.5" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}${share}</span>`;}).join('')||'<span class="text-slate-600 text-xs">No badges yet — go save someone.</span>'}</div>
+      <div id="badgeShareBox" class="hidden text-[11px] leading-relaxed bg-slate-950/60 border border-cyan-900/50 rounded-xl px-3 py-2"></div>
       ${(gp.caseBadges||[]).length?`<details class="rounded-xl border border-amber-900/40 bg-amber-500/[.03] px-3 py-2">
         <summary class="cursor-pointer text-[10px] font-black uppercase tracking-widest text-amber-300">🏆 Case trophies · ${gp.caseBadges.length}</summary>
         <div class="flex flex-wrap gap-1.5 mt-2">${gp.caseBadges.map(b=>`<span class="text-[10px] bg-slate-950 border border-amber-700/50 rounded-full px-2.5 py-1" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}</span>`).join('')}</div>
@@ -5759,6 +5763,151 @@ function renderDepartment(){
   </div></div>`;
   $('deptBack').onclick=()=>renderSetup();
   main.querySelectorAll('.dept-tile').forEach(b=>b.onclick=()=>{ startGoldCaseById(b.dataset.gid); });
+  main.querySelectorAll('[data-share-badge]').forEach(btn=>{
+    const b=GameLayer.BADGES.find(x=>x.id===btn.dataset.shareBadge);
+    if(!b) return;
+    btn.addEventListener('click', e=>{ e.stopPropagation(); onShareBadgeClick(btn, b); });
+  });
+}
+
+// ---- SHARE A BADGE: a PNG generated on this device + a link back, nothing else. ----
+// Kim: nobody's name is ever published. The card is built entirely from data already
+// in this browser (BadgeCard.build, lib/badge-card.cjs — shared with the static badge
+// pages so layout can't drift between the two) and drawn to an offscreen canvas here;
+// this function never touches the network. A badge is shareable exactly when
+// BadgeCard.build/.parse accepts its id — that rule lives in one place (badge-card.cjs)
+// so it is asked, never re-implemented, here.
+function isShareableBadge(b){
+  try{ BadgeCard.parse(b); return true; }catch(_){ return false; }
+}
+
+// Art is a nice-to-have, not a requirement — a missing/renamed image file must cost
+// the card its picture, not cost the learner their download. .png first (the real art,
+// once drawn); .svg is the placeholder still in place for most badges today.
+function loadBadgeArt(key){
+  const tryLoad=src=>new Promise(resolve=>{
+    const img=new Image();
+    img.addEventListener('load', ()=>resolve(img));
+    img.addEventListener('error', ()=>resolve(null));
+    img.src=src;
+  });
+  return tryLoad('media/badge-'+key+'.png').then(img=>img || tryLoad('media/badge-'+key+'.svg'));
+}
+
+function wrapCanvasText(ctx, text, maxWidth){
+  const words=String(text==null?'':text).split(' ');
+  const lines=[]; let line='';
+  for(const w of words){
+    const test=line?line+' '+w:w;
+    if(line && ctx.measureText(test).width>maxWidth){ lines.push(line); line=w; }
+    else line=test;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+
+// Replays the shared builder's ops against a real canvas. This is the ONLY place that
+// knows how to draw an op — badge-card.cjs describes layout as data on purpose so this
+// stays the single spot where "rect" etc. become pixels.
+function drawBadgeCard(ctx, card, art){
+  for(const o of card.ops){
+    if(o.op==='rect'){
+      ctx.fillStyle=o.fill; ctx.fillRect(o.x, o.y, o.w, o.h);
+    }else if(o.op==='circle'){
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI*2);
+      if(o.fill){ ctx.fillStyle=o.fill; ctx.fill(); }
+      if(o.stroke){ ctx.strokeStyle=o.stroke; ctx.lineWidth=o.lineWidth||2; ctx.stroke(); }
+    }else if(o.op==='text'){
+      ctx.fillStyle=o.fill;
+      ctx.font=(o.weight||'normal')+' '+o.size+'px ui-sans-serif, system-ui, sans-serif';
+      ctx.textBaseline='alphabetic';
+      if(o.wrap){
+        const lines=wrapCanvasText(ctx, o.text, o.wrap);
+        lines.forEach((ln,i)=>ctx.fillText(ln, o.x, o.y+i*Math.round(o.size*1.25)));
+      }else{
+        ctx.fillText(o.text, o.x, o.y);
+      }
+    }else if(o.op==='image'){
+      // `art` is loaded once for the whole card, from the ONE image op's own `key`
+      // (shareBadge below); a missing/renamed file resolves to null rather than
+      // rejecting, and that is exactly the case this op's fallbackText is for — the
+      // op says what "missing" should still look like, so this function does not
+      // have to decide that on its own.
+      if(art){
+        if(o.round){
+          ctx.save();
+          ctx.beginPath();
+          ctx.ellipse(o.x+o.w/2, o.y+o.h/2, o.w/2, o.h/2, 0, 0, Math.PI*2);
+          ctx.clip();
+          ctx.drawImage(art, o.x, o.y, o.w, o.h);
+          ctx.restore();
+        }else{
+          ctx.drawImage(art, o.x, o.y, o.w, o.h);
+        }
+      }else if(o.fallbackText){
+        ctx.save();
+        ctx.fillStyle=o.fallbackFill||'#fff';
+        ctx.font='normal '+(o.fallbackSize||Math.round(o.h*0.6))+'px ui-sans-serif, system-ui, sans-serif';
+        ctx.textBaseline='middle'; ctx.textAlign='center';
+        ctx.fillText(o.fallbackText, o.x+o.w/2, o.y+o.h/2);
+        ctx.restore();
+      }
+    }
+  }
+}
+
+// Builds the card, draws it, downloads it as a PNG named after the badge id, and
+// returns the badge's public link so the caller can show it. No fetch, no XHR, no
+// Supabase — the picture never leaves this device except by the learner's own hand.
+async function shareBadge(badge){
+  const card=BadgeCard.build(badge, { date: localISO().slice(0,10) });
+  const key=BadgeCard.artKey(BadgeCard.parse(badge));
+  const art=await loadBadgeArt(key).catch(()=>null);
+  const canvas=document.createElement('canvas');
+  canvas.width=card.width; canvas.height=card.height;
+  const ctx=canvas.getContext('2d');
+  drawBadgeCard(ctx, card, art);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve, 'image/png'));
+  if(blob){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=badge.id+'.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+  return card.url;
+}
+
+async function onShareBadgeClick(btn, badge){
+  const prev=btn.textContent;
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const url=await shareBadge(badge);
+    showBadgeShareLink(url);
+  }catch(err){
+    toast('Could not build the share card: '+((err&&err.message)||err));
+  }finally{
+    btn.disabled=false; btn.textContent=prev;
+  }
+}
+
+function showBadgeShareLink(url){
+  const box=$('badgeShareBox'); if(!box) return;
+  box.classList.remove('hidden');
+  box.innerHTML=`<span class="text-slate-500">Card downloaded to this device. Link back to the badge: </span>`
+    +`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline decoration-dotted break-all">${esc(url)}</a> `
+    +`<button id="badgeShareCopy" class="text-cyan-400 hover:text-cyan-200 underline">Copy link</button>`;
+  $('badgeShareCopy').addEventListener('click', async ()=>{
+    try{ await navigator.clipboard.writeText(url); }
+    catch(_){
+      const ta=document.createElement('textarea');
+      ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(__){ }
+      ta.remove();
+    }
+    toast('Link copied');
+  });
 }
 
 // ===================== GOLD CASES (vetted seeds — instant, no model call) =====================
@@ -17448,6 +17597,125 @@ async function submitCaseSignup(form){
 if(typeof document !== 'undefined') document.addEventListener('submit', e => {
   if(e.target && e.target.id === 'caseSignup'){ e.preventDefault(); submitCaseSignup(e.target); }
 });
+// CAN YOU SAVE THIS PATIENT? Kim, 2026-09-28: a card a player shares after a case, a link that opens
+// that exact case, and how many players saved the patient. Chose "count anonymously": each finished
+// PUBLIC case adds ONE tally row — the case, saved or not, the score's tens digit — and nothing else:
+// no account, no name, no device id, no free text (privacy.html says so). The table is insert-only;
+// the page reads back only per-case totals (case_save_rates), and shows a rate only from
+// TALLY_MIN_PLAYS plays, so early numbers never claim more than they know. Kim's own machine and the
+// tests (localHost) never count.
+const TALLY_MIN_PLAYS = 30;
+function tallyCase(caseId, saved, score){
+  if(!isPublicCase(caseId) || localHost() || !SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+  const band = Math.max(0, Math.min(10, Math.floor((Number(score) || 0) / 10)));
+  try{
+    fetch(SUPABASE_URL + '/rest/v1/case_tally', { method: 'POST', keepalive: true,
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ case_id: caseId, saved: !!saved, score_band: band }) }).catch(() => {});
+  }catch(_){ }
+  return true;
+}
+let _saveRates = null;
+function saveRates(){
+  if(_saveRates) return _saveRates;
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return (_saveRates = Promise.resolve({}));
+  _saveRates = fetch(SUPABASE_URL + '/rest/v1/rpc/case_save_rates', { method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, body: '{}' })
+    .then(r => r.ok ? r.json() : []).then(rows => { const m = {};
+      (Array.isArray(rows) ? rows : []).forEach(r => { if(r && r.case_id) m[r.case_id] = { plays: Number(r.plays) || 0, saves: Number(r.saves) || 0 }; });
+      return m; })
+    .catch(() => { _saveRates = null; return {}; });
+  return _saveRates;
+}
+function saveRateLine(rate){
+  if(!rate || !(rate.plays >= TALLY_MIN_PLAYS)) return null;
+  return Math.round(100 * rate.saves / rate.plays) + '% of players saved this patient';
+}
+function caseLink(id){ return BadgeCard.SITE + '/?c=' + BadgeCard.caseCode(id); }
+function challengeHTML(died){
+  if(!isPublicCase(S.goldId) || typeof BadgeCard === 'undefined') return '';
+  return `<div id="challengeBox" class="bg-cyan-950/30 border border-cyan-800/50 rounded-2xl p-5 space-y-3">
+    <div>
+      <div class="text-base font-bold text-white">${died ? 'Think someone else could save this patient?' : 'Challenge a friend: can they save this patient?'}</div>
+      <div class="text-xs text-slate-400 mt-0.5">A picture of your result and a link that opens this exact case. Made on this device — no name on it.</div>
+      <div id="challengeRate" class="text-xs text-cyan-300/90 mt-1 min-h-[1em]"></div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button id="challengeShare" class="min-h-[44px] px-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-sm font-bold text-white">Share this case</button>
+      <button id="challengeCopy" class="min-h-[44px] px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-500 text-sm font-bold text-slate-200">Copy link</button>
+    </div>
+    <div id="challengeMsg" class="text-[11px] text-slate-500 min-h-[1em] break-all" role="status" aria-live="polite"></div>
+  </div>`;
+}
+// What goes on the card: the case's own title and patient (never the diagnosis), this run's result.
+function challengeCardInput(died, score, met, missed, rateLine){
+  const seed = (_gold || []).find(c => c.id === S.goldId) || S.caseSeed || {};
+  let rank = null; try{ rank = gameProgress().level.title; }catch(_){ }
+  const nMet = (met || []).length, nAll = nMet + (missed || []).length;
+  return { caseId: S.goldId, title: seed.title || '', patient: seed.patient || S.patient || {}, saved: !died,
+    score, met: nAll ? nMet : undefined, total: nAll || undefined, hints: (S.hintsUsed || []).length, rateLine, rank };
+}
+async function shareChallenge(died, score, met, missed){
+  const rate = saveRateLine((await saveRates())[S.goldId]);
+  const card = BadgeCard.buildCase(challengeCardInput(died, score, met, missed, rate));
+  const canvas = document.createElement('canvas'); canvas.width = card.width; canvas.height = card.height;
+  drawBadgeCard(canvas.getContext('2d'), card, null);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  const text = 'Can you save this patient? ' + card.url;
+  // A phone shares the picture itself (Messages, Instagram, WhatsApp…); a computer saves it and shows the link.
+  try{
+    const file = blob && typeof File !== 'undefined' ? new File([blob], 'medisim-' + S.goldId + '.png', { type: 'image/png' }) : null;
+    if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({ files: [file], title: 'Can you save this patient?', text });
+      return { shared: true, url: card.url };
+    }
+  }catch(err){ if(err && err.name === 'AbortError') return { shared: false, cancelled: true, url: card.url }; }
+  if(blob){
+    const href = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = href; a.download = 'medisim-' + S.goldId + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+  }
+  return { shared: false, downloaded: !!blob, url: card.url };
+}
+function wireChallenge(died, score, met, missed){
+  const box = $('challengeBox'); if(!box) return;
+  const msg = $('challengeMsg');
+  saveRates().then(m => { const line = saveRateLine(m[S.goldId]); const el = $('challengeRate'); if(el && line) el.textContent = line + '.'; });
+  $('challengeShare').onclick = async () => {
+    const b = $('challengeShare'); b.disabled = true;
+    try{
+      const r = await shareChallenge(died, score, met, missed);
+      if(msg) msg.textContent = r.shared ? 'Shared.' : r.cancelled ? '' : 'Picture saved to this device. Link: ' + r.url;
+    }catch(err){ if(msg) msg.textContent = 'Could not make the picture — the link still works: ' + caseLink(S.goldId); }
+    finally{ b.disabled = false; }
+  };
+  $('challengeCopy').onclick = async () => {
+    const url = caseLink(S.goldId);
+    try{ await navigator.clipboard.writeText('Can you save this patient? ' + url); if(msg) msg.textContent = 'Link copied: ' + url; }
+    catch(_){ if(msg) msg.textContent = url; }
+  };
+}
+// …and the other end of the link: ?c=<code> (BadgeCard.caseCode — never the id, which names the
+// diagnosis) opens that case straight away. ?case=<id> also works, for Kim. Public cases for everyone;
+// anything else only for the owner, and otherwise the usual "still in progress" line.
+async function openCaseFromLink(){
+  let code = null, id = null;
+  try{ const q = new URLSearchParams(location.search); code = q.get('c'); id = q.get('case'); }catch(_){ }
+  if(code && !/^[a-z0-9]{1,8}$/.test(code)) code = null;
+  if(id && !/^[a-z0-9-]{1,80}$/.test(id)) id = null;
+  if(!code && !id) return false;
+  // A reload goes home, not back into the case — so take OUR parameters out, and only ours (?visitor=1 and the
+  // like stay: the page reads them later).
+  try{ const q = new URLSearchParams(location.search); q.delete('c'); q.delete('case');
+       const rest = q.toString(); history.replaceState(history.state, '', location.pathname + (rest ? '?' + rest : '') + location.hash); }catch(_){ }
+  await initGold();
+  if(S.stage !== 'setup') return false;
+  const seed = (_gold || []).find(c => code ? BadgeCard.caseCode(c.id) === code : c.id === id);
+  if(!seed) return false;
+  startGoldCaseById(seed.id);
+  return true;
+}
 // REVIEWS. Kim, 2026-09-26: "on the website, plead user to leave their name and positive
 // reviews at the end of the cases". The first ask on the debrief, above the email sign-up:
 // a name, an optional role and star rating, a few words, and a box — unticked until they
@@ -17764,6 +18032,7 @@ function renderDebrief(){
     reviewCaseEnded();   // a fresh review form for this case, and one of "Not now"'s cases spent
     let gpBefore=null; try{ gpBefore=gameProgress(); }catch(_){ }
     saveCaseLog(score, missed, died, d); usageCaseEnd();
+    tallyCase(S.goldId, !died, score);
     S.gameDiff=null;
     try{ if(gpBefore) S.gameDiff=GameLayer.diffProgress(gpBefore, gameProgress()); }catch(_){ }
   }
@@ -17790,6 +18059,7 @@ function renderDebrief(){
         <div class="text-lg font-bold text-white mt-1">${esc(d.outcome||'Case complete')}</div>
         <div id="debriefDeep" class="text-[11px] mt-2 h-4"></div>
       </div>
+      ${challengeHTML(died)}
       ${caseReviewHTML(died)}
       ${caseSignupHTML()}
       ${debriefQuickSummaryHTML(d,met,missed)}
@@ -17856,6 +18126,7 @@ function renderDebrief(){
   if($('mentorBtn')) $('mentorBtn').onclick=()=>{ S.mentor ? speakSegments(S.mentor.speech, true) : runMentor(); };
   renderMentorPanel(S.mentorBusy?'busy':S.mentor?'done':'idle');   // deep re-grade re-renders this screen — keep the mentor's work
   if(keepTop){ const sc = $('debriefScroll'); if(sc) sc.scrollTop = keepTop; }
+  try{ wireChallenge(died, score, met, missed); }catch(_){ }
   if(keepFocus){ const el = $(keepFocus.id);
     if(el){ try{ el.focus({ preventScroll: true }); }catch(_){ }
       try{ if(keepFocus.s != null && el.setSelectionRange) el.setSelectionRange(keepFocus.s, keepFocus.e); }catch(_){ } } }
@@ -18627,6 +18898,7 @@ if(PUBLIC_BUILD){
 }
 autoBestTier();   // pick the best cascade rung at load (async — badge refreshes when done)
 renderSetup();
+openCaseFromLink().catch(() => {});   // a shared "can you save this patient?" link opens its case
 loadKnowledge();   // async — repaints the perf strip when the profile arrives
 // Restore a session if there is one, or finish a sign-in that is coming back. supabase-js
 // exchanges the ?code= and strips it from the URL itself; what is handled here is the two
