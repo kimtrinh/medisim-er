@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-phBxMtQ4FbMVhgC7ZlOsXgT40DhGQsqbe5p6yJIx4jg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-+Nb1yXApsGYpf3qGS9diXQoxa6KLjvBnI8nSpSdqomU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3568,7 +3568,7 @@ async function generateCase(userContent, hint, label){
     return;
   }
   setLoading(true, hint || 'Generating case…');
-  S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.gameDiff=null; S.gjFxDone=false;
+  S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.reviewSpoken=false; S.gameDiff=null; S.gjFxDone=false;
   S.rhythmCalled=false; S._rhythmSeen=null;   // a new patient is a new strip to read
   await autoBestTier();   // case boundary: climb back to the best engine (Gemini first)
   usageCaseStart();   // snapshot the request count → measures true calls-per-case
@@ -9923,7 +9923,7 @@ async function loadGoldCase(seed, opts){
   hideCaseLocked();   // a line from an earlier refused click is not about this case
   S.blind = !!(opts && opts.blind);
   try{ stopSpeak(); }catch(_){ }
-  S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.gameDiff=null; S.gjFxDone=false;
+  S.mentor=null; S.mentorBusy=false; S.caseLogged=false; S.reviewSpoken=false; S.gameDiff=null; S.gjFxDone=false;
   S.rhythmCalled=false; S._rhythmSeen=null;   // a new patient is a new strip to read
   await autoBestTier();   // case boundary: climb back to the best engine BEFORE snapshotting usage — otherwise usageCaseStart is gated on the stale tier and the calls-per-case EMA corrupts. Fast (no network) when a hosted key is set.
   usageCaseStart();
@@ -18140,6 +18140,77 @@ function medReviewHTML(d){
     </div>`; }).join('')}
     </div></div>`;
 }
+// THE REVIEWER SPEAKS AT THE END OF EVERY CASE. Kim, 2026-09-30: "When the case is done for the
+// website and iOS app. Even if case has failed. It should trigger a debrief by an audio reviewer."
+// The attending's voice (the 'mentor' role) says, in about half a minute: what this was, how it
+// went, what was done well, what to work on, and one thing to remember — read off the debrief
+// the screen shows, so the two never disagree. Deterministic, no model, no key: the same on the
+// free site, in Instant Mode and in the app (apple/tools/build-page-bundle.cjs extracts this
+// function, and the app's debrief frame carries its lines). A death is reviewed like any other
+// case, gently: it is where the most is learnt.
+function debriefReviewLines(d, ctx){
+  d = d || {}; ctx = ctx || {};
+  // Written shorthand, said the way an attending says it.
+  const plain = s => String(s == null ? '' : s)
+    .replace(/\s*\([^)]*\)/g, '')              // parentheses read badly aloud
+    .replace(/\bHR\b/g, 'heart rate').replace(/\bSBP\b/g, 'systolic').replace(/\bDBP\b/g, 'diastolic')
+    .replace(/\bBP\b/g, 'blood pressure').replace(/\bRR\b/g, 'respiratory rate').replace(/\s*mm ?Hg\b/gi, '')
+    .replace(/\s*≤\s*/g, ' at most ').replace(/\s*≥\s*/g, ' at least ').replace(/\s*<\s*(?=\d)/g, ' under ').replace(/\s*>\s*(?=\d)/g, ' over ')
+    .replace(/~\s*/g, 'about ').replace(/(\d)\s*-\s*(\d)/g, '$1 to $2').replace(/\s*\/\s*/g, ' or ')
+    .replace(/[—–]/g, ', ').replace(/\s+/g, ' ').replace(/\s+([,.;:])/g, '$1').trim();
+  // One spoken item: the first clause, never a paragraph.
+  const clip = (s, n) => {
+    let t = plain(s); const max = n || 150;
+    if(t.length > max){ const cut = t.slice(0, max); const at = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('; '), cut.lastIndexOf(', '));
+      t = (at > 40 ? cut.slice(0, at) : cut.replace(/\s+\S*$/, '')); }
+    return t.replace(/[.;:,\s]+$/, '');
+  };
+  // Mid-sentence, an item starts lower case — unless it starts with a short form (ECG, CT, IV).
+  const lower1 = s => (!s || /^[A-Z]{2}/.test(s)) ? s : s.charAt(0).toLowerCase() + s.slice(1);
+  const list = arr => { arr = arr.map(lower1);
+    return arr.length <= 1 ? (arr[0] || '') : arr.slice(0, -1).join('; ') + '; and ' + arr[arr.length - 1]; };
+  const asList = x => (Array.isArray(x) ? x : (x == null || x === '' ? [] : [x])).flatMap(v => String(v).split(/\r?\n+/))
+    .map(s => s.replace(/^\s*(?:[-•*]|\d+[.)])\s+/, '').trim()).filter(Boolean);
+  const met = asList(d.criticalActionsMet || d.met), missed = asList(d.criticalActionsMissed || d.missed);
+  const score = Math.round(Number(d.score) || 0);
+  const died = ctx.died != null ? !!ctx.died : /died|death|deceased|expired|did not survive|succumbed/i.test(String(d.outcome || ''));
+  const dx = clip(String(ctx.diagnosis || '').split(/[,;:]| - /)[0], 90);
+  const lines = [];
+  lines.push(died
+    ? `Case review. The patient didn't survive this one — and that's exactly why we practise it here.${dx ? ' This was ' + dx + '.' : ''}`
+    : `Case review.${dx ? ' This was ' + dx + '.' : ''} You scored ${score} out of 100${score >= 85 ? ' — well done' : ''}.`);
+  if(died){
+    lines.push(`Your score was ${score} out of 100.`);
+    // The event that killed the patient is the last bad one, not the first warning.
+    const why = (Array.isArray(d.criticalEvents) ? d.criticalEvents : []).filter(e => e && e.type === 'negative' && e.feedback).pop();
+    if(why) lines.push(clip(why.feedback, 200) + '.');
+  }
+  const total = met.length + missed.length;
+  if(total){
+    if(met.length) lines.push(`You got ${met.length} of the ${total} critical actions. Done well: ${list(met.slice(0, 2).map(s => clip(s, 90)))}.`);
+    else lines.push(`None of the ${total} critical actions were done this time.`);
+    if(missed.length){
+      const shown = missed.slice(0, 3).map(s => clip(s, 110));
+      lines.push(`To work on: ${list(shown)}${missed.length > 3 ? ` — and ${missed.length - 3} more on your screen` : ''}.`);
+    } else lines.push(`You didn't miss a single one.`);
+  }
+  // A live code's own quality rows (compressions, shock timing, epinephrine): the first one missed.
+  const cq = d.codeQuality && Array.isArray(d.codeQuality.rows) ? d.codeQuality.rows.find(r => r && !r.ok && (r.teach || r.detail)) : null;
+  if(cq) lines.push(`On the resuscitation itself: ${lower1(clip(cq.teach || cq.detail, 160))}.`);
+  const lp = asList(ctx.learningPoints)[0];
+  if(lp) lines.push(`One thing to remember: ${lower1(clip(lp, 170))}.`);
+  lines.push(died ? `The full review is on your screen. Take a look, and try it again.` : `The full review is on your screen.`);
+  return lines.map(s => s.replace(/\.\.+$/, '.').replace(/\s+/g, ' ').trim()).filter(Boolean);
+}
+// Once per case, when the debrief first appears — after anything still being said (the death line,
+// the consultant taking the patient), because speakSegments queues behind a line in progress. Mute
+// (S.tts off) silences it; the Hear the review button plays it anyway, as Replay does.
+function speakDebriefReview(force){
+  const died = /died|death|deceased|expired|did not survive|succumbed/i.test(String((S.debrief || {}).outcome || ''));
+  const lines = debriefReviewLines(S.debrief, { diagnosis: S.diagnosis, died, learningPoints: S.learningPoints });
+  if(!lines.length) return;
+  speakSegments(lines.map(text => ({ speaker: 'mentor', text })), !!force);
+}
 function renderDebrief(){
   hideTypeahead();
   const d=S.debrief||{}; const score=Math.round(d.score||0);
@@ -18193,6 +18264,7 @@ function renderDebrief(){
         ${isValidation(S.goldId) ? '' : `<div class="mt-2 text-[11px] text-amber-300/90">Experimental case — the grading here has not been verified yet. The five proven cases are listed first on the start screen.</div>`}
         <div class="text-lg font-bold text-white mt-1">${esc(d.outcome||'Case complete')}</div>
         <div id="debriefDeep" class="text-[11px] mt-2 h-4"></div>
+        <button id="hearReview" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200">🔊 Hear the review</button>
       </div>
       ${challengeHTML(died)}
       ${caseReviewHTML(died)}
@@ -18259,6 +18331,9 @@ function renderDebrief(){
   // /analyze-runs — it never changes the score or the display of this debrief.
   main.querySelectorAll('.msFlag').forEach(btn => { btn.onclick = () => openFlagPanel(btn); });
   if($('mentorBtn')) $('mentorBtn').onclick=()=>{ S.mentor ? speakSegments(S.mentor.speech, true) : runMentor(); };
+  if($('hearReview')) $('hearReview').onclick=()=>speakDebriefReview(true);
+  // The reviewer, once per case — never again on a deep re-grade's repaint.
+  if(!S.reviewSpoken){ S.reviewSpoken=true; try{ speakDebriefReview(false); }catch(_){ } }
   renderMentorPanel(S.mentorBusy?'busy':S.mentor?'done':'idle');   // deep re-grade re-renders this screen — keep the mentor's work
   if(keepTop){ const sc = $('debriefScroll'); if(sc) sc.scrollTop = keepTop; }
   try{ wireChallenge(died, score, met, missed); }catch(_){ }
