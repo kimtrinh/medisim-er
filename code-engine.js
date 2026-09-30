@@ -2618,6 +2618,7 @@ function checkConversion(state, script, action){
     if(r.nth != null && state.drugs.filter(d => d.name === action && !d.under && !d.infusion).length !== r.nth) continue;
     if(r.requires && !r.requires.every(k => hasAction(state, k))) continue;
     if(r.to === 'ROSC') return achieveRosc(state, script, action);
+    const fromRhythm = state.rhythm;
     setRhythm(state, r.to);
     // `pulse` is a deliberate authoring decision, never a side effect. It used to
     // default to TRUE, so a row written to say "nothing changed" — amiodarone in
@@ -2640,7 +2641,14 @@ function checkConversion(state, script, action){
     if(r.ends){ state.ended = r.ends; state.pendingQuestion = null; state.charged = null; state.syncMode = false; }
     // The author writes what the nurse says. Without this, every conversion — and
     // every deliberate NON-conversion — came out as the same flat sentence.
-    return [ev(state, 'convert', r.text || ('Rhythm is now ' + rhythmName(r.to) + '.'), { via: action })];
+    // ADENOSINE IS SEEN TO WORK (Kim, 2026-09-29: "When I give adenosine there should be a brief sinus
+    // pause"). The monitor draws the pause (the page's ecgAdenosine); the nurse says what it showed, so
+    // the pause is heard as well as seen — a dose that does not break the rhythm still blocks the node
+    // for a moment, and that moment is how the doctor knows the drug reached the heart.
+    const adenosineLine = action !== 'adenosine' ? null
+      : r.to === fromRhythm ? 'Flat for a second or two… and the ' + rhythmName(r.to) + ' is back. That dose didn\u2019t hold it.'
+      : 'Pause — flat line on the monitor… there\u2019s a P wave — ' + rhythmName(r.to) + (r.hr != null ? ' at ' + r.hr : '') + '.';
+    return [ev(state, 'convert', r.text || adenosineLine || ('Rhythm is now ' + rhythmName(r.to) + '.'), { via: action })];
   }
   return [];
 }

@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-vzLK5T5XXDA1KQjGVy3kH7dPv7YuQjnKbFX8JR5JCFk=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-phBxMtQ4FbMVhgC7ZlOsXgT40DhGQsqbe5p6yJIx4jg=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -5034,11 +5034,16 @@ let _ecgFit=null;
 // consumed by the next waveform sample.
 let _ecgShockPending = false;
 function ecgShock(){ _ecgShockPending = true; }
-// Adenosine earns a different monitor moment from a shock: a very short AV pause,
-// followed by the newly converted rhythm. Raised only by an engine conversion event,
+// Adenosine earns a different monitor moment from a shock: a transient AV block — a flat
+// pause — followed by the rhythm the dose left. Raised only by an engine conversion event,
 // never by merely seeing the word "adenosine" in an order.
-let _ecgAdenosinePending = false;
-function ecgAdenosine(){ _ecgAdenosinePending = true; }
+// Kim, 2026-09-29: "When I give adenosine there should be a brief sinus pause." There was
+// one, half a second long — gone before the eye found it, with the beeps carrying on
+// through it. A dose that breaks the SVT now pauses ~3.5 s (the few seconds of asystole a
+// learner is taught to expect, and not to panic at); one that does not, ~1.5 s of block
+// before the SVT marches on. Silent, pulseless on the pleth, for exactly that long.
+let _ecgAdenosinePending = 0;
+function ecgAdenosine(sec){ _ecgAdenosinePending = sec || 3.5; }
 function startECG(canvas, pleth, capno){
   cancelAnimationFrame(ecgRAF);
   if(_ecgFit){ _ecgFit(); _ecgFit=null; }   // the previous case's observers go with it
@@ -5052,7 +5057,7 @@ function startECG(canvas, pleth, capno){
   let dispW=1, dispH=1, plDispW=1, plDispH=1, capDispW=1, capDispH=1; // cached box sizes
   let t=0, rPeaks=[], nextR=0.25, aP=[], nextAP=0;   // ventricular beats + independent atrial P (for CHB)
   let _beatN=0;   // beat counter: drives the Wenckebach cycle, the 2:1 drop and the torsades envelope
-  let shockT=-1, adenosineT=-1;  // trace time of the last electrical/drug interruption
+  let shockT=-1, adenosineT=-1, adenosineLen=0;  // trace time of the last electrical/drug interruption
   function rr(type,hr){ const base=60/Math.max(20,hr); return type==='afib'? base*(0.5+Math.random()*1.0) : base; }
   function drawGrid(cx,W,H){ cx.strokeStyle='rgba(226,232,240,.05)'; cx.lineWidth=1;
     for(let x=0;x<W;x+=20){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
@@ -5114,19 +5119,20 @@ function startECG(canvas, pleth, capno){
       else if(d<0.85) y = 0.015*Math.sin(t*37);                    // stunned: near-flat
       else shockT=-1;
     }
-    if(!quiet && _ecgAdenosinePending){ _ecgAdenosinePending=false; adenosineT=t; }
+    if(!quiet && _ecgAdenosinePending){ adenosineLen=_ecgAdenosinePending; _ecgAdenosinePending=0; adenosineT=t; }
     if(adenosineT>=0){
       const d=t-adenosineT;
       // A transient AV pause, not an alarming prolonged flatline. The engine has
       // already changed S.shown.rhythm, so sinus complexes naturally follow it.
       if(d<0.08) y=.42*Math.exp(-Math.pow((d-.035)/.018,2));
-      else if(d<0.58) y=.008*Math.sin(t*24);
+      else if(d<adenosineLen) y=.008*Math.sin(t*24);
       else adenosineT=-1;
     }
     ecgBuf.push(y); while(ecgBuf.length>bufW) ecgBuf.shift();
     // beep on each new QRS as it passes 'now' — a primed backlog is history, not news,
     // so it is marked heard rather than replayed as a burst of beeps at case open.
-    for(const b of rPeaks){ if(!b.beeped && t>=b.t){ b.beeped=true; if(!quiet) beep(v.o2); } }
+    // A beat inside the adenosine pause is not drawn, so it is not heard either.
+    for(const b of rPeaks){ if(!b.beeped && t>=b.t){ b.beeped=true; if(!quiet && !(adenosineT>=0 && t-adenosineT<adenosineLen)) beep(v.o2); } }
     // periodic critical alarm
     if(!quiet && vitalsCritical() && t-_alarmAt>7){ _alarmAt=t; alarmTones(); }
     // SpO2 pleth
@@ -5137,7 +5143,7 @@ function startECG(canvas, pleth, capno){
                  : (type==='vfib'||type==='asystole'||type==='pea'||type==='agonal')?0
                  : (type==='vtach'||type==='torsades')?0.4 : 1;
       let p=0;
-      if(perf>0) for(const b of rPeaks){ const x=t-b.t-0.18; if(x>=0&&x<0.85){
+      if(perf>0) for(const b of rPeaks){ if(adenosineT>=0 && b.t>=adenosineT && b.t-adenosineT<adenosineLen) continue; const x=t-b.t-0.18; if(x>=0&&x<0.85){
         const up = x<0.13 ? x/0.13 : Math.exp(-(x-0.13)*2.4);
         const notch = 0.13*Math.exp(-Math.pow((x-0.32)/0.05,2));
         p=Math.max(p,(up+notch)*perf); } }
@@ -6474,8 +6480,14 @@ function onCodeEvents(events){
   if(evs.some(e => e.kind === 'check' && e.autoCharge) && !evs.some(e => e.kind === 'shock' || e.kind === 'cardiovert')
      && S.code && codeChargePending(S.code))
     roomDefib('charge');
-  const adenosineConverted=evs.some(e => e.kind==='convert' && e.via==='adenosine');
-  if(adenosineConverted){ ecgAdenosine(); showMonitorResponse('AV pause → sinus rhythm'); startRoomResponse('adenosine',1800); }
+  const adenosineEv=evs.find(e => e.kind==='convert' && e.via==='adenosine');
+  if(adenosineEv){
+    // Did it break? The engine has already moved the rhythm: still SVT means the block passed and it came back.
+    const broke = !(S.code && /^(SVT|AF|flutter)$/i.test(String(S.code.rhythm||'')));
+    ecgAdenosine(broke ? 3.5 : 1.5);
+    showMonitorResponse(broke ? 'AV block · pause → sinus rhythm' : 'Brief AV block — SVT resumed');
+    startRoomResponse('adenosine',1800);
+  }
   // Starting a pacer is not the same thing as capture. The cue is earned only after
   // checkConversion has changed the engine to a perfusing paced rhythm.
   if(evs.some(e => e.kind === 'pacing')){
@@ -8410,6 +8422,8 @@ async function instantTurn(action){
      // filed as an order nobody understood.
      dxCatalog: await loadDxCatalog(),
      consultGate: (await loadConsultGates())[S.goldId] || null,
+     caseId: S.goldId || null,   // which teams take this case (instant-engine ALSO_TAKES)
+     patientAge: (S.patient && S.patient.age != null) ? S.patient.age : null,   // who can say it hurts (painCallout)
      // A case may name more than one right answer (cases-gold "diagnosisAlso"). S.diagnosis
      // stays the single string everything DISPLAYS; the grader gets the whole list.
      diagnosis: (S.diagnosisAlso && S.diagnosisAlso.length) ? [S.diagnosis, ...S.diagnosisAlso] : S.diagnosis,

@@ -950,6 +950,66 @@ function creditConsultAdmission(pack, state, criticalActions){
     if(ADMIT_CA_RE.test(t) && !/\bdischarg/i.test(t) && !state.satisfied.includes(r.satisfies)) state.satisfied.push(r.satisfies);
   }
 }
+// THE WRONG SERVICE SAYS WHO TO CALL. Kim, 2026-09-29, aortic dissection: "If a consultant
+// cannot take on this case, it should tell me who else to call." Vascular surgery on a type A
+// dissection used to ask for the diagnosis and then AGREE — and could even take the patient —
+// though the case's only surgeons are cardiothoracic. The services that take a case are read
+// off the case itself: its consult responders' named services, and its authored consult gate.
+// Support roles (pharmacy, RT, social work, radiology, poison control…) are never told to
+// redirect — they help on any case — and a case with no named taking service says nothing.
+const SUPPORT_SERVICES = new Set(['pharmacy','respiratory therapy','child life','chaplain','ethics',
+  'poison control','toxicology','pathology','blood bank','radiology','interventional radiology','social work',
+  'adult protective services','child protective services','case management','palliative care','anesthesia',
+  'surgery','medicine','icu','intensive care','intensivist','hospitalist','internal medicine',
+  // the admitting team for any child: never "not one for us"
+  'pediatrics']);
+// Teams that plainly take a case but that its authored consult responders never name — without
+// these, calling them would be told "not one for us". Kept short and visible for Kim to extend.
+const ALSO_TAKES = {
+  'neuro-thunderclap-headache-secondary': ['neurosurgery'],    // pituitary apoplexy
+  'resp-tension-ptx': ['cardiothoracic surgery'],
+  'trauma-blunt-chest-injury': ['cardiothoracic surgery'],
+  'tox-acetaminophen': ['gastroenterology'],                    // hepatology / transplant
+  'eb-acute-liver-failure': ['general surgery'],                // transplant surgery
+  'cv-massive-pe': ['pulmonology', 'cardiothoracic surgery'],   // PERT, embolectomy
+  'cv-submassive-pe': ['cardiothoracic surgery'],
+  'resus-acls-pea-tension': ['general surgery'],
+  'eb-hypokalemia': ['nephrology'],
+};
+function caseServices(pack, opts){
+  const out = [];
+  const add = s => { if(s && !out.includes(s)) out.push(s); };
+  const extra = ALSO_TAKES[(opts && opts.caseId) || (pack && pack._caseId)] || [];
+  if(opts && opts.consultGate && opts.consultGate.service) add(String(opts.consultGate.service).toLowerCase());
+  for(const r of (pack && pack.responders) || []){
+    if(r.intent !== 'consult') continue;
+    const aliasText = ((r.match && r.match.any) || []).map(a => normalize(a)).join(' | ');
+    const named = CONSULT_SERVICES.filter(s => namesService(aliasText, s) && !SUPPORT_SERVICES.has(s))
+      .sort((a, b) => b.length - a.length);
+    // "cardiothoracic surgery" and "surgery" both name the dissection's surgeons: keep the longest.
+    if(named.length) add(named[0]);
+  }
+  // Extras only widen who may take the case; they are never the team a wrong service names.
+  return Object.assign(out, { extra });
+}
+// Wider than SERVICE_FAMILY (which decides credit, and must stay narrow): for "is this the same
+// team", the trauma service and the general surgeons are one, as are the two cardiologies.
+const REDIRECT_FAMILY = { 'trauma':'gensurg', 'trauma surgery':'gensurg', 'general surgery':'gensurg',
+  'pediatric cardiology':'cardio', 'cardiology':'cardio' };
+// Services that help on any case but never take the patient themselves.
+const NON_ADMITTING = new Set(['pharmacy','respiratory therapy','child life','chaplain','ethics','poison control',
+  'pathology','blood bank','radiology','interventional radiology','social work','adult protective services',
+  'child protective services','case management','palliative care','anesthesia','dental','dermatology']);
+const familyOf = s => REDIRECT_FAMILY[s] || SERVICE_FAMILY[s] || s;
+// The line, or null when this service is one the case takes (or cannot be judged).
+function wrongServiceLine(svc, pack, opts){
+  if(!svc || SUPPORT_SERVICES.has(svc) || !CONSULT_SERVICES.includes(svc)) return null;
+  const right = caseServices(pack, opts);
+  if(!right.length || right.concat(right.extra || []).some(s => familyOf(s) === familyOf(svc) || namesService(s, svc) || namesService(svc, s))) return null;
+  const Svc = svc.charAt(0).toUpperCase() + svc.slice(1);
+  const who = right.slice(0, 2).join(' and ');
+  return `${Svc} — I've looked at the chart, and this patient isn't one for us. You want ${who}; give them a call.`;
+}
 // What an ungated consultant says once they agree with the diagnosis. Either they take the
 // patient now (state.consultTakes, and the turn ends the case), or they say what they are
 // waiting for — never WHICH treatment, which would read the checklist aloud.
@@ -2513,8 +2573,19 @@ function fallbackFor(clause, opts, state, pack, rawClause, withheld, lineFlags){
     const neuroConcern = !accepted && /neurosurg/i.test(svc) && onChart.some(a =>
       /\b(head (?:injury|trauma)|traumatic brain injury|tbi|intracranial (?:bleed|ha?emorrhage)|brain bleed)\b/i.test(a.text || a.clause || ''));
     let line;
-    if(neuroConcern){
+    const redirect = neuroConcern ? null : wrongServiceLine(svc, pack, opts);
+    if(redirect){
+      // Nothing is waited for: this service is not taking the patient, so the diagnosis box
+      // must not pulse on its behalf.
+      line = redirect;
+      if(state && state.consultWaiting && state.consultWaiting.service === svc) state.consultWaiting = null;
+    } else if(neuroConcern){
       line = `${Svc} — your head-injury concern is documented. Send the neurological examination and available head imaging for review. This acknowledges the referral, not confirmation of a diagnosis.`;
+      if(state) state.consultWaiting = null;
+    } else if(accepted && NON_ADMITTING.has(svc)){
+      // Pharmacy agreed "and we'll take the patient" (2026-09-29): a helping service agrees and
+      // helps; it never admits, never ends the case, and waits for nothing.
+      line = `${Svc} — agreed, that fits the chart. We'll help from our side; the team taking the patient still needs a call.`;
       if(state) state.consultWaiting = null;
     } else if(accepted){
       line = consultAgreeLine(Svc, pack, state, opts);
@@ -3803,6 +3874,49 @@ function buildDebrief(pack, state, opts, outcome){
 const ORDER_FRAGMENT = /^(drip|gtt|and|then|also|too|stat|now|please|iv|po|im|sq|it|that|this|one|two|both|plus|with)$/i;
 function isOrderFragment(text){ return ORDER_FRAGMENT.test(String(text == null ? '' : text).trim()); }
 
+// THE PATIENT SAYS IT HURTS. Kim, 2026-09-29, aortic dissection: "The patient should state that
+// they are in pain otherwise I don't know if they need pain medication." A case is a painful one
+// when its pack carries an analgesia order (the author expected pain relief); its patient, if
+// they can talk (the pack gives them lines, they are past infancy, not intubated, not arrested),
+// says so on the second turn and every few turns after, until something for the pain goes in —
+// then, once, that it is helping. Never on a turn the patient already spoke, so it cannot talk
+// over an answer. Deterministic: the turn number picks the line.
+const ANALGESIA_ALIAS_RE = /\b(analgesi\w*|pain (?:control|relief|med\w*|management)|treat (?:the )?pain|manage pain|control pain)\b/i;
+const ANALGESIC_GIVEN_RE = /\b(analgesi\w*|morphine|fentanyl|hydromorphone|dilaudid|ketorolac|toradol|ketamine|oxycodone|acetaminophen|paracetamol|tylenol|ibuprofen|motrin|nerve block|pain (?:control|relief|med\w*)|opioids?|narcotics?)\b/i;
+const PAIN_TURNS = [2, 5, 9, 14, 20];
+function painCallout(pack, state, out, opts, rawNorm){
+  if(!pack || !state || state.painSaidBetter) return;
+  if(state.painfulCase == null)
+    // …but not sedation for a painful PROCEDURE (pacing, cardioversion): those patients are not
+    // in pain until the procedure, and a responder that also says "sedate" is that kind.
+    state.painfulCase = ((pack.responders) || []).some(r => { const al = ((r.match && r.match.any) || []).join(' | ');
+        return r.intent === 'med' && ANALGESIA_ALIAS_RE.test(al) && !/\bsedat/i.test(al); })
+      && ((pack.responders) || []).some(r => (r.speech || []).some(sp => sp.speaker === 'patient'));
+  if(!state.painfulCase) return;
+  const age = Number(opts && opts.patientAge);
+  if(Number.isFinite(age) && age < 4) return;
+  const v = out.updatedVitals || {};
+  if(state.intubated || v.hr === 0 || v.bpSystolic === 0 || /asystole|fibrillation|pulseless/i.test(String(v.rhythm || ''))) return;
+  if(out.isCaseOver) return;
+  if(ANALGESIC_GIVEN_RE.test(String(rawNorm || '')) && !WITHHOLD_RE.test(String(rawNorm || ''))){ state.painTreated = true; state.painTreatedAt = state.turnCount; return; }
+  if(out.speech.some(sp => sp.speaker === 'patient')) return;
+  const child = Number.isFinite(age) && age < 13;
+  if(state.painTreated){
+    if(state.turnCount > state.painTreatedAt){
+      out.speech.push({ speaker: 'patient', text: child ? "It doesn't hurt as much now." : "That's helping — the pain's easing off a bit. Thank you." });
+      state.painSaidBetter = true;
+    }
+    return;
+  }
+  if(!PAIN_TURNS.includes(state.turnCount)) return;
+  const lines = child
+    ? ['It hurts so much!', 'Owww — it really, really hurts.', 'Can you make it stop hurting?']
+    : ['Doctor, this pain is terrible — can I get something for it?',
+       "It still hurts so much… please, isn't there anything for the pain?",
+       "I can't take this pain much longer.",
+       'Please — the pain. Can you give me something?'];
+  out.speech.push({ speaker: 'patient', text: lines[PAIN_TURNS.indexOf(state.turnCount) % lines.length] });
+}
 // How the cases say a tube went in ("Airway's secured — tube confirmed and tied at the lip",
 // "Tube's in and confirmed with end-tidal CO2", "She's intubated.", "Advanced airway placed"),
 // and the words that make such a line a refusal, a plan or a failure instead.
@@ -3819,6 +3933,9 @@ function runTurn(pack, state, action, opts){
   state.labsSeen = state.labsSeen || {};
   state.reportsSeen = state.reportsSeen || {};
   state.turnCount = (state.turnCount || 0) + 1;
+  // The saturation the case itself states (see "A TUBE ON OXYGEN" below): its start, until a
+  // responder or stage says otherwise. The page's between-turn drift never moves it.
+  if(state.o2Ref == null && opts && opts.vitals && typeof opts.vitals.o2 === 'number') state.o2Ref = opts.vitals.o2;
   state.saidNoNew = state.saidNoNew || 0;
   state.spokenSeen = state.spokenSeen || {};   // authored lines already delivered — never replay verbatim
   state.narrSeen = state.narrSeen || {};       // authored narratives already delivered
@@ -4057,7 +4174,17 @@ function runTurn(pack, state, action, opts){
       if(ps.length && ps.every(p => negWindows.some(w => p >= w[0] && p <= w[1]))) negSkips.add(r);
     });
     let viaCatalog = false;
-    if(!matched.length && hasCatalog){
+    // A DIAGNOSIS IS NEVER REWRITTEN. The catalog's alias pass is for orders; its generated
+    // critical-action rows also carry bare disease words as aliases of OTHER diagnoses, and
+    // the pass swaps them mid-phrase. Kim, 2026-09-29, aortic dissection: she typed "aortic
+    // dissection" in the diagnosis box and the board stored "aortic stroke" (the neck-artery
+    // case's row maps "dissection" to "stroke"), graded it wrong, and the consultant told her
+    // that isn't what they'd call it. Measured the same day: 84 of the 172 cases' own
+    // diagnoses came out changed ("cardiac tamponade" -> "cardiac bakri", "acute appendicitis"
+    // -> "acute rule out aaa"). A framed diagnosis keeps the player's words, and is matched
+    // and graded on them.
+    const framedDx = ASSESS_FRAME_RE.test(rawClause) && !PLAN_PHRASE_RE.test(rawClause);
+    if(!matched.length && hasCatalog && !framedDx){
       const canon = applyCatalogAliases(rawClause, opts.catalog);
       if(canon !== rawClause){
         const g2 = gateByIntent(matchResponders(pack, canon, state.flags), canon, rawClause);
@@ -4187,9 +4314,12 @@ function runTurn(pack, state, action, opts){
         // A consultant already agreed on the diagnosis and waiting for TREATMENT is not
         // re-asked by a second diagnosis clause.
         const txWait = !!state.consultWaiting.needTx;
+        const helper = NON_ADMITTING.has(svc);
         const line = txWait ? null : accepted
-          ? consultAgreeLine(Svc, pack, state, opts)
+          ? (helper ? `${Svc} — agreed, that fits the chart. We'll help from our side; the team taking the patient still needs a call.`
+                    : consultAgreeLine(Svc, pack, state, opts))
           : `${Svc} — that isn't what I'd call this from the chart. Have another look and put your diagnosis in the box.`;
+        if(accepted && helper) state.consultWaiting = null;
         if(accepted && !txWait) anyApplied = true;
         else if(!accepted && !txWait) state.consultWaiting = { service: svc, needDx: true, at: state.turnCount || 0 };
         // …but only ONE consultant answer per turn, same rule as the gated branch above.
@@ -4617,6 +4747,7 @@ function runTurn(pack, state, action, opts){
   // an intubation ordered without the word ("RSI with ketamine and roc", "tube him").
   // (The confirmation idea is from the unreviewed working-folder edits, branch
   // codex-wip-2026-09-15; on its own, with its narrower wording, it caught 6 of the 45.)
+  const wasIntubated = !!state.intubated;
   if(!state.intubated){
     const INTUBATE_RE = /\b(intubate|intubated|intubation|rapid sequence intubation)\b/;
     const ordered = INTUBATE_RE.test(rawNorm) && !WITHHOLD_RE.test(rawNorm) && !PREP_RE.test(rawNorm)
@@ -4867,6 +4998,22 @@ function runTurn(pack, state, action, opts){
     const line = 'We\'ve got a pulse back — keep going, doctor.';
     if(!state.spokenSeen['nurse|' + line]) out.speech.push({speaker:'nurse', text: line});
   }
+  // A TUBE ON OXYGEN BRINGS THE SATURATION BACK. Kim, 2026-09-29, aortic dissection: "when I
+  // intubated the patient, I noticed the oxygen saturation did not improve, it stayed at 89%."
+  // Nothing authored had dropped it: the page's real-time drift slides a worsening patient's
+  // sat down between turns, and no responder in the case set one on the tube — so the drifted
+  // 89 was carried forward for the rest of the case. The reference is the last saturation the
+  // CASE stated (its start, or a responder or stage that set one), which the drift never moves:
+  // a patient whose own lungs are fine goes back to 98 on 100% oxygen; one whose case put the
+  // sat low (lung disease, a stage) gets only a few points, as PEEP would give. Never on a
+  // tube the team says is wrong (oesophageal, no end-tidal), and never over an authored value.
+  if(!wasIntubated && state.intubated && targets.o2 === undefined){
+    const cur = opts.vitals || {}, ref = state.o2Ref;
+    const doubt = out.speech.some(s => /oesophag|esophag|no (?:waveform|capnograph\w*|end.?tidal|co2|colou?r change)|desat|still dropping|sats? (?:are |is )?(?:dropping|falling)/i.test(s.text || ''));
+    if(!doubt && typeof cur.o2 === 'number' && cur.o2 > 0 && cur.o2 < 96 && typeof ref === 'number' && ref > 0)
+      targets.o2 = Math.max(cur.o2, ref >= 94 ? 98 : Math.min(96, ref + 3));
+  }
+  if(typeof targets.o2 === 'number' && targets.o2 > 0) state.o2Ref = targets.o2;
   Object.assign(out.updatedVitals, targets);
   // Reconcile the label with the numbers the player can see. Trends come from authored
   // responder/stage labels combined worst-wins, so a turn where the patient measurably
@@ -4972,6 +5119,7 @@ function runTurn(pack, state, action, opts){
     if(hint && !out.speech.some(sp => sp.text === hint)
             && !state.spokenSeen['nurse|' + hint]) out.speech.push({speaker:'nurse', text:hint});
   }
+  painCallout(pack, state, out, opts, rawNorm);
   for(const sp of out.speech) if(sp.speaker !== 'patient') state.spokenSeen[sp.speaker + '|' + sp.text] = true;
   creditShownReasoning(pack, state);
   if(trace){
@@ -5082,6 +5230,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   effectiveStages, DEFAULT_GRACE, nextStageDeadline, stageAverted, clauseRoutes,
   runTurn, buildDebrief, medicationCards, creditShownReasoning, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
+  caseServices, wrongServiceLine,   // who takes this case, and what a service that does not says
   treatmentActions,      // what an ungated consultant counts as the treatment (tests)
   consultAdmits,   // does this checklist action's own text say the consult IS the admission
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
