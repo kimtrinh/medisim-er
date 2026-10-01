@@ -1,0 +1,12 @@
+{
+  "_note": "The patient's own sounds (medisim-er-local.html PATIENT_SOUNDS). All CC0 1.0 (public domain) recordings from Freesound, trimmed and level-matched 2026-09-30; credit is not required by the licence and is given anyway.",
+  "patient-groan-m.m4a":     { "title": "GROANING.wav", "author": "vmgraw", "source": "https://freesound.org/people/vmgraw/sounds/257706/", "license": "CC0 1.0" },
+  "patient-moan-f.m4a":      { "title": "Moaning And Groaning.m4a", "author": "JalynCatbtg", "source": "https://freesound.org/people/JalynCatbtg/sounds/592988/", "license": "CC0 1.0" },
+  "patient-snore.m4a":       { "title": "Male Snore 2.wav", "author": "mattyharm", "source": "https://freesound.org/people/mattyharm/sounds/432996/", "license": "CC0 1.0" },
+  "patient-struggle.m4a":    { "title": "human-suffocating-breaths-male-01.WAV", "author": "roisin.gleeson", "source": "https://freesound.org/people/roisin.gleeson/sounds/653103/", "license": "CC0 1.0" },
+  "patient-lastgasp.m4a":    { "title": "Dying breath", "author": "randbsoundbites", "source": "https://freesound.org/people/randbsoundbites/sounds/843573/", "license": "CC0 1.0" },
+  "patient-wheeze.m4a":      { "title": "asthmatic_breathing.wav", "author": "harleto", "source": "https://freesound.org/people/harleto/sounds/204469/", "license": "CC0 1.0" },
+  "patient-infant-cry.m4a":  { "title": "HUMAN_BABY_2MONTHS_CRY_01.wav", "author": "keng-wai-chane-chick-te", "source": "https://freesound.org/people/keng-wai-chane-chick-te/sounds/463879/", "license": "CC0 1.0" },
+  "patient-newborn-cry.m4a": { "title": "Newborn baby cry", "author": "blaubeerbenno", "source": "https://freesound.org/people/blaubeerbenno/sounds/690629/", "license": "CC0 1.0" },
+  "patient-child-cry.m4a":   { "title": "Female Child Crying.m4a", "author": "Mpuddler", "source": "https://freesound.org/people/Mpuddler/sounds/684941/", "license": "CC0 1.0" }
+}

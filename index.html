@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-+Nb1yXApsGYpf3qGS9diXQoxa6KLjvBnI8nSpSdqomU=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-QbjMY4LR0ZmgmZDcFU2w/RvTClBaMQ4e0j8Uyd8/kpA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -3813,7 +3813,15 @@ DOCTOR'S LATEST ACTION (execute THIS, fully, now): ${action}${(() => {
     // here would read the PREVIOUS signature's receipts, because they are written after
     // this turn returns.
     S.orderFeedback = orderFeedbackFromTrace(r._trace);
-    if(!heard) S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined});
+    // WHAT THE PATIENT SAID, KEPT BESIDE THE QUESTION. Kim, 2026-09-30: "the patient never talks or makes
+    // any sound". The patient did answer — in the voice, and in a History drawer that is closed in the
+    // room — while the ED log, the one list always on screen, said only "Performed". The patient's and the
+    // family's words now sit under the order that drew them, in full.
+    const _said = (Array.isArray(r.speech) ? r.speech : [])
+      .filter(x => x && x.text && /^(patient|family|child)$/.test(normalizeSpeaker(x.speaker)))
+      .map(x => ({ who: normalizeSpeaker(x.speaker) === 'family' ? 'Family' : 'Patient', text: String(x.text) }));
+    if(!heard) S.timeline.push({min:S.simMin, text:(label||action), unmatched:_unmatched.length?_unmatched:undefined,
+      said: _said.length ? _said : undefined});
     if(loggingOn()) RUNLOG.turn(label||action, r, r._trace||null, S.simMin);
     gearAutoHook(orderWordsOnly(action)+' '+(r.narrative||''));      // hook equipment the orders placed (never a question's)
     reconcileTube(r);                                                // …but a tube only if the engine put one in
@@ -4980,6 +4988,90 @@ function _tone(freq,type,dur,vol,at){ const c=ensureAudioCtx(); if(!c) return;
 function voiceHasFloor(){
   try{ return !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)); }catch(_){ return false; }
 }
+// ===================== THE PATIENT'S OWN SOUNDS =====================
+// Kim, 2026-09-30: "the patient never talks or makes any sound … they can moan as well if they're in pain or
+// barely breathing." Nine short public-domain (CC0) recordings from Freesound (media/sounds/credits.json),
+// played every so often by the patient's state: a painful or injured patient moans until the analgesia goes
+// in; slow, shallow breathing through an unprotected airway snores; air hunger or a falling saturation
+// struggles (wheezes, in asthma or anaphylaxis); a hurt or breathless child cries, and a child too sick to
+// cry is silent; an infant cries while she still can; a newborn cries once she is vigorous; the moment the
+// pulse is lost there is one last gasp. Nothing while arrested, intubated, after the case, or over a voice.
+// patientSoundPick decides (pure, and the app's code-session runs the same one); patientSoundTick paces it.
+const PATIENT_SOUNDS = { 'groan-m':'media/sounds/patient-groan-m.m4a', 'moan-f':'media/sounds/patient-moan-f.m4a',
+  'snore':'media/sounds/patient-snore.m4a', 'struggle':'media/sounds/patient-struggle.m4a',
+  'lastgasp':'media/sounds/patient-lastgasp.m4a', 'wheeze':'media/sounds/patient-wheeze.m4a',
+  'infant-cry':'media/sounds/patient-infant-cry.m4a', 'newborn-cry':'media/sounds/patient-newborn-cry.m4a',
+  'child-cry':'media/sounds/patient-child-cry.m4a' };
+function patientSoundPick(p){
+  if(!p || p.ended || p.intubated) return null;
+  if(p.arrestNow) return 'lastgasp';
+  if(!p.pulse) return null;
+  const spo2 = Number(p.spo2) || 0, rr = Number(p.rr) || 0, hr = Number(p.hr) || 0;
+  if(p.neonate) return (hr >= 100 && spo2 >= 80) ? 'newborn-cry' : null;
+  if(p.age != null && p.age < 1) return (hr >= 80 && spo2 >= 80) ? 'infant-cry' : null;
+  if(p.age != null && p.age < 13){
+    if((spo2 && spo2 < 85) || (hr && hr < 60)) return null;      // too sick to cry: the silence is the sign
+    return (p.hurt || rr >= 40) ? 'child-cry' : null;
+  }
+  if(rr > 0 && rr <= 10) return 'snore';
+  if((spo2 > 0 && spo2 < 85) || rr >= 32) return p.wheezy ? 'wheeze' : 'struggle';
+  if(p.wheezy && ((spo2 > 0 && spo2 < 94) || rr >= 24)) return 'wheeze';
+  if(p.hurt) return p.female ? 'moan-f' : 'groan-m';
+  return null;
+}
+// Seconds between two of the same sound: breathing sounds come round more often than a moan.
+const PATIENT_SOUND_GAP = { 'snore': 16, 'struggle': 18, 'wheeze': 18, 'groan-m': 28, 'moan-f': 28,
+  'child-cry': 30, 'infant-cry': 32, 'newborn-cry': 40, 'lastgasp': 9999 };
+let _pSound = { case: null, t: 0, last: null, lastAt: -999, pulse: null, n: 0 };
+// One step a second. `nowSec` is wall-clock seconds; the page passes its own, the app's session its tick.
+function patientSoundTick(nowSec){
+  if(typeof S === 'undefined' || S.stage !== 'play' || !S.goldId){ _pSound.case = null; return null; }
+  const now = Number(nowSec) || 0;
+  if(_pSound.case !== S.goldId){ _pSound = { case: S.goldId, t: now, last: null, lastAt: -999, pulse: null, n: 0 }; }
+  const c = (typeof codeActive === 'function' && codeActive()) ? S.code : null;
+  const v = S.vitals || {};
+  const pulse = c ? !!c.pulse && !c.ended : (Number(v.hr) || 0) > 0;
+  const arrestNow = _pSound.pulse === true && pulse === false;
+  _pSound.pulse = pulse;
+  const ageRaw = S.patient && S.patient.age;
+  const pack = (typeof patientSoundPack === 'function') ? patientSoundPack() : null;
+  const st = S.instantState || {};
+  const dx = String(S.diagnosis || '');
+  const p = { ended: S.stage !== 'play', intubated: !!((S.gear && S.gear.ett) || st.intubated), arrestNow, pulse,
+    spo2: v.o2, rr: v.rr, hr: v.hr,
+    neonate: /^resus-nrp-/.test(S.goldId) || /newborn|neonat/i.test(String(ageRaw)),
+    age: Number.isFinite(Number(ageRaw)) ? Number(ageRaw) : null,
+    female: /^f/i.test(String((S.patient && S.patient.sex) || '')),
+    wheezy: /asthma|copd|bronchospasm|wheez|anaphyla/i.test(dx),
+    hurt: !st.painTreated && (!!(pack && InstantEngine.isPainfulPack && InstantEngine.isPainfulPack(pack))
+      || /\b(?:injur\w*|fractur\w*|trauma\w*|wounds?|stab|stabbed|gunshot|lacerat\w*|burns?)\b/i.test(dx)) };   // whole words: "stable" is not a stab
+  const kind = patientSoundPick(p);
+  if(!kind) return null;
+  if(now - _pSound.t < 7 && kind !== 'lastgasp') return null;                  // let the handover start first
+  const gap = PATIENT_SOUND_GAP[kind] || 30;
+  const jitter = ((_pSound.n * 7) % 9) - 4;                                       // ±4 s, so it is not a metronome
+  const changed = kind !== _pSound.last;
+  if(!changed && now - _pSound.lastAt < gap + jitter) return null;
+  if(changed && kind !== 'lastgasp' && now - _pSound.lastAt < 6) return null;
+  if(!playPatientSound(kind)) return null;                                         // someone is talking: try again next second
+  _pSound.last = kind; _pSound.lastAt = now; _pSound.n++;
+  return kind;
+}
+// The page's side: the recording, quieter than the team, never over a voice, and nothing at all when muted.
+let _patientAudio = null;
+function patientSoundPack(){ return (typeof _offline !== 'undefined' && _offline && S.goldId) ? _offline[S.goldId] || null : null; }
+function playPatientSound(kind){
+  if(!S.sound || !PATIENT_SOUNDS[kind]) return false;
+  if(voiceHasFloor() || (typeof _storyInFlight !== 'undefined' && _storyInFlight)) return false;
+  try{
+    if(!_patientAudio) _patientAudio = new Audio();
+    _patientAudio.src = PATIENT_SOUNDS[kind]; _patientAudio.volume = 0.7;
+    const pr = _patientAudio.play(); if(pr && pr.catch) pr.catch(() => {});
+  }catch(_){ return false; }
+  return true;
+}
+function stopPatientSound(){ try{ if(_patientAudio){ _patientAudio.pause(); } }catch(_){ } }
+setInterval(() => { try{ patientSoundTick(Date.now() / 1000); }catch(_){ } }, 1000);
 function beep(o2){ if(!S.sound || voiceHasFloor()) return; _tone(Math.max(300,Math.min(920, 520+(o2-85)*20)),'sine',0.07,0.10); }
 function alarmTones(){ if(!S.sound || voiceHasFloor()) return; _tone(660,'square',0.13,0.05,0); _tone(660,'square',0.13,0.05,0.19); _tone(990,'square',0.13,0.05,0.38); }
 function vitalsCritical(){ const v=S.shown, tp=ecgType(v.rhythm,v.hr);
@@ -8424,6 +8516,8 @@ async function instantTurn(action){
      consultGate: (await loadConsultGates())[S.goldId] || null,
      caseId: S.goldId || null,   // which teams take this case (instant-engine ALSO_TAKES)
      patientAge: (S.patient && S.patient.age != null) ? S.patient.age : null,   // who can say it hurts (painCallout)
+     // No pulse in a live code: the patient answers nothing (the engine hands the question to the nurse).
+     patientSilent: !!(S.code && !S.code.ended && !S.code.pulse),
      // A case may name more than one right answer (cases-gold "diagnosisAlso"). S.diagnosis
      // stays the single string everything DISPLAYS; the grader gets the whole list.
      diagnosis: (S.diagnosisAlso && S.diagnosisAlso.length) ? [S.diagnosis, ...S.diagnosisAlso] : S.diagnosis,
@@ -10653,7 +10747,8 @@ function paintOrderLog(){
       <span class="text-[11px] leading-snug ${bad ? 'text-amber-300' : t.refused ? 'text-slate-400' : 'text-slate-200'}">${esc(t.text || '')}${
         t.did ? ' <span class="text-slate-400">→ ' + esc(t.did) + '</span>' : ''}${
         bad ? ' <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">not understood</span>' : ''}${
-        t.refused ? ' <span class="text-[9px] font-black uppercase tracking-widest ' + NOT_GIVEN_CLASS + '" title="' + esc(timelineNotGivenWhy(t)) + '">not given · ' + esc(timelineNotGiven(t)) + '</span>' : ''}</span>
+        t.refused ? ' <span class="text-[9px] font-black uppercase tracking-widest ' + NOT_GIVEN_CLASS + '" title="' + esc(timelineNotGivenWhy(t)) + '">not given · ' + esc(timelineNotGiven(t)) + '</span>' : ''}${
+        (t.said || []).map(x => '<span class="saidLine block mt-0.5 text-violet-200/90"><span class="text-[9px] font-black uppercase tracking-widest text-violet-300/80">' + esc(x.who) + '</span> \u201c' + esc(x.text) + '\u201d</span>').join('')}</span>
     </div>`;
   };
   // The left wall's ED log (room, wide screens). It is there from the first minute, empty,
@@ -19071,7 +19166,7 @@ function setAllSound(on){
   S.tts=on; S.sound=on;
   try{ localStorage.setItem('ms_tts',on?'1':'0'); localStorage.setItem('ms_sound',on?'1':'0'); }catch(_){ }
   if(on){ ensureAudioCtx(); }
-  else { stopSpeak(); audioStatus(null); stopMonitorSound();
+  else { stopSpeak(); audioStatus(null); stopMonitorSound(); stopPatientSound();
     try{ if(typeof audioCtx!=='undefined' && audioCtx && audioCtx.state==='running') audioCtx.suspend(); }catch(_){ } }
   const t=$('soundToggle'); if(t) t.checked=S.sound;
   paintSoundBtn(); paintMuteBtn();

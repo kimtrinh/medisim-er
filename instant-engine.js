@@ -3884,14 +3884,18 @@ function isOrderFragment(text){ return ORDER_FRAGMENT.test(String(text == null ?
 const ANALGESIA_ALIAS_RE = /\b(analgesi\w*|pain (?:control|relief|med\w*|management)|treat (?:the )?pain|manage pain|control pain)\b/i;
 const ANALGESIC_GIVEN_RE = /\b(analgesi\w*|morphine|fentanyl|hydromorphone|dilaudid|ketorolac|toradol|ketamine|oxycodone|acetaminophen|paracetamol|tylenol|ibuprofen|motrin|nerve block|pain (?:control|relief|med\w*)|opioids?|narcotics?)\b/i;
 const PAIN_TURNS = [2, 5, 9, 14, 20];
+// …but not sedation for a painful PROCEDURE (pacing, cardioversion): those patients are not in pain
+// until the procedure, and a responder that also says "sedate" is that kind. Shared with the page's
+// patient sounds (patientSoundTick: a painful case moans until the analgesia goes in).
+function isPainfulPack(pack){
+  const rs = (pack && pack.responders) || [];
+  return rs.some(r => { const al = ((r.match && r.match.any) || []).join(' | ');
+      return r.intent === 'med' && ANALGESIA_ALIAS_RE.test(al) && !/\bsedat/i.test(al); })
+    && rs.some(r => (r.speech || []).some(sp => sp.speaker === 'patient'));
+}
 function painCallout(pack, state, out, opts, rawNorm){
   if(!pack || !state || state.painSaidBetter) return;
-  if(state.painfulCase == null)
-    // …but not sedation for a painful PROCEDURE (pacing, cardioversion): those patients are not
-    // in pain until the procedure, and a responder that also says "sedate" is that kind.
-    state.painfulCase = ((pack.responders) || []).some(r => { const al = ((r.match && r.match.any) || []).join(' | ');
-        return r.intent === 'med' && ANALGESIA_ALIAS_RE.test(al) && !/\bsedat/i.test(al); })
-      && ((pack.responders) || []).some(r => (r.speech || []).some(sp => sp.speaker === 'patient'));
+  if(state.painfulCase == null) state.painfulCase = isPainfulPack(pack);
   if(!state.painfulCase) return;
   const age = Number(opts && opts.patientAge);
   if(Number.isFinite(age) && age < 4) return;
@@ -5111,6 +5115,17 @@ function runTurn(pack, state, action, opts){
   // default narrative used to fabricate "<Drug> is in — the team watches for a
   // response" in the same breath as the consultant's refusal. Say nothing extra;
   // the elseSpeech tells the story.
+  // A PATIENT WHO CANNOT TALK DOES NOT ANSWER. Pulseless in a live code (the page says so: opts.patientSilent),
+  // or intubated, a case's written answer from the patient would be a corpse giving its history. The
+  // nurse says what the doctor would find instead (2026-09-30, written while giving more patients a voice).
+  if((opts && opts.patientSilent) || state.intubated){
+    const had = out.speech.some(sp => /^(patient|child)$/i.test(String(sp.speaker || '')));
+    if(had){
+      out.speech = out.speech.filter(sp => !/^(patient|child)$/i.test(String(sp.speaker || '')));
+      out.speech.push({ speaker: 'nurse', text: state.intubated && !(opts && opts.patientSilent)
+        ? "The patient's intubated and sedated — no answer, doctor." : 'No response, doctor — the patient can\u2019t answer you.' });
+    }
+  }
   if(!out.narrative) out.narrative = (anyApplied || !out.speech.length)
     ? defaultNarrative(out, state.turnCount, action)
     : 'The team holds off for now.';
@@ -5231,6 +5246,7 @@ root.InstantEngine = { normalize, splitClauses, lev, fuzzyHas, ABBREV,
   runTurn, buildDebrief, medicationCards, creditShownReasoning, buildGeneratedPack, diagnosisHead, diagnosisParts, matchesDiagnosis, diagnosisClose, diagnosisGrade, assessView,
   consultGateDecision,   // the referral conversation, pure and testable on its own
   caseServices, wrongServiceLine,   // who takes this case, and what a service that does not says
+  isPainfulPack,   // a case whose patient is in pain until something goes in for it (painCallout, patient sounds)
   treatmentActions,      // what an ungated consultant counts as the treatment (tests)
   consultAdmits,   // does this checklist action's own text say the consult IS the admission
   DX_EQUIV, setDxVocab, isBareDiagnosis, ASSESS_FRAME_RE,
