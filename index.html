@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-QbjMY4LR0ZmgmZDcFU2w/RvTClBaMQ4e0j8Uyd8/kpA=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-G0I1mhRv40XA3B13Uk0BH4eNgQTm/JrAWoUkoktRXXs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -6641,9 +6641,13 @@ function endCode(kind){
   }
   // ROSC hands the patient back to the turn engine: the post-arrest work (12-lead, cath
   // lab, cooling, disposition) is ordinary case play, and the pack's responders own it.
-  const back = 'Return of spontaneous circulation. ' + S.code.rhythm.replace('sinus-tachy','Sinus tachycardia')
-    + ' at ' + S.code.hr + ', pressure ' + S.code.bpSys + '/' + S.code.bpDia + '. He is not waking up.';
-  const line = [{speaker:'nurse', text:'He has a pulse and a pressure. What do you want first?'}];
+  // The patient's own pronoun and the rhythm in words (2026-09-30: the opioid arrest's young woman was "He", in
+  // "sinus-brady at 58").
+  const she = /^f/i.test(String((S.patient && S.patient.sex) || '')), He = she ? 'She' : 'He';
+  const rname = (typeof CodeEngine !== 'undefined' && CodeEngine.rhythmName) ? CodeEngine.rhythmName(S.code.rhythm) : S.code.rhythm;
+  const back = 'Return of spontaneous circulation. ' + rname.charAt(0).toUpperCase() + rname.slice(1)
+    + ' at ' + S.code.hr + ', pressure ' + S.code.bpSys + '/' + S.code.bpDia + '. ' + He + ' is not waking up.';
+  const line = [{speaker:'nurse', text: He + ' has a pulse and a pressure. What do you want first?'}];
   S.messages.push({role:'assistant', content:back, speech:line});
   renderPlay();
   narrate(line, back);
