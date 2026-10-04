@@ -11,7 +11,7 @@
      images). Inline application scripts are pinned by SHA-256 below; dynamic content
      is attribute-escaped and inline event-handler attributes are forbidden by tests.
      `unsafe-inline` remains style-only for Tailwind's generated styles. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-G0I1mhRv40XA3B13Uk0BH4eNgQTm/JrAWoUkoktRXXs=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZDcn7h3I1kg49rJ1FIvjOLmX8JWhDRxYSrW7gLPQ4OA=' 'sha256-qcU7rvm9BtueJZbjMeCsLDc0q0ruilEsaNp9bvUuTH4=' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://upload.wikimedia.org https://commons.wikimedia.org; media-src 'self' blob: data:; connect-src 'self' blob: https://api.anthropic.com https://generativelanguage.googleapis.com https://commons.wikimedia.org https://rtkhtxnrjkgxniqxrbcf.supabase.co https://medisim-collector.kltrinh-28a.workers.dev http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <title>MediSim ER — Local Edition</title>
 <script src="tailwind.min.js"></script>
@@ -12657,7 +12657,7 @@ const ROOM_LAYERS = {
     {on:'mtp',    src:'scenes/layers/case-resus-atls-penetrating-mtp.png',    box:[47.08,13.13,40.0,83.13]}],
   'older-f':   [{on:'binder', src:'scenes/layers/older-f-binder.png', box:[44.0,47.16,11.92,10.6]}],
   // No cric picture: Kim, 2026-09-28 — "way too big, it doesn't make sense". Codex's cric animation still plays.
-  'mid-m':     [{on:'arrest', src:'scenes/layers/mid-m-arrest.png', box:[31.75,43.13,38.92,33.58]}],
+  // No arrest look for him (Kim, 2026-10-04: the VF man "looks burnt or like a ghost" — back to his original photo).
   'mid-f':     [{on:'arrest', src:'scenes/layers/mid-f-arrest.png', box:[31.17,44.03,37.0,17.31]},
                 {on:'tq',     src:'scenes/layers/mid-f-tq.png',     box:[47.25,49.4,12.5,13.88]}],       // the dialysis arm
   'young-f-2': [{on:'arrest', src:'scenes/layers/young-f-2-arrest.png', box:[31.0,42.09,45.0,21.49]}],
